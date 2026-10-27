@@ -14,7 +14,9 @@ class MainActivity : AppCompatActivity() {
     private val PERMISSION_REQ_ID = 22
     private val REQUESTED_PERMISSIONS = arrayOf(
         Manifest.permission.RECORD_AUDIO,
-        Manifest.permission.INTERNET
+        Manifest.permission.INTERNET,
+        Manifest.permission.MODIFY_AUDIO_SETTINGS,
+        Manifest.permission.ACCESS_NETWORK_STATE
     )
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,10 +28,16 @@ class MainActivity : AppCompatActivity() {
             ActivityCompat.requestPermissions(this, REQUESTED_PERMISSIONS, PERMISSION_REQ_ID)
         }
 
-        // চ্যাটরুম জয়েন করার বাটন লজিক
+        // চ্যাটরুম জয়েন করার বাটন
         val joinButton = findViewById<Button>(R.id.joinButton)
         joinButton?.setOnClickListener {
-            Toast.makeText(this, "ভয়েস চ্যাটরুমে স্বাগতম!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "এস আর ভয়েস চ্যাটরুমে স্বাগতম!", Toast.LENGTH_SHORT).show()
+        }
+
+        // ওয়ালেট ও ওনার কন্ট্রোল বাটন
+        val btnCheckWallet = findViewById<Button>(R.id.btnCheckWallet)
+        btnCheckWallet?.setOnClickListener {
+            Toast.makeText(this, "ওয়ালের ও কন্ট্রোল প্যানেল লোড হচ্ছে...", Toast.LENGTH_SHORT).show()
         }
     }
 
