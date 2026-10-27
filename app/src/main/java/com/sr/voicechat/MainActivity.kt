@@ -24,24 +24,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         // পারমিশন চেক করা
-        if (!checkPermissions()) {
+        if (!checkSelfPermission()) {
             ActivityCompat.requestPermissions(this, REQUESTED_PERMISSIONS, PERMISSION_REQ_ID)
-        }
-
-        // চ্যাটরুম জয়েন করার বাটন
-        val joinButton = findViewById<Button>(R.id.joinButton)
-        joinButton?.setOnClickListener {
-            Toast.makeText(this, "এস আর ভয়েস চ্যাটরুমে স্বাগতম!", Toast.LENGTH_SHORT).show()
-        }
-
-        // ওয়ালেট ও ওনার কন্ট্রোল বাটন
-        val btnCheckWallet = findViewById<Button>(R.id.btnCheckWallet)
-        btnCheckWallet?.setOnClickListener {
-            Toast.makeText(this, "ওয়ালের ও কন্ট্রোল প্যানেল লোড হচ্ছে...", Toast.LENGTH_SHORT).show()
         }
     }
 
-    private fun checkPermissions(): Boolean {
+    private fun checkSelfPermission(): Boolean {
         for (permission in REQUESTED_PERMISSIONS) {
             if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
                 return false
