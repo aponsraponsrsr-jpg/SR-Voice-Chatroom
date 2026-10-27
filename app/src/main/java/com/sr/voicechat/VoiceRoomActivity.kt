@@ -24,6 +24,10 @@ class VoiceRoomActivity : AppCompatActivity() {
     private lateinit var giftBtn: Button
 
     private var isMuted = false
+    
+    // ইউজারের এবং রুমের নিজস্ব ইউনিক আইডি (সর্বনিম্ন ৭ ডিজিট, যেমন: 2947084)
+    private var currentUserId: String = ""
+    private var currentRoomId: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,6 +45,14 @@ class VoiceRoomActivity : AppCompatActivity() {
         serialBtn = findViewById(R.id.serialBtn)
         giftBtn = findViewById(R.id.giftBtn)
 
+        // রুম ওপেন হওয়ার সাথে সাথে IdManager থেকে ৭ ডিজিটের আইডি জেনারেট হবে
+        // এবং ইউজার আইডি ও রুম আইডি একদম সেম (একই) থাকবে।
+        currentUserId = IdManager.generateRandomRoomOrUserId()
+        currentRoomId = currentUserId // ইউজার আইডি ও রুম আইডি সমান করা হলো
+
+        // উদাহরণস্বরূপ রুম টাইটেলে আইডি শো করতে পারো বা টোস্ট দেখাতে পারো
+        Toast.makeText(this, "Room & User ID: $currentRoomId", Toast.LENGTH_LONG).show()
+
         // 1. Room Name Edit (Owner Control)
         editRoomButton.setOnClickListener {
             showEditRoomDialog()
@@ -48,7 +60,7 @@ class VoiceRoomActivity : AppCompatActivity() {
 
         // 2. Host / Seat 1 Control
         seat1Btn.setOnClickListener {
-            Toast.makeText(this, "Host Seat (Global Control Enabled)", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Host ID: $currentUserId (Global Control Enabled)", Toast.LENGTH_SHORT).show()
         }
 
         // 3. Seat 2 Interaction (Mute/Unmute Logic)
@@ -99,7 +111,7 @@ class VoiceRoomActivity : AppCompatActivity() {
             override fun onClick(dialog: DialogInterface?, which: Int) {
                 val newName = input.text.toString()
                 if (newName.isNotEmpty()) {
-                    roomTitleText.text = newName
+                    roomTitleText.text = "$newName (ID: $currentRoomId)"
                     Toast.makeText(this@VoiceRoomActivity, "Room name updated successfully!", Toast.LENGTH_SHORT).show()
                 }
             }
