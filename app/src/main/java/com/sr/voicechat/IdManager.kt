@@ -1,13 +1,14 @@
-package com.sr.voicechat
+package com.sr.voicechat;
 
-import kotlin.random.Random
+import java.util.Random;
 
-object IdManager {
-    // সর্বনিম্ন ৭ ডিজিট বা তার বেশি থেকে আইডি জেনারেট করার ফাংশন (যেমন: ২৯৪৭০৮৪)
-    fun generateRandomRoomOrUserId(): String {
+public class IdManager {
+    // সর্বনিম্ন ৭ ডিজিট বা তার বেশি থেকে আইডি জেনারেট করার ফাংশন
+    public static String generateRandomRoomOrUserId() {
         // ১০,০০,০০০ থেকে ৯৯,৯৯,৯৯৯ পর্যন্ত র্যান্ডম ৭ ডিজিটের আইডি তৈরি করবে
-        val minId = 1000000L
-        val maxId = 9999999L
-        return Random.nextLong(minId, maxId).toString()
+        long minId = 1000000L;
+        long maxId = 9999999L;
+        long randomValue = minId + (long)(new Random().nextDouble() * (maxId - minId));
+        return String.valueOf(randomValue);
     }
 }
