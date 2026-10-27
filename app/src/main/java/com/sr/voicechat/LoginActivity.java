@@ -24,7 +24,7 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Firebase Auth ইনিশিয়ালাইজ করা
+        // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
 
         emailEditText = findViewById(R.id.emailEditText);
@@ -38,26 +38,26 @@ public class LoginActivity extends AppCompatActivity {
                 String password = passwordEditText.getText().toString().trim();
 
                 if (TextUtils.isEmpty(email)) {
-                    emailEditText.setError("দয়া করে জিমেইল লিখুন");
+                    emailEditText.setError("Please enter your email");
                     return;
                 }
 
                 if (TextUtils.isEmpty(password)) {
-                    passwordEditText.setError("দয়া করে পাসওয়ার্ড দিন");
+                    passwordEditText.setError("Please enter your password");
                     return;
                 }
 
-                // ফায়ারবেসের মাধ্যমে লগইন করা
+                // Sign in with Firebase
                 mAuth.signInWithEmailAndPassword(email, password)
                         .addOnCompleteListener(LoginActivity.this, task -> {
                             if (task.isSuccessful()) {
-                                Toast.makeText(LoginActivity.this, "লগইন সফল হয়েছে!", Toast.LENGTH_SHORT).show();
-                                // সফল হলে পরবর্তী প্রোফাইল পেজে চলে যাবে
-                                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                                Toast.makeText(LoginActivity.this, "Login successful!", Toast.LENGTH_SHORT).show();
+                                // Navigate to ProfileActivity for profile setup after login
+                                Intent intent = new Intent(LoginActivity.this, ProfileActivity.class);
                                 startActivity(intent);
                                 finish();
                             } else {
-                                Toast.makeText(LoginActivity.this, "লগইন ব্যর্থ হয়েছে: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                                Toast.makeText(LoginActivity.this, "Login failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                             }
                         });
             }
@@ -67,10 +67,10 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        // ইউজার আগে থেকেই লগইন করা থাকলে সরাসরি মেইন পেজে পাঠিয়ে দেওয়া
+        // If user is already logged in, check profile or redirect to ProfileActivity / MainActivity
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
-            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+            startActivity(new Intent(LoginActivity.this, ProfileActivity.class));
             finish();
         }
     }
