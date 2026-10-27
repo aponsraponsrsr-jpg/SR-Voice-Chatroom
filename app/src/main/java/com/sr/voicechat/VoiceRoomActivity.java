@@ -1,64 +1,132 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/rootLayout"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="24dp"
-    android:background="#121212">
+package com.sr.voicechat;
 
-    <!-- রুমের শিরোনাম -->
-    <TextView
-        android:id="@+id/roomTitleTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="SR Voice Chatroom"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:textColor="#FFFFFF"
-        android:layout_marginBottom="24dp"/>
+import android.graphics.Color;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
-    <!-- সিটের স্ট্যাটাস -->
-    <TextView
-        android:id="@+id/seatStatusTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="সিট স্ট্যাটাস লোড হচ্ছে..."
-        android:textSize="16sp"
-        android:textColor="#AAAAAA"
-        android:layout_marginBottom="24dp"/>
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
-    <!-- সিটে বসার বাটন -->
-    <Button
-        android:id="@+id/takeSeatButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="সিট নিন (Take Seat)"
-        android:backgroundTint="#4CAF50"
-        android:textColor="#FFFFFF"
-        android:layout_marginBottom="12dp"
-        android:padding="12dp"/>
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
-    <!-- থিম পরিবর্তনের বাটন (শুধু ওনারের জন্য) -->
-    <Button
-        android:id="@+id/changeThemeButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="রুমের থিম পরিবর্তন করুন"
-        android:backgroundTint="#FF9800"
-        android:textColor="#FFFFFF"
-        android:layout_marginBottom="12dp"
-        android:padding="12dp"/>
+public class VoiceRoomActivity extends AppCompatActivity {
 
-    <!-- রুম ত্যাগ করার বাটন -->
-    <Button
-        android:id="@+id/leaveRoomButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="রুম ছেড়ে যান (Leave Room)"
-        android:backgroundTint="#F44336"
-        android:textColor="#FFFFFF"
-        android:padding="12dp"/>
+    private TextView roomTitleTextView, seatStatusTextView;
+    private Button takeSeatButton, leaveRoomButton, changeThemeButton;
+    private LinearLayout rootLayout;
+    
+    private FirebaseAuth mAuth;
+    private DatabaseReference roomRef;
+    private String currentUserId, roomId = "default_room";
+    private boolean isOwner = false;
 
-</LinearLayout>
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_voice_room);
+
+        mAuth = FirebaseAuth.getInstance();
+        currentUserId = mAuth.getCurrentUser().getUid();
+        
+        isOwner = getIntent().getBooleanExtra("isOwner", false);
+
+        roomRef = FirebaseDatabase.getInstance().getReference().child("VoiceRooms").child(roomId);
+
+        roomTitleTextView = findViewById(R.id.roomTitleTextView);
+        seatStatusTextView = findViewById(R.id.seatStatusTextView);
+        takeSeatButton = findViewById(R.id.takeSeatButton);
+        leaveRoomButton = findViewById(R.id.leaveRoomButton);
+        changeThemeButton = findViewById(R.id.changeThemeButton);
+        rootLayout = findViewById(R.id.rootLayout);
+
+        if (!isOwner) {
+            changeThemeButton.setVisibility(View.GONE);
+        } else {
+            changeThemeButton.setVisibility(View.VISIBLE);
+        }
+
+        changeThemeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (isOwner) {
+                    roomRef.child("roomTheme").setValue("dark_blue");
+                    Toast.makeText(VoiceRoomActivity.this, "রুমের থিম সফলভাবে পরিবর্তন করা হয়েছে!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(VoiceRoomActivity.this, "আপনার রুমের থিম পরিবর্তনের অনুমতি নেই!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        takeSeatButton.setOnClickListener(v -> takeSeat());
+        leaveRoomButton.setOnClickListener(v -> {
+            leaveRoom();
+            finish();
+        });
+
+        loadRoomDetails();
+        listenToThemeChanges();
+    }
+
+    private void takeSeat() {
+        roomRef.child("Seats").child("Seat_1").setValue(currentUserId).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Toast.makeText(VoiceRoomActivity.this, "আপনি সফলভাবে সিটে বসেছেন!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(VoiceRoomActivity.this, "সিটে বসা যায়নি!", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void leaveRoom() {
+        roomRef.child("Seats").child("Seat_1").removeValue();
+    }
+
+    private void loadRoomDetails() {
+        roomRef.child("roomName").setValue("SR Live Voice Club");
+        
+        roomRef.child("Seats").child("Seat_1").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String seatedUser = snapshot.getValue(String.class);
+                    if (seatedUser != null && seatedUser.equals(currentUserId)) {
+                        seatStatusTextView.setText("সিট ১: আপনি বসে আছেন");
+                    } else {
+                        seatStatusTextView.setText("সিট ১: অন্য ইউজার বসে আছে");
+                    }
+                } else {
+                    seatStatusTextView.setText("সিট ১: খালি আছে");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void listenToThemeChanges() {
+        roomRef.child("roomTheme").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String theme = snapshot.getValue(String.class);
+                    if ("dark_blue".equals(theme)) {
+                        rootLayout.setBackgroundColor(Color.parseColor("#0F2027"));
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+}
