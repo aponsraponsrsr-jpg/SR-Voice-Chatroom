@@ -1,10 +1,10 @@
 package com.sr.voicechat
 
 import android.app.AlertDialog
-import android.content.DialogInterface
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -12,6 +12,8 @@ import androidx.appcompat.app.AppCompatActivity
 class VoiceRoomActivity : AppCompatActivity() {
 
     private lateinit var roomTitleText: TextView
+    private lateinit var userIdText: TextView
+    private lateinit var profileImage: ImageView
     private lateinit var editRoomButton: Button
     private lateinit var seat1Btn: Button
     private lateinit var seat2Btn: Button
@@ -27,7 +29,7 @@ class VoiceRoomActivity : AppCompatActivity() {
     private var currentUserId: String = ""
     private var currentRoomId: String = ""
 
-    // সিটগুলোর অবস্থা ট্র্যাক করার জন্য (কে কোন সিটে বসেছে)
+    // সিটগুলোর অবস্থা ট্র্যাক করার জন্য
     private val seatOccupants = mutableMapOf<Int, String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,6 +37,8 @@ class VoiceRoomActivity : AppCompatActivity() {
         setContentView(R.layout.activity_voice_room)
 
         roomTitleText = findViewById(R.id.roomTitleText)
+        userIdText = findViewById(R.id.userIdText)
+        profileImage = findViewById(R.id.profileImage)
         editRoomButton = findViewById(R.id.editRoomButton)
         seat1Btn = findViewById(R.id.seat1Btn)
         seat2Btn = findViewById(R.id.seat2Btn)
@@ -46,16 +50,24 @@ class VoiceRoomActivity : AppCompatActivity() {
         serialBtn = findViewById(R.id.serialBtn)
         giftBtn = findViewById(R.id.giftBtn)
 
-        // আইডি জেনারেট এবং রুম ও ইউজার আইডি এক করা
+        // IdManager থেকে ৭ ডিজিটের ইউনিক আইডি জেনারেট করা (ইউজার আইডি ও রুম আইডি একই থাকবে)
         currentUserId = IdManager.generateRandomRoomOrUserId()
         currentRoomId = currentUserId
-        roomTitleText.text = "SR Voice Room (ID: $currentRoomId)"
 
-        Toast.makeText(this, "Welcome! Your ID: $currentUserId", Toast.LENGTH_LONG).show()
+        // স্ক্রিনে নাম এবং আইডি সেট করা
+        roomTitleText.text = "My Voice Room"
+        userIdText.text = "ID: $currentRoomId"
 
-        // 1. Room Profile / Name & Theme Edit
+        Toast.makeText(this, "Welcome! ID: $currentUserId", Toast.LENGTH_LONG).show()
+
+        // 1. Room Profile / Settings Edit Button
         editRoomButton.setOnClickListener {
             showEditRoomDialog()
+        }
+
+        // Profile Image Click to Edit Name/Profile
+        profileImage.setOnClickListener {
+            showChangeNameDialog()
         }
 
         // 2. Seat Click Listeners (Sitting & Interaction System)
@@ -86,17 +98,15 @@ class VoiceRoomActivity : AppCompatActivity() {
     private fun handleSeatClick(seatNumber: Int, seatButton: Button, seatName: String) {
         val occupant = seatOccupants[seatNumber]
         if (occupant == null) {
-            // যদি সিট খালি থাকে, তবে ইউজার এই সিটে বসবে
             seatOccupants[seatNumber] = currentUserId
-            seatButton.text = "User: ${currentUserId.takeLast(4)}"
+            seatButton.text = "$seatName\nID: ${currentUserId.takeLast(4)}"
             Toast.makeText(this, "You sat on $seatName", Toast.LENGTH_SHORT).show()
         } else {
-            // যদি সিট বুক করা থাকে, তবে ম্যানেজমেন্ট অপশন দেখাবে (মাইক মিউট, আনসিট ইত্যাদি)
             showSeatControlDialog(seatNumber, seatButton, seatName)
         }
     }
 
-    // Dialog to change Room Profile & Themes
+    // রুমের প্রোফাইল এবং থিম পরিবর্তনের ডায়ালগ
     private fun showEditRoomDialog() {
         val options = arrayOf("Change Room Name", "Change Room Theme (Background)", "Set Entry Effect")
         val builder = AlertDialog.Builder(this)
@@ -111,19 +121,19 @@ class VoiceRoomActivity : AppCompatActivity() {
         builder.show()
     }
 
-    // রুমের নাম পরিবর্তনের ডায়ালগ
+    // নাম বা প্রোফাইল পরিবর্তনের ডায়ালগ
     private fun showChangeNameDialog() {
         val builder = AlertDialog.Builder(this)
-        builder.setTitle("Edit Room Name")
+        builder.setTitle("Edit Room Name / Profile")
         val input = EditText(this)
-        input.hint = "Enter new room title"
+        input.setText(roomTitleText.text.toString())
         builder.setView(input)
 
         builder.setPositiveButton("Update") { _, _ ->
             val newName = input.text.toString()
             if (newName.isNotEmpty()) {
-                roomTitleText.text = "$newName (ID: $currentRoomId)"
-                Toast.makeText(this, "Room profile updated!", Toast.LENGTH_SHORT).show()
+                roomTitleText.text = newName
+                Toast.makeText(this, "Profile updated successfully!", Toast.LENGTH_SHORT).show()
             }
         }
         builder.setNegativeButton("Cancel", null)
@@ -155,7 +165,6 @@ class VoiceRoomActivity : AppCompatActivity() {
                     Toast.makeText(this, "$seatName mic is $status", Toast.LENGTH_SHORT).show()
                 }
                 1 -> {
-                    // সিট খালি করে দেওয়া
                     seatOccupants.remove(seatNumber)
                     seatButton.text = seatName
                     Toast.makeText(this, "You left $seatName", Toast.LENGTH_SHORT).show()
