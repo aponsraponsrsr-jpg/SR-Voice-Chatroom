@@ -1,6 +1,7 @@
 package com.sr.voicechat
 
 import android.app.AlertDialog
+import android.content.DialogInterface
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -94,13 +95,15 @@ class VoiceRoomActivity : AppCompatActivity() {
         input.setText(roomTitleText.text.toString())
         builder.setView(input)
 
-        builder.setPositiveButton("Update") { dialog, _ ->
-            val newName = input.text.toString()
-            if (newName.isNotEmpty()) {
-                roomTitleText.text = newName
-                Toast.makeText(this, "Room name updated successfully!", Toast.LENGTH_SHORT).show()
+        builder.setPositiveButton("Update", object : DialogInterface.OnClickListener {
+            override fun onClick(dialog: DialogInterface?, which: Int) {
+                val newName = input.text.toString()
+                if (newName.isNotEmpty()) {
+                    roomTitleText.text = newName
+                    Toast.makeText(this@VoiceRoomActivity, "Room name updated successfully!", Toast.LENGTH_SHORT).show()
+                }
             }
-        }
+        })
         builder.setNegativeButton("Cancel") { dialog, _ ->
             dialog.cancel()
         }
@@ -112,17 +115,19 @@ class VoiceRoomActivity : AppCompatActivity() {
         val options = arrayOf("Mute / Unmute Mic", "Lock Seat", "Step Down")
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Seat Management")
-        builder.getItems(options) { dialog, which ->
-            when (which) {
-                0 -> {
-                    isMuted = !isMuted
-                    val status = if (isMuted) "Muted by Admin" else "Unmuted"
-                    Toast.makeText(this, "Seat 2 is now $status", Toast.LENGTH_SHORT).show()
+        builder.getItems(options, object : DialogInterface.OnClickListener {
+            override fun onClick(dialog: DialogInterface?, which: Int) {
+                when (which) {
+                    0 -> {
+                        isMuted = !isMuted
+                        val status = if (isMuted) "Muted by Admin" else "Unmuted"
+                        Toast.makeText(this@VoiceRoomActivity, "Seat 2 is now $status", Toast.LENGTH_SHORT).show()
+                    }
+                    1 -> Toast.makeText(this@VoiceRoomActivity, "Seat Locked", Toast.LENGTH_SHORT).show()
+                    2 -> Toast.makeText(this@VoiceRoomActivity, "User moved to audience", Toast.LENGTH_SHORT).show()
                 }
-                1 -> Toast.makeText(this, "Seat Locked", Toast.LENGTH_SHORT).show()
-                2 -> Toast.makeText(this, "User moved to audience", Toast.LENGTH_SHORT).show()
             }
-        }
+        })
         builder.show()
     }
 }
