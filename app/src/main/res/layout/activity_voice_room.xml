@@ -30,7 +30,7 @@
             android:id="@+id/profileImage"
             android:layout_width="45dp"
             android:layout_height="45dp"
-            android:src="@mipmap/ic_launcher"
+            android:src="@android:drawable/ic_menu_camera"
             android:scaleType="centerCrop"
             android:background="@drawable/circle_shape" />
 
