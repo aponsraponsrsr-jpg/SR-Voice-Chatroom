@@ -11,28 +11,29 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="SR Voice Chatrooms"
-        android:textColor="#FFFFFF"
-        android:textSize="22sp"
+        android:textSize="24sp"
         android:textStyle="bold"
-        android:layout_marginBottom="24dp"/>
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="32dp"
+        android:layout_marginBottom="48dp" />
 
     <Button
         android:id="@+id/createRoomButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="নতুন ভয়েস রুম তৈরি করুন"
+        android:text="Create New Voice Room"
         android:backgroundTint="#6200EE"
         android:textColor="#FFFFFF"
-        android:padding="12dp"
-        android:layout_marginBottom="16dp"/>
+        android:layout_marginBottom="16dp"
+        android:padding="12dp" />
 
     <Button
         android:id="@+id/joinRoomButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="রুম ১-এ প্রবেশ করুন"
+        android:text="Join Room 1"
         android:backgroundTint="#03DAC6"
         android:textColor="#000000"
-        android:padding="12dp"/>
+        android:padding="12dp" />
 
 </LinearLayout>
