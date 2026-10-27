@@ -1,184 +1,204 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212"
-    android:orientation="vertical"
-    android:padding="16dp">
+    android:background="@android:color/black">
 
-    <!-- Top Bar: Room Title & Edit Button -->
-    <LinearLayout
+    <!-- রুমের ব্যাকগ্রাউন্ড বা থিম এরিয়া -->
+    <ImageView
+        android:id="@+id/roomBackground"
         android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@android:color/darker_gray" />
+
+    <!-- ১. বাম পাশের উপরে: ডিপি (Profile Picture) এবং আইডি / নাম ডিসপ্লে -->
+    <LinearLayout
+        android:id="@+id/topProfileLayout"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_margin="16dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginBottom="16dp">
+        android:background="@drawable/rounded_bg"
+        android:padding="6dp">
 
-        <TextView
-            android:id="@+id/roomTitleText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="SR Voice Chat Room"
-            android:textColor="#FFFFFF"
-            android:textSize="20sp"
-            android:textStyle="bold" />
+        <!-- গোল ডিপি (Profile Image) -->
+        <ImageView
+            android:id="@+id/profileImage"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:src="@mipmap/ic_launcher"
+            android:scaleType="centerCrop"
+            android:background="@drawable/circle_shape" />
 
-        <Button
-            android:id="@+id/editRoomButton"
+        <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="38dp"
-            android:backgroundTint="#FF2A6D"
-            android:text="Edit Room"
-            android:textAllCaps="false"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp" />
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/roomTitleText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="My Voice Room"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/userIdText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ID: 1000000"
+                android:textColor="#FFD700"
+                android:textSize="12sp" />
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- Room Theme & Info Banner -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:background="#1E1E1E"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:layout_marginBottom="24dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Active Room Theme: Default Dark"
-            android:textColor="#AAAAAA"
-            android:textSize="12sp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Welcome! Tap seats to manage or speak."
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_marginTop="2dp" />
-    </LinearLayout>
-
-    <!-- Seats Grid Layout (Interactive Voice Seats 1 to 6) -->
+    <!-- ২. রুমের ভেতরে গোল গোল সিট লেআউট (Seat 1 to 6) -->
     <GridLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:alignmentMode="alignMargins"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/topProfileLayout"
+        android:layout_above="@id/bottomControlBar"
+        android:layout_centerHorizontal="true"
+        android:layout_margin="20dp"
         android:columnCount="3"
-        android:gravity="center"
-        android:rowCount="2">
+        android:rowCount="2"
+        android:alignmentMode="alignMargins"
+        android:rowOrderPreserved="false"
+        android:gravity="center">
 
-        <!-- Seat 1 (Host) -->
+        <!-- Host / Seat 1 -->
         <Button
             android:id="@+id/seat1Btn"
-            android:layout_width="95dp"
-            android:layout_height="95dp"
-            android:layout_margin="10dp"
-            android:backgroundTint="#2C2C2C"
-            android:text="Seat 1\n(Host)"
-            android:textColor="#FF2A6D"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_margin="12dp"
+            android:background="@drawable/circle_shape"
+            android:text="Host\nSeat 1"
+            android:textColor="@android:color/white"
             android:textSize="11sp" />
 
         <!-- Seat 2 -->
         <Button
             android:id="@+id/seat2Btn"
-            android:layout_width="95dp"
-            android:layout_height="95dp"
-            android:layout_margin="10dp"
-            android:backgroundTint="#2C2C2C"
-            android:text="Seat 2\n(Empty)"
-            android:textColor="#FFFFFF"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_margin="12dp"
+            android:background="@drawable/circle_shape"
+            android:text="Seat 2"
+            android:textColor="@android:color/white"
             android:textSize="11sp" />
 
         <!-- Seat 3 -->
         <Button
             android:id="@+id/seat3Btn"
-            android:layout_width="95dp"
-            android:layout_height="95dp"
-            android:layout_margin="10dp"
-            android:backgroundTint="#2C2C2C"
-            android:text="Seat 3\n(Empty)"
-            android:textColor="#FFFFFF"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_margin="12dp"
+            android:background="@drawable/circle_shape"
+            android:text="Seat 3"
+            android:textColor="@android:color/white"
             android:textSize="11sp" />
 
         <!-- Seat 4 -->
         <Button
             android:id="@+id/seat4Btn"
-            android:layout_width="95dp"
-            android:layout_height="95dp"
-            android:layout_margin="10dp"
-            android:backgroundTint="#2C2C2C"
-            android:text="Seat 4\n(Empty)"
-            android:textColor="#FFFFFF"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_margin="12dp"
+            android:background="@drawable/circle_shape"
+            android:text="Seat 4"
+            android:textColor="@android:color/white"
             android:textSize="11sp" />
 
         <!-- Seat 5 -->
         <Button
             android:id="@+id/seat5Btn"
-            android:layout_width="95dp"
-            android:layout_height="95dp"
-            android:layout_margin="10dp"
-            android:backgroundTint="#2C2C2C"
-            android:text="Seat 5\n(Empty)"
-            android:textColor="#FFFFFF"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_margin="12dp"
+            android:background="@drawable/circle_shape"
+            android:text="Seat 5"
+            android:textColor="@android:color/white"
             android:textSize="11sp" />
 
         <!-- Seat 6 -->
         <Button
             android:id="@+id/seat6Btn"
-            android:layout_width="95dp"
-            android:layout_height="95dp"
-            android:layout_margin="10dp"
-            android:backgroundTint="#2C2C2C"
-            android:text="Seat 6\n(Empty)"
-            android:textColor="#FFFFFF"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_margin="12dp"
+            android:background="@drawable/circle_shape"
+            android:text="Seat 6"
+            android:textColor="@android:color/white"
             android:textSize="11sp" />
-
     </GridLayout>
 
-    <!-- Bottom Action Bar: Chat, Serial, Gift Box -->
+    <!-- ৩. একদম নিচের কন্ট্রোল বার (Bottom Bar: Mic, Chat, Gift, Menu) -->
     <LinearLayout
+        android:id="@+id/bottomControlBar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:background="#99000000"
         android:orientation="horizontal"
-        android:gravity="center"
-        android:paddingTop="12dp">
+        android:gravity="center_vertical"
+        android:paddingHorizontal="12dp">
 
-        <Button
-            android:id="@+id/chatBtn"
-            android:layout_width="0dp"
-            android:layout_height="45dp"
-            android:layout_weight="1"
-            android:layout_marginEnd="6dp"
-            android:backgroundTint="#1E1E1E"
-            android:text="💬 Chat"
-            android:textAllCaps="false"
-            android:textColor="#FFFFFF" />
-
+        <!-- Speaker Mute Button -->
         <Button
             android:id="@+id/serialBtn"
-            android:layout_width="0dp"
-            android:layout_height="45dp"
-            android:layout_weight="1"
-            android:layout_marginHorizontal="6dp"
-            android:backgroundTint="#1E1E1E"
-            android:text="🙋‍♂️ Serial"
-            android:textAllCaps="false"
-            android:textColor="#FFFFFF" />
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/circle_shape"
+            android:text="🎤" />
 
+        <!-- Type Chat Box -->
+        <EditText
+            android:id="@+id/chatInputBox"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="10dp"
+            android:background="@drawable/rounded_bg"
+            android:hint="Type a message..."
+            android:textColorHint="#AAAAAA"
+            android:textColor="@android:color/white"
+            android:paddingHorizontal="12dp"
+            android:textSize="13sp" />
+
+        <!-- Chat Button -->
+        <Button
+            android:id="@+id/chatBtn"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/circle_shape"
+            android:text="💬" />
+
+        <!-- Gift Box Button -->
         <Button
             android:id="@+id/giftBtn"
-            android:layout_width="0dp"
-            android:layout_height="45dp"
-            android:layout_weight="1"
-            android:layout_marginStart="6dp"
-            android:backgroundTint="#FF2A6D"
-            android:text="🎁 Gift Box"
-            android:textAllCaps="false"
-            android:textColor="#FFFFFF" />
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="6dp"
+            android:background="@drawable/circle_shape"
+            android:text="🎁" />
+
+        <!-- Edit Room / Menu Button (Right Corner) -->
+        <Button
+            android:id="@+id/editRoomButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/circle_shape"
+            android:text="⚙️"
+            android:textColor="@android:color/white" />
     </LinearLayout>
 
-</LinearLayout>
+</RelativeLayout>
