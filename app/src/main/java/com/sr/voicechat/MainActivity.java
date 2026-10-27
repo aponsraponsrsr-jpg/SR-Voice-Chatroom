@@ -19,11 +19,10 @@ public class MainActivity extends AppCompatActivity {
         createRoomButton = findViewById(R.id.createRoomButton);
         joinRoomButton = findViewById(R.id.joinRoomButton);
 
-        // Button to create a new voice room (User will join as owner)
+        // Button to create a new voice room
         createRoomButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Fixed class name to match VoiceroomActivity accurately
                 Intent intent = new Intent(MainActivity.this, VoiceroomActivity.class);
                 intent.putExtra("isOwner", true);
                 startActivity(intent);
@@ -34,7 +33,6 @@ public class MainActivity extends AppCompatActivity {
         joinRoomButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Fixed class name to match VoiceroomActivity accurately
                 Intent intent = new Intent(MainActivity.this, VoiceroomActivity.class);
                 intent.putExtra("isOwner", false);
                 startActivity(intent);
