@@ -1,5 +1,6 @@
 package com.sr.voicechat;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
@@ -12,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -35,7 +37,15 @@ public class VoiceRoomActivity extends AppCompatActivity {
         setContentView(R.layout.activity_voice_room);
 
         mAuth = FirebaseAuth.getInstance();
-        currentUserId = mAuth.getCurrentUser().getUid();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        
+        // Safety check to prevent crash if user is not logged in
+        if (currentUser == null) {
+            Toast.makeText(this, "Please login first!", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        currentUserId = currentUser.getUid();
         
         isOwner = getIntent().getBooleanExtra("isOwner", false);
 
@@ -59,9 +69,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (isOwner) {
                     roomRef.child("roomTheme").setValue("dark_blue");
-                    Toast.makeText(VoiceRoomActivity.this, "রুমের থিম সফলভাবে পরিবর্তন করা হয়েছে!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(VoiceRoomActivity.this, "Room theme updated successfully!", Toast.LENGTH_SHORT).show();
                 } else {
-                    Toast.makeText(VoiceRoomActivity.this, "আপনার রুমের থিম পরিবর্তনের অনুমতি নেই!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(VoiceRoomActivity.this, "You do not have permission to change the theme!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -79,9 +89,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private void takeSeat() {
         roomRef.child("Seats").child("Seat_1").setValue(currentUserId).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                Toast.makeText(VoiceRoomActivity.this, "আপনি সফলভাবে সিটে বসেছেন!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(VoiceRoomActivity.this, "You have taken the seat successfully!", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(VoiceRoomActivity.this, "সিটে বসা যায়নি!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(VoiceRoomActivity.this, "Failed to take the seat!", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -99,12 +109,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 if (snapshot.exists()) {
                     String seatedUser = snapshot.getValue(String.class);
                     if (seatedUser != null && seatedUser.equals(currentUserId)) {
-                        seatStatusTextView.setText("সিট ১: আপনি বসে আছেন");
+                        seatStatusTextView.setText("Seat 1: You are seated");
                     } else {
-                        seatStatusTextView.setText("সিট ১: অন্য ইউজার বসে আছে");
+                        seatStatusTextView.setText("Seat 1: Occupied by another user");
                     }
                 } else {
-                    seatStatusTextView.setText("সিট ১: খালি আছে");
+                    seatStatusTextView.setText("Seat 1: Available");
                 }
             }
 
