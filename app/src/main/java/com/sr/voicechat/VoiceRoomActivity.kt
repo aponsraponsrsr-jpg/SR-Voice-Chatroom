@@ -1,18 +1,106 @@
 package com.sr.voicechat
 
+import android.app.AlertDialog
 import android.os.Bundle
 import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 class VoiceRoomActivity : AppCompatActivity() {
+
+    private lateinit var roomTitleText: TextView
+    private lateinit var editRoomButton: Button
+    private lateinit var seat1Btn: Button
+    private lateinit var seat2Btn: Button
+    private lateinit var chatBtn: Button
+    private lateinit var serialBtn: Button
+    private lateinit var giftBtn: Button
+
+    private var isMuted = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_voice_room)
 
-        val editRoomButton = findViewById<Button>(R.id.editRoomButton)
+        roomTitleText = findViewById(R.id.roomTitleText)
+        editRoomButton = findViewById(R.id.editRoomButton)
+        seat1Btn = findViewById(R.id.seat1Btn)
+        seat2Btn = findViewById(R.id.seat2Btn)
+        chatBtn = findViewById(R.id.chatBtn)
+        serialBtn = findViewById(R.id.serialBtn)
+        giftBtn = findViewById(R.id.giftBtn)
+
+        // 1. Room Name Edit (Owner Control)
         editRoomButton.setOnClickListener {
-            Toast.makeText(this, "Room Edit & Seat Management Panel", Toast.LENGTH_SHORT).show()
+            showEditRoomDialog()
         }
+
+        // 2. Host / Seat 1 Control
+        seat1Btn.setOnClickListener {
+            Toast.makeText(this, "Host Seat (Global Control Enabled)", Toast.LENGTH_SHORT).show()
+        }
+
+        // 3. Seat 2 Interaction (Mute/Unmute Logic)
+        seat2Btn.setOnClickListener {
+            showSeatControlDialog()
+        }
+
+        // 4. Chat Button
+        chatBtn.setOnClickListener {
+            Toast.makeText(this, "Room Chat Panel Opened", Toast.LENGTH_SHORT).show()
+        }
+
+        // 5. Serial Button
+        serialBtn.setOnClickListener {
+            Toast.makeText(this, "Added to speaking queue (Serial)", Toast.LENGTH_SHORT).show()
+        }
+
+        // 6. Gift Box Button
+        giftBtn.setOnClickListener {
+            Toast.makeText(this, "Gift Box opened! Send gifts to speakers.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Dialog to change Room Name
+    private fun showEditRoomDialog() {
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Edit Room Name")
+
+        val input = EditText(this)
+        input.setText(roomTitleText.text.toString())
+        builder.setView(input)
+
+        builder.setPositiveButton("Update") { _, _ ->
+            val newName = input.text.toString()
+            if (newName.isNotEmpty()) {
+                roomTitleText.text = newName
+                Toast.makeText(this, "Room name updated successfully!", Toast.LENGTH_SHORT).show()
+            }
+        }
+        builder.setNegativeButton("Cancel") { dialog, _ ->
+            dialog.cancel()
+        }
+        builder.show()
+    }
+
+    // Dialog for Seat Control (Mute/Unmute/Kick)
+    private fun showSeatControlDialog() {
+        val options = arrayOf("Mute / Unmute Mic", "Lock Seat", "Step Down")
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Seat Management")
+        builder.getItems(options) { _, which ->
+            when (which) {
+                0 -> {
+                    isMuted = !isMuted
+                    val status = if (isMuted) "Muted by Admin" else "Unmuted"
+                    Toast.makeText(this, "Seat 2 is now $status", Toast.LENGTH_SHORT).show()
+                }
+                1 -> Toast.makeText(this, "Seat Locked", Toast.LENGTH_SHORT).show()
+                2 -> Toast.makeText(this, "User moved to audience", Toast.LENGTH_SHORT).show()
+            }
+        }
+        builder.show()
     }
 }
