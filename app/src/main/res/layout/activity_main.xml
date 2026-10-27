@@ -2,37 +2,29 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#121212"
     android:gravity="center"
     android:orientation="vertical"
-    android:padding="24dp"
-    android:background="#121212">
+    android:padding="24dp">
 
     <TextView
-        android:id="@+id/tvAppName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="এস আর ভয়েস চ্যাটরুম"
+        android:text="SR Voice Chatroom"
         android:textColor="#FFFFFF"
-        android:textSize="24sp"
+        android:textSize="26sp"
         android:textStyle="bold"
-        android:layout_marginBottom="16dp"/>
-
-    <TextView
-        android:id="@+id/tvWelcome"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="ওনার কন্ট্রোল প্যানেল লোড হচ্ছে..."
-        android:textColor="#AAAAAA"
-        android:textSize="16sp"
-        android:gravity="center"
         android:layout_marginBottom="32dp"/>
 
     <Button
-        android:id="@+id/btnCheckWallet"
+        android:id="@+id/walletButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="ওয়ালেট ও ওনার কন্ট্রোল"
-        android:backgroundTint="#FF4081"
-        android:textColor="#FFFFFF"/>
+        android:layout_height="55dp"
+        android:text="Open Voice Chat Room"
+        android:textAllCaps="false"
+        android:backgroundTint="#FF2A6D"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"/>
 
 </LinearLayout>
