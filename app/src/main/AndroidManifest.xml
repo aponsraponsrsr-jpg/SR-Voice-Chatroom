@@ -13,18 +13,20 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
 
+        <!-- MainActivity is now exported="false" because app starts from LoginActivity -->
         <activity
             android:name=".MainActivity"
+            android:exported="false" />
+
+        <!-- LoginActivity is now the LAUNCHER (App opens here first) -->
+        <activity
+            android:name=".LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name=".LoginActivity"
-            android:exported="false" />
 
         <activity
             android:name=".ProfileActivity"
