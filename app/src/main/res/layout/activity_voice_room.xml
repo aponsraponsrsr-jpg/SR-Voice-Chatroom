@@ -110,7 +110,7 @@
             android:layout_width="95dp"
             android:layout_height="95dp"
             android:layout_margin="10dp"
-            android:backgroundTint="2C2C2C"
+            android:backgroundTint="#2C2C2C"
             android:text="Seat 4\n(Empty)"
             android:textColor="#FFFFFF"
             android:textSize="11sp" />
