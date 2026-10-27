@@ -23,7 +23,7 @@ public class MainActivity extends AppCompatActivity {
         createRoomButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, VoiceroomActivity.class);
+                Intent intent = new Intent(MainActivity.this, VoiceRoomActivity.class);
                 intent.putExtra("isOwner", true);
                 startActivity(intent);
             }
@@ -33,7 +33,7 @@ public class MainActivity extends AppCompatActivity {
         joinRoomButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, VoiceroomActivity.class);
+                Intent intent = new Intent(MainActivity.this, VoiceRoomActivity.class);
                 intent.putExtra("isOwner", false);
                 startActivity(intent);
             }
