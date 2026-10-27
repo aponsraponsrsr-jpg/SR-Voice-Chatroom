@@ -1,8 +1,10 @@
 package com.sr.voicechat;
 
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,11 +21,13 @@ import com.google.firebase.database.ValueEventListener;
 public class VoiceRoomActivity extends AppCompatActivity {
 
     private TextView roomTitleTextView, seatStatusTextView;
-    private Button takeSeatButton, leaveRoomButton;
+    private Button takeSeatButton, leaveRoomButton, changeThemeButton;
+    private LinearLayout rootLayout;
     
     private FirebaseAuth mAuth;
     private DatabaseReference roomRef;
     private String currentUserId, roomId = "default_room";
+    private boolean isOwner = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,36 +37,50 @@ public class VoiceRoomActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         currentUserId = mAuth.getCurrentUser().getUid();
         
-        // ফায়ারবেস ডেটাবেজে রুমের রেফারেন্স
+        // MainActivity থেকে পাঠানো isOwner ভ্যালু রিসিভ করা
+        isOwner = getIntent().getBooleanExtra("isOwner", false);
+
         roomRef = FirebaseDatabase.getInstance().getReference().child("VoiceRooms").child(roomId);
 
         roomTitleTextView = findViewById(R.id.roomTitleTextView);
         seatStatusTextView = findViewById(R.id.seatStatusTextView);
         takeSeatButton = findViewById(R.id.takeSeatButton);
         leaveRoomButton = findViewById(R.id.leaveRoomButton);
+        changeThemeButton = findViewById(R.id.changeThemeButton);
+        rootLayout = findViewById(R.id.rootLayout); // লেআউটের রুট আইডি
 
-        // সিটে বসার বাটন
-        takeSeatButton.setOnClickListener(new View.OnClickListener() {
+        // যদি ইউজার ওনার না হয়, তবে থিম চেঞ্জ বাটন লুকিয়ে রাখা
+        if (!isOwner) {
+            changeThemeButton.setVisibility(View.GONE);
+        } else {
+            changeThemeButton.setVisibility(View.VISIBLE);
+        }
+
+        // থিম বা ব্যাকগ্রাউন্ড পরিবর্তনের বাটন (শুধু ওনার কাজ করবে)
+        changeThemeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                takeSeat();
+                if (isOwner) {
+                    // ফায়ারবেসে থিম বা ব্যাকগ্রাউন্ড আপডেট করা
+                    roomRef.child("roomTheme").setValue("dark_blue");
+                    Toast.makeText(VoiceRoomActivity.this, "রুমের থিম সফলভাবে পরিবর্তন করা হয়েছে!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(VoiceRoomActivity.this, "আপনার রুমের থিম পরিবর্তনের অনুমতি নেই!", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 
-        // রুম থেকে বের হওয়ার বাটন
-        leaveRoomButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                leaveRoom();
-                finish();
-            }
+        takeSeatButton.setOnClickListener(v -> takeSeat());
+        leaveRoomButton.setOnClickListener(v -> {
+            leaveRoom();
+            finish();
         });
 
         loadRoomDetails();
+        listenToThemeChanges();
     }
 
     private void takeSeat() {
-        // ইউজারের আইডি দিয়ে সিট বুক করা
         roomRef.child("Seats").child("Seat_1").setValue(currentUserId).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 Toast.makeText(VoiceRoomActivity.this, "আপনি সফলভাবে সিটে বসেছেন!", Toast.LENGTH_SHORT).show();
@@ -73,14 +91,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
     }
 
     private void leaveRoom() {
-        // রুম ছাড়লে সিট খালি করে দেওয়া
         roomRef.child("Seats").child("Seat_1").removeValue();
     }
 
     private void loadRoomDetails() {
         roomRef.child("roomName").setValue("SR Live Voice Club");
         
-        // রিয়েল-টাইমে সিটের অবস্থা মনিটর করা
         roomRef.child("Seats").child("Seat_1").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -97,9 +113,25 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                // কোনো এরর হ্যান্ডেল করতে চাইলে
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    // রিয়েল-টাইমে থিম পরিবর্তন মনিটর করা
+    private void listenToThemeChanges() {
+        roomRef.child("roomTheme").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String theme = snapshot.getValue(String.class);
+                    if ("dark_blue".equals(theme)) {
+                        rootLayout.setBackgroundColor(Color.parseColor("#0F2027")); // প্রিমিয়াম ডার্ক ব্লু থিম
+                    }
+                }
             }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 }
