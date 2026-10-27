@@ -19,21 +19,23 @@ public class MainActivity extends AppCompatActivity {
         createRoomButton = findViewById(R.id.createRoomButton);
         joinRoomButton = findViewById(R.id.joinRoomButton);
 
-        // নতুন রুম তৈরি করার বাটন (এখানে ওনার হিসেবে রুম ক্রিয়েট হবে)
+        // Button to create a new voice room (User will join as owner)
         createRoomButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, VoiceRoomActivity.class);
+                // Fixed class name to match VoiceroomActivity accurately
+                Intent intent = new Intent(MainActivity.this, VoiceroomActivity.class);
                 intent.putExtra("isOwner", true);
                 startActivity(intent);
             }
         });
 
-        // রুমে প্রবেশ করার বাটন
+        // Button to join an existing room
         joinRoomButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(MainActivity.this, VoiceRoomActivity.class);
+                // Fixed class name to match VoiceroomActivity accurately
+                Intent intent = new Intent(MainActivity.this, VoiceroomActivity.class);
                 intent.putExtra("isOwner", false);
                 startActivity(intent);
             }
