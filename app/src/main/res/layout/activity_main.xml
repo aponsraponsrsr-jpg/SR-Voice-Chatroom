@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="#121212">
+
+    <TextView
+        android:id="@+id/tvAppName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="এস আর ভয়েস চ্যাটরুম"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:id="@+id/tvWelcome"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ওনার কন্ট্রোল প্যানেল লোড হচ্ছে..."
+        android:textColor="#AAAAAA"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:layout_marginBottom="32dp"/>
+
+    <Button
+        android:id="@+id/btnCheckWallet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ওয়ালেট ও ওনার কন্ট্রোল"
+        android:backgroundTint="#FF4081"
+        android:textColor="#FFFFFF"/>
+
+</LinearLayout>
