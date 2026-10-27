@@ -94,7 +94,7 @@ class VoiceRoomActivity : AppCompatActivity() {
         input.setText(roomTitleText.text.toString())
         builder.setView(input)
 
-        builder.setPositiveButton("Update") { _, _ ->
+        builder.setPositiveButton("Update") { dialog, _ ->
             val newName = input.text.toString()
             if (newName.isNotEmpty()) {
                 roomTitleText.text = newName
@@ -112,7 +112,7 @@ class VoiceRoomActivity : AppCompatActivity() {
         val options = arrayOf("Mute / Unmute Mic", "Lock Seat", "Step Down")
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Seat Management")
-        builder.getItems(options) { _, which ->
+        builder.getItems(options) { dialog, which ->
             when (which) {
                 0 -> {
                     isMuted = !isMuted
