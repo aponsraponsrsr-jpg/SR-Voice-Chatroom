@@ -2,29 +2,37 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212"
-    android:gravity="center"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="16dp"
+    android:background="#121212"
+    android:gravity="center_horizontal">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="SR Voice Chatroom"
+        android:text="SR Voice Chatrooms"
         android:textColor="#FFFFFF"
-        android:textSize="26sp"
+        android:textSize="22sp"
         android:textStyle="bold"
-        android:layout_marginBottom="32dp"/>
+        android:layout_marginBottom="24dp"/>
 
     <Button
-        android:id="@+id/walletButton"
+        android:id="@+id/createRoomButton"
         android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:text="Open Voice Chat Room"
-        android:textAllCaps="false"
-        android:backgroundTint="#FF2A6D"
+        android:layout_height="wrap_content"
+        android:text="নতুন ভয়েস রুম তৈরি করুন"
+        android:backgroundTint="#6200EE"
         android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        android:textStyle="bold"/>
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/joinRoomButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="রুম ১-এ প্রবেশ করুন"
+        android:backgroundTint="#03DAC6"
+        android:textColor="#000000"
+        android:padding="12dp"/>
 
 </LinearLayout>
