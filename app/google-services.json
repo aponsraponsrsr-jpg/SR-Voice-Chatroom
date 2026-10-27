@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "100000000000",
+    "firebase_url": "https://sr-voice-chat-default-rtdb.firebaseio.com",
+    "project_id": "sr-voice-chat",
+    "storage_bucket": "sr-voice-chat.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:100000000000:android:abcdef1234567890",
+        "android_client_info": {
+          "package_name": "com.sr.voicechat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDummyKeyForVoiceChatAppInitializationOnlyXYZ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
