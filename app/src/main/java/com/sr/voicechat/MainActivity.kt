@@ -1,10 +1,10 @@
 package com.sr.voicechat
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.widget.Button
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -23,9 +23,16 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // পারমিশন চেক করা
+        // Check permissions
         if (!checkSelfPermission()) {
             ActivityCompat.requestPermissions(this, REQUESTED_PERMISSIONS, PERMISSION_REQ_ID)
+        }
+
+        // Navigate to Voice Chat Room on button click
+        val walletButton = findViewById<Button>(R.id.walletButton)
+        walletButton.setOnClickListener {
+            val intent = Intent(this, VoiceRoomActivity::class.java)
+            startActivity(intent)
         }
     }
 
