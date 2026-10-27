@@ -14,6 +14,10 @@ class VoiceRoomActivity : AppCompatActivity() {
     private lateinit var editRoomButton: Button
     private lateinit var seat1Btn: Button
     private lateinit var seat2Btn: Button
+    private lateinit var seat3Btn: Button
+    private lateinit var seat4Btn: Button
+    private lateinit var seat5Btn: Button
+    private lateinit var seat6Btn: Button
     private lateinit var chatBtn: Button
     private lateinit var serialBtn: Button
     private lateinit var giftBtn: Button
@@ -28,6 +32,10 @@ class VoiceRoomActivity : AppCompatActivity() {
         editRoomButton = findViewById(R.id.editRoomButton)
         seat1Btn = findViewById(R.id.seat1Btn)
         seat2Btn = findViewById(R.id.seat2Btn)
+        seat3Btn = findViewById(R.id.seat3Btn)
+        seat4Btn = findViewById(R.id.seat4Btn)
+        seat5Btn = findViewById(R.id.seat5Btn)
+        seat6Btn = findViewById(R.id.seat6Btn)
         chatBtn = findViewById(R.id.chatBtn)
         serialBtn = findViewById(R.id.serialBtn)
         giftBtn = findViewById(R.id.giftBtn)
@@ -45,6 +53,20 @@ class VoiceRoomActivity : AppCompatActivity() {
         // 3. Seat 2 Interaction (Mute/Unmute Logic)
         seat2Btn.setOnClickListener {
             showSeatControlDialog()
+        }
+
+        // Other seats click listeners
+        seat3Btn.setOnClickListener {
+            Toast.makeText(this, "Seat 3 clicked", Toast.LENGTH_SHORT).show()
+        }
+        seat4Btn.setOnClickListener {
+            Toast.makeText(this, "Seat 4 clicked", Toast.LENGTH_SHORT).show()
+        }
+        seat5Btn.setOnClickListener {
+            Toast.makeText(this, "Seat 5 clicked", Toast.LENGTH_SHORT).show()
+        }
+        seat6Btn.setOnClickListener {
+            Toast.makeText(this, "Seat 6 clicked", Toast.LENGTH_SHORT).show()
         }
 
         // 4. Chat Button
