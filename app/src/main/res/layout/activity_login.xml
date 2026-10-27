@@ -2,52 +2,28 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
+    android:background="#121212"
     android:gravity="center"
-    android:padding="24dp"
-    android:background="#121212">
+    android:orientation="vertical"
+    android:padding="24dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="SR Voice Chat"
+        android:textColor="#FFFFFF"
         android:textSize="28sp"
         android:textStyle="bold"
-        android:textColor="#FFFFFF"
-        android:layout_marginBottom="32dp"/>
-
-    <EditText
-        android:id="@+id/emailEditText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="আপনার জিমেইল লিখুন"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#AAAAAA"
-        android:inputType="textEmailAddress"
-        android:padding="12dp"
-        android:layout_marginBottom="16dp"
-        android:background="@android:drawable/editbox_background_normal"/>
-
-    <EditText
-        android:id="@+id/passwordEditText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="পাসওয়ার্ড দিন"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#AAAAAA"
-        android:inputType="textPassword"
-        android:padding="12dp"
-        android:layout_marginBottom="24dp"
-        android:background="@android:drawable/editbox_background_normal"/>
+        android:layout_marginBottom="40dp" />
 
     <Button
-        android:id="@+id/loginButton"
+        android:id="@+id/googleSignInButton"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="লগইন করুন"
+        android:layout_height="55dp"
+        android:backgroundTint="#FFFFFF"
+        android:text="Sign in with Google"
+        android:textColor="#000000"
         android:textSize="16sp"
-        android:backgroundTint="#6200EE"
-        android:textColor="#FFFFFF"
-        android:padding="12dp"/>
+        android:textStyle="bold" />
 
 </LinearLayout>
