@@ -24,10 +24,11 @@ class VoiceRoomActivity : AppCompatActivity() {
     private lateinit var giftBtn: Button
 
     private var isMuted = false
-    
-    // ইউজারের এবং রুমের নিজস্ব ইউনিক আইডি (সর্বনিম্ন ৭ ডিজিট, যেমন: 2947084)
     private var currentUserId: String = ""
     private var currentRoomId: String = ""
+
+    // সিটগুলোর অবস্থা ট্র্যাক করার জন্য (কে কোন সিটে বসেছে)
+    private val seatOccupants = mutableMapOf<Int, String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,101 +46,123 @@ class VoiceRoomActivity : AppCompatActivity() {
         serialBtn = findViewById(R.id.serialBtn)
         giftBtn = findViewById(R.id.giftBtn)
 
-        // রুম ওপেন হওয়ার সাথে সাথে IdManager থেকে ৭ ডিজিটের আইডি জেনারেট হবে
-        // এবং ইউজার আইডি ও রুম আইডি একদম সেম (একই) থাকবে।
+        // আইডি জেনারেট এবং রুম ও ইউজার আইডি এক করা
         currentUserId = IdManager.generateRandomRoomOrUserId()
-        currentRoomId = currentUserId // ইউজার আইডি ও রুম আইডি সমান করা হলো
+        currentRoomId = currentUserId
+        roomTitleText.text = "SR Voice Room (ID: $currentRoomId)"
 
-        // উদাহরণস্বরূপ রুম টাইটেলে আইডি শো করতে পারো বা টোস্ট দেখাতে পারো
-        Toast.makeText(this, "Room & User ID: $currentRoomId", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "Welcome! Your ID: $currentUserId", Toast.LENGTH_LONG).show()
 
-        // 1. Room Name Edit (Owner Control)
+        // 1. Room Profile / Name & Theme Edit
         editRoomButton.setOnClickListener {
             showEditRoomDialog()
         }
 
-        // 2. Host / Seat 1 Control
-        seat1Btn.setOnClickListener {
-            Toast.makeText(this, "Host ID: $currentUserId (Global Control Enabled)", Toast.LENGTH_SHORT).show()
-        }
+        // 2. Seat Click Listeners (Sitting & Interaction System)
+        seat1Btn.setOnClickListener { handleSeatClick(1, seat1Btn, "Host") }
+        seat2Btn.setOnClickListener { handleSeatClick(2, seat2Btn, "Seat 2") }
+        seat3Btn.setOnClickListener { handleSeatClick(3, seat3Btn, "Seat 3") }
+        seat4Btn.setOnClickListener { handleSeatClick(4, seat4Btn, "Seat 4") }
+        seat5Btn.setOnClickListener { handleSeatClick(5, seat5Btn, "Seat 5") }
+        seat6Btn.setOnClickListener { handleSeatClick(6, seat6Btn, "Seat 6") }
 
-        // 3. Seat 2 Interaction (Mute/Unmute Logic)
-        seat2Btn.setOnClickListener {
-            showSeatControlDialog()
-        }
-
-        // Other seats click listeners
-        seat3Btn.setOnClickListener {
-            Toast.makeText(this, "Seat 3 clicked", Toast.LENGTH_SHORT).show()
-        }
-        seat4Btn.setOnClickListener {
-            Toast.makeText(this, "Seat 4 clicked", Toast.LENGTH_SHORT).show()
-        }
-        seat5Btn.setOnClickListener {
-            Toast.makeText(this, "Seat 5 clicked", Toast.LENGTH_SHORT).show()
-        }
-        seat6Btn.setOnClickListener {
-            Toast.makeText(this, "Seat 6 clicked", Toast.LENGTH_SHORT).show()
-        }
-
-        // 4. Chat Button
+        // 3. Chat Button
         chatBtn.setOnClickListener {
-            Toast.makeText(this, "Room Chat Panel Opened", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Room Chat & Entry Effect Panel Opened", Toast.LENGTH_SHORT).show()
         }
 
-        // 5. Serial Button
+        // 4. Serial Button
         serialBtn.setOnClickListener {
             Toast.makeText(this, "Added to speaking queue (Serial)", Toast.LENGTH_SHORT).show()
         }
 
-        // 6. Gift Box Button
+        // 5. Gift Box Button
         giftBtn.setOnClickListener {
             Toast.makeText(this, "Gift Box opened! Send gifts to speakers.", Toast.LENGTH_SHORT).show()
         }
     }
 
-    // Dialog to change Room Name
+    // সিটে বসা এবং ম্যানেজ করার লজিক
+    private fun handleSeatClick(seatNumber: Int, seatButton: Button, seatName: String) {
+        val occupant = seatOccupants[seatNumber]
+        if (occupant == null) {
+            // যদি সিট খালি থাকে, তবে ইউজার এই সিটে বসবে
+            seatOccupants[seatNumber] = currentUserId
+            seatButton.text = "User: ${currentUserId.takeLast(4)}"
+            Toast.makeText(this, "You sat on $seatName", Toast.LENGTH_SHORT).show()
+        } else {
+            // যদি সিট বুক করা থাকে, তবে ম্যানেজমেন্ট অপশন দেখাবে (মাইক মিউট, আনসিট ইত্যাদি)
+            showSeatControlDialog(seatNumber, seatButton, seatName)
+        }
+    }
+
+    // Dialog to change Room Profile & Themes
     private fun showEditRoomDialog() {
+        val options = arrayOf("Change Room Name", "Change Room Theme (Background)", "Set Entry Effect")
         val builder = AlertDialog.Builder(this)
-        builder.setTitle("Edit Room Name")
-
-        val input = EditText(this)
-        input.setText(roomTitleText.text.toString())
-        builder.setView(input)
-
-        builder.setPositiveButton("Update", object : DialogInterface.OnClickListener {
-            override fun onClick(dialog: DialogInterface?, which: Int) {
-                val newName = input.text.toString()
-                if (newName.isNotEmpty()) {
-                    roomTitleText.text = "$newName (ID: $currentRoomId)"
-                    Toast.makeText(this@VoiceRoomActivity, "Room name updated successfully!", Toast.LENGTH_SHORT).show()
-                }
+        builder.setTitle("Room Profile & Customization")
+        builder.setItems(options) { _, which ->
+            when (which) {
+                0 -> showChangeNameDialog()
+                1 -> showThemeSelectionDialog()
+                2 -> Toast.makeText(this, "Entry effect updated successfully!", Toast.LENGTH_SHORT).show()
             }
-        })
-        builder.setNegativeButton("Cancel") { dialog, _ ->
-            dialog.cancel()
         }
         builder.show()
     }
 
-    // Dialog for Seat Control (Mute/Unmute/Kick)
-    private fun showSeatControlDialog() {
-        val options = arrayOf("Mute / Unmute Mic", "Lock Seat", "Step Down")
+    // রুমের নাম পরিবর্তনের ডায়ালগ
+    private fun showChangeNameDialog() {
         val builder = AlertDialog.Builder(this)
-        builder.setTitle("Seat Management")
-        builder.setItems(options, object : DialogInterface.OnClickListener {
-            override fun onClick(dialog: DialogInterface?, which: Int) {
-                when (which) {
-                    0 -> {
-                        isMuted = !isMuted
-                        val status = if (isMuted) "Muted by Admin" else "Unmuted"
-                        Toast.makeText(this@VoiceRoomActivity, "Seat 2 is now $status", Toast.LENGTH_SHORT).show()
-                    }
-                    1 -> Toast.makeText(this@VoiceRoomActivity, "Seat Locked", Toast.LENGTH_SHORT).show()
-                    2 -> Toast.makeText(this@VoiceRoomActivity, "User moved to audience", Toast.LENGTH_SHORT).show()
-                }
+        builder.setTitle("Edit Room Name")
+        val input = EditText(this)
+        input.hint = "Enter new room title"
+        builder.setView(input)
+
+        builder.setPositiveButton("Update") { _, _ ->
+            val newName = input.text.toString()
+            if (newName.isNotEmpty()) {
+                roomTitleText.text = "$newName (ID: $currentRoomId)"
+                Toast.makeText(this, "Room profile updated!", Toast.LENGTH_SHORT).show()
             }
-        })
+        }
+        builder.setNegativeButton("Cancel", null)
+        builder.show()
+    }
+
+    // রুম থিম বা ব্যাকগ্রাউন্ড পরিবর্তনের ডায়ালগ
+    private fun showThemeSelectionDialog() {
+        val themes = arrayOf("Classic Dark Theme", "Neon Party Theme", "Royal Gold Theme", "Cool Blue Theme")
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("Select Room Theme")
+        builder.setItems(themes) { _, which ->
+            val selectedTheme = themes[which]
+            Toast.makeText(this, "Theme applied: $selectedTheme", Toast.LENGTH_SHORT).show()
+        }
+        builder.show()
+    }
+
+    // সিট কন্ট্রোল ডায়ালগ (Mute/Unmute / Step Down)
+    private fun showSeatControlDialog(seatNumber: Int, seatButton: Button, seatName: String) {
+        val options = arrayOf("Mute / Unmute Mic", "Step Down (Leave Seat)", "Lock Seat")
+        val builder = AlertDialog.Builder(this)
+        builder.setTitle("$seatName Management")
+        builder.setItems(options) { _, which ->
+            when (which) {
+                0 -> {
+                    isMuted = !isMuted
+                    val status = if (isMuted) "Muted" else "Unmuted"
+                    Toast.makeText(this, "$seatName mic is $status", Toast.LENGTH_SHORT).show()
+                }
+                1 -> {
+                    // সিট খালি করে দেওয়া
+                    seatOccupants.remove(seatNumber)
+                    seatButton.text = seatName
+                    Toast.makeText(this, "You left $seatName", Toast.LENGTH_SHORT).show()
+                }
+                2 -> Toast.makeText(this, "$seatName is locked by admin", Toast.LENGTH_SHORT).show()
+            }
+        }
         builder.show()
     }
 }
