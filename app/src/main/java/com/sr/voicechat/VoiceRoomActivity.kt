@@ -115,7 +115,7 @@ class VoiceRoomActivity : AppCompatActivity() {
         val options = arrayOf("Mute / Unmute Mic", "Lock Seat", "Step Down")
         val builder = AlertDialog.Builder(this)
         builder.setTitle("Seat Management")
-        builder.getItems(options, object : DialogInterface.OnClickListener {
+        builder.setItems(options, object : DialogInterface.OnClickListener {
             override fun onClick(dialog: DialogInterface?, which: Int) {
                 when (which) {
                     0 -> {
