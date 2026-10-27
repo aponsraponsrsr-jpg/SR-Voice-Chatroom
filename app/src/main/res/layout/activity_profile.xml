@@ -11,9 +11,31 @@
         android:id="@+id/profileImageView"
         android:layout_width="120dp"
         android:layout_height="120dp"
-        android:layout_marginBottom="24dp"
+        android:layout_marginBottom="16dp"
         android:background="#333333"
         android:scaleType="centerCrop"/>
+
+    <!-- ইমেজ সিলেক্ট করার বাটন -->
+    <Button
+        android:id="@+id/selectImageButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ছবি বেছে নিন"
+        android:layout_marginBottom="24dp"
+        android:backgroundTint="#03DAC5"
+        android:textColor="#000000"/>
+
+    <!-- নাম লেখার এডিট টেক্সট -->
+    <EditText
+        android:id="@+id/nameEditText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="আপনার নাম লিখুন"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#AAAAAA"
+        android:inputType="textPersonName"
+        android:layout_marginBottom="24dp"
+        android:padding="12dp"/>
 
     <Button
         android:id="@+id/saveProfileButton"
