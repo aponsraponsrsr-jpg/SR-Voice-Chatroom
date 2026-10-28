@@ -32,7 +32,7 @@ public class LoginActivity extends AppCompatActivity {
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        // সুনির্দিষ্ট গুগল সাইন-ইন বাটনে ক্লিক লজিক যুক্ত করা
+        // গুগল সাইন-ইন বাটনে ক্লিক লজিক যুক্ত করা
         Button googleSignInButton = findViewById(R.id.googleSignInButton);
         googleSignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -56,6 +56,14 @@ public class LoginActivity extends AppCompatActivity {
             try {
                 GoogleSignInAccount account = task.getResult(ApiException.class);
                 Toast.makeText(this, "Login Successful: " + account.getDisplayName(), Toast.LENGTH_LONG).show();
+                
+                // সফল লগইনের পর সরাসরি MainActivity-তে নিয়ে যাওয়ার কোড
+                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                intent.putExtra("user_name", account.getDisplayName());
+                intent.putExtra("user_email", account.getEmail());
+                startActivity(intent);
+                finish(); // যাতে ব্যাক করলে আবার লগইন পেজে ফিরে না আসে
+                
             } catch (ApiException e) {
                 Toast.makeText(this, "Login Failed: " + e.getStatusCode(), Toast.LENGTH_SHORT).show();
             }
