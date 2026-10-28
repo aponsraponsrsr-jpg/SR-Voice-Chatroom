@@ -3,7 +3,6 @@ package com.sr.voicechat;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,18 +24,17 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // লেআউট থেকে সরাসরি বাটনের আইডি 'googleLoginBtn' এর পরিবর্তে যেকোনো বাটনে কাজ করার জন্য বা সরাসরি স্ক্রিনে টাচ হ্যান্ডেল করতে পারেন
-        // অথবা লেআউটের সাথে মিল রেখে নিচের কোডটি কাজ করবে
-        Button loginBtn = findViewById(R.id.googleLoginBtn);
-
+        // গুগল সাইন-ইন অপশন কনফিগার করা
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
                 .build();
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        if (loginBtn != null) {
-            loginBtn.setOnClickListener(new View.OnClickListener() {
+        // পুরো লেআউটে বা স্ক্রিনে ক্লিক করলেই যেন গুগল সাইন-ইন শুরু হয়
+        View rootView = findViewById(android.R.id.content);
+        if (rootView != null) {
+            rootView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     signIn();
