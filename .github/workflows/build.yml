@@ -17,11 +17,11 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
       - name: Build Debug APK and Show SHA
         run: |
+          chmod +x gradlew || true
           ./gradlew assembleDebug
+          echo "====== PERMANENT SHA KEYS ======"
           keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android || true
       - name: Upload APK
         uses: actions/upload-artifact@v4
