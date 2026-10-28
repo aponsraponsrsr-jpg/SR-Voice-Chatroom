@@ -2,6 +2,7 @@ package com.sr.voicechat;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -23,12 +24,14 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // এখানে আপনার ডিজাইন অনুযায়ী বাটনের আইডি যুক্ত করা হলো
-        googleLoginBtn = findViewById(R.id.googleLoginBtn); // যদি লেআউটে আইডি আলাদা হয় এটি পরে ঠিক করা যাবে
+        googleLoginBtn = findViewById(R.id.googleLoginBtn);
 
         if (googleLoginBtn != null) {
-            googleLoginBtn.setOnClickListener(v -> {
-                Toast.makeText(LoginActivity.this, "Google Login Clicked", Toast.LENGTH_SHORT).show();
+            googleLoginBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(LoginActivity.this, "Google Login Clicked", Toast.LENGTH_SHORT).show();
+                }
             });
         }
     }
