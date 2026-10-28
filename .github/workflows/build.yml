@@ -17,14 +17,15 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Setup Gradle
+      - name: Setup Gradle 8.5
         uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.5
       - name: Build Debug APK and Show SHA
         run: |
-          ls -la
           gradle assembleDebug --no-daemon
           echo "====== PERMANENT SHA KEYS ======"
-          keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android || true
+          keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
