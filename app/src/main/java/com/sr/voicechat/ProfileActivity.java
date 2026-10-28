@@ -1,9 +1,8 @@
 package com.sr.voicechat;
 
 import android.content.Intent;
-import android.content.res.ColorStateList;
-import android.graphics.Color;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -24,7 +23,7 @@ public class ProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        // ভিউগুলো ইনিশিয়ালাইজ করা
+        // সেফলি ভিউগুলো ইনিশিয়ালাইজ করা
         etNickname = findViewById(R.id.etNickname);
         etBirthday = findViewById(R.id.etBirthday);
         etInvitationCode = findViewById(R.id.etInvitationCode);
@@ -32,45 +31,47 @@ public class ProfileActivity extends AppCompatActivity {
         btnFemale = findViewById(R.id.btnFemale);
         btnConfirm = findViewById(R.id.btnConfirm);
 
-        // অটোমেটিক ৭ থেকে ৮ ডিজিটের ইউনিক মিক্সড আইডি জেনারেট করা
+        // অটোমেটিক ৭ ডিজিটের ইউনিক আইডি জেনারেট করা
         generatedUserId = generateUniqueId();
 
-        // জেন্ডার সিলেকশন বাটন লজিক
-        btnMale.setOnClickListener(v -> {
-            selectedGender = "Male";
-            btnMale.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#6200EE")));
-            btnFemale.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#333333")));
-        });
+        // জেন্ডার মেল ক্লিক
+        if (btnMale != null) {
+            btnMale.setOnClickListener(v -> selectedGender = "Male");
+        }
 
-        btnFemale.setOnClickListener(v -> {
-            selectedGender = "Female";
-            btnFemale.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#6200EE")));
-            btnMale.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#333333")));
-        });
+        // জেন্ডার ফিমেল ক্লিক
+        if (btnFemale != null) {
+            btnFemale.setOnClickListener(v -> selectedGender = "Female");
+        }
 
-        // কনফার্ম বাটন ক্লিক লজিক
-        btnConfirm.setOnClickListener(v -> {
-            String nickname = etNickname.getText().toString().trim();
+        // কনফার্ম বাটন ক্লিক
+        if (btnConfirm != null) {
+            btnConfirm.setOnClickListener(v -> {
+                String nickname = "";
+                if (etNickname != null && etNickname.getText() != null) {
+                    nickname = etNickname.getText().toString().trim();
+                }
 
-            if (nickname.isEmpty()) {
-                etNickname.setError("Please enter your nickname");
-                etNickname.requestFocus();
-                return;
-            }
+                if (nickname.isEmpty()) {
+                    if (etNickname != null) {
+                        etNickname.setError("Please enter your nickname");
+                        etNickname.requestFocus();
+                    }
+                    return;
+                }
 
-            // সফলভাবে প্রোফাইল সেটআপ সম্পন্ন হওয়ার পর MainActivity-তে পাঠানো
-            Toast.makeText(ProfileActivity.this, "Profile Setup Successful! ID: " + generatedUserId, Toast.LENGTH_LONG).show();
+                Toast.makeText(ProfileActivity.this, "Profile Setup Successful! ID: " + generatedUserId, Toast.LENGTH_LONG).show();
 
-            Intent intent = new Intent(ProfileActivity.this, MainActivity.class);
-            intent.putExtra("user_id", generatedUserId);
-            intent.putExtra("user_name", nickname);
-            intent.putExtra("user_gender", selectedGender);
-            startActivity(intent);
-            finish();
-        });
+                Intent intent = new Intent(ProfileActivity.this, MainActivity.class);
+                intent.putExtra("user_id", generatedUserId);
+                intent.putExtra("user_name", nickname);
+                intent.putExtra("user_gender", selectedGender);
+                startActivity(intent);
+                finish();
+            });
+        }
     }
 
-    // ৭ বা ৮ ডিজিটের র্যান্ডম ইউনিক আইডি তৈরির মেথড
     private String generateUniqueId() {
         Random random = new Random();
         int idNumber = 1000000 + random.nextInt(9000000);
