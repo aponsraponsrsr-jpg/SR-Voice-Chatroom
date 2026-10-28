@@ -36,7 +36,9 @@ public class LoginActivity extends AppCompatActivity {
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        findViewById(R.id.googleSignInButton).setOnClickListener(v -> signIn());
+        if (findViewById(R.id.googleSignInButton) != null) {
+            findViewById(R.id.googleSignInButton).setOnClickListener(v -> signIn());
+        }
     }
 
     private void signIn() {
@@ -54,7 +56,7 @@ public class LoginActivity extends AppCompatActivity {
                 GoogleSignInAccount account = task.getResult(ApiException.class);
                 firebaseAuthWithGoogle(account.getIdToken());
             } catch (ApiException e) {
-                Toast.makeText(this, "Google sign in failed: " + e.getStatusCode(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Sign in failed", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -64,12 +66,11 @@ public class LoginActivity extends AppCompatActivity {
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        // সফলভাবে লগইন হওয়ার পর ProfileActivity-তে পাঠিয়ে দেওয়া
                         Intent intent = new Intent(LoginActivity.this, ProfileActivity.class);
                         startActivity(intent);
                         finish();
                     } else {
-                        Toast.makeText(LoginActivity.this, "Authentication Failed.", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(LoginActivity.this, "Auth Failed.", Toast.LENGTH_SHORT).show();
                     }
                 });
     }
