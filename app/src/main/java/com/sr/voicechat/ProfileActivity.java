@@ -1,6 +1,8 @@
 package com.sr.voicechat;
 
 import android.content.Intent;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -36,14 +38,14 @@ public class ProfileActivity extends AppCompatActivity {
         // জেন্ডার সিলেকশন বাটন লজিক
         btnMale.setOnClickListener(v -> {
             selectedGender = "Male";
-            btnMale.setBackgroundTintColor(getResources().getColor(android.R.color.holo_purple));
-            btnFemale.setBackgroundTintColor(getResources().getColor(android.R.color.darker_gray));
+            btnMale.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#6200EE")));
+            btnFemale.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#333333")));
         });
 
         btnFemale.setOnClickListener(v -> {
             selectedGender = "Female";
-            btnFemale.setBackgroundTintColor(getResources().getColor(android.R.color.holo_purple));
-            btnMale.setBackgroundTintColor(getResources().getColor(android.R.color.darker_gray));
+            btnFemale.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#6200EE")));
+            btnMale.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#333333")));
         });
 
         // কনফার্ম বাটন ক্লিক লজিক
