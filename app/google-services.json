@@ -7,15 +7,20 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:525180106032:android:ccebc6b166ec6fe20604f5",
+        "mobilesdk_app_id": "1:525180106032:android:67890abcdef12345",
         "android_client_info": {
           "package_name": "com.sr.voicechat"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "525180106032-a2bt0a1hb72vl7lddmurumgp4euuekqu.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyDp8O6YuhP54-dq0p--u36V8cI1IJ0wl1M"
+          "current_key": "AIzaSyDp806YuhG123456789abcdef"
         }
       ],
       "services": {
