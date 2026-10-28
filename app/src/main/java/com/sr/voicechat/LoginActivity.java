@@ -1,3 +1,20 @@
+package com.sr.voicechat;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
+
 public class LoginActivity extends AppCompatActivity {
 
     private GoogleSignInClient mGoogleSignInClient;
@@ -16,11 +33,7 @@ public class LoginActivity extends AppCompatActivity {
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
         // সুনির্দিষ্ট গুগল সাইন-ইন বাটনে ক্লিক লজিক যুক্ত করা
-        com.google.android.material.button.MaterialButton googleSignInButton = findViewById(R.id.googleSignInButton);
-        
-        // যদি সাধারণ Button হয়, তবে নিচের লাইনে শুধু `Button` লিখবে:
-        // Button googleSignInButton = findViewById(R.id.googleSignInButton);
-
+        Button googleSignInButton = findViewById(R.id.googleSignInButton);
         googleSignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
