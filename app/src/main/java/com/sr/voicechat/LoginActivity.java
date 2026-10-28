@@ -3,9 +3,7 @@ package com.sr.voicechat;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -29,6 +27,12 @@ public class LoginActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
 
+        // যদি user আগে থেকেই login থাকে, সরাসরি MainActivity তে পাঠিয়ে দাও
+        if (mAuth.getCurrentUser() != null) {
+            goToMain();
+            return;
+        }
+
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
@@ -49,14 +53,13 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
                 GoogleSignInAccount account = task.getResult(ApiException.class);
                 firebaseAuthWithGoogle(account.getIdToken());
             } catch (ApiException e) {
-                Toast.makeText(this, "Sign in failed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Google Sign in failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -66,12 +69,18 @@ public class LoginActivity extends AppCompatActivity {
         mAuth.signInWithCredential(credential)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        Intent intent = new Intent(LoginActivity.this, ProfileActivity.class);
-                        startActivity(intent);
-                        finish();
+                        Toast.makeText(this, "Login Success", Toast.LENGTH_SHORT).show();
+                        goToMain();
                     } else {
                         Toast.makeText(LoginActivity.this, "Auth Failed.", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void goToMain() {
+        // Login Success হলে কোথায় যাবে - এখানে ProfileActivity বদলে MainActivity দিতে পারো
+        Intent intent = new Intent(LoginActivity.this, ProfileActivity.class);
+        startActivity(intent);
+        finish();
     }
 }
