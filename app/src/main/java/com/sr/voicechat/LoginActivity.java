@@ -19,24 +19,24 @@ public class LoginActivity extends AppCompatActivity {
 
     private GoogleSignInClient mGoogleSignInClient;
     private static final int RC_SIGN_IN = 9001;
-    private Button googleLoginBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        googleLoginBtn = findViewById(R.id.googleLoginBtn);
+        // লেআউট থেকে সরাসরি বাটনের আইডি 'googleLoginBtn' এর পরিবর্তে যেকোনো বাটনে কাজ করার জন্য বা সরাসরি স্ক্রিনে টাচ হ্যান্ডেল করতে পারেন
+        // অথবা লেআউটের সাথে মিল রেখে নিচের কোডটি কাজ করবে
+        Button loginBtn = findViewById(R.id.googleLoginBtn);
 
-        // গুগল সাইন-ইন অপশন কনফিগার করা
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
                 .build();
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        if (googleLoginBtn != null) {
-            googleLoginBtn.setOnClickListener(new View.OnClickListener() {
+        if (loginBtn != null) {
+            loginBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     signIn();
@@ -59,9 +59,6 @@ public class LoginActivity extends AppCompatActivity {
             try {
                 GoogleSignInAccount account = task.getResult(ApiException.class);
                 Toast.makeText(this, "Login Successful: " + account.getDisplayName(), Toast.LENGTH_LONG).show();
-                
-                // এখানে সফলভাবে লগইন হওয়ার পর আপনার পরের মেইন পেজ বা প্রোফাইল পেজে যাওয়ার কোড বসাতে হবে
-                
             } catch (ApiException e) {
                 Toast.makeText(this, "Login Failed: " + e.getStatusCode(), Toast.LENGTH_SHORT).show();
             }
