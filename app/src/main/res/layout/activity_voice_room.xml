@@ -1,28 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="#121212">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="12dp">
-        <TextView android:id="@+id/roomNameText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SR Voice Room" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold"/>
-        <TextView android:id="@+id/roomIdText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ID: Loading..." android:textColor="#FFC107" android:textSize="13sp" android:layout_marginTop="4dp"/>
+
+    <!-- Top Bar -->
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="#80000000"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <ImageView android:id="@+id/ivRoomAvatar"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
+            android:src="@android:drawable/sym_def_app_icon"/>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="8dp">
+
+            <TextView android:id="@+id/tvRoomName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ham&quot;Tum"
+                android:textColor="#DDA0FF"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+
+            <TextView android:id="@+id/tvRoomIds"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ID: 11458875"
+                android:textColor="white"
+                android:textSize="12sp"/>
+        </LinearLayout>
+
+        <ImageView android:id="@+id/ivHomeSettings"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:src="@android:drawable/ic_menu_preferences"/>
     </LinearLayout>
-    <GridLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:columnCount="5" android:rowCount="2" android:layout_marginTop="10dp">
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:layout_margin="8dp"><ImageView android:id="@+id/seat1Image" android:layout_width="62dp" android:layout_height="62dp" android:src="@android:drawable/sym_def_app_icon"/><TextView android:id="@+id/seat1Name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="No.1" android:textColor="#FFF" android:textSize="12sp" android:layout_marginTop="5dp"/></LinearLayout>
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:layout_margin="8dp"><ImageView android:id="@+id/seat2Image" android:layout_width="62dp" android:layout_height="62dp" android:src="@android:drawable/sym_def_app_icon"/><TextView android:id="@+id/seat2Name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="No.2" android:textColor="#FFF" android:textSize="12sp" android:layout_marginTop="5dp"/></LinearLayout>
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:layout_margin="8dp"><ImageView android:id="@+id/seat3Image" android:layout_width="62dp" android:layout_height="62dp" android:src="@android:drawable/sym_def_app_icon"/><TextView android:id="@+id/seat3Name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="No.3" android:textColor="#FFF" android:textSize="12sp" android:layout_marginTop="5dp"/></LinearLayout>
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:layout_margin="8dp"><ImageView android:id="@+id/seat4Image" android:layout_width="62dp" android:layout_height="62dp" android:src="@android:drawable/sym_def_app_icon"/><TextView android:id="@+id/seat4Name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="No.4" android:textColor="#FFF" android:textSize="12sp" android:layout_marginTop="5dp"/></LinearLayout>
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:layout_margin="8dp"><ImageView android:id="@+id/seat5Image" android:layout_width="62dp" android:layout_height="62dp" android:src="@android:drawable/sym_def_app_icon"/><TextView android:id="@+id/seat5Name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="No.5" android:textColor="#FFF" android:textSize="12sp" android:layout_marginTop="5dp"/></LinearLayout>
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:layout_margin="8dp"><ImageView android:id="@+id/seat6Image" android:layout_width="62dp" android:layout_height="62dp" android:src="@android:drawable/sym_def_app_icon"/><TextView android:id="@+id/seat6Name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="No.6" android:textColor="#FFF" android:textSize="12sp" android:layout_marginTop="5dp"/></LinearLayout>
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:layout_margin="8dp"><ImageView android:id="@+id/seat7Image" android:layout_width="62dp" android:layout_height="62dp" android:src="@android:drawable/sym_def_app_icon"/><TextView android:id="@+id/seat7Name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="No.7" android:textColor="#FFF" android:textSize="12sp" android:layout_marginTop="5dp"/></LinearLayout>
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:layout_margin="8dp"><ImageView android:id="@+id/seat8Image" android:layout_width="62dp" android:layout_height="62dp" android:src="@android:drawable/sym_def_app_icon"/><TextView android:id="@+id/seat8Name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="No.8" android:textColor="#FFF" android:textSize="12sp" android:layout_marginTop="5dp"/></LinearLayout>
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:layout_margin="8dp"><ImageView android:id="@+id/seat9Image" android:layout_width="62dp" android:layout_height="62dp" android:src="@android:drawable/sym_def_app_icon"/><TextView android:id="@+id/seat9Name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="No.9" android:textColor="#FFF" android:textSize="12sp" android:layout_marginTop="5dp"/></LinearLayout>
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:gravity="center" android:orientation="vertical" android:layout_margin="8dp"><ImageView android:id="@+id/seat10Image" android:layout_width="62dp" android:layout_height="62dp" android:src="@android:drawable/sym_def_app_icon"/><TextView android:id="@+id/seat10Name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="No.10" android:textColor="#FFF" android:textSize="12sp" android:layout_marginTop="5dp"/></LinearLayout>
+
+    <!-- Seats Grid -->
+    <GridLayout
+        android:id="@+id/seatsGrid"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/topBar"
+        android:columnCount="5"
+        android:padding="10dp"
+        android:rowCount="2">
+
+        <ImageView android:id="@+id/seat1" android:layout_width="60dp" android:layout_height="60dp" android:layout_margin="8dp" android:background="#40FFFFFF"/>
+        <ImageView android:id="@+id/seat2" android:layout_width="60dp" android:layout_height="60dp" android:layout_margin="8dp" android:background="#40FFFFFF"/>
+        <ImageView android:id="@+id/seat3" android:layout_width="60dp" android:layout_height="60dp" android:layout_margin="8dp" android:background="#40FFFFFF"/>
+        <ImageView android:id="@+id/seat4" android:layout_width="60dp" android:layout_height="60dp" android:layout_margin="8dp" android:background="#40FFFFFF"/>
+        <ImageView android:id="@+id/seat5" android:layout_width="60dp" android:layout_height="60dp" android:layout_margin="8dp" android:background="#40FFFFFF"/>
+        <ImageView android:id="@+id/seat6" android:layout_width="60dp" android:layout_height="60dp" android:layout_margin="8dp" android:background="#40FFFFFF"/>
+        <ImageView android:id="@+id/seat7" android:layout_width="60dp" android:layout_height="60dp" android:layout_margin="8dp" android:background="#40FFFFFF"/>
+        <ImageView android:id="@+id/seat8" android:layout_width="60dp" android:layout_height="60dp" android:layout_margin="8dp" android:background="#40FFFFFF"/>
+        <ImageView android:id="@+id/seat9" android:layout_width="60dp" android:layout_height="60dp" android:layout_margin="8dp" android:background="#40FFFFFF"/>
+        <ImageView android:id="@+id/seat10" android:layout_width="60dp" android:layout_height="60dp" android:layout_margin="8dp" android:background="#40FFFFFF"/>
+
     </GridLayout>
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:background="#222222" android:padding="10dp" android:gravity="center_vertical">
-        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Say Hi~" android:textColor="#888888" android:textSize="14sp"/>
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="😊" android:textSize="22sp" android:onClick="onSmileClicked"/>
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎁" android:textSize="22sp" android:layout_marginStart="12dp"/>
-    </LinearLayout>
-</LinearLayout>
+
+    <TextView android:id="@+id/tvSeat3Name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/seatsGrid"
+        android:layout_centerHorizontal="true"
+        android:text="Ham&quot;Tum"
+        android:textColor="#DDA0FF"/>
+
+    <TextView android:id="@+id/tvEntryLog"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvSeat3Name"
+        android:layout_margin="20dp"
+        android:text="no body come to my room"
+        android:textColor="#90EE90"/>
+
+</RelativeLayout>
