@@ -12,6 +12,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import java.io.File;
 
 public class VoiceRoomActivity extends AppCompatActivity {
 
@@ -31,12 +32,20 @@ public class VoiceRoomActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_voice_room);
 
+        // সেভ করা ডেটা নিরাপদে লোড করা
         SharedPreferences prefs = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE);
-        userName = prefs.getString("user_name", "User");
-        userImage = prefs.getString("user_image", "");
+        userName = prefs.getString("user_name", "SR User");
         groupId = prefs.getString("group_id", "11458875");
         roomName = prefs.getString("room_name", userName + "'s Room");
         String savedTheme = prefs.getString("room_theme", "sea");
+
+        // ইন্টারনাল স্টোরেজ থেকে প্রোফাইল ছবি লোড করা
+        File imgFile = new File(getFilesDir(), "permanent_profile.jpg");
+        if (imgFile.exists()) {
+            userImage = Uri.fromFile(imgFile).toString();
+        } else {
+            userImage = prefs.getString("user_image", "");
+        }
 
         tvRoomName = findViewById(R.id.tvRoomName);
         tvRoomIds = findViewById(R.id.tvRoomIds);
@@ -59,7 +68,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         tvRoomName.setText(roomName);
         tvRoomIds.setText("ID: " + groupId);
-        tvOnlineCount.setText("1");
+        if (tvOnlineCount != null) {
+            tvOnlineCount.setText("1");
+        }
         tvChat1.setText("Welcome to " + roomName);
         tvChat2.setText("");
 
@@ -91,20 +102,29 @@ public class VoiceRoomActivity extends AppCompatActivity {
             ivExit.setOnClickListener(v -> showKeepOrExitDialog());
         }
 
-        // এখানে Toast ভুল ছিল, ঠিক করে দিলাম
-        ivMute.setOnClickListener(v -> Toast.makeText(this, "Audio Muted", Toast.LENGTH_SHORT).show());
-        ivMic.setOnClickListener(v -> Toast.makeText(this, "Mic Toggled", Toast.LENGTH_SHORT).show());
-        ivGift.setOnClickListener(v -> Toast.makeText(this, "Gift Box Clicked", Toast.LENGTH_SHORT).show());
-        ivGames.setOnClickListener(v -> Toast.makeText(this, "Games Hub Clicked", Toast.LENGTH_SHORT).show());
+        if (ivMute != null) {
+            ivMute.setOnClickListener(v -> Toast.makeText(this, "Audio Muted", Toast.LENGTH_SHORT).show());
+        }
+        if (ivMic != null) {
+            ivMic.setOnClickListener(v -> Toast.makeText(this, "Mic Toggled", Toast.LENGTH_SHORT).show());
+        }
+        if (ivGift != null) {
+            ivGift.setOnClickListener(v -> Toast.makeText(this, "Gift Box Clicked", Toast.LENGTH_SHORT).show());
+        }
+        if (ivGames != null) {
+            ivGames.setOnClickListener(v -> Toast.makeText(this, "Games Hub Clicked", Toast.LENGTH_SHORT).show());
+        }
 
-        ivSendChat.setOnClickListener(v -> {
-            String message = etChatInput.getText().toString().trim();
-            if (!message.isEmpty()) {
-                tvChat1.setText(tvChat2.getText().toString());
-                tvChat2.setText(userName + ": " + message);
-                etChatInput.setText("");
-            }
-        });
+        if (ivSendChat != null && etChatInput != null) {
+            ivSendChat.setOnClickListener(v -> {
+                String message = etChatInput.getText().toString().trim();
+                if (!message.isEmpty()) {
+                    tvChat1.setText(tvChat2.getText().toString());
+                    tvChat2.setText(userName + ": " + message);
+                    etChatInput.setText("");
+                }
+            });
+        }
     }
 
     @Override
@@ -116,12 +136,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Room Options")
                .setMessage("আপনি কি রুমটি মিনিমাইজ (Keep) করতে চান নাকি বের হয়ে যেতে চান (Exit)?")
-               .setPositiveButton("Keep (মিনিমাইজ)", (dialog, which) -> {
-                   moveTaskToBack(true);
-               })
-               .setNegativeButton("Exit (বের হন)", (dialog, which) -> {
-                   finish();
-               })
+               .setPositiveButton("Keep (মিনিমাইজ)", (dialog, which) -> moveTaskToBack(true))
+               .setNegativeButton("Exit (বের হন)", (dialog, which) -> finish())
                .show();
     }
 
@@ -145,6 +161,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     }
 
     private void applyThemeBackground(String themeKey) {
+        if (rootLayout == null) return;
         switch (themeKey) {
             case "nature":
                 rootLayout.setBackgroundColor(Color.parseColor("#0A2F2D"));
@@ -206,7 +223,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     }
                 } else {
                     seatNames[i].setText("");
-                    seats[i].setImageDrawable(null);
+                    seats[i].setImageResource(0);
                 }
             }
         }
