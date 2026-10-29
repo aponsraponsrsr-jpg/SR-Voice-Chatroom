@@ -6,19 +6,18 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- প্রোফাইল ছবির জন্য এই ২টা মাস্ট -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
 
     <application
         android:allowBackup="true"
         android:label="SR Voice Chatroom"
+        android:icon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
 
-        <!-- MainActivity is now exported="false" because app starts from LoginActivity -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="false" />
-
-        <!-- LoginActivity is now the LAUNCHER (App opens here first) -->
+        <!-- LoginActivity is LAUNCHER -->
         <activity
             android:name=".LoginActivity"
             android:exported="true">
@@ -29,11 +28,20 @@
         </activity>
 
         <activity
+            android:name=".MainActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".ProfileActivity"
             android:exported="false" />
 
         <activity
             android:name=".VoiceRoomActivity"
+            android:exported="false" />
+
+        <!-- Room Settings - ভিডিও ৪ এর জন্য নতুন অ্যাড করলাম -->
+        <activity
+            android:name=".RoomSettingsActivity"
             android:exported="false" />
 
     </application>
