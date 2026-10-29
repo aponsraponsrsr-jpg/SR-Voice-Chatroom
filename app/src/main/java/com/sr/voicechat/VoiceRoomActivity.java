@@ -1,13 +1,17 @@
 package com.sr.voicechat;
 
 import android.os.Bundle;
-import android.view.LayoutInflater;
+import android.view.Gravity;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import de.hdodenhof.circleimageview.CircleImageView;
+import java.util.HashSet;
+import java.util.Set;
 
 public class VoiceRoomActivity extends AppCompatActivity {
 
@@ -16,24 +20,30 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private TextView[] seatNames = new TextView[10];
     private boolean[] isSeatLocked = new boolean[10];
     private boolean[] isSeatTaken = new boolean[10];
+    private boolean[] isSeatMuted = new boolean[10];
     private String myUserId;
-    private boolean isOwner = true; // for test, you are owner
+    private String currentRoomName = "SR Voice Room";
+    private boolean isOwner = true;
+    private Set<Integer> adminSeats = new HashSet<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_voice_room);
 
-        // Get my ID from IdManager - now 7/8/9 digit mixed and unique
         myUserId = IdManager.getOrCreateUserId(this);
 
         roomIdText = findViewById(R.id.roomIdText);
         roomNameText = findViewById(R.id.roomNameText);
 
-        roomIdText.setText("Room ID: " + myUserId);
-        roomNameText.setText("Room: SR Voice Room");
+        roomIdText.setText("ID: " + myUserId + " | 7/8/9 digit unique");
+        roomNameText.setText(currentRoomName);
+
+        // 1. Room Name Click -> Edit Room Name
+        roomNameText.setOnClickListener(v -> showEditRoomNameDialog());
 
         initSeats();
+        initBottomBar();
     }
 
     private void initSeats() {
@@ -49,78 +59,143 @@ public class VoiceRoomActivity extends AppCompatActivity {
         for (int i = 0; i < 10; i++) {
             seatImages[i] = findViewById(imageIds[i]);
             seatNames[i] = findViewById(nameIds[i]);
-            isSeatLocked[i] = false;
-            isSeatTaken[i] = false;
             seatNames[i].setText("No." + (i + 1));
-
             final int index = i;
             seatImages[i].setOnClickListener(v -> onSeatClicked(index));
         }
-        
-        // Owner auto take seat 1
-        takeSeat(0);
+        takeSeat(0); // Owner auto seat 1
     }
 
-    private void onSeatClicked(int index) {
-        if (isSeatLocked[index]) {
-            Toast.makeText(this, "Mic is Locked", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (isSeatTaken[index]) {
-            showSeatOptions(index);
-        } else {
-            showTakeMicDialog(index);
-        }
+    private void initBottomBar() {
+        // Bottom bar এর ভিতরে Smile/Gift এ ক্লিক হলে কি হবে
+        // তোমার layout এ TextView আছে, আমরা সব View এ ক্লিক লাগাবো
+        View root = findViewById(android.R.id.content);
+        root.setOnClickListener(null); // dummy
+
+        // Smile বাটন খুঁজে বের করা - layout এর নিচে আছে
+        // তুমি যদি ID না দাও, তাও কাজ করবে, আমরা একটা simple emoji dialog দেখাবো
+        // এর জন্য নিচের LinearLayout এ ID দিতে হবে না, আমরা Activity তে একটা method রাখবো
     }
 
-    private void showTakeMicDialog(int index) {
+    // Bottom Smile Click থেকে কল হবে - তুমি xml এ onClick দিতে পারো
+    public void onSmileClicked(View view) {
+        showEmojiPanel();
+    }
+
+    private void showEmojiPanel() {
+        String[] emojis = {"😊", "😂", "❤️", "🔥", "🎉", "😍", "👏", "🥳", "😎", "🙏", "💯", "✨"};
         new AlertDialog.Builder(this)
-                .setTitle("Seat No." + (index + 1))
-                .setItems(new String[]{"Take The Mic", "Lock this mic", "Cancel"}, (dialog, which) -> {
-                    if (which == 0) takeSeat(index);
-                    else if (which == 1) lockSeat(index);
+                .setTitle("Choose Emoji")
+                .setItems(emojis, (dialog, which) -> {
+                    Toast.makeText(this, "Sent: " + emojis[which], Toast.LENGTH_SHORT).show();
                 })
                 .show();
     }
 
-    private void showSeatOptions(int index) {
+    private void showEditRoomNameDialog() {
+        if (!isOwner) {
+            Toast.makeText(this, "Only Owner can edit room", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        EditText input = new EditText(this);
+        input.setText(currentRoomName);
+        input.setPadding(30,30,30,30);
+        new AlertDialog.Builder(this)
+                .setTitle("Edit Room Name")
+                .setMessage("Room Thumbnail Edit is in Profile Activity")
+                .setView(input)
+                .setPositiveButton("Save", (dialog, which) -> {
+                    currentRoomName = input.getText().toString();
+                    roomNameText.setText(currentRoomName);
+                    Toast.makeText(this, "Room Name Updated", Toast.LENGTH_SHORT).show();
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void onSeatClicked(int index) {
+        if (isSeatLocked[index]) {
+            Toast.makeText(this, "Mic Locked", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (isSeatTaken[index]) showManageDialog(index);
+        else showTakeDialog(index);
+    }
+
+    private void showTakeDialog(int index) {
+        new AlertDialog.Builder(this)
+                .setTitle("Seat No." + (index + 1))
+                .setItems(new String[]{"Take The Mic", "Lock this mic", "Cancel"}, (d, w) -> {
+                    if (w == 0) takeSeat(index);
+                    else if (w == 1) lockSeat(index);
+                }).show();
+    }
+
+    private void showManageDialog(int index) {
+        // Owner can make Admin, Mute, Kick
+        String[] options;
         if (isOwner) {
-            new AlertDialog.Builder(this)
-                    .setTitle("Manage Seat No." + (index + 1))
-                    .setItems(new String[]{"Mute this mic", "Lock this mic", "Kick from mic", "Invite", "Cancel"}, (dialog, which) -> {
-                        if (which == 0) Toast.makeText(this, "Muted Seat " + (index+1), Toast.LENGTH_SHORT).show();
-                        else if (which == 1) lockSeat(index);
-                        else if (which == 2) leaveSeat(index);
-                    })
-                    .show();
+            boolean isAdmin = adminSeats.contains(index);
+            options = new String[]{
+                    isSeatMuted[index] ? "Unmute Mic" : "Mute this mic",
+                    "Lock this mic",
+                    "Kick from mic",
+                    isAdmin ? "Remove Admin" : "Make Admin",
+                    "Cancel"
+            };
         } else {
-            Toast.makeText(this, seatNames[index].getText(), Toast.LENGTH_SHORT).show();
+            options = new String[]{"View Profile", "Cancel"};
+        }
+
+        new AlertDialog.Builder(this)
+                .setTitle("Manage No." + (index + 1) + " - ID: " + myUserId)
+                .setItems(options, (d, w) -> {
+                    if (!isOwner) return;
+                    if (w == 0) toggleMute(index);
+                    else if (w == 1) lockSeat(index);
+                    else if (w == 2) leaveSeat(index);
+                    else if (w == 3) toggleAdmin(index);
+                }).show();
+    }
+
+    private void toggleMute(int index) {
+        isSeatMuted[index] = !isSeatMuted[index];
+        String msg = isSeatMuted[index] ? "Mic Muted No." + (index+1) : "Mic Unmuted No." + (index+1);
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    }
+
+    private void toggleAdmin(int index) {
+        if (adminSeats.contains(index)) {
+            adminSeats.remove(index);
+            Toast.makeText(this, "Admin Removed No." + (index+1), Toast.LENGTH_SHORT).show();
+        } else {
+            adminSeats.add(index);
+            Toast.makeText(this, "Now Admin No." + (index+1) + " - Can Mute/Invite", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void takeSeat(int index) {
-        // leave previous seat
-        for(int i=0;i<10;i++){
-            if(seatNames[i].getText().toString().contains(myUserId)){
-                leaveSeat(i);
-            }
+        for (int i = 0; i < 10; i++) {
+            if (seatNames[i].getText().toString().contains(myUserId)) leaveSeat(i);
         }
         isSeatTaken[index] = true;
-        seatNames[index].setText("User: " + myUserId);
+        seatNames[index].setText("ID:" + myUserId);
         seatImages[index].setBorderColor(getResources().getColor(android.R.color.holo_green_light));
-        seatImages[index].setBorderWidth(4);
-        Toast.makeText(this, "You took seat No." + (index + 1), Toast.LENGTH_SHORT).show();
+        seatImages[index].setBorderWidth(6);
+        Toast.makeText(this, "Take Seat No." + (index + 1) + " Done", Toast.LENGTH_SHORT).show();
     }
 
     private void leaveSeat(int index) {
         isSeatTaken[index] = false;
+        isSeatMuted[index] = false;
         seatNames[index].setText("No." + (index + 1));
         seatImages[index].setBorderWidth(0);
+        seatImages[index].setImageResource(R.mipmap.ic_launcher);
     }
 
     private void lockSeat(int index) {
         isSeatLocked[index] = true;
         seatImages[index].setImageResource(android.R.drawable.ic_lock_lock);
-        Toast.makeText(this, "Seat No." + (index+1) + " Locked", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Locked No." + (index + 1), Toast.LENGTH_SHORT).show();
     }
 }
