@@ -28,10 +28,11 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // পার্মানেন্ট ডাটা চেক: একবার রেজিস্টার্ড হলে আর কখনো লগইন পেজ আসবে না
         prefs = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE);
         boolean isRegistered = prefs.getBoolean("is_registered", false);
 
+        // যদি ইউজার ইতিমধ্যে রেজিস্টার্ড থাকে, তবে সরাসরি ভয়েস রুমে চলে যাবে (লগইন পেজে আটকাবে না)
+        // তবে তুমি যদি প্রোফাইল এডিট করতে চাও, সেজন্য আলাদা অপশন রাখা হয়েছে।
         if (isRegistered) {
             startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
             finish();
@@ -43,6 +44,20 @@ public class LoginActivity extends AppCompatActivity {
         etName = findViewById(R.id.etName);
         ivPreview = findViewById(R.id.ivPreview);
         Button btnCreate = findViewById(R.id.btnCreateRoom);
+
+        // আগের কোনো ডেটা থাকলে তা লোড করে নেওয়া যাতে হুট করে মুছে না যায়
+        savedImagePath = prefs.getString("user_image", "");
+        String savedName = prefs.getString("user_name", "");
+        if (!savedName.isEmpty()) {
+            etName.setText(savedName);
+        }
+        if (!savedImagePath.isEmpty()) {
+            try {
+                ivPreview.setImageURI(Uri.parse(savedImagePath));
+            } catch (Exception e) {
+                // Ignore
+            }
+        }
 
         pickImage = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
             if (uri != null) {
@@ -62,23 +77,23 @@ public class LoginActivity extends AppCompatActivity {
                 Toast.makeText(this, "দয়া করে নাম লিখুন", Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (savedImagePath.isEmpty()) {
-                Toast.makeText(this, "দয়া করে প্রোফাইল ছবি সিলেক্ট করুন", Toast.LENGTH_SHORT).show();
-                return;
-            }
 
-            // একবারই ইউনিক আইডি জেনারেট হয়ে আজীবনের জন্য ফিক্সড হয়ে যাবে
-            Random random = new Random();
-            String generatedId = String.valueOf(10000000 + random.nextInt(90000000));
+            // যদি আইডি আগে থেকেই তৈরি করা থাকে, তবে নতুন করে রেন্ডম আইডি না বানিয়ে আগের আইডিই বহাল রাখবে
+            String existingId = prefs.getString("group_id", "");
+            if (existingId.isEmpty() || existingId.equals("63913508")) {
+                Random random = new Random();
+                existingId = String.valueOf(10000000 + random.nextInt(90000000));
+            }
 
             SharedPreferences.Editor editor = prefs.edit();
             editor.putBoolean("is_registered", true);
             editor.putString("user_name", name);
             editor.putString("user_image", savedImagePath);
             editor.putString("room_name", name + "'s Room");
-            editor.putString("group_id", generatedId);
-            editor.putString("room_theme", "nature"); // ডিফল্ট থিম প্রকৃতি
+            editor.putString("group_id", existingId);
             editor.apply();
+
+            Toast.makeText(this, "প্রোফাইল সফলভাবে আপডেট হয়েছে!", Toast.LENGTH_SHORT).show();
 
             startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
             finish();
