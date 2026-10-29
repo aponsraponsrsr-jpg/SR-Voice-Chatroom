@@ -16,8 +16,8 @@ import androidx.appcompat.app.AppCompatActivity;
 public class VoiceRoomActivity extends AppCompatActivity {
 
     String userName, userImage, groupId, roomName;
-    TextView tvRoomName, tvRoomIds, tvChatDisplay;
-    ImageView ivExit, ivMute, ivMic, ivSendChat;
+    TextView tvRoomName, tvRoomIds, tvChat1, tvChat2;
+    ImageView ivExit, ivMute, ivMic, ivSendChat, ivGift, ivGames;
     EditText etChatInput;
     LinearLayout headerProfileLayout;
     RelativeLayout rootLayout;
@@ -34,14 +34,15 @@ public class VoiceRoomActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
         userName = prefs.getString("user_name", "User");
         userImage = prefs.getString("user_image", "");
-        groupId = prefs.getString("group_id", "11458875");
-        roomName = prefs.getString("room_name", userName + " Room");
+        groupId = prefs.getString("group_id", "21133805");
+        roomName = prefs.getString("room_name", userName + "'s Room");
         String savedTheme = prefs.getString("room_theme", "#121212");
 
         // ভিউ ইনিশিয়ালাইজেশন
         tvRoomName = findViewById(R.id.tvRoomName);
         tvRoomIds = findViewById(R.id.tvRoomIds);
-        tvChatDisplay = findViewById(R.id.tvChatDisplay);
+        tvChat1 = findViewById(R.id.tvChat1);
+        tvChat2 = findViewById(R.id.tvChat2);
         ivExit = findViewById(R.id.ivHomeSettings);
         headerProfileLayout = findViewById(R.id.headerProfileLayout);
         rootLayout = findViewById(R.id.rootLayout);
@@ -50,8 +51,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
         ivMic = findViewById(R.id.ivMic);
         ivSendChat = findViewById(R.id.ivSendChat);
         etChatInput = findViewById(R.id.etChatInput);
+        ivGift = findViewById(R.id.ivGift);
+        ivGames = findViewById(R.id.ivGames);
 
-        // সেভ করা থিম ব্যাকগ্রাউন্ড কালার সেট করা
+        // থিম কালার সেট করা
         try {
             rootLayout.setBackgroundColor(Color.parseColor(savedTheme));
         } catch (Exception e) {
@@ -60,9 +63,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         tvRoomName.setText(roomName);
         tvRoomIds.setText("ID: " + groupId);
-        tvChatDisplay.setText(userName + " joined the room");
+        tvChat1.setText(userName + ": Welcome to the room!");
+        tvChat2.setText("");
 
-        // সিট এবং সিটের নিচের নামগুলো বাইন্ড করা
+        // সিট এবং নাম বাইন্ডিং
         for (int i = 1; i <= 10; i++) {
             int seatResId = getResources().getIdentifier("seat" + i, "id", getPackageName());
             int nameResId = getResources().getIdentifier("tvName" + i, "id", getPackageName());
@@ -72,26 +76,25 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         updateSeatsDisplay();
 
-        // সিট এক্সচেঞ্জ ও প্রোফাইল পপআপ
+        // সিট এক্সচেঞ্জ ও পপআপ
         for (int i = 1; i <= 10; i++) {
             final int targetSeat = i;
             if (seats[i] != null) {
                 seats[i].setOnClickListener(v -> {
                     if (currentSeat == targetSeat) {
-                        // নিজের সিটে ক্লিক করলে প্রোফাইল পপআপ (আইডি সহ দেখাবে)
                         showProfilePopup();
                     } else {
-                        // অন্য সিটে ক্লিক করলে সিট এক্সচেঞ্জ হবে
                         currentSeat = targetSeat;
                         updateSeatsDisplay();
-                        tvChatDisplay.setText(userName + " moved to seat " + targetSeat);
+                        tvChat1.setText(tvChat2.getText().toString());
+                        tvChat2.setText(userName + " moved to seat " + targetSeat);
                         Toast.makeText(this, "Moved to Seat " + targetSeat, Toast.LENGTH_SHORT).show();
                     }
                 });
             }
         }
 
-        // হেডারে ক্লিক করলে রুম এডিট ও থিম গ্যালারি ডায়ালগ
+        // রুম সেটিংস ডায়ালগ
         if (headerProfileLayout != null) {
             headerProfileLayout.setOnClickListener(v -> showRoomSettingsDialog());
         }
@@ -108,15 +111,19 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // মাইক ও সাউন্ড কন্ট্রোল
+        // মাইক, সাউন্ড, গিফট ও গেম বাটন হ্যান্ডলিং
         ivMute.setOnClickListener(v -> Toast.makeText(this, "Audio Muted/Unmuted", Toast.LENGTH_SHORT).show());
         ivMic.setOnClickListener(v -> Toast.makeText(this, "Mic On/Off", Toast.LENGTH_SHORT).show());
+        
+        ivGift.setOnClickListener(v -> Toast.makeText(this, "Gift Box Clicked (Coming Soon)", Toast.LENGTH_SHORT).show());
+        ivGames.setOnClickListener(v -> Toast.makeText(this, "Games Hub Clicked (Coming Soon)", Toast.LENGTH_SHORT).show());
 
-        // রিয়েল-টাইম চ্যাট মেসেজ সেন্ড ও স্ক্রিনে শো করানোর লজিক
+        // বাঁ পাশে রিয়েল-টাইম চ্যাট মেসেজ শো করানোর লজিক
         ivSendChat.setOnClickListener(v -> {
             String message = etChatInput.getText().toString().trim();
             if (!message.isEmpty()) {
-                tvChatDisplay.setText(userName + ": " + message);
+                tvChat1.setText(tvChat2.getText().toString());
+                tvChat2.setText(userName + ": " + message);
                 etChatInput.setText("");
             } else {
                 Toast.makeText(this, "দয়া করে কিছু লিখুন", Toast.LENGTH_SHORT).show();
@@ -124,12 +131,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // সিট এবং সিটের নিচে নাম আপডেট করার মেথড
     private void updateSeatsDisplay() {
         for (int i = 1; i <= 10; i++) {
             if (seats[i] != null && seatNames[i] != null) {
                 if (i == currentSeat) {
-                    seatNames[i].setText(userName); // ডিপি-র ঠিক নিচে নাম শো করবে
+                    seatNames[i].setText(userName);
                     if (userImage != null && !userImage.isEmpty()) {
                         try {
                             seats[i].setImageURI(Uri.parse(userImage));
@@ -140,14 +146,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         seats[i].setImageResource(android.R.drawable.sym_def_app_icon);
                     }
                 } else {
-                    seatNames[i].setText(""); // খালি সিটের নিচে নাম থাকবে না
+                    seatNames[i].setText("");
                     seats[i].setImageDrawable(null);
                 }
             }
         }
     }
 
-    // রুম এডিট এবং থিম সিলেক্ট করার ডায়ালগ (সিংহ, ড্রাগন বা বিভিন্ন স্টাইলিশ থিম কালার)
     private void showRoomSettingsDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Room Settings & Themes");
@@ -167,7 +172,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         tvThemeLabel.setTextColor(Color.parseColor("#DDA0FF"));
         layout.addView(tvThemeLabel);
 
-        // প্রিভিউ থিম অপশনগুলো (যেমন: ডার্ক টাইগার, ড্রাগন গ্রিন, প্রকৃতি ইত্যাদি)
         String[] themeNames = {"Dark Classic (#121212)", "Royal Dark (#1E1E2F)", "Tiger Gold (#2E1C0C)", "Dragon Teal (#0A2F2D)"};
         String[] themeCodes = {"#121212", "#1E1E2F", "#2E1C0C", "#0A2F2D"};
 
@@ -203,7 +207,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         builder.show();
     }
 
-    // ইউজারের প্রোফাইল পপআপ (সিটে ক্লিক করলে নাম ও ইউনিক আইডি শো করবে)
     private void showProfilePopup() {
         new AlertDialog.Builder(this)
                 .setTitle("User Profile")
