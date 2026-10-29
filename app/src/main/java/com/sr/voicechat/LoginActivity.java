@@ -18,16 +18,16 @@ import java.util.Random;
 
 public class LoginActivity extends AppCompatActivity {
 
-    EditText etName;
-    ImageView ivPreview;
-    String savedImagePath = "";
-    ActivityResultLauncher<String> pickImage;
+    private EditText etName;
+    private ImageView ivPreview;
+    private String savedImagePath = "";
+    private ActivityResultLauncher<String> pickImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // পার্মানেন্ট লগইন চেক: ইউজার আগে লগইন করা থাকলে সরাসরি ভয়েস রুমে চলে যাবে
+        // পার্মানেন্ট লগইন চেক: ইউজার তথ্য আগে থেকে সেভ থাকলে অটো হোম পেজ/রুম-এ যাবে
         SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
         String savedName = prefs.getString("user_name", "");
 
@@ -62,17 +62,17 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
             if (savedImagePath.isEmpty()) {
-                Toast.makeText(this, "দয়া করে প্রোফাইল ছবি সিলেক্ট করুন", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "দয়া করে একটি প্রোফাইল পিক সিলেক্ট করুন", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            // ৮ ডিজিটের ইউনিক র‍্যান্ডম আইডি (ইউজার আইডি ও রুম আইডি একদম সেম)
+            // ৮ ডিজিটের ইউনিক মিক্সড পার্সোনাল আইডি জেনারেট
             String uniqueId = generateUniqueId();
 
             SharedPreferences.Editor editor = prefs.edit();
             editor.putString("user_name", name);
             editor.putString("user_image", savedImagePath);
-            editor.putString("room_name", name + " Room");
+            editor.putString("room_name", name + "'s Room");
             editor.putString("group_id", uniqueId);
             editor.apply();
 
