@@ -27,27 +27,18 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_login);
 
         prefs = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE);
-        boolean isRegistered = prefs.getBoolean("is_registered", false);
-
-        // যদি ইউজার ইতিমধ্যে রেজিস্টার্ড থাকে, তবে সরাসরি ভয়েস রুমে চলে যাবে (লগইন পেজে আটকাবে না)
-        // তবে তুমি যদি প্রোফাইল এডিট করতে চাও, সেজন্য আলাদা অপশন রাখা হয়েছে।
-        if (isRegistered) {
-            startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
-            finish();
-            return;
-        }
-
-        setContentView(R.layout.activity_login);
 
         etName = findViewById(R.id.etName);
         ivPreview = findViewById(R.id.ivPreview);
         Button btnCreate = findViewById(R.id.btnCreateRoom);
 
-        // আগের কোনো ডেটা থাকলে তা লোড করে নেওয়া যাতে হুট করে মুছে না যায়
-        savedImagePath = prefs.getString("user_image", "");
+        // যদি আগে থেকেই নাম বা ছবি সেভ করা থাকে, তবে তা স্ক্রিনে শো করবে
         String savedName = prefs.getString("user_name", "");
+        savedImagePath = prefs.getString("user_image", "");
+
         if (!savedName.isEmpty()) {
             etName.setText(savedName);
         }
@@ -78,13 +69,14 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            // যদি আইডি আগে থেকেই তৈরি করা থাকে, তবে নতুন করে রেন্ডম আইডি না বানিয়ে আগের আইডিই বহাল রাখবে
+            // ইউনিক আইডি পার্মানেন্ট থাকবে, একবার জেনারেট হলে আর বদলাবে না
             String existingId = prefs.getString("group_id", "");
-            if (existingId.isEmpty() || existingId.equals("63913508")) {
+            if (existingId.isEmpty()) {
                 Random random = new Random();
                 existingId = String.valueOf(10000000 + random.nextInt(90000000));
             }
 
+            // ডেটা সেভ করা
             SharedPreferences.Editor editor = prefs.edit();
             editor.putBoolean("is_registered", true);
             editor.putString("user_name", name);
@@ -93,8 +85,9 @@ public class LoginActivity extends AppCompatActivity {
             editor.putString("group_id", existingId);
             editor.apply();
 
-            Toast.makeText(this, "প্রোফাইল সফলভাবে আপডেট হয়েছে!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "সফলভাবে প্রবেশ করা হয়েছে!", Toast.LENGTH_SHORT).show();
 
+            // সরাসরি ভয়েস রুমে চলে যাবে
             startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
             finish();
         });
