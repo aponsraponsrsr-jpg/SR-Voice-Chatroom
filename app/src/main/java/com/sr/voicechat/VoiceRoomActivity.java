@@ -116,6 +116,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 }
             }
 
+            // Online members list dialog with Level & ID info matching video instructions
             if (ivOnlineMembers != null) {
                 ivOnlineMembers.setOnClickListener(v -> showOnlineListDialog());
             }
@@ -174,14 +175,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void showOnlineListDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Online Members & Owner");
+        builder.setTitle("Online Members List");
         
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(40, 30, 40, 30);
 
         TextView tvUser = new TextView(this);
-        tvUser.setText("👑 " + userName + " (ID: " + groupId + ")\n⭐ Role: Room Owner\n\n👉 [ Tap here to visit your profile ]");
+        tvUser.setText("1. 👑 " + userName + "\n   🆔 ID: " + groupId + "\n   ⭐ Level: 0 | Role: Room Owner\n\n👉 [ Tap here to visit your profile ]");
         tvUser.setTextColor(Color.parseColor("#00FFCC"));
         tvUser.setTextSize(15);
         
@@ -203,7 +204,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         layout.setPadding(40, 30, 40, 30);
 
         TextView tvDetails = new TextView(this);
-        tvDetails.setText("👤 Name: " + userName + "\n🆔 ID: " + groupId + "\n👑 Status: Room Owner\n✨ Room: " + roomName);
+        tvDetails.setText("👤 Name: " + userName + "\n🆔 ID: " + groupId + "\n⭐ Level: 0\n👑 Status: Room Owner\n✨ Room: " + roomName);
         tvDetails.setTextColor(Color.WHITE);
         tvDetails.setTextSize(16);
         layout.addView(tvDetails);
@@ -288,61 +289,5 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 }
             }
         }
-    }
-
-    private void showRoomSettingsDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Room Settings & Theme Gallery");
-
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(40, 20, 40, 20);
-
-        final EditText inputRoomName = new EditText(this);
-        inputRoomName.setHint("Enter Room Name");
-        inputRoomName.setText(roomName);
-        inputRoomName.setTextColor(Color.WHITE);
-        layout.addView(inputRoomName);
-
-        final TextView tvThemeLabel = new TextView(this);
-        tvThemeLabel.setText("\n🎨 Select Premium Theme:");
-        tvThemeLabel.setTextColor(Color.parseColor("#00FFCC"));
-        layout.addView(tvThemeLabel);
-
-        String[] themeNames = {
-            "🌿 Forest Theme", 
-            "🌊 Ocean Theme", 
-            "🌧️ Rain Moody Theme", 
-            "❤️ Romantic Couple Theme", 
-            "🐅 Tiger Gold Theme"
-        };
-        String[] themeKeys = {"nature", "sea", "rain", "couple", "tiger"};
-
-        builder.setView(layout);
-
-        builder.setSingleChoiceItems(themeNames, -1, (dialog, which) -> {
-            String selectedKey = themeKeys[which];
-            applyThemeBackground(selectedKey);
-
-            SharedPreferences.Editor editor = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE).edit();
-            editor.putString("room_theme", selectedKey);
-            editor.apply();
-            Toast.makeText(this, "Theme Applied Successfully!", Toast.LENGTH_SHORT).show();
-        });
-
-        builder.setPositiveButton("Update Name", (dialog, which) -> {
-            String newName = inputRoomName.getText().toString().trim();
-            if (!newName.isEmpty()) {
-                roomName = newName;
-                tvRoomName.setText(roomName);
-                SharedPreferences.Editor editor = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE).edit();
-                editor.putString("room_name", roomName);
-                editor.apply();
-                Toast.makeText(this, "Room Name Updated!", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        builder.setNegativeButton("Close", (dialog, which) -> dialog.dismiss());
-        builder.show();
     }
 }
