@@ -28,11 +28,11 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // পার্মানেন্ট লগইন চেক (सही SharedPreferences ফাইল নেম 'SRVoicePrefs')
-        prefs = getSharedPreferences("SRVoicePrefs", MODE_PRIVATE);
-        boolean isLogged = prefs.getBoolean("is_logged_in", false);
+        // পার্মানেন্ট লগইন চেক: একবার সেভ হলে সরাসরি ভয়েস রুমে যাবে
+        prefs = getSharedPreferences("SR_Permanent_Prefs", MODE_PRIVATE);
+        boolean isSaved = prefs.getBoolean("is_registered", false);
 
-        if (isLogged) {
+        if (isSaved) {
             startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
             finish();
             return;
@@ -63,14 +63,14 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
             if (savedImagePath.isEmpty()) {
-                Toast.makeText(this, "দয়া করে একটি প্রোফাইল পিক সিলেক্ট করুন", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "দয়া করে প্রোফাইল ছবি সিলেক্ট করুন", Toast.LENGTH_SHORT).show();
                 return;
             }
 
             String uniqueId = generateUniqueId();
 
             SharedPreferences.Editor editor = prefs.edit();
-            editor.putBoolean("is_logged_in", true);
+            editor.putBoolean("is_registered", true);
             editor.putString("user_name", name);
             editor.putString("user_image", savedImagePath);
             editor.putString("room_name", name + "'s Room");
@@ -91,7 +91,7 @@ public class LoginActivity extends AppCompatActivity {
     private String copyImageToInternal(Uri uri) {
         try {
             InputStream input = getContentResolver().openInputStream(uri);
-            File file = new File(getFilesDir(), "profile.jpg");
+            File file = new File(getFilesDir(), "permanent_profile.jpg");
             FileOutputStream output = new FileOutputStream(file);
             byte[] buffer = new byte[1024];
             int len;
