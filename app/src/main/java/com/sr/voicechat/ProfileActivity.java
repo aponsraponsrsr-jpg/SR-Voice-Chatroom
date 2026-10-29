@@ -14,17 +14,16 @@ import androidx.appcompat.app.AppCompatActivity;
 
 public class ProfileActivity extends AppCompatActivity {
 
-    ImageView ivProfile, ivCameraIcon;
+    ImageView ivProfile;
     EditText etName;
     Uri selectedImageUri = null;
 
-    // গ্যালারি খোলার লঞ্চার
     ActivityResultLauncher<String> pickImage = registerForActivityResult(
         new ActivityResultContracts.GetContent(),
         uri -> {
             if(uri != null){
                 selectedImageUri = uri;
-                ivProfile.setImageURI(uri); // ছবি লাগিয়ে দিলাম
+                ivProfile.setImageURI(uri);
             }
         });
 
@@ -34,13 +33,11 @@ public class ProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_profile);
 
         ivProfile = findViewById(R.id.ivProfile);
-        ivCameraIcon = findViewById(R.id.ivCameraIcon);
         etName = findViewById(R.id.etName);
         Button btnSave = findViewById(R.id.btnSaveProfile);
 
-        // লোগোতে টাচ করলে ফাইল মেমোরি খুলবে
+        // লোগোতে টাচ করলেই গ্যালারি খুলবে
         ivProfile.setOnClickListener(v -> pickImage.launch("image/*"));
-        ivCameraIcon.setOnClickListener(v -> pickImage.launch("image/*"));
 
         btnSave.setOnClickListener(v -> {
             String name = etName.getText().toString().trim();
@@ -48,7 +45,6 @@ public class ProfileActivity extends AppCompatActivity {
                 Toast.makeText(this,"Nick name দাও বন্ধু",Toast.LENGTH_SHORT).show();
                 return;
             }
-            // সেভ করে Main এ পাঠিয়ে দিলাম
             SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
             prefs.edit()
                 .putString("user_name", name)
