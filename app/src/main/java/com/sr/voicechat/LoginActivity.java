@@ -33,25 +33,19 @@ public class LoginActivity extends AppCompatActivity {
         Button btnJoin = findViewById(R.id.btnJoinRoom);
 
         SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        
-        // আগে সেভ করা নাম থাকলে অটো বসবে, বারবার লিখতে হবে না
         String oldName = prefs.getString("user_name", "");
         String oldImage = prefs.getString("user_image", "");
-        String oldGroupId = prefs.getString("group_id", "11458875");
         
         if (!oldName.isEmpty()) {
             etName.setText(oldName);
         }
         if (!oldImage.isEmpty()) {
             savedImagePath = oldImage;
-            try {
-                ivPreview.setImageURI(Uri.parse(oldImage));
-            } catch (Exception e) {}
+            try { ivPreview.setImageURI(Uri.parse(oldImage)); } catch (Exception e) {}
         }
 
         pickImage = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
             if (uri != null) {
-                // ছবি ইন্টারনাল স্টোরেজে কপি করি, তাহলে Crash করবে না
                 String path = copyImageToInternal(uri);
                 if (path != null) {
                     savedImagePath = path;
@@ -61,16 +55,20 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        ivPreview.setOnClickListener(v -> pickImage.launch("image/*"));
-        findViewById(R.id.btnChoosePhoto).setOnClickListener(v -> pickImage.launch("image/*"));
+        if (ivPreview != null) {
+            ivPreview.setOnClickListener(v -> pickImage.launch("image/*"));
+        }
 
-        btnCreate.setOnClickListener(v -> {
-            saveAndGo(true);
-        });
+        // SAFE - btnChoosePhoto থাকলে কাজ করবে, না থাকলে Crash করবে না
+        try {
+            Button btnChoose = findViewById(R.id.btnChoosePhoto);
+            if (btnChoose != null) {
+                btnChoose.setOnClickListener(v -> pickImage.launch("image/*"));
+            }
+        } catch (Exception e) {}
 
-        btnJoin.setOnClickListener(v -> {
-            saveAndGo(false);
-        });
+        if (btnCreate != null) btnCreate.setOnClickListener(v -> saveAndGo(true));
+        if (btnJoin != null) btnJoin.setOnClickListener(v -> saveAndGo(false));
     }
 
     String copyImageToInternal(Uri uri) {
@@ -80,11 +78,8 @@ public class LoginActivity extends AppCompatActivity {
             FileOutputStream output = new FileOutputStream(file);
             byte[] buffer = new byte[1024];
             int len;
-            while ((len = input.read(buffer)) > 0) {
-                output.write(buffer, 0, len);
-            }
-            input.close();
-            output.close();
+            while ((len = input.read(buffer)) > 0) output.write(buffer, 0, len);
+            input.close(); output.close();
             return Uri.fromFile(file).toString();
         } catch (Exception e) {
             Toast.makeText(this, "Photo error: " + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -102,23 +97,17 @@ public class LoginActivity extends AppCompatActivity {
             Toast.makeText(this, "Photo choose koro bondhu", Toast.LENGTH_SHORT).show();
             return;
         }
-
         SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString("user_name", name);
         editor.putString("user_image", savedImagePath);
-        editor.putString("room_name", name); // তোমার নামটাই গ্রুপ নেম হবে
+        editor.putString("room_name", name);
         if (isCreate) {
             String newId = String.valueOf(System.currentTimeMillis() % 100000000);
             editor.putString("group_id", newId);
         }
         editor.apply();
-
-        try {
-            Intent intent = new Intent(LoginActivity.this, VoiceRoomActivity.class);
-            startActivity(intent);
-        } catch (Exception e) {
-            Toast.makeText(this, "Open Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }
+        
+        startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
     }
 }
