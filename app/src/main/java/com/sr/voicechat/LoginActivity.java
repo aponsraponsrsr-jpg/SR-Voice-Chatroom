@@ -50,7 +50,6 @@ public class LoginActivity extends AppCompatActivity {
                 if (path != null) {
                     savedImagePath = path;
                     ivPreview.setImageURI(Uri.parse(path));
-                    Toast.makeText(this, "Photo Saved", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -58,14 +57,6 @@ public class LoginActivity extends AppCompatActivity {
         if (ivPreview != null) {
             ivPreview.setOnClickListener(v -> pickImage.launch("image/*"));
         }
-
-        // SAFE - btnChoosePhoto থাকলে কাজ করবে, না থাকলে Crash করবে না
-        try {
-            Button btnChoose = findViewById(R.id.btnChoosePhoto);
-            if (btnChoose != null) {
-                btnChoose.setOnClickListener(v -> pickImage.launch("image/*"));
-            }
-        } catch (Exception e) {}
 
         if (btnCreate != null) btnCreate.setOnClickListener(v -> saveAndGo(true));
         if (btnJoin != null) btnJoin.setOnClickListener(v -> saveAndGo(false));
@@ -82,7 +73,6 @@ public class LoginActivity extends AppCompatActivity {
             input.close(); output.close();
             return Uri.fromFile(file).toString();
         } catch (Exception e) {
-            Toast.makeText(this, "Photo error: " + e.getMessage(), Toast.LENGTH_LONG).show();
             return null;
         }
     }
@@ -90,11 +80,11 @@ public class LoginActivity extends AppCompatActivity {
     void saveAndGo(boolean isCreate) {
         String name = etName.getText().toString().trim();
         if (name.isEmpty()) {
-            Toast.makeText(this, "Name likho bondhu", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Name likho", Toast.LENGTH_SHORT).show();
             return;
         }
         if (savedImagePath.isEmpty()) {
-            Toast.makeText(this, "Photo choose koro bondhu", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Photo choose koro", Toast.LENGTH_SHORT).show();
             return;
         }
         SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
