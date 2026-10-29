@@ -14,9 +14,13 @@ import androidx.appcompat.app.AppCompatActivity;
 public class VoiceRoomActivity extends AppCompatActivity {
 
     String userName, userImage, groupId, roomName;
-    TextView tvRoomName, tvRoomIds, tvSeat3Name, tvEntryLog;
-    ImageView seat3, ivExit;
+    TextView tvRoomName, tvRoomIds, tvUserInfoBottom, tvEntryLog;
+    ImageView ivExit;
     LinearLayout headerProfileLayout;
+    
+    // সিটগুলোর অ্যারে এবং কারেন্ট সিট ট্র্যাক করার জন্য
+    ImageView[] seats = new ImageView[11]; // 1 to 10
+    int currentSeat = 3; // ডিফল্ট ৩ নাম্বার সিটে ইউজার থাকবে
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,26 +35,39 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         tvRoomName = findViewById(R.id.tvRoomName);
         tvRoomIds = findViewById(R.id.tvRoomIds);
-        tvSeat3Name = findViewById(R.id.tvSeat3Name);
+        tvUserInfoBottom = findViewById(R.id.tvUserInfoBottom);
         tvEntryLog = findViewById(R.id.tvEntryLog);
-        seat3 = findViewById(R.id.seat3);
         ivExit = findViewById(R.id.ivHomeSettings);
         headerProfileLayout = findViewById(R.id.headerProfileLayout);
 
         tvRoomName.setText(roomName);
         tvRoomIds.setText("ID: " + groupId);
-        tvSeat3Name.setText(userName);
-        tvEntryLog.setText(userName + " entered the room");
+        
+        // নিচে নাম ও আইডি একসাথে শো করার জন্য
+        tvUserInfoBottom.setText(userName + " (ID: " + groupId + ")");
+        tvEntryLog.setText(userName + " joined the room on seat 3");
 
-        if (userImage != null && !userImage.isEmpty()) {
-            try {
-                seat3.setImageURI(Uri.parse(userImage));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        // ১ থেকে ১০ পর্যন্ত সিট ইনিশিয়ালাইজ করা এবং ক্লিক লজিক (সিট এক্সচেঞ্জ)
+        for (int i = 1; i <= 10; i++) {
+            int resId = getResources().getIdentifier("seat" + i, "id", getPackageName());
+            seats[i] = findViewById(resId);
         }
 
-        seat3.setOnClickListener(v -> Toast.makeText(this, "You are on seat 3: " + userName, Toast.LENGTH_SHORT).show());
+        // প্রথমে ৩ নাম্বার সিটে ইউজারের ছবি বসানো
+        updateSeatsDisplay();
+
+        // যেকোনো সিটে ক্লিক করলে ইউজার সেই সিটে চলে যাবে (Seat Exchange)
+        for (int i = 1; i <= 10; i++) {
+            final int targetSeat = i;
+            if (seats[i] != null) {
+                seats[i].setOnClickListener(v -> {
+                    currentSeat = targetSeat;
+                    updateSeatsDisplay();
+                    tvEntryLog.setText(userName + " moved to seat " + targetSeat);
+                    Toast.makeText(this, "Moved to Seat " + targetSeat, Toast.LENGTH_SHORT).show();
+                });
+            }
+        }
 
         if (headerProfileLayout != null) {
             headerProfileLayout.setOnClickListener(v -> showEditRoomDialog());
@@ -66,17 +83,25 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         .show();
             });
         }
+    }
 
+    // সিট আপডেট করার মেথড (যে সিটে ইউজার থাকবে সেখানে ছবি দেখাবে, বাকিগুলো খালি থাকবে)
+    private void updateSeatsDisplay() {
         for (int i = 1; i <= 10; i++) {
-            if (i == 3) continue;
-            int resId = getResources().getIdentifier("seat" + i, "id", getPackageName());
-            ImageView seat = findViewById(resId);
-            if (seat != null) {
-                int finalI = i;
-                seat.setOnClickListener(v -> {
-                    tvEntryLog.setText(userName + " want to sit on " + finalI);
-                    Toast.makeText(this, "Seat " + finalI, Toast.LENGTH_SHORT).show();
-                });
+            if (seats[i] != null) {
+                if (i == currentSeat) {
+                    if (userImage != null && !userImage.isEmpty()) {
+                        try {
+                            seats[i].setImageURI(Uri.parse(userImage));
+                        } catch (Exception e) {
+                            seats[i].setImageResource(android.R.drawable.sym_def_app_icon);
+                        }
+                    } else {
+                        seats[i].setImageResource(android.R.drawable.sym_def_app_icon);
+                    }
+                } else {
+                    seats[i].setImageDrawable(null); // খালি সিট
+                }
             }
         }
     }
