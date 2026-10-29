@@ -28,11 +28,11 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // পার্মানেন্ট লগইন চেক: একবার সেভ হলে সরাসরি ভয়েস রুমে যাবে
-        prefs = getSharedPreferences("SR_Permanent_Prefs", MODE_PRIVATE);
-        boolean isSaved = prefs.getBoolean("is_registered", false);
+        // পার্মানেন্ট লগইন চেক: একবার রেজিস্টার্ড হলে আর কখনো লগইন পেজ আসবে না
+        prefs = getSharedPreferences("SR_Ultimate_Prefs", MODE_PRIVATE);
+        boolean isRegistered = prefs.getBoolean("is_registered", false);
 
-        if (isSaved) {
+        if (isRegistered) {
             startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
             finish();
             return;
@@ -67,25 +67,22 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            String uniqueId = generateUniqueId();
+            // একবারই ইউনিক আইডি এবং রুম আইডি জেনারেট হবে এবং পার্মানেন্টলি সেভ থাকবে
+            String uniqueId = "55912074"; // অথবা র‍্যান্ডম জেনারেটেড আইডি
+            Random random = new Random();
+            String generatedId = String.valueOf(10000000 + random.nextInt(90000000));
 
             SharedPreferences.Editor editor = prefs.edit();
             editor.putBoolean("is_registered", true);
             editor.putString("user_name", name);
             editor.putString("user_image", savedImagePath);
             editor.putString("room_name", name + "'s Room");
-            editor.putString("group_id", uniqueId);
+            editor.putString("group_id", generatedId);
             editor.apply();
 
             startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
             finish();
         });
-    }
-
-    private String generateUniqueId() {
-        Random random = new Random();
-        int id = 10000000 + random.nextInt(90000000);
-        return String.valueOf(id);
     }
 
     private String copyImageToInternal(Uri uri) {
