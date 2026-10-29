@@ -8,8 +8,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
-import androidx.activity.result.ActivityResultContracts;
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -27,7 +27,6 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // চেক করা ইউজার আগে থেকে লগইন করা আছে কি না
         SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
         String savedName = prefs.getString("user_name", "");
 
@@ -66,14 +65,14 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            // ৮ ডিজিটের সম্পূর্ণ ইউনিক ও মিক্সড আইডি জেনারেট করা (ইউজার আইডি এবং রুম আইডি একদম সেম হবে)
+            // ৮ ডিজিটের ইউনিক ও মিক্সড আইডি (ইউজার আইডি এবং রুম আইডি সেম থাকবে)
             String uniqueId = generateUniqueId();
 
             SharedPreferences.Editor editor = prefs.edit();
             editor.putString("user_name", name);
             editor.putString("user_image", savedImagePath);
             editor.putString("room_name", name + " Room");
-            editor.putString("group_id", uniqueId); // ইউজার আইডি ও রুম আইডি এক
+            editor.putString("group_id", uniqueId);
             editor.apply();
 
             startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
@@ -81,10 +80,9 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
-    // ৮ ডিজিটের ইউনিক র‍্যান্ডম আইডি তৈরির মেথড
     private String generateUniqueId() {
         Random random = new Random();
-        int id = 10000000 + random.nextInt(90000000); // ৮ ডিজিটের সংখ্যা
+        int id = 10000000 + random.nextInt(90000000);
         return String.valueOf(id);
     }
 
