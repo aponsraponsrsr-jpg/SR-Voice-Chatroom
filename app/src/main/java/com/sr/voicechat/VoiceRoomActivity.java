@@ -73,7 +73,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             if (tvChat1 != null) tvChat1.setText("Welcome to " + roomName);
             if (tvChat2 != null) tvChat2.setText("");
 
-            // Header profile picture setup (Circular)
             if (userImage != null && !userImage.isEmpty() && ivHeaderProfile != null) {
                 try {
                     ivHeaderProfile.setImageURI(Uri.parse(userImage));
@@ -116,7 +115,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 }
             }
 
-            // Online members list dialog with Level & ID info matching video instructions
             if (ivOnlineMembers != null) {
                 ivOnlineMembers.setOnClickListener(v -> showOnlineListDialog());
             }
@@ -125,7 +123,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 ivExit.setOnClickListener(v -> showKeepOrExitDialog());
             }
 
-            // Locked features with "Coming Soon! SR Official" message
             if (ivGift != null) {
                 ivGift.setOnClickListener(v -> Toast.makeText(this, "Coming Soon! SR Official", Toast.LENGTH_SHORT).show());
             }
