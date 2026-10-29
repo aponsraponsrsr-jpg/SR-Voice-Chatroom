@@ -36,9 +36,7 @@ public class LoginActivity extends AppCompatActivity {
         String oldName = prefs.getString("user_name", "");
         String oldImage = prefs.getString("user_image", "");
         
-        if (!oldName.isEmpty()) {
-            etName.setText(oldName);
-        }
+        if (!oldName.isEmpty()) etName.setText(oldName);
         if (!oldImage.isEmpty()) {
             savedImagePath = oldImage;
             try { ivPreview.setImageURI(Uri.parse(oldImage)); } catch (Exception e) {}
@@ -54,12 +52,9 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        if (ivPreview != null) {
-            ivPreview.setOnClickListener(v -> pickImage.launch("image/*"));
-        }
-
-        if (btnCreate != null) btnCreate.setOnClickListener(v -> saveAndGo(true));
-        if (btnJoin != null) btnJoin.setOnClickListener(v -> saveAndGo(false));
+        ivPreview.setOnClickListener(v -> pickImage.launch("image/*"));
+        btnCreate.setOnClickListener(v -> saveAndGo(true));
+        btnJoin.setOnClickListener(v -> saveAndGo(false));
     }
 
     String copyImageToInternal(Uri uri) {
@@ -72,32 +67,25 @@ public class LoginActivity extends AppCompatActivity {
             while ((len = input.read(buffer)) > 0) output.write(buffer, 0, len);
             input.close(); output.close();
             return Uri.fromFile(file).toString();
-        } catch (Exception e) {
-            return null;
-        }
+        } catch (Exception e) { return null; }
     }
 
     void saveAndGo(boolean isCreate) {
         String name = etName.getText().toString().trim();
         if (name.isEmpty()) {
-            Toast.makeText(this, "Name likho", Toast.LENGTH_SHORT).show();
-            return;
+            Toast.makeText(this, "Name likho", Toast.LENGTH_SHORT).show(); return;
         }
         if (savedImagePath.isEmpty()) {
-            Toast.makeText(this, "Photo choose koro", Toast.LENGTH_SHORT).show();
-            return;
+            Toast.makeText(this, "Photo choose koro", Toast.LENGTH_SHORT).show(); return;
         }
-        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
+        SharedPreferences.Editor editor = getSharedPreferences("user_prefs", MODE_PRIVATE).edit();
         editor.putString("user_name", name);
         editor.putString("user_image", savedImagePath);
         editor.putString("room_name", name);
         if (isCreate) {
-            String newId = String.valueOf(System.currentTimeMillis() % 100000000);
-            editor.putString("group_id", newId);
+            editor.putString("group_id", String.valueOf(System.currentTimeMillis() % 100000000));
         }
         editor.apply();
-        
         startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
     }
 }
