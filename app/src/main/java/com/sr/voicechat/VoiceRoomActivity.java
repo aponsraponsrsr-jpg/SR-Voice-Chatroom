@@ -21,7 +21,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         roomNameText = findViewById(R.id.roomNameText);
         roomIdText = findViewById(R.id.roomIdText);
 
-        // Seat Images - ImageView (not Circle)
         seatImages[0] = findViewById(R.id.seat1Image);
         seatImages[1] = findViewById(R.id.seat2Image);
         seatImages[2] = findViewById(R.id.seat3Image);
@@ -33,7 +32,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         seatImages[8] = findViewById(R.id.seat9Image);
         seatImages[9] = findViewById(R.id.seat10Image);
 
-        // Seat Names
         seatNames[0] = findViewById(R.id.seat1Name);
         seatNames[1] = findViewById(R.id.seat2Name);
         seatNames[2] = findViewById(R.id.seat3Name);
@@ -45,26 +43,24 @@ public class VoiceRoomActivity extends AppCompatActivity {
         seatNames[8] = findViewById(R.id.seat9Name);
         seatNames[9] = findViewById(R.id.seat10Name);
 
-        // Generate Unique Room ID - Mixed 7/8/9 digit
         generateUniqueRoomId();
     }
 
     private void generateUniqueRoomId() {
         Random random = new Random();
-        int lengthChoice = random.nextInt(3); // 0,1,2
+        int choice = random.nextInt(3);
         long roomId;
-        if (lengthChoice == 0) {
-            roomId = 1000000L + random.nextInt(9000000); // 7 digit
-        } else if (lengthChoice == 1) {
-            roomId = 10000000L + random.nextInt(90000000); // 8 digit
+        if (choice == 0) {
+            roomId = 1000000L + random.nextInt(9000000);
+        } else if (choice == 1) {
+            roomId = 10000000L + random.nextInt(90000000);
         } else {
-            roomId = 100000000L + (long)(random.nextDouble() * 900000000L); // 9 digit
+            roomId = 100000000L + (long)(random.nextDouble() * 900000000L);
         }
         roomIdText.setText("ID: " + roomId);
-        roomNameText.setText("SR Voice Room");
     }
 
     public void onSmileClicked(android.view.View view) {
-        Toast.makeText(this, "Smile Clicked!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Smile!", Toast.LENGTH_SHORT).show();
     }
 }
