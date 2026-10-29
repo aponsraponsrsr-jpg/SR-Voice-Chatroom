@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -24,17 +25,17 @@ public class VoiceRoomActivity extends AppCompatActivity {
     
     ImageView[] seats = new ImageView[11];
     TextView[] seatNames = new TextView[11];
-    int currentSeat = 2; // ডিফল্ট ২ নাম্বার সিট
+    int currentSeat = 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_voice_room);
 
-        SharedPreferences prefs = getSharedPreferences("SR_Permanent_Prefs", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("SR_Ultimate_Prefs", MODE_PRIVATE);
         userName = prefs.getString("user_name", "User");
         userImage = prefs.getString("user_image", "");
-        groupId = prefs.getString("group_id", "24018271");
+        groupId = prefs.getString("group_id", "55912074");
         roomName = prefs.getString("room_name", userName + "'s Room");
         String savedTheme = prefs.getString("room_theme", "#121212");
 
@@ -53,11 +54,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         ivGift = findViewById(R.id.ivGift);
         ivGames = findViewById(R.id.ivGames);
 
-        try {
-            rootLayout.setBackgroundColor(Color.parseColor(savedTheme));
-        } catch (Exception e) {
-            rootLayout.setBackgroundColor(Color.parseColor("#121212"));
-        }
+        applyThemeBackground(savedTheme);
 
         tvRoomName.setText(roomName);
         tvRoomIds.setText("ID: " + groupId);
@@ -73,13 +70,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         updateSeatsDisplay();
 
-        // সিটে ক্লিক করলে Take Mic / Leave Mic পপআপ আসবে
         for (int i = 1; i <= 10; i++) {
             final int targetSeat = i;
             if (seats[i] != null) {
-                seats[i].setOnClickListener(v -> {
-                    showSeatActionDialog(targetSeat);
-                });
+                seats[i].setOnClickListener(v -> showSeatActionDialog(targetSeat));
             }
         }
 
@@ -115,7 +109,18 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // সিট পরিবর্তনের জন্য Take Mic / Leave Mic ডায়ালগ
+    private void applyThemeBackground(String themeCode) {
+        try {
+            if (themeCode.startsWith("#")) {
+                rootLayout.setBackgroundColor(Color.parseColor(themeCode));
+            } else {
+                rootLayout.setBackgroundColor(Color.parseColor("#121212"));
+            }
+        } catch (Exception e) {
+            rootLayout.setBackgroundColor(Color.parseColor("#121212"));
+        }
+    }
+
     private void showSeatActionDialog(int targetSeat) {
         CharSequence[] options = {"Take Mic (সিটে বসুন)", "Leave Mic (সিট ছাড়ুন)"};
         
@@ -128,7 +133,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         Toast.makeText(this, "Taken Seat " + targetSeat, Toast.LENGTH_SHORT).show();
                     } else if (which == 1) {
                         if (currentSeat == targetSeat) {
-                            currentSeat = -1; // খালি করে দেওয়া
+                            currentSeat = -1;
                             updateSeatsDisplay();
                             Toast.makeText(this, "Left Seat " + targetSeat, Toast.LENGTH_SHORT).show();
                         } else {
@@ -176,27 +181,30 @@ public class VoiceRoomActivity extends AppCompatActivity {
         layout.addView(inputRoomName);
 
         final TextView tvThemeLabel = new TextView(this);
-        tvThemeLabel.setText("\nথিম সিলেক্ট করুন:");
+        tvThemeLabel.setText("\nপ্রকৃতি ও প্রিমিয়াম থিম সিলেক্ট করুন:");
         tvThemeLabel.setTextColor(Color.parseColor("#DDA0FF"));
         layout.addView(tvThemeLabel);
 
-        String[] themeNames = {"Dark Classic (#121212)", "Royal Dark (#1E1E2F)", "Tiger Gold (#2E1C0C)", "Dragon Teal (#0A2F2D)"};
-        String[] themeCodes = {"#121212", "#1E1E2F", "#2E1C0C", "#0A2F2D"};
+        // প্রকৃতি, সাগর, নদী, বৃষ্টি ভেজা ও কাপেল ব্যাকগ্রাউন্ড অপশন
+        String[] themeNames = {
+            "🌿 প্রকৃতি ও সবুজ বন (#0A2F2D)", 
+            "🌊 নীল সাগর ও নদী (#0B1D3A)", 
+            "🌧️ বৃষ্টি ভেজা পরিবেশ (#1A1A2E)", 
+            "❤️ কাপেল রোমান্টিক থিম (#2E1C2E)", 
+            "🐅 টাইগার গোল্ড থিম (#2E1C0C)"
+        };
+        String[] themeCodes = {"#0A2F2D", "#0B1D3A", "#1A1A2E", "#2E1C2E", "#2E1C0C"};
 
         builder.setView(layout);
 
         builder.setSingleChoiceItems(themeNames, -1, (dialog, which) -> {
             String selectedTheme = themeCodes[which];
-            try {
-                rootLayout.setBackgroundColor(Color.parseColor(selectedTheme));
-            } catch (Exception e) {
-                selectedTheme = "#121212";
-            }
+            applyThemeBackground(selectedTheme);
 
-            SharedPreferences.Editor editor = getSharedPreferences("SR_Permanent_Prefs", MODE_PRIVATE).edit();
+            SharedPreferences.Editor editor = getSharedPreferences("SR_Ultimate_Prefs", MODE_PRIVATE).edit();
             editor.putString("room_theme", selectedTheme);
             editor.apply();
-            Toast.makeText(this, "থিম ব্যাকগ্রাউন্ড পরিবর্তন হয়েছে!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "ব্যাকগ্রাউন্ড থিম সফলভাবে সেট হয়েছে!", Toast.LENGTH_SHORT).show();
         });
 
         builder.setPositiveButton("Update Name", (dialog, which) -> {
@@ -204,7 +212,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             if (!newName.isEmpty()) {
                 roomName = newName;
                 tvRoomName.setText(roomName);
-                SharedPreferences.Editor editor = getSharedPreferences("SR_Permanent_Prefs", MODE_PRIVATE).edit();
+                SharedPreferences.Editor editor = getSharedPreferences("SR_Ultimate_Prefs", MODE_PRIVATE).edit();
                 editor.putString("room_name", roomName);
                 editor.apply();
                 Toast.makeText(this, "রুমের নাম আপডেট হয়েছে!", Toast.LENGTH_SHORT).show();
