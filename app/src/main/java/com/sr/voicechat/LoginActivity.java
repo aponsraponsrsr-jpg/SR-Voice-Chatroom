@@ -28,8 +28,8 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // পার্মানেন্ট লগইন চেক
-        prefs = getSharedPreferences("SR_Fixed_Database", MODE_PRIVATE);
+        // পার্মানেন্ট ডাটা চেক: একবার রেজিস্টার্ড হলে আর কখনো লগইন পেজ আসবে না
+        prefs = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE);
         boolean isRegistered = prefs.getBoolean("is_registered", false);
 
         if (isRegistered) {
@@ -67,7 +67,7 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            // ইউনিক আইডি একবারই জেনারেট হয়ে পার্মানেন্টলি সেভ থাকবে
+            // একবারই ইউনিক আইডি জেনারেট হয়ে আজীবনের জন্য ফিক্সড হয়ে যাবে
             Random random = new Random();
             String generatedId = String.valueOf(10000000 + random.nextInt(90000000));
 
@@ -77,6 +77,7 @@ public class LoginActivity extends AppCompatActivity {
             editor.putString("user_image", savedImagePath);
             editor.putString("room_name", name + "'s Room");
             editor.putString("group_id", generatedId);
+            editor.putString("room_theme", "nature"); // ডিফল্ট থিম প্রকৃতি
             editor.apply();
 
             startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
