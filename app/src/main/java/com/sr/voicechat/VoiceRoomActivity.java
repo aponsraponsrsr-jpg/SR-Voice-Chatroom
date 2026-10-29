@@ -141,15 +141,15 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void showOnlineListDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Online Members (1)");
+        builder.setTitle("Online Members List (1)");
         
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(40, 30, 40, 30);
 
         TextView tvUser = new TextView(this);
-        tvUser.setText("👤 " + userName + " (ID: " + groupId + ")\n⭐ Status: Active Host");
-        tvUser.setTextColor(Color.WHITE);
+        tvUser.setText("👑 " + userName + " (ID: " + groupId + ")\n⭐ Role: Room Owner (গ্রুপ ওনার)");
+        tvUser.setTextColor(Color.parseColor("#00FFCC"));
         tvUser.setTextSize(16);
         layout.addView(tvUser);
 
@@ -221,7 +221,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     }
                 } else {
                     seatNames[i].setText("");
-                    seats[i].setImageResource(android.R.drawable.btn_default);
+                    seats[i].setImageResource(android.R.drawable.presence_invisible);
                 }
             }
         }
@@ -229,7 +229,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void showRoomSettingsDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Room Settings & Themes");
+        builder.setTitle("Room Settings & Theme Gallery");
 
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
@@ -242,16 +242,16 @@ public class VoiceRoomActivity extends AppCompatActivity {
         layout.addView(inputRoomName);
 
         final TextView tvThemeLabel = new TextView(this);
-        tvThemeLabel.setText("\nপ্রকৃতি ও প্রিমিয়াম থিম সিলেক্ট করুন:");
-        tvThemeLabel.setTextColor(Color.parseColor("#DDA0FF"));
+        tvThemeLabel.setText("\n🎨 থিম গ্যালারি (পছন্দের থিম সিলেক্ট করুন):");
+        tvThemeLabel.setTextColor(Color.parseColor("#00FFCC"));
         layout.addView(tvThemeLabel);
 
         String[] themeNames = {
-            "🌿 প্রকৃতি ও সবুজ বন", 
-            "🌊 নীল সাগর ও নদী", 
-            "🌧️ বৃষ্টি ভেজা পরিবেশ", 
-            "❤️ কাপেল রোমান্টিক থিম", 
-            "🐅 টাইগার গোল্ড থিম"
+            "🌿 প্রকৃতি ও সবুজ বন (Nature)", 
+            "🌊 নীল সাগর ও নদী (Sea)", 
+            "🌧️ বৃষ্টি ভেজা পরিবেশ (Rain)", 
+            "❤️ কাপেল রোমান্টিক থিম (Couple)", 
+            "🐅 টাইগার গোল্ড থিম (Tiger)"
         };
         String[] themeKeys = {"nature", "sea", "rain", "couple", "tiger"};
 
@@ -264,7 +264,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             SharedPreferences.Editor editor = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE).edit();
             editor.putString("room_theme", selectedKey);
             editor.apply();
-            Toast.makeText(this, "ব্যাকগ্রাউন্ড থিম সেট হয়েছে!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "ব্যাকগ্রাউন্ড থিম সফলভাবে সেট হয়েছে!", Toast.LENGTH_SHORT).show();
         });
 
         builder.setPositiveButton("Update Name", (dialog, which) -> {
