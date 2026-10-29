@@ -18,9 +18,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     String userName, userImage = "", groupId, roomName;
     TextView tvRoomName, tvRoomIds, tvChat1, tvChat2, tvOnlineCount;
-    ImageView ivExit, ivMute, ivMic, ivSendChat, ivGift, ivGames, ivOnlineMembers;
+    ImageView ivExit, ivMute, ivMic, ivSendChat, ivGift, ivGames, ivHeaderProfile;
+    LinearLayout ivOnlineMembers, headerProfileLayout;
     EditText etChatInput;
-    LinearLayout headerProfileLayout;
     RelativeLayout rootLayout;
     
     ImageView[] seats = new ImageView[11];
@@ -55,6 +55,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             headerProfileLayout = findViewById(R.id.headerProfileLayout);
             ivOnlineMembers = findViewById(R.id.ivOnlineMembers);
             rootLayout = findViewById(R.id.rootLayout);
+            ivHeaderProfile = findViewById(R.id.ivHeaderProfile);
             
             ivMute = findViewById(R.id.ivMute);
             ivMic = findViewById(R.id.ivMic);
@@ -70,6 +71,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
             if (tvOnlineCount != null) tvOnlineCount.setText("1");
             if (tvChat1 != null) tvChat1.setText("Welcome to " + roomName);
             if (tvChat2 != null) tvChat2.setText("");
+
+            if (userImage != null && !userImage.isEmpty() && ivHeaderProfile != null) {
+                try {
+                    ivHeaderProfile.setImageURI(Uri.parse(userImage));
+                } catch (Exception e) {
+                    // Ignore
+                }
+            }
 
             for (int i = 1; i <= 10; i++) {
                 int seatResId = getResources().getIdentifier("seat" + i, "id", getPackageName());
@@ -103,14 +112,16 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 ivSendChat.setOnClickListener(v -> {
                     String message = etChatInput.getText().toString().trim();
                     if (!message.isEmpty()) {
-                        if (tvChat1 != null) tvChat1.setText(tvChat2.getText().toString());
-                        if (tvChat2 != null) tvChat2.setText(userName + ": " + message);
+                        if (tvChat1 != null && tvChat2 != null) {
+                            tvChat1.setText(tvChat2.getText().toString());
+                            tvChat2.setText(userName + ": " + message);
+                        }
                         etChatInput.setText("");
                     }
                 });
             }
         } catch (Exception e) {
-            // ক্র্যাশ রোধ করার জন্য এক্সেপশন হ্যান্ডলিং
+            // Ignore
         }
     }
 
@@ -130,14 +141,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void showOnlineListDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Online List (1 Member)");
+        builder.setTitle("Online Members (1)");
         
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(40, 30, 40, 30);
 
         TextView tvUser = new TextView(this);
-        tvUser.setText("👤 " + userName + " (ID: " + groupId + ")\n⭐ Status: Active in Room");
+        tvUser.setText("👤 " + userName + " (ID: " + groupId + ")\n⭐ Status: Active Host");
         tvUser.setTextColor(Color.WHITE);
         tvUser.setTextSize(16);
         layout.addView(tvUser);
@@ -166,7 +177,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 rootLayout.setBackgroundColor(Color.parseColor("#3D1400"));
                 break;
             default:
-                rootLayout.setBackgroundColor(Color.parseColor("#121212"));
+                rootLayout.setBackgroundColor(Color.parseColor("#0B1D3A"));
                 break;
         }
     }
@@ -210,7 +221,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     }
                 } else {
                     seatNames[i].setText("");
-                    seats[i].setImageResource(0);
+                    seats[i].setImageResource(android.R.drawable.btn_default);
                 }
             }
         }
@@ -253,7 +264,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             SharedPreferences.Editor editor = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE).edit();
             editor.putString("room_theme", selectedKey);
             editor.apply();
-            Toast.makeText(this, "ব্যাকগ্রাউন্ড থিম সফলভাবে সেট হয়েছে!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "ব্যাকগ্রাউন্ড থিম সেট হয়েছে!", Toast.LENGTH_SHORT).show();
         });
 
         builder.setPositiveButton("Update Name", (dialog, which) -> {
