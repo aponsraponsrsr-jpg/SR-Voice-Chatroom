@@ -15,7 +15,7 @@
         android:background="#1E1E1E"
         android:paddingHorizontal="12dp">
 
-        <!-- বাম পাশের হেডার (এটিতে ক্লিক করলে এডিট অপশন আসবে) -->
+        <!-- বাম পাশের হেডার লেআউট -->
         <LinearLayout
             android:id="@+id/headerProfileLayout"
             android:layout_width="wrap_content"
@@ -74,7 +74,7 @@
             android:padding="4dp"/>
     </LinearLayout>
 
-    <!-- Seats Container (গোল সিটগুলো) -->
+    <!-- Seats Container -->
     <LinearLayout
         android:id="@+id/seatsContainer"
         android:layout_width="match_parent"
