@@ -51,7 +51,7 @@
                     android:id="@+id/tvRoomIds"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="ID: 11458875"
+                    android:text="ID: 41525318"
                     android:textColor="#00FFCC"
                     android:textSize="11sp" />
             </LinearLayout>
@@ -104,7 +104,7 @@
         </LinearLayout>
     </RelativeLayout>
 
-    <!-- Seats Container (Fully Circular Design & Top Positioned) -->
+    <!-- Seats Container (Circular Design & Top Positioned) -->
     <LinearLayout
         android:id="@+id/seatsContainer"
         android:layout_width="match_parent"
