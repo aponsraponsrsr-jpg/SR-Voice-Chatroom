@@ -3,10 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#121212"
-    android:padding="8dp">
+    android:background="#121212">
 
-    <!-- Top Bar - Group Name + ID -->
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="match_parent"
@@ -16,7 +14,8 @@
         android:padding="8dp">
 
         <ImageView android:id="@+id/ivRoomAvatar"
-            android:layout_width="45dp" android:layout_height="45dp"
+            android:layout_width="45dp"
+            android:layout_height="45dp"
             android:src="@android:drawable/sym_def_app_icon"/>
 
         <LinearLayout
@@ -29,7 +28,7 @@
             <TextView android:id="@+id/tvRoomName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Ham Tum"
+                android:text="My Group"
                 android:textColor="#DDA0FF"
                 android:textStyle="bold"
                 android:textSize="16sp"/>
@@ -38,7 +37,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="ID: 11458875"
-                android:textColor="white"
+                android:textColor="#FFFFFF"
                 android:textSize="12sp"/>
         </LinearLayout>
 
@@ -48,7 +47,6 @@
             android:src="@android:drawable/ic_menu_preferences"/>
     </LinearLayout>
 
-    <!-- Row 1 -->
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:layout_marginTop="20dp">
         <ImageView android:id="@+id/seat1" android:layout_width="60dp" android:layout_height="60dp" android:layout_margin="5dp" android:background="#40FFFFFF"/>
         <ImageView android:id="@+id/seat2" android:layout_width="60dp" android:layout_height="60dp" android:layout_margin="5dp" android:background="#40FFFFFF"/>
@@ -57,7 +55,6 @@
         <ImageView android:id="@+id/seat5" android:layout_width="60dp" android:layout_height="60dp" android:layout_margin="5dp" android:background="#40FFFFFF"/>
     </LinearLayout>
 
-    <!-- Row 2 -->
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center">
         <ImageView android:id="@+id/seat6" android:layout_width="60dp" android:layout_height="60dp" android:layout_margin="5dp" android:background="#40FFFFFF"/>
         <ImageView android:id="@+id/seat7" android:layout_width="60dp" android:layout_height="60dp" android:layout_margin="5dp" android:background="#40FFFFFF"/>
@@ -71,7 +68,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:layout_marginTop="10dp"
-        android:text="Ham Tum"
+        android:text="User Name"
         android:textColor="#DDA0FF"/>
 
     <TextView android:id="@+id/tvEntryLog"
@@ -81,7 +78,6 @@
         android:layout_marginTop="20dp"
         android:text="no body come to my room"
         android:textColor="#90EE90"
-        android:background="#80000000"
         android:padding="8dp"/>
 
 </LinearLayout>
