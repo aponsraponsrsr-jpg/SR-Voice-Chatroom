@@ -16,15 +16,15 @@ import androidx.appcompat.app.AppCompatActivity;
 public class VoiceRoomActivity extends AppCompatActivity {
 
     String userName, userImage, groupId, roomName;
-    TextView tvRoomName, tvRoomIds, tvChat1, tvChat2;
-    ImageView ivExit, ivMute, ivMic, ivSendChat, ivGift, ivGames;
+    TextView tvRoomName, tvRoomIds, tvChat1, tvChat2, tvOnlineCount;
+    ImageView ivExit, ivMute, ivMic, ivSendChat, ivGift, ivGames, ivOnlineMembers;
     EditText etChatInput;
     LinearLayout headerProfileLayout;
     RelativeLayout rootLayout;
     
     ImageView[] seats = new ImageView[11];
     TextView[] seatNames = new TextView[11];
-    int currentSeat = -1; // শুরুতে কোনো সিটে থাকবে না, নিজের ইচ্ছায় বসবে
+    int currentSeat = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,16 +34,18 @@ public class VoiceRoomActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE);
         userName = prefs.getString("user_name", "User");
         userImage = prefs.getString("user_image", "");
-        groupId = prefs.getString("group_id", "63913508");
+        groupId = prefs.getString("group_id", "11458875");
         roomName = prefs.getString("room_name", userName + "'s Room");
-        String savedTheme = prefs.getString("room_theme", "nature");
+        String savedTheme = prefs.getString("room_theme", "sea");
 
         tvRoomName = findViewById(R.id.tvRoomName);
         tvRoomIds = findViewById(R.id.tvRoomIds);
         tvChat1 = findViewById(R.id.tvChat1);
         tvChat2 = findViewById(R.id.tvChat2);
+        tvOnlineCount = findViewById(R.id.tvOnlineCount); // অনলাইন মেম্বার কাউন্ট
         ivExit = findViewById(R.id.ivHomeSettings);
         headerProfileLayout = findViewById(R.id.headerProfileLayout);
+        ivOnlineMembers = findViewById(R.id.ivOnlineMembers); // অনলাইন লিস্ট আইকন
         rootLayout = findViewById(R.id.rootLayout);
         
         ivMute = findViewById(R.id.ivMute);
@@ -57,6 +59,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         tvRoomName.setText(roomName);
         tvRoomIds.setText("ID: " + groupId);
+        tvOnlineCount.setText("1"); // ডিফল্ট অনলাইন মেম্বার
         tvChat1.setText("Welcome to " + roomName);
         tvChat2.setText("");
 
@@ -69,7 +72,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         updateSeatsDisplay();
 
-        // সিটে ক্লিক করলে Take / Leave Mic অপশন আসবে
         for (int i = 1; i <= 10; i++) {
             final int targetSeat = i;
             if (seats[i] != null) {
@@ -81,21 +83,19 @@ public class VoiceRoomActivity extends AppCompatActivity {
             headerProfileLayout.setOnClickListener(v -> showRoomSettingsDialog());
         }
 
-        if (ivExit != null) {
-            ivExit.setOnClickListener(v -> {
-                new AlertDialog.Builder(this)
-                        .setTitle("Exit Room")
-                        .setMessage("আপনি কি রুম থেকে বের হতে চান?")
-                        .setPositiveButton("হ্যাঁ", (dialog, which) -> finish())
-                        .setNegativeButton("না", null)
-                        .show();
-            });
+        // অনলাইন লিস্ট পপআপ দেখানোর জন্য
+        if (ivOnlineMembers != null) {
+            ivOnlineMembers.setOnClickListener(v -> showOnlineListDialog());
         }
 
-        ivMute.setOnClickListener(v -> Toast.makeText(this, "Audio Muted/Unmuted", Toast.LENGTH_SHORT).show());
-        ivMic.setOnClickListener(v -> Toast.makeText(this, "Mic On/Off", Toast.LENGTH_SHORT).show());
-        ivGift.setOnClickListener(v -> Toast.makeText(this, "Gift Box Clicked (Coming Soon)", Toast.LENGTH_SHORT).show());
-        ivGames.setOnClickListener(v -> Toast.makeText(this, "Games Hub Clicked (Coming Soon)", Toast.LENGTH_SHORT).show());
+        if (ivExit != null) {
+            ivExit.setOnClickListener(v -> showKeepOrExitDialog());
+        }
+
+        ivMute.setOnClickListener(v -> Toast.nl(this, "Audio Muted"));
+        ivMic.setOnClickListener(v -> Toast.makeText(this, "Mic Toggled", Toast.LENGTH_SHORT).show());
+        ivGift.setOnClickListener(v -> Toast.makeText(this, "Gift Box Clicked", Toast.LENGTH_SHORT).show());
+        ivGames.setOnClickListener(v -> Toast.makeText(this, "Games Hub Clicked", Toast.LENGTH_SHORT).show());
 
         ivSendChat.setOnClickListener(v -> {
             String message = etChatInput.getText().toString().trim();
@@ -103,29 +103,66 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 tvChat1.setText(tvChat2.getText().toString());
                 tvChat2.setText(userName + ": " + message);
                 etChatInput.setText("");
-            } else {
-                Toast.makeText(this, "দয়া করে কিছু লিখুন", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
+    // মোবাইল ব্যাক বাটনে ক্লিক করলে Keep / Exit পপআপ আসার লজিক
+    @Override
+    public void onBackPressed() {
+        showKeepOrExitDialog();
+    }
+
+    private void showKeepOrExitDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Room Options")
+               .setMessage("আপনি কি রুমটি মিনিমাইজ (Keep) করতে চান নাকি বের হয়ে যেতে চান (Exit)?")
+               .setPositiveButton("Keep (মিনিমাইজ)", (dialog, which) -> {
+                   // অ্যাপ ব্যাকগ্রাউন্ডে চলে যাবে বা হোম স্ক্রিনে যাবে কিন্তু রুম সচল থাকবে
+                   moveTaskToBack(true);
+               })
+               .setNegativeButton("Exit (বের হন)", (dialog, which) -> {
+                   finish();
+               })
+               .show();
+    }
+
+    private void showOnlineListDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Online List (1 Member)");
+        
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(40, 30, 40, 30);
+
+        TextView tvUser = new TextView(this);
+        tvUser.setText("👤 " + userName + " (ID: " + groupId + ")\n⭐ Status: Active in Room");
+        tvUser.setTextColor(Color.WHITE);
+        tvUser.setTextSize(16);
+        layout.addView(tvUser);
+
+        builder.setView(layout);
+        builder.setPositiveButton("Close", (dialog, which) -> dialog.dismiss());
+        builder.show();
+    }
+
     private void applyThemeBackground(String themeKey) {
-        // প্রকৃতি, সাগর, নদী, বৃষ্টি ভেজা ও টাইগার থিমের রিয়েল ভিজ্যুয়াল ব্যাকগ্রাউন্ড হ্যান্ডলিং
+        // রিয়েল ব্যাকগ্রাউন্ড থিম কালার ও ইমেজ প্রিভিউ সেটআপ[span_8](start_span)[span_8](end_span)
         switch (themeKey) {
             case "nature":
-                rootLayout.setBackgroundColor(Color.parseColor("#0A2F2D")); // সবুজ প্রকৃতি শেড
+                rootLayout.setBackgroundColor(Color.parseColor("#0A2F2D"));
                 break;
             case "sea":
-                rootLayout.setBackgroundColor(Color.parseColor("#0B1D3A")); // নীল সাগর ও নদী শেড
+                rootLayout.setBackgroundColor(Color.parseColor("#0B1D3A")); // সমুদ্রের নীল ভাব
                 break;
             case "rain":
-                rootLayout.setBackgroundColor(Color.parseColor("#1A1A2E")); // বৃষ্টি ভেজা পরিবেশ শেড
+                rootLayout.setBackgroundColor(Color.parseColor("#1A1A2E"));
                 break;
             case "couple":
-                rootLayout.setBackgroundColor(Color.parseColor("#2E1C2E")); // কাপেল রোমান্টিক থিম শেড
+                rootLayout.setBackgroundColor(Color.parseColor("#2E1C2E"));
                 break;
             case "tiger":
-                rootLayout.setBackgroundColor(Color.parseColor("#3D1400")); // টাইগার গোল্ড থিম শেড
+                rootLayout.setBackgroundColor(Color.parseColor("#3D1400"));
                 break;
             default:
                 rootLayout.setBackgroundColor(Color.parseColor("#121212"));
