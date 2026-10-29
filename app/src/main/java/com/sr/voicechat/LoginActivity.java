@@ -8,12 +8,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
+import androidx.activity.result.ActivityResultContracts;
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.Random;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -26,12 +27,11 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // অ্যাপ ওপেন হওয়ার সাথে সাথেই চেক করবে ইউজার আগে থেকে নাম সেভ করে রেখেছে কি না
-        SharedPreferences checkPrefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        String savedName = checkPrefs.getString("user_name", "");
-        
+        // চেক করা ইউজার আগে থেকে লগইন করা আছে কি না
+        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        String savedName = prefs.getString("user_name", "");
+
         if (!savedName.isEmpty()) {
-            // যদি নাম আগে থেকেই সেভ করা থাকে, সরাসরি ভয়েস রুমে চলে যাবে (লগইন পেজ আর আসবে না)
             startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
             finish();
             return;
@@ -42,14 +42,6 @@ public class LoginActivity extends AppCompatActivity {
         etName = findViewById(R.id.etName);
         ivPreview = findViewById(R.id.ivPreview);
         Button btnCreate = findViewById(R.id.btnCreateRoom);
-        Button btnJoin = findViewById(R.id.btnJoinRoom);
-
-        // আগের কোনো ডেটা থাকলে তা প্রিভিউতে দেখাবে
-        String oldImage = checkPrefs.getString("user_image", "");
-        if (!oldImage.isEmpty()) {
-            savedImagePath = oldImage;
-            try { ivPreview.setImageURI(Uri.parse(oldImage)); } catch (Exception e) {}
-        }
 
         pickImage = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
             if (uri != null) {
@@ -62,52 +54,55 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         ivPreview.setOnClickListener(v -> pickImage.launch("image/*"));
-        btnCreate.setOnClickListener(v -> saveAndGo());
-        btnJoin.setOnClickListener(v -> saveAndGo());
+
+        btnCreate.setOnClickListener(v -> {
+            String name = etName.getText().toString().trim();
+            if (name.isEmpty()) {
+                Toast.makeText(this, "দয়া করে নাম লিখুন", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (savedImagePath.isEmpty()) {
+                Toast.makeText(this, "দয়া করে প্রোফাইল ছবি সিলেক্ট করুন", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // ৮ ডিজিটের সম্পূর্ণ ইউনিক ও মিক্সড আইডি জেনারেট করা (ইউজার আইডি এবং রুম আইডি একদম সেম হবে)
+            String uniqueId = generateUniqueId();
+
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putString("user_name", name);
+            editor.putString("user_image", savedImagePath);
+            editor.putString("room_name", name + " Room");
+            editor.putString("group_id", uniqueId); // ইউজার আইডি ও রুম আইডি এক
+            editor.apply();
+
+            startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
+            finish();
+        });
     }
 
-    String copyImageToInternal(Uri uri) {
+    // ৮ ডিজিটের ইউনিক র‍্যান্ডম আইডি তৈরির মেথড
+    private String generateUniqueId() {
+        Random random = new Random();
+        int id = 10000000 + random.nextInt(90000000); // ৮ ডিজিটের সংখ্যা
+        return String.valueOf(id);
+    }
+
+    private String copyImageToInternal(Uri uri) {
         try {
             InputStream input = getContentResolver().openInputStream(uri);
             File file = new File(getFilesDir(), "profile.jpg");
             FileOutputStream output = new FileOutputStream(file);
             byte[] buffer = new byte[1024];
             int len;
-            while ((len = input.read(buffer)) > 0) output.write(buffer, 0, len);
-            input.close(); output.close();
+            while ((len = input.read(buffer)) > 0) {
+                output.write(buffer, 0, len);
+            }
+            input.close();
+            output.close();
             return Uri.fromFile(file).toString();
-        } catch (Exception e) { return null; }
-    }
-
-    void saveAndGo() {
-        String name = etName.getText().toString().trim();
-        if (name.isEmpty()) {
-            Toast.makeText(this, "দয়া করে আপনার নাম লিখুন", Toast.LENGTH_SHORT).show(); 
-            return;
+        } catch (Exception e) {
+            return null;
         }
-        if (savedImagePath.isEmpty()) {
-            Toast.makeText(this, "দয়া করে একটি প্রোফাইল ছবি সিলেক্ট করুন", Toast.LENGTH_SHORT).show(); 
-            return;
-        }
-        
-        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        String existingGroupId = prefs.getString("group_id", "");
-        
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString("user_name", name);
-        editor.putString("user_image", savedImagePath);
-        editor.putString("room_name", name + " Room");
-        
-        // প্রথমবার ৭ ডিজিটের ইউনিক রুম আইডি তৈরি হবে যা পার্মানেন্টলি সেভ থাকবে
-        if (existingGroupId.isEmpty()) {
-            String generatedId = String.valueOf(1000000 + (long)(Math.random() * 9000000));
-            editor.putString("group_id", generatedId);
-        }
-        
-        editor.apply();
-        
-        // সরাসরি ভয়েস রুমে প্রবেশ করবে
-        startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
-        finish();
     }
 }
