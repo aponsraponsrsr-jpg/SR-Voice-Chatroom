@@ -24,19 +24,19 @@ public class VoiceRoomActivity extends AppCompatActivity {
     
     ImageView[] seats = new ImageView[11];
     TextView[] seatNames = new TextView[11];
-    int currentSeat = -1; // -1 মানে শুরুতে কোনো সিটে থাকবে না (ইউজার নিজের ইচ্ছায় বসবে)
+    int currentSeat = -1; // শুরুতে কোনো সিটে থাকবে না, নিজের ইচ্ছায় বসবে
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_voice_room);
 
-        SharedPreferences prefs = getSharedPreferences("SR_Fixed_Database", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE);
         userName = prefs.getString("user_name", "User");
         userImage = prefs.getString("user_image", "");
-        groupId = prefs.getString("group_id", "71108953");
+        groupId = prefs.getString("group_id", "63913508");
         roomName = prefs.getString("room_name", userName + "'s Room");
-        String savedTheme = prefs.getString("room_theme", "#121212");
+        String savedTheme = prefs.getString("room_theme", "nature");
 
         tvRoomName = findViewById(R.id.tvRoomName);
         tvRoomIds = findViewById(R.id.tvRoomIds);
@@ -109,11 +109,27 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    private void applyThemeBackground(String themeCode) {
-        try {
-            rootLayout.setBackgroundColor(Color.parseColor(themeCode));
-        } catch (Exception e) {
-            rootLayout.setBackgroundColor(Color.parseColor("#121212"));
+    private void applyThemeBackground(String themeKey) {
+        // প্রকৃতি, সাগর, নদী, বৃষ্টি ভেজা ও টাইগার থিমের রিয়েল ভিজ্যুয়াল ব্যাকগ্রাউন্ড হ্যান্ডলিং
+        switch (themeKey) {
+            case "nature":
+                rootLayout.setBackgroundColor(Color.parseColor("#0A2F2D")); // সবুজ প্রকৃতি শেড
+                break;
+            case "sea":
+                rootLayout.setBackgroundColor(Color.parseColor("#0B1D3A")); // নীল সাগর ও নদী শেড
+                break;
+            case "rain":
+                rootLayout.setBackgroundColor(Color.parseColor("#1A1A2E")); // বৃষ্টি ভেজা পরিবেশ শেড
+                break;
+            case "couple":
+                rootLayout.setBackgroundColor(Color.parseColor("#2E1C2E")); // কাপেল রোমান্টিক থিম শেড
+                break;
+            case "tiger":
+                rootLayout.setBackgroundColor(Color.parseColor("#3D1400")); // টাইগার গোল্ড থিম শেড
+                break;
+            default:
+                rootLayout.setBackgroundColor(Color.parseColor("#121212"));
+                break;
         }
     }
 
@@ -188,17 +204,16 @@ public class VoiceRoomActivity extends AppCompatActivity {
             "❤️ কাপেল রোমান্টিক থিম", 
             "🐅 টাইগার গোল্ড থিম"
         };
-        // পারফেক্ট ব্যাকগ্রাউন্ড কালার কোড
-        String[] themeCodes = {"#0A2F2D", "#0B1D3A", "#1A1A2E", "#2E1C2E", "#2E1C0C"};
+        String[] themeKeys = {"nature", "sea", "rain", "couple", "tiger"};
 
         builder.setView(layout);
 
         builder.setSingleChoiceItems(themeNames, -1, (dialog, which) -> {
-            String selectedTheme = themeCodes[which];
-            applyThemeBackground(selectedTheme);
+            String selectedKey = themeKeys[which];
+            applyThemeBackground(selectedKey);
 
-            SharedPreferences.Editor editor = getSharedPreferences("SR_Fixed_Database", MODE_PRIVATE).edit();
-            editor.putString("room_theme", selectedTheme);
+            SharedPreferences.Editor editor = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE).edit();
+            editor.putString("room_theme", selectedKey);
             editor.apply();
             Toast.makeText(this, "ব্যাকগ্রাউন্ড থিম সফলভাবে সেট হয়েছে!", Toast.LENGTH_SHORT).show();
         });
@@ -208,7 +223,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             if (!newName.isEmpty()) {
                 roomName = newName;
                 tvRoomName.setText(roomName);
-                SharedPreferences.Editor editor = getSharedPreferences("SR_Fixed_Database", MODE_PRIVATE).edit();
+                SharedPreferences.Editor editor = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE).edit();
                 editor.putString("room_name", roomName);
                 editor.apply();
                 Toast.makeText(this, "রুমের নাম আপডেট হয়েছে!", Toast.LENGTH_SHORT).show();
