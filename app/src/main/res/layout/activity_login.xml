@@ -2,28 +2,45 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212"
-    android:gravity="center"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="#121212">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="SR Voice Chat"
+    <ImageView
+        android:id="@+id/ivPreview"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:background="#333333"
+        android:src="@android:drawable/sym_def_app_icon" />
+
+    <EditText
+        android:id="@+id/etName"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="20dp"
+        android:hint="Enter Your Name"
         android:textColor="#FFFFFF"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="40dp" />
+        android:textColorHint="#888888"
+        android:background="#333333"
+        android:padding="10dp"/>
 
     <Button
-        android:id="@+id/googleSignInButton"
+        android:id="@+id/btnCreateRoom"
         android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:backgroundTint="#FFFFFF"
-        android:text="Sign in with Google"
-        android:textColor="#000000"
-        android:textSize="16sp"
-        android:textStyle="bold" />
+        android:layout_height="50dp"
+        android:layout_marginTop="20dp"
+        android:text="Create Room"
+        android:backgroundTint="#DDA0FF"
+        android:textColor="#000000"/>
+
+    <Button
+        android:id="@+id/btnJoinRoom"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="10dp"
+        android:text="Join Room"
+        android:backgroundTint="#555555"
+        android:textColor="#FFFFFF"/>
 
 </LinearLayout>
