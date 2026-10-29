@@ -1,86 +1,124 @@
 package com.sr.voicechat;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.GoogleAuthProvider;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private static final int RC_SIGN_IN = 9001;
-    private GoogleSignInClient mGoogleSignInClient;
-    private FirebaseAuth mAuth;
+    EditText etName;
+    ImageView ivPreview;
+    String savedImagePath = "";
+    ActivityResultLauncher<String> pickImage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        mAuth = FirebaseAuth.getInstance();
+        etName = findViewById(R.id.etName);
+        ivPreview = findViewById(R.id.ivPreview);
+        Button btnCreate = findViewById(R.id.btnCreateRoom);
+        Button btnJoin = findViewById(R.id.btnJoinRoom);
 
-        // যদি user আগে থেকেই login থাকে, সরাসরি MainActivity তে পাঠিয়ে দাও
-        if (mAuth.getCurrentUser() != null) {
-            goToMain();
+        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        
+        // আগে সেভ করা নাম থাকলে অটো বসবে, বারবার লিখতে হবে না
+        String oldName = prefs.getString("user_name", "");
+        String oldImage = prefs.getString("user_image", "");
+        String oldGroupId = prefs.getString("group_id", "11458875");
+        
+        if (!oldName.isEmpty()) {
+            etName.setText(oldName);
+        }
+        if (!oldImage.isEmpty()) {
+            savedImagePath = oldImage;
+            try {
+                ivPreview.setImageURI(Uri.parse(oldImage));
+            } catch (Exception e) {}
+        }
+
+        pickImage = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+            if (uri != null) {
+                // ছবি ইন্টারনাল স্টোরেজে কপি করি, তাহলে Crash করবে না
+                String path = copyImageToInternal(uri);
+                if (path != null) {
+                    savedImagePath = path;
+                    ivPreview.setImageURI(Uri.parse(path));
+                    Toast.makeText(this, "Photo Saved", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        ivPreview.setOnClickListener(v -> pickImage.launch("image/*"));
+        findViewById(R.id.btnChoosePhoto).setOnClickListener(v -> pickImage.launch("image/*"));
+
+        btnCreate.setOnClickListener(v -> {
+            saveAndGo(true);
+        });
+
+        btnJoin.setOnClickListener(v -> {
+            saveAndGo(false);
+        });
+    }
+
+    String copyImageToInternal(Uri uri) {
+        try {
+            InputStream input = getContentResolver().openInputStream(uri);
+            File file = new File(getFilesDir(), "profile.jpg");
+            FileOutputStream output = new FileOutputStream(file);
+            byte[] buffer = new byte[1024];
+            int len;
+            while ((len = input.read(buffer)) > 0) {
+                output.write(buffer, 0, len);
+            }
+            input.close();
+            output.close();
+            return Uri.fromFile(file).toString();
+        } catch (Exception e) {
+            Toast.makeText(this, "Photo error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            return null;
+        }
+    }
+
+    void saveAndGo(boolean isCreate) {
+        String name = etName.getText().toString().trim();
+        if (name.isEmpty()) {
+            Toast.makeText(this, "Name likho bondhu", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (savedImagePath.isEmpty()) {
+            Toast.makeText(this, "Photo choose koro bondhu", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build();
-
-        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
-
-        if (findViewById(R.id.googleSignInButton) != null) {
-            findViewById(R.id.googleSignInButton).setOnClickListener(v -> signIn());
+        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("user_name", name);
+        editor.putString("user_image", savedImagePath);
+        editor.putString("room_name", name); // তোমার নামটাই গ্রুপ নেম হবে
+        if (isCreate) {
+            String newId = String.valueOf(System.currentTimeMillis() % 100000000);
+            editor.putString("group_id", newId);
         }
-    }
+        editor.apply();
 
-    private void signIn() {
-        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == RC_SIGN_IN) {
-            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            try {
-                GoogleSignInAccount account = task.getResult(ApiException.class);
-                firebaseAuthWithGoogle(account.getIdToken());
-            } catch (ApiException e) {
-                Toast.makeText(this, "Google Sign in failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
+        try {
+            Intent intent = new Intent(LoginActivity.this, VoiceRoomActivity.class);
+            startActivity(intent);
+        } catch (Exception e) {
+            Toast.makeText(this, "Open Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
-    }
-
-    private void firebaseAuthWithGoogle(String idToken) {
-        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        Toast.makeText(this, "Login Success", Toast.LENGTH_SHORT).show();
-                        goToMain();
-                    } else {
-                        Toast.makeText(LoginActivity.this, "Auth Failed.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
-
-    private void goToMain() {
-        // Login Success হলে কোথায় যাবে - এখানে ProfileActivity বদলে MainActivity দিতে পারো
-        Intent intent = new Intent(LoginActivity.this, ProfileActivity.class);
-        startActivity(intent);
-        finish();
     }
 }
