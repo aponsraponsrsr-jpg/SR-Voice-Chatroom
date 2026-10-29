@@ -4,7 +4,6 @@ import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -57,14 +56,16 @@ public class VoiceRoomActivity extends AppCompatActivity {
             headerProfileLayout.setOnClickListener(v -> showEditRoomDialog());
         }
 
-        ivExit.setOnClickListener(v -> {
-            new AlertDialog.Builder(this)
-                    .setTitle("Exit Room")
-                    .setMessage("আপনি কি রুম থেকে বের হতে চান?")
-                    .setPositiveButton("হ্যাঁ", (dialog, which) -> finish())
-                    .setNegativeButton("না", null)
-                    .show();
-        });
+        if (ivExit != null) {
+            ivExit.setOnClickListener(v -> {
+                new AlertDialog.Builder(this)
+                        .setTitle("Exit Room")
+                        .setMessage("আপনি কি রুম থেকে বের হতে চান?")
+                        .setPositiveButton("হ্যাঁ", (dialog, which) -> finish())
+                        .setNegativeButton("না", null)
+                        .show();
+            });
+        }
 
         for (int i = 1; i <= 10; i++) {
             if (i == 3) continue;
@@ -81,7 +82,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     }
 
     private void showEditRoomDialog() {
-        EditText inputRoomName = new EditText(this);
+        final EditText inputRoomName = new EditText(this);
         inputRoomName.setHint("নতুন রুমের নাম লিখুন");
         inputRoomName.setText(roomName);
         inputRoomName.setPadding(40, 30, 40, 30);
