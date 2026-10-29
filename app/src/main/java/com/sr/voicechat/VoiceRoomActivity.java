@@ -24,21 +24,20 @@ public class VoiceRoomActivity extends AppCompatActivity {
     
     ImageView[] seats = new ImageView[11];
     TextView[] seatNames = new TextView[11];
-    int currentSeat = 3; // ডিফল্ট ৩ নাম্বার সিট
+    int currentSeat = 7; // আপনার স্ক্রিনশট অনুযায়ী ডিফল্ট ৭ নাম্বার সিট
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_voice_room);
 
-        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("SRVoicePrefs", MODE_PRIVATE);
         userName = prefs.getString("user_name", "User");
         userImage = prefs.getString("user_image", "");
-        groupId = prefs.getString("group_id", "21133805");
+        groupId = prefs.getString("group_id", "43370317");
         roomName = prefs.getString("room_name", userName + "'s Room");
         String savedTheme = prefs.getString("room_theme", "#121212");
 
-        // ভিউ ইনিশিয়ালাইজেশন
         tvRoomName = findViewById(R.id.tvRoomName);
         tvRoomIds = findViewById(R.id.tvRoomIds);
         tvChat1 = findViewById(R.id.tvChat1);
@@ -54,7 +53,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         ivGift = findViewById(R.id.ivGift);
         ivGames = findViewById(R.id.ivGames);
 
-        // থিম কালার সেট করা
+        // ব্যাকগ্রাউন্ড থিম সেট করা
         try {
             rootLayout.setBackgroundColor(Color.parseColor(savedTheme));
         } catch (Exception e) {
@@ -63,10 +62,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         tvRoomName.setText(roomName);
         tvRoomIds.setText("ID: " + groupId);
-        tvChat1.setText(userName + ": Welcome to the room!");
+        tvChat1.setText("Welcome to " + roomName);
         tvChat2.setText("");
 
-        // সিট এবং নাম বাইন্ডিং
         for (int i = 1; i <= 10; i++) {
             int seatResId = getResources().getIdentifier("seat" + i, "id", getPackageName());
             int nameResId = getResources().getIdentifier("tvName" + i, "id", getPackageName());
@@ -76,7 +74,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         updateSeatsDisplay();
 
-        // সিট এক্সচেঞ্জ ও পপআপ
+        // সিট ক্লিক হ্যান্ডলিং (কোনো চ্যাট মেসেজ দেখাবে না)
         for (int i = 1; i <= 10; i++) {
             final int targetSeat = i;
             if (seats[i] != null) {
@@ -86,20 +84,16 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     } else {
                         currentSeat = targetSeat;
                         updateSeatsDisplay();
-                        tvChat1.setText(tvChat2.getText().toString());
-                        tvChat2.setText(userName + " moved to seat " + targetSeat);
                         Toast.makeText(this, "Moved to Seat " + targetSeat, Toast.LENGTH_SHORT).show();
                     }
                 });
             }
         }
 
-        // রুম সেটিংস ডায়ালগ
         if (headerProfileLayout != null) {
             headerProfileLayout.setOnClickListener(v -> showRoomSettingsDialog());
         }
 
-        // এক্সিট বাটন
         if (ivExit != null) {
             ivExit.setOnClickListener(v -> {
                 new AlertDialog.Builder(this)
@@ -111,14 +105,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // মাইক, সাউন্ড, গিফট ও গেম বাটন হ্যান্ডলিং
         ivMute.setOnClickListener(v -> Toast.makeText(this, "Audio Muted/Unmuted", Toast.LENGTH_SHORT).show());
         ivMic.setOnClickListener(v -> Toast.makeText(this, "Mic On/Off", Toast.LENGTH_SHORT).show());
-        
         ivGift.setOnClickListener(v -> Toast.makeText(this, "Gift Box Clicked (Coming Soon)", Toast.LENGTH_SHORT).show());
         ivGames.setOnClickListener(v -> Toast.makeText(this, "Games Hub Clicked (Coming Soon)", Toast.LENGTH_SHORT).show());
 
-        // বাঁ পাশে রিয়েল-টাইম চ্যাট মেসেজ শো করানোর লজিক
+        // শুধু ইউজার টাইপ করা মেসেজ চ্যাটে দেখাবে
         ivSendChat.setOnClickListener(v -> {
             String message = etChatInput.getText().toString().trim();
             if (!message.isEmpty()) {
@@ -185,7 +177,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 selectedTheme = "#121212";
             }
 
-            SharedPreferences.Editor editor = getSharedPreferences("user_prefs", MODE_PRIVATE).edit();
+            SharedPreferences.Editor editor = getSharedPreferences("SRVoicePrefs", MODE_PRIVATE).edit();
             editor.putString("room_theme", selectedTheme);
             editor.apply();
             Toast.makeText(this, "থিম ব্যাকগ্রাউন্ড পরিবর্তন হয়েছে!", Toast.LENGTH_SHORT).show();
@@ -196,7 +188,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             if (!newName.isEmpty()) {
                 roomName = newName;
                 tvRoomName.setText(roomName);
-                SharedPreferences.Editor editor = getSharedPreferences("user_prefs", MODE_PRIVATE).edit();
+                SharedPreferences.Editor editor = getSharedPreferences("SRVoicePrefs", MODE_PRIVATE).edit();
                 editor.putString("room_name", roomName);
                 editor.apply();
                 Toast.makeText(this, "রুমের নাম আপডেট হয়েছে!", Toast.LENGTH_SHORT).show();
