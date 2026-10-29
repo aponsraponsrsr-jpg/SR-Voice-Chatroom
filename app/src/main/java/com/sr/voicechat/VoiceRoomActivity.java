@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -25,17 +24,17 @@ public class VoiceRoomActivity extends AppCompatActivity {
     
     ImageView[] seats = new ImageView[11];
     TextView[] seatNames = new TextView[11];
-    int currentSeat = 2;
+    int currentSeat = -1; // -1 মানে শুরুতে কোনো সিটে থাকবে না (ইউজার নিজের ইচ্ছায় বসবে)
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_voice_room);
 
-        SharedPreferences prefs = getSharedPreferences("SR_Ultimate_Prefs", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("SR_Fixed_Database", MODE_PRIVATE);
         userName = prefs.getString("user_name", "User");
         userImage = prefs.getString("user_image", "");
-        groupId = prefs.getString("group_id", "55912074");
+        groupId = prefs.getString("group_id", "71108953");
         roomName = prefs.getString("room_name", userName + "'s Room");
         String savedTheme = prefs.getString("room_theme", "#121212");
 
@@ -70,6 +69,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         updateSeatsDisplay();
 
+        // সিটে ক্লিক করলে Take / Leave Mic অপশন আসবে
         for (int i = 1; i <= 10; i++) {
             final int targetSeat = i;
             if (seats[i] != null) {
@@ -111,11 +111,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void applyThemeBackground(String themeCode) {
         try {
-            if (themeCode.startsWith("#")) {
-                rootLayout.setBackgroundColor(Color.parseColor(themeCode));
-            } else {
-                rootLayout.setBackgroundColor(Color.parseColor("#121212"));
-            }
+            rootLayout.setBackgroundColor(Color.parseColor(themeCode));
         } catch (Exception e) {
             rootLayout.setBackgroundColor(Color.parseColor("#121212"));
         }
@@ -185,14 +181,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
         tvThemeLabel.setTextColor(Color.parseColor("#DDA0FF"));
         layout.addView(tvThemeLabel);
 
-        // প্রকৃতি, সাগর, নদী, বৃষ্টি ভেজা ও কাপেল ব্যাকগ্রাউন্ড অপশন
         String[] themeNames = {
-            "🌿 প্রকৃতি ও সবুজ বন (#0A2F2D)", 
-            "🌊 নীল সাগর ও নদী (#0B1D3A)", 
-            "🌧️ বৃষ্টি ভেজা পরিবেশ (#1A1A2E)", 
-            "❤️ কাপেল রোমান্টিক থিম (#2E1C2E)", 
-            "🐅 টাইগার গোল্ড থিম (#2E1C0C)"
+            "🌿 প্রকৃতি ও সবুজ বন", 
+            "🌊 নীল সাগর ও নদী", 
+            "🌧️ বৃষ্টি ভেজা পরিবেশ", 
+            "❤️ কাপেল রোমান্টিক থিম", 
+            "🐅 টাইগার গোল্ড থিম"
         };
+        // পারফেক্ট ব্যাকগ্রাউন্ড কালার কোড
         String[] themeCodes = {"#0A2F2D", "#0B1D3A", "#1A1A2E", "#2E1C2E", "#2E1C0C"};
 
         builder.setView(layout);
@@ -201,7 +197,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             String selectedTheme = themeCodes[which];
             applyThemeBackground(selectedTheme);
 
-            SharedPreferences.Editor editor = getSharedPreferences("SR_Ultimate_Prefs", MODE_PRIVATE).edit();
+            SharedPreferences.Editor editor = getSharedPreferences("SR_Fixed_Database", MODE_PRIVATE).edit();
             editor.putString("room_theme", selectedTheme);
             editor.apply();
             Toast.makeText(this, "ব্যাকগ্রাউন্ড থিম সফলভাবে সেট হয়েছে!", Toast.LENGTH_SHORT).show();
@@ -212,7 +208,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             if (!newName.isEmpty()) {
                 roomName = newName;
                 tvRoomName.setText(roomName);
-                SharedPreferences.Editor editor = getSharedPreferences("SR_Ultimate_Prefs", MODE_PRIVATE).edit();
+                SharedPreferences.Editor editor = getSharedPreferences("SR_Fixed_Database", MODE_PRIVATE).edit();
                 editor.putString("room_name", roomName);
                 editor.apply();
                 Toast.makeText(this, "রুমের নাম আপডেট হয়েছে!", Toast.LENGTH_SHORT).show();
