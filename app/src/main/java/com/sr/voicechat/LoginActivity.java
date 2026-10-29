@@ -1,37 +1,37 @@
 package com.sr.voicechat;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.Toast;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.GoogleAuthProvider;
 
 public class LoginActivity extends AppCompatActivity {
 
-    EditText etName;
-    ImageView ivPreview;
-    String savedImagePath = "";
-    ActivityResultLauncher<String> pickImage;
+    private GoogleSignInClient mGoogleSignInClient;
+    private final static int RC_SIGN_IN = 123;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // অ্যাপ ওপেন হলেই চেক করবে ইউজার আগে থেকেই লগইন করা আছে কিনা
-        SharedPreferences checkPrefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        String savedName = checkPrefs.getString("user_name", "");
         
-        if (!savedName.isEmpty()) {
-            // যদি আগে থেকেই লগইন করা থাকে, সরাসরি ভয়েস রুমে পাঠিয়ে দেবে (লগইন পেজ দেখাবে না)
+        mAuth = FirebaseAuth.getInstance();
+
+        // ১. চেক করবে ইউজার আগে থেকেই জিমেইল দিয়ে লগইন করা আছে কিনা
+        if (mAuth.getCurrentUser() != null) {
+            // যদি লগইন করা থাকে, সরাসরি ভয়েস রুমে চলে যাবে (আর জিমেইল চাইবে না)
             startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
             finish();
             return;
@@ -39,74 +39,52 @@ public class LoginActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_login);
 
-        etName = findViewById(R.id.etName);
-        ivPreview = findViewById(R.id.ivPreview);
-        Button btnCreate = findViewById(R.id.btnCreateRoom);
-        Button btnJoin = findViewById(R.id.btnJoinRoom);
+        // ২. Google Sign In Options কনফিগারেশন
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id)) // ফায়ারবেস থেকে নেওয়া আইডি
+                .requestEmail()
+                .build();
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        String oldName = prefs.getString("user_name", "");
-        String oldImage = prefs.getString("user_image", "");
-        
-        if (!oldName.isEmpty()) etName.setText(oldName);
-        if (!oldImage.isEmpty()) {
-            savedImagePath = oldImage;
-            try { ivPreview.setImageURI(Uri.parse(oldImage)); } catch (Exception e) {}
-        }
+        // ৩. আপনার ক্রিয়েট রুম বা জিমেইল সাইন-ইন বাটন
+        Button btnGoogleLogin = findViewById(R.id.btnCreateRoom); 
+        btnGoogleLogin.setText("Sign in with Gmail"); // বাটনের লেখা পরিবর্তন করে দিতে পারেন
 
-        pickImage = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
-            if (uri != null) {
-                String path = copyImageToInternal(uri);
-                if (path != null) {
-                    savedImagePath = path;
-                    ivPreview.setImageURI(Uri.parse(path));
-                }
+        btnGoogleLogin.setOnClickListener(v -> signIn());
+    }
+
+    private void signIn() {
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == RC_SIGN_IN) {
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInFromIntent(requestCode, data);
+            try {
+                GoogleSignInAccount account = task.getResult(ApiException.class);
+                firebaseAuthWithGoogle(account.getIdToken());
+            } catch (ApiException e) {
+                Toast.makeText(this, "Google Sign In Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
-        });
-
-        ivPreview.setOnClickListener(v -> pickImage.launch("image/*"));
-        btnCreate.setOnClickListener(v -> saveAndGo(true));
-        btnJoin.setOnClickListener(v -> saveAndGo(false));
+        }
     }
 
-    String copyImageToInternal(Uri uri) {
-        try {
-            InputStream input = getContentResolver().openInputStream(uri);
-            File file = new File(getFilesDir(), "profile.jpg");
-            FileOutputStream output = new FileOutputStream(file);
-            byte[] buffer = new byte[1024];
-            int len;
-            while ((len = input.read(buffer)) > 0) output.write(buffer, 0, len);
-            input.close(); output.close();
-            return Uri.fromFile(file).toString();
-        } catch (Exception e) { return null; }
-    }
-
-    void saveAndGo(boolean isCreate) {
-        String name = etName.getText().toString().trim();
-        if (name.isEmpty()) {
-            Toast.makeText(this, "Name likho", Toast.LENGTH_SHORT).show(); return;
-        }
-        if (savedImagePath.isEmpty()) {
-            Toast.makeText(this, "Photo choose koro", Toast.LENGTH_SHORT).show(); return;
-        }
-        
-        // ৭ ডিজিটের ইউনিক আইডি জেনারেশন (পার্সোনাল আইডি এবং রুম আইডি একই রাখার জন্য)
-        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        String existingGroupId = prefs.getString("group_id", "");
-        
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString("user_name", name);
-        editor.putString("user_image", savedImagePath);
-        editor.putString("room_name", name);
-        
-        if (existingGroupId.isEmpty()) {
-            String generatedId = String.valueOf(1000000 + (long)(Math.random() * 9000000));
-            editor.putString("group_id", generatedId);
-        }
-        
-        editor.apply();
-        startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
-        finish();
+    private void firebaseAuthWithGoogle(String idToken) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        // জিমেইল লগইন সফল হলে সরাসরি ভয়েস রুমে চলে যাবে
+                        Toast.makeText(this, "Gmail Login Successful!", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
+                        finish();
+                    } else {
+                        Toast.makeText(this, "Authentication Failed.", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 }
