@@ -31,7 +31,6 @@ public class LoginActivity extends AppCompatActivity {
         prefs = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE);
         boolean isRegistered = prefs.getBoolean("is_registered", false);
 
-        // যদি ইউজার আগে থেকেই রেজিস্টার্ড থাকে, তবে বারবার লগইন স্ক্রিনে না পাঠিয়ে সরাসরি ভয়েস রুমে নিয়ে যাবে
         if (isRegistered) {
             startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
             finish();
