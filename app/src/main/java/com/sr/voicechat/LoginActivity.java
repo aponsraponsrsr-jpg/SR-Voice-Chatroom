@@ -27,6 +27,7 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // পার্মানেন্ট লগইন চেক: ইউজার আগে লগইন করা থাকলে সরাসরি ভয়েস রুমে চলে যাবে
         SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
         String savedName = prefs.getString("user_name", "");
 
@@ -65,7 +66,7 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            // ৮ ডিজিটের ইউনিক ও মিক্সড আইডি (ইউজার আইডি এবং রুম আইডি সেম থাকবে)
+            // ৮ ডিজিটের ইউনিক র‍্যান্ডম আইডি (ইউজার আইডি ও রুম আইডি একদম সেম)
             String uniqueId = generateUniqueId();
 
             SharedPreferences.Editor editor = prefs.edit();
