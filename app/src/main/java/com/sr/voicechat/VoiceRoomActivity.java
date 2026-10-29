@@ -36,7 +36,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         try {
             SharedPreferences prefs = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE);
             userName = prefs.getString("user_name", "SR User");
-            groupId = prefs.getString("group_id", "11458875");
+            groupId = prefs.getString("group_id", "41525318");
             roomName = prefs.getString("room_name", userName + "'s Room");
             String savedTheme = prefs.getString("room_theme", "tiger");
 
@@ -73,12 +73,27 @@ public class VoiceRoomActivity extends AppCompatActivity {
             if (tvChat1 != null) tvChat1.setText("Welcome to " + roomName);
             if (tvChat2 != null) tvChat2.setText("");
 
+            // Header profile picture setup (Circular)
             if (userImage != null && !userImage.isEmpty() && ivHeaderProfile != null) {
                 try {
                     ivHeaderProfile.setImageURI(Uri.parse(userImage));
+                    ivHeaderProfile.setClipToOutline(true);
+                    
+                    GradientDrawable headerCircular = new GradientDrawable();
+                    headerCircular.setShape(GradientDrawable.OVAL);
+                    ivHeaderProfile.setBackground(headerCircular);
+                    ivHeaderProfile.setClipToOutline(true);
                 } catch (Exception e) {
                     // Ignore
                 }
+            }
+
+            if (headerProfileLayout != null) {
+                headerProfileLayout.setOnClickListener(v -> showMyProfileDialog());
+            }
+
+            if (ivHeaderProfile != null) {
+                ivHeaderProfile.setOnClickListener(v -> showMyProfileDialog());
             }
 
             for (int i = 1; i <= 10; i++) {
@@ -93,12 +108,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
             for (int i = 1; i <= 10; i++) {
                 final int targetSeat = i;
                 if (seats[i] != null) {
-                    seats[i].setOnClickListener(v -> showSeatActionDialog(targetSeat));
+                    seats[i].setOnClickListener(v -> {
+                        if (currentSeat == targetSeat) {
+                            showMyProfileDialog();
+                        } else {
+                            showSeatActionDialog(targetSeat);
+                        }
+                    });
                 }
-            }
-
-            if (headerProfileLayout != null) {
-                headerProfileLayout.setOnClickListener(v -> showRoomSettingsDialog());
             }
 
             if (ivOnlineMembers != null) {
@@ -107,6 +124,23 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
             if (ivExit != null) {
                 ivExit.setOnClickListener(v -> showKeepOrExitDialog());
+            }
+
+            // Locked features with "Coming Soon! SR Official" message
+            if (ivGift != null) {
+                ivGift.setOnClickListener(v -> Toast.makeText(this, "Coming Soon! SR Official", Toast.LENGTH_SHORT).show());
+            }
+
+            if (ivGames != null) {
+                ivGames.setOnClickListener(v -> Toast.makeText(this, "Coming Soon! SR Official", Toast.LENGTH_SHORT).show());
+            }
+
+            if (ivMute != null) {
+                ivMute.setOnClickListener(v -> Toast.makeText(this, "Mic Muted", Toast.LENGTH_SHORT).show());
+            }
+
+            if (ivMic != null) {
+                ivMic.setOnClickListener(v -> Toast.makeText(this, "Speaking Active", Toast.LENGTH_SHORT).show());
             }
 
             if (ivSendChat != null && etChatInput != null) {
@@ -134,28 +168,26 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private void showKeepOrExitDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Room Options")
-               .setMessage("আপনি কি রুমটি মিনিমাইজ (Keep) করতে চান নাকি বের হয়ে যেতে চান (Exit)?")
-               .setPositiveButton("Keep (মিনিমাইজ)", (dialog, which) -> moveTaskToBack(true))
-               .setNegativeButton("Exit (বের হন)", (dialog, which) -> finish())
+               .setMessage("Do you want to minimize the room (Keep) or exit completely?")
+               .setPositiveButton("Keep", (dialog, which) -> moveTaskToBack(true))
+               .setNegativeButton("Exit", (dialog, which) -> finish())
                .show();
     }
 
     private void showOnlineListDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Online Members & Owner Profile");
+        builder.setTitle("Online Members & Owner");
         
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(40, 30, 40, 30);
 
         TextView tvUser = new TextView(this);
-        tvUser.setText("👑 " + userName + " (ID: " + groupId + ")\n⭐ Role: Room Owner (গ্রুপ ওনার)\n\n👉 [ নিজের প্রোফাইল ভিজিট করতে ট্যাপ করুন ]");
+        tvUser.setText("👑 " + userName + " (ID: " + groupId + ")\n⭐ Role: Room Owner\n\n👉 [ Tap here to visit your profile ]");
         tvUser.setTextColor(Color.parseColor("#00FFCC"));
         tvUser.setTextSize(15);
         
-        tvUser.setOnClickListener(v -> {
-            showMyProfileDialog();
-        });
+        tvUser.setOnClickListener(v -> showMyProfileDialog());
 
         layout.addView(tvUser);
 
@@ -166,7 +198,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void showMyProfileDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("My Profile & ID Details");
+        builder.setTitle("My Profile Details");
 
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
@@ -187,28 +219,28 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (rootLayout == null) return;
         switch (themeKey) {
             case "nature":
-                rootLayout.setBackgroundColor(Color.parseColor("#0F3830"));
+                rootLayout.setBackgroundColor(Color.parseColor("#0B3D2E"));
                 break;
             case "sea":
-                rootLayout.setBackgroundColor(Color.parseColor("#0A2540"));
+                rootLayout.setBackgroundColor(Color.parseColor("#08203E"));
                 break;
             case "rain":
-                rootLayout.setBackgroundColor(Color.parseColor("#16222A"));
+                rootLayout.setBackgroundColor(Color.parseColor("#131C27"));
                 break;
             case "couple":
-                rootLayout.setBackgroundColor(Color.parseColor("#3A1725"));
+                rootLayout.setBackgroundColor(Color.parseColor("#4A1525"));
                 break;
             case "tiger":
-                rootLayout.setBackgroundColor(Color.parseColor("#4A2500"));
+                rootLayout.setBackgroundColor(Color.parseColor("#5A2D0C"));
                 break;
             default:
-                rootLayout.setBackgroundColor(Color.parseColor("#4A2500"));
+                rootLayout.setBackgroundColor(Color.parseColor("#5A2D0C"));
                 break;
         }
     }
 
     private void showSeatActionDialog(int targetSeat) {
-        CharSequence[] options = {"Take Mic (সিটে বসুন)", "Leave Mic (সিট ছাড়ুন)"};
+        CharSequence[] options = {"Take Mic", "Leave Mic"};
         
         new AlertDialog.Builder(this)
                 .setTitle("Seat " + targetSeat + " Options")
@@ -223,7 +255,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             updateSeatsDisplay();
                             Toast.makeText(this, "Left Seat " + targetSeat, Toast.LENGTH_SHORT).show();
                         } else {
-                            Toast.makeText(this, "আপনি এই সিটে নেই!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(this, "You are not on this seat!", Toast.LENGTH_SHORT).show();
                         }
                     }
                 })
@@ -233,7 +265,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private void updateSeatsDisplay() {
         GradientDrawable circularShape = new GradientDrawable();
         circularShape.setShape(GradientDrawable.OVAL);
-        circularShape.setColor(Color.parseColor("#22FFFFFF"));
+        circularShape.setColor(Color.parseColor("#33FFFFFF"));
 
         for (int i = 1; i <= 10; i++) {
             if (seats[i] != null && seatNames[i] != null) {
@@ -242,6 +274,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     if (userImage != null && !userImage.isEmpty()) {
                         try {
                             seats[i].setImageURI(Uri.parse(userImage));
+                            
+                            // Perfect Circular Crop for User DP on Seat
+                            GradientDrawable dpCircular = new GradientDrawable();
+                            dpCircular.setShape(GradientDrawable.OVAL);
+                            seats[i].setBackground(dpCircular);
                             seats[i].setClipToOutline(true);
                         } catch (Exception e) {
                             seats[i].setImageResource(android.R.drawable.sym_def_app_icon);
@@ -266,22 +303,22 @@ public class VoiceRoomActivity extends AppCompatActivity {
         layout.setPadding(40, 20, 40, 20);
 
         final EditText inputRoomName = new EditText(this);
-        inputRoomName.setHint("রুমের নাম লিখুন");
+        inputRoomName.setHint("Enter Room Name");
         inputRoomName.setText(roomName);
         inputRoomName.setTextColor(Color.WHITE);
         layout.addView(inputRoomName);
 
         final TextView tvThemeLabel = new TextView(this);
-        tvThemeLabel.setText("\n🎨 প্রিমিয়াম থিম গ্যালারি (সিলেক্ট করুন):");
+        tvThemeLabel.setText("\n🎨 Select Premium Theme:");
         tvThemeLabel.setTextColor(Color.parseColor("#00FFCC"));
         layout.addView(tvThemeLabel);
 
         String[] themeNames = {
-            "🌿 প্রকৃতি ও সবুজ বন (Forest Theme)", 
-            "🌊 নীল সাগর ও নদী (Ocean Theme)", 
-            "🌧️ বৃষ্টি ভেজা পরিবেশ (Rain Theme)", 
-            "❤️ কাপেল রোমান্টিক থিম (Romantic Theme)", 
-            "🐅 টাইগার গোল্ড থিম (Tiger Theme)"
+            "🌿 Forest Theme", 
+            "🌊 Ocean Theme", 
+            "🌧️ Rain Moody Theme", 
+            "❤️ Romantic Couple Theme", 
+            "🐅 Tiger Gold Theme"
         };
         String[] themeKeys = {"nature", "sea", "rain", "couple", "tiger"};
 
@@ -294,7 +331,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             SharedPreferences.Editor editor = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE).edit();
             editor.putString("room_theme", selectedKey);
             editor.apply();
-            Toast.makeText(this, "থিম ব্যাকগ্রাউন্ড সফলভাবে এপ্লাই হয়েছে!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Theme Applied Successfully!", Toast.LENGTH_SHORT).show();
         });
 
         builder.setPositiveButton("Update Name", (dialog, which) -> {
@@ -305,7 +342,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 SharedPreferences.Editor editor = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE).edit();
                 editor.putString("room_name", roomName);
                 editor.apply();
-                Toast.makeText(this, "রুমের নাম আপডেট হয়েছে!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Room Name Updated!", Toast.LENGTH_SHORT).show();
             }
         });
 
