@@ -22,16 +22,17 @@ public class LoginActivity extends AppCompatActivity {
     private ImageView ivPreview;
     private String savedImagePath = "";
     private ActivityResultLauncher<String> pickImage;
+    private SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // পার্মানেন্ট লগইন চেক: ইউজার তথ্য আগে থেকে সেভ থাকলে অটো হোম পেজ/রুম-এ যাবে
-        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
-        String savedName = prefs.getString("user_name", "");
+        // পার্মানেন্ট লগইন চেক (सही SharedPreferences ফাইল নেম 'SRVoicePrefs')
+        prefs = getSharedPreferences("SRVoicePrefs", MODE_PRIVATE);
+        boolean isLogged = prefs.getBoolean("is_logged_in", false);
 
-        if (!savedName.isEmpty()) {
+        if (isLogged) {
             startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
             finish();
             return;
@@ -66,10 +67,10 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            // ৮ ডিজিটের ইউনিক মিক্সড পার্সোনাল আইডি জেনারেট
             String uniqueId = generateUniqueId();
 
             SharedPreferences.Editor editor = prefs.edit();
+            editor.putBoolean("is_logged_in", true);
             editor.putString("user_name", name);
             editor.putString("user_image", savedImagePath);
             editor.putString("room_name", name + "'s Room");
