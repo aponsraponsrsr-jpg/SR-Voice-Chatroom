@@ -28,8 +28,8 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // পার্মানেন্ট লগইন চেক: একবার রেজিস্টার্ড হলে আর কখনো লগইন পেজ আসবে না
-        prefs = getSharedPreferences("SR_Ultimate_Prefs", MODE_PRIVATE);
+        // পার্মানেন্ট লগইন চেক
+        prefs = getSharedPreferences("SR_Fixed_Database", MODE_PRIVATE);
         boolean isRegistered = prefs.getBoolean("is_registered", false);
 
         if (isRegistered) {
@@ -67,8 +67,7 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            // একবারই ইউনিক আইডি এবং রুম আইডি জেনারেট হবে এবং পার্মানেন্টলি সেভ থাকবে
-            String uniqueId = "55912074"; // অথবা র‍্যান্ডম জেনারেটেড আইডি
+            // ইউনিক আইডি একবারই জেনারেট হয়ে পার্মানেন্টলি সেভ থাকবে
             Random random = new Random();
             String generatedId = String.valueOf(10000000 + random.nextInt(90000000));
 
