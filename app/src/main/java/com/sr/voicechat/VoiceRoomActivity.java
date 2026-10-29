@@ -1,10 +1,8 @@
 package com.sr.voicechat;
 
 import android.os.Bundle;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
@@ -39,11 +37,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
         roomIdText.setText("ID: " + myUserId + " | 7/8/9 digit unique");
         roomNameText.setText(currentRoomName);
 
-        // 1. Room Name Click -> Edit Room Name
         roomNameText.setOnClickListener(v -> showEditRoomNameDialog());
 
         initSeats();
-        initBottomBar();
     }
 
     private void initSeats() {
@@ -63,21 +59,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
             final int index = i;
             seatImages[i].setOnClickListener(v -> onSeatClicked(index));
         }
-        takeSeat(0); // Owner auto seat 1
+        takeSeat(0);
     }
 
-    private void initBottomBar() {
-        // Bottom bar এর ভিতরে Smile/Gift এ ক্লিক হলে কি হবে
-        // তোমার layout এ TextView আছে, আমরা সব View এ ক্লিক লাগাবো
-        View root = findViewById(android.R.id.content);
-        root.setOnClickListener(null); // dummy
-
-        // Smile বাটন খুঁজে বের করা - layout এর নিচে আছে
-        // তুমি যদি ID না দাও, তাও কাজ করবে, আমরা একটা simple emoji dialog দেখাবো
-        // এর জন্য নিচের LinearLayout এ ID দিতে হবে না, আমরা Activity তে একটা method রাখবো
-    }
-
-    // Bottom Smile Click থেকে কল হবে - তুমি xml এ onClick দিতে পারো
     public void onSmileClicked(View view) {
         showEmojiPanel();
     }
@@ -102,7 +86,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         input.setPadding(30,30,30,30);
         new AlertDialog.Builder(this)
                 .setTitle("Edit Room Name")
-                .setMessage("Room Thumbnail Edit is in Profile Activity")
+                .setMessage("Room Thumbnail Edit is in Profile")
                 .setView(input)
                 .setPositiveButton("Save", (dialog, which) -> {
                     currentRoomName = input.getText().toString();
@@ -132,7 +116,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
     }
 
     private void showManageDialog(int index) {
-        // Owner can make Admin, Mute, Kick
         String[] options;
         if (isOwner) {
             boolean isAdmin = adminSeats.contains(index);
@@ -170,7 +153,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             Toast.makeText(this, "Admin Removed No." + (index+1), Toast.LENGTH_SHORT).show();
         } else {
             adminSeats.add(index);
-            Toast.makeText(this, "Now Admin No." + (index+1) + " - Can Mute/Invite", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Now Admin No." + (index+1), Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -190,7 +173,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         isSeatMuted[index] = false;
         seatNames[index].setText("No." + (index + 1));
         seatImages[index].setBorderWidth(0);
-        seatImages[index].setImageResource(R.mipmap.ic_launcher);
+        seatImages[index].setImageResource(android.R.drawable.sym_def_app_icon);
     }
 
     private void lockSeat(int index) {
