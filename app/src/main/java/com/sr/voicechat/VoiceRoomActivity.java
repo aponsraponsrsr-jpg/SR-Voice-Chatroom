@@ -77,8 +77,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             if (userImage != null && !userImage.isEmpty() && ivHeaderProfile != null) {
                 try {
                     ivHeaderProfile.setImageURI(Uri.parse(userImage));
-                    ivHeaderProfile.setClipToOutline(true);
-                    
                     GradientDrawable headerCircular = new GradientDrawable();
                     headerCircular.setShape(GradientDrawable.OVAL);
                     ivHeaderProfile.setBackground(headerCircular);
@@ -167,11 +165,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void showKeepOrExitDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Room Options")
-               .setMessage("Do you want to minimize the room (Keep) or exit completely?")
-               .setPositiveButton("Keep", (dialog, which) -> moveTaskToBack(true))
-               .setNegativeButton("Exit", (dialog, which) -> finish())
-               .show();
+        builder.setTitle("Room Options");
+        builder.setMessage("Do you want to minimize the room (Keep) or exit completely?");
+        builder.setPositiveButton("Keep", (dialog, which) -> moveTaskToBack(true));
+        builder.setNegativeButton("Exit", (dialog, which) -> finish());
+        builder.show();
     }
 
     private void showOnlineListDialog() {
@@ -274,8 +272,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     if (userImage != null && !userImage.isEmpty()) {
                         try {
                             seats[i].setImageURI(Uri.parse(userImage));
-                            
-                            // Perfect Circular Crop for User DP on Seat
                             GradientDrawable dpCircular = new GradientDrawable();
                             dpCircular.setShape(GradientDrawable.OVAL);
                             seats[i].setBackground(dpCircular);
