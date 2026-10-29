@@ -3,6 +3,7 @@ package com.sr.voicechat;
 import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.EditText;
@@ -37,7 +38,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             userName = prefs.getString("user_name", "SR User");
             groupId = prefs.getString("group_id", "11458875");
             roomName = prefs.getString("room_name", userName + "'s Room");
-            String savedTheme = prefs.getString("room_theme", "sea");
+            String savedTheme = prefs.getString("room_theme", "tiger");
 
             File imgFile = new File(getFilesDir(), "permanent_profile.jpg");
             if (imgFile.exists()) {
@@ -141,16 +142,21 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void showOnlineListDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Online Members List (1)");
+        builder.setTitle("Online Members & Owner Profile");
         
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(40, 30, 40, 30);
 
         TextView tvUser = new TextView(this);
-        tvUser.setText("👑 " + userName + " (ID: " + groupId + ")\n⭐ Role: Room Owner (গ্রুপ ওনার)");
+        tvUser.setText("👑 " + userName + " (ID: " + groupId + ")\n⭐ Role: Room Owner (গ্রুপ ওনার)\n\n👉 [ নিজের প্রোফাইল ভিজিট করতে ট্যাপ করুন ]");
         tvUser.setTextColor(Color.parseColor("#00FFCC"));
-        tvUser.setTextSize(16);
+        tvUser.setTextSize(15);
+        
+        tvUser.setOnClickListener(v -> {
+            showMyProfileDialog();
+        });
+
         layout.addView(tvUser);
 
         builder.setView(layout);
@@ -158,26 +164,45 @@ public class VoiceRoomActivity extends AppCompatActivity {
         builder.show();
     }
 
+    private void showMyProfileDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("My Profile & ID Details");
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(40, 30, 40, 30);
+
+        TextView tvDetails = new TextView(this);
+        tvDetails.setText("👤 Name: " + userName + "\n🆔 ID: " + groupId + "\n👑 Status: Room Owner\n✨ Room: " + roomName);
+        tvDetails.setTextColor(Color.WHITE);
+        tvDetails.setTextSize(16);
+        layout.addView(tvDetails);
+
+        builder.setView(layout);
+        builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
+        builder.show();
+    }
+
     private void applyThemeBackground(String themeKey) {
         if (rootLayout == null) return;
         switch (themeKey) {
             case "nature":
-                rootLayout.setBackgroundColor(Color.parseColor("#0A2F2D"));
+                rootLayout.setBackgroundColor(Color.parseColor("#0F3830"));
                 break;
             case "sea":
-                rootLayout.setBackgroundColor(Color.parseColor("#0B1D3A"));
+                rootLayout.setBackgroundColor(Color.parseColor("#0A2540"));
                 break;
             case "rain":
-                rootLayout.setBackgroundColor(Color.parseColor("#1A1A2E"));
+                rootLayout.setBackgroundColor(Color.parseColor("#16222A"));
                 break;
             case "couple":
-                rootLayout.setBackgroundColor(Color.parseColor("#2E1C2E"));
+                rootLayout.setBackgroundColor(Color.parseColor("#3A1725"));
                 break;
             case "tiger":
-                rootLayout.setBackgroundColor(Color.parseColor("#3D1400"));
+                rootLayout.setBackgroundColor(Color.parseColor("#4A2500"));
                 break;
             default:
-                rootLayout.setBackgroundColor(Color.parseColor("#0B1D3A"));
+                rootLayout.setBackgroundColor(Color.parseColor("#4A2500"));
                 break;
         }
     }
@@ -206,6 +231,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
     }
 
     private void updateSeatsDisplay() {
+        GradientDrawable circularShape = new GradientDrawable();
+        circularShape.setShape(GradientDrawable.OVAL);
+        circularShape.setColor(Color.parseColor("#22FFFFFF"));
+
         for (int i = 1; i <= 10; i++) {
             if (seats[i] != null && seatNames[i] != null) {
                 if (i == currentSeat) {
@@ -213,6 +242,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     if (userImage != null && !userImage.isEmpty()) {
                         try {
                             seats[i].setImageURI(Uri.parse(userImage));
+                            seats[i].setClipToOutline(true);
                         } catch (Exception e) {
                             seats[i].setImageResource(android.R.drawable.sym_def_app_icon);
                         }
@@ -221,7 +251,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     }
                 } else {
                     seatNames[i].setText("");
-                    seats[i].setImageResource(android.R.drawable.presence_invisible);
+                    seats[i].setImageDrawable(circularShape);
                 }
             }
         }
@@ -242,16 +272,16 @@ public class VoiceRoomActivity extends AppCompatActivity {
         layout.addView(inputRoomName);
 
         final TextView tvThemeLabel = new TextView(this);
-        tvThemeLabel.setText("\n🎨 থিম গ্যালারি (পছন্দের থিম সিলেক্ট করুন):");
+        tvThemeLabel.setText("\n🎨 প্রিমিয়াম থিম গ্যালারি (সিলেক্ট করুন):");
         tvThemeLabel.setTextColor(Color.parseColor("#00FFCC"));
         layout.addView(tvThemeLabel);
 
         String[] themeNames = {
-            "🌿 প্রকৃতি ও সবুজ বন (Nature)", 
-            "🌊 নীল সাগর ও নদী (Sea)", 
-            "🌧️ বৃষ্টি ভেজা পরিবেশ (Rain)", 
-            "❤️ কাপেল রোমান্টিক থিম (Couple)", 
-            "🐅 টাইগার গোল্ড থিম (Tiger)"
+            "🌿 প্রকৃতি ও সবুজ বন (Forest Theme)", 
+            "🌊 নীল সাগর ও নদী (Ocean Theme)", 
+            "🌧️ বৃষ্টি ভেজা পরিবেশ (Rain Theme)", 
+            "❤️ কাপেল রোমান্টিক থিম (Romantic Theme)", 
+            "🐅 টাইগার গোল্ড থিম (Tiger Theme)"
         };
         String[] themeKeys = {"nature", "sea", "rain", "couple", "tiger"};
 
@@ -264,7 +294,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             SharedPreferences.Editor editor = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE).edit();
             editor.putString("room_theme", selectedKey);
             editor.apply();
-            Toast.makeText(this, "ব্যাকগ্রাউন্ড থিম সফলভাবে সেট হয়েছে!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "থিম ব্যাকগ্রাউন্ড সফলভাবে এপ্লাই হয়েছে!", Toast.LENGTH_SHORT).show();
         });
 
         builder.setPositiveButton("Update Name", (dialog, which) -> {
