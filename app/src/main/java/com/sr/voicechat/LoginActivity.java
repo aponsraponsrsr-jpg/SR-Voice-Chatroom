@@ -35,7 +35,6 @@ public class LoginActivity extends AppCompatActivity {
         ivPreview = findViewById(R.id.ivPreview);
         Button btnCreate = findViewById(R.id.btnCreateRoom);
 
-        // যদি আগে থেকেই নাম বা ছবি সেভ করা থাকে, তবে তা স্ক্রিনে শো করবে
         String savedName = prefs.getString("user_name", "");
         savedImagePath = prefs.getString("user_image", "");
 
@@ -69,14 +68,12 @@ public class LoginActivity extends AppCompatActivity {
                 return;
             }
 
-            // ইউনিক আইডি পার্মানেন্ট থাকবে, একবার জেনারেট হলে আর বদলাবে না
             String existingId = prefs.getString("group_id", "");
             if (existingId.isEmpty()) {
                 Random random = new Random();
                 existingId = String.valueOf(10000000 + random.nextInt(90000000));
             }
 
-            // ডেটা সেভ করা
             SharedPreferences.Editor editor = prefs.edit();
             editor.putBoolean("is_registered", true);
             editor.putString("user_name", name);
@@ -85,9 +82,8 @@ public class LoginActivity extends AppCompatActivity {
             editor.putString("group_id", existingId);
             editor.apply();
 
-            Toast.makeText(this, "সফলভাবে প্রবেশ করা হয়েছে!", Toast.LENGTH_SHORT).show();
+            // এখানে আগের সেই টোস্ট মেসেজটি সম্পূর্ণ মুছে দেওয়া হয়েছে
 
-            // সরাসরি ভয়েস রুমে চলে যাবে
             startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
             finish();
         });
