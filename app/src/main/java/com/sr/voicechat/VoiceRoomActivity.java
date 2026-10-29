@@ -19,7 +19,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     String userName, userImage = "", groupId, roomName;
     TextView tvRoomName, tvRoomIds, tvChat1, tvChat2, tvOnlineCount;
-    ImageView ivExit, ivMute, ivMic, ivSendChat, ivGift, ivGames, ivHeaderProfile;
+    ImageView ivExit, ivMute, ivMic, ivSendChat, ivGift, ivGames, ivEmoji, ivHeaderProfile;
     LinearLayout ivOnlineMembers, headerProfileLayout;
     EditText etChatInput;
     RelativeLayout rootLayout;
@@ -36,7 +36,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         try {
             SharedPreferences prefs = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE);
             userName = prefs.getString("user_name", "SR User");
-            groupId = prefs.getString("group_id", "41525318");
+            groupId = prefs.getString("group_id", "41285773");
             roomName = prefs.getString("room_name", userName + "'s Room");
             String savedTheme = prefs.getString("room_theme", "tiger");
 
@@ -123,12 +123,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 ivExit.setOnClickListener(v -> showKeepOrExitDialog());
             }
 
+            // Locked features with "Coming Soon! SR Official" message
             if (ivGift != null) {
                 ivGift.setOnClickListener(v -> Toast.makeText(this, "Coming Soon! SR Official", Toast.LENGTH_SHORT).show());
             }
 
             if (ivGames != null) {
-                ivGames.setOnClickListener(v -> Toast.makeText(this, "Coming Soon! SR Official", Toast.LENGTH_SHORT).show());
+                ivGames.setOnClickListener(v -> Toast.makeText(this, "Coming Soon! SR Official (Games Box)", Toast.LENGTH_SHORT).show());
             }
 
             if (ivMute != null) {
@@ -213,26 +214,37 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void applyThemeBackground(String themeKey) {
         if (rootLayout == null) return;
+        int colorStart = Color.parseColor("#5A2D0C");
+        int colorEnd = Color.parseColor("#1A0D04");
+
         switch (themeKey) {
             case "nature":
-                rootLayout.setBackgroundColor(Color.parseColor("#0B3D2E"));
+                colorStart = Color.parseColor("#0B3D2E");
+                colorEnd = Color.parseColor("#02130D");
                 break;
             case "sea":
-                rootLayout.setBackgroundColor(Color.parseColor("#08203E"));
+                colorStart = Color.parseColor("#08203E");
+                colorEnd = Color.parseColor("#020B18");
                 break;
             case "rain":
-                rootLayout.setBackgroundColor(Color.parseColor("#131C27"));
+                colorStart = Color.parseColor("#131C27");
+                colorEnd = Color.parseColor("#05080C");
                 break;
             case "couple":
-                rootLayout.setBackgroundColor(Color.parseColor("#4A1525"));
+                colorStart = Color.parseColor("#4A1525");
+                colorEnd = Color.parseColor("#1A050C");
                 break;
             case "tiger":
-                rootLayout.setBackgroundColor(Color.parseColor("#5A2D0C"));
-                break;
-            default:
-                rootLayout.setBackgroundColor(Color.parseColor("#5A2D0C"));
+                colorStart = Color.parseColor("#5A2D0C");
+                colorEnd = Color.parseColor("#1F0F03");
                 break;
         }
+
+        GradientDrawable gradientDrawable = new GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            new int[]{colorStart, colorEnd}
+        );
+        rootLayout.setBackground(gradientDrawable);
     }
 
     private void showSeatActionDialog(int targetSeat) {
@@ -286,5 +298,61 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    private void showRoomSettingsDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Room Settings & Theme Gallery");
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(40, 20, 40, 20);
+
+        final EditText inputRoomName = new EditText(this);
+        inputRoomName.setHint("Enter Room Name");
+        inputRoomName.setText(roomName);
+        inputRoomName.setTextColor(Color.WHITE);
+        layout.addView(inputRoomName);
+
+        final TextView tvThemeLabel = new TextView(this);
+        tvThemeLabel.setText("\n🎨 Select Premium Theme:");
+        tvThemeLabel.setTextColor(Color.parseColor("#00FFCC"));
+        layout.addView(tvThemeLabel);
+
+        String[] themeNames = {
+            "🌿 Forest Theme", 
+            "🌊 Ocean Theme", 
+            "🌧️ Rain Moody Theme", 
+            "❤️ Romantic Couple Theme", 
+            "🐅 Tiger Gold Theme"
+        };
+        String[] themeKeys = {"nature", "sea", "rain", "couple", "tiger"};
+
+        builder.setView(layout);
+
+        builder.setSingleChoiceItems(themeNames, -1, (dialog, which) -> {
+            String selectedKey = themeKeys[which];
+            applyThemeBackground(selectedKey);
+
+            SharedPreferences.Editor editor = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE).edit();
+            editor.putString("room_theme", selectedKey);
+            editor.apply();
+            Toast.makeText(this, "Theme Applied Successfully!", Toast.LENGTH_SHORT).show();
+        });
+
+        builder.setPositiveButton("Update Name", (dialog, which) -> {
+            String newName = inputRoomName.getText().toString().trim();
+            if (!newName.isEmpty()) {
+                roomName = newName;
+                tvRoomName.setText(roomName);
+                SharedPreferences.Editor editor = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE).edit();
+                editor.putString("room_name", roomName);
+                editor.apply();
+                Toast.makeText(this, "Room Name Updated!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNegativeButton("Close", (dialog, which) -> dialog.dismiss());
+        builder.show();
     }
 }
