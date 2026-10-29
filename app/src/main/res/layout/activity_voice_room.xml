@@ -46,7 +46,7 @@
                 <TextView android:id="@+id/tvRoomName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="SR Room"
+                    android:text="Official's Room"
                     android:textColor="#DDA0FF"
                     android:textStyle="bold"
                     android:textSize="15sp"/>
@@ -54,7 +54,7 @@
                 <TextView android:id="@+id/tvRoomIds"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="ID: 8772164"
+                    android:text="ID: 21133805"
                     android:textColor="#FFFFFF"
                     android:textSize="11sp"/>
             </LinearLayout>
@@ -73,119 +73,135 @@
             android:padding="4dp"/>
     </LinearLayout>
 
-    <!-- Seats Container (প্রতিটি সিটের ডিপি ও তার নিচে নাম) -->
+    <!-- Seats Container (১০টি সিট এবং নিচে সিরিয়াল নম্বর ও নাম) -->
     <LinearLayout
         android:id="@+id/seatsContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/topBar"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="20dp"
         android:orientation="vertical"
         android:gravity="center">
 
         <!-- Row 1 (Seat 1 to 5) -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center">
             
-            <!-- Seat 1 -->
-            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
-                <androidx.cardview.widget.CardView android:layout_width="52dp" android:layout_height="52dp" app:cardCornerRadius="26dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="5dp">
+                <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="25dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
                     <ImageView android:id="@+id/seat1" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop"/>
                 </androidx.cardview.widget.CardView>
-                <TextView android:id="@+id/tvName1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#DDA0FF" android:textSize="11sp" android:layout_marginTop="2dp" android:maxLines="1"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1" android:textColor="#888888" android:textSize="10sp"/>
+                <TextView android:id="@+id/tvName1" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#DDA0FF" android:textSize="11sp" android:maxLines="1"/>
             </LinearLayout>
 
-            <!-- Seat 2 -->
-            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
-                <androidx.cardview.widget.CardView android:layout_width="52dp" android:layout_height="52dp" app:cardCornerRadius="26dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="5dp">
+                <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="25dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
                     <ImageView android:id="@+id/seat2" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop"/>
                 </androidx.cardview.widget.CardView>
-                <TextView android:id="@+id/tvName2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#DDA0FF" android:textSize="11sp" android:layout_marginTop="2dp" android:maxLines="1"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2" android:textColor="#888888" android:textSize="10sp"/>
+                <TextView android:id="@+id/tvName2" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#DDA0FF" android:textSize="11sp" android:maxLines="1"/>
             </LinearLayout>
 
-            <!-- Seat 3 -->
-            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
-                <androidx.cardview.widget.CardView android:layout_width="52dp" android:layout_height="52dp" app:cardCornerRadius="26dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="5dp">
+                <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="25dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
                     <ImageView android:id="@+id/seat3" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop"/>
                 </androidx.cardview.widget.CardView>
-                <TextView android:id="@+id/tvName3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#DDA0FF" android:textSize="11sp" android:layout_marginTop="2dp" android:maxLines="1"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3" android:textColor="#888888" android:textSize="10sp"/>
+                <TextView android:id="@+id/tvName3" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#DDA0FF" android:textSize="11sp" android:maxLines="1"/>
             </LinearLayout>
 
-            <!-- Seat 4 -->
-            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
-                <androidx.cardview.widget.CardView android:layout_width="52dp" android:layout_height="52dp" app:cardCornerRadius="26dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="5dp">
+                <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="25dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
                     <ImageView android:id="@+id/seat4" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop"/>
                 </androidx.cardview.widget.CardView>
-                <TextView android:id="@+id/tvName4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#DDA0FF" android:textSize="11sp" android:layout_marginTop="2dp" android:maxLines="1"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="4" android:textColor="#888888" android:textSize="10sp"/>
+                <TextView android:id="@+id/tvName4" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#DDA0FF" android:textSize="11sp" android:maxLines="1"/>
             </LinearLayout>
 
-            <!-- Seat 5 -->
-            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
-                <androidx.cardview.widget.CardView android:layout_width="52dp" android:layout_height="52dp" app:cardCornerRadius="26dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="5dp">
+                <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="25dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
                     <ImageView android:id="@+id/seat5" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop"/>
                 </androidx.cardview.widget.CardView>
-                <TextView android:id="@+id/tvName5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#DDA0FF" android:textSize="11sp" android:layout_marginTop="2dp" android:maxLines="1"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5" android:textColor="#888888" android:textSize="10sp"/>
+                <TextView android:id="@+id/tvName5" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#DDA0FF" android:textSize="11sp" android:maxLines="1"/>
             </LinearLayout>
         </LinearLayout>
 
         <!-- Row 2 (Seat 6 to 10) -->
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:layout_marginTop="15dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:layout_marginTop="10dp">
             
-            <!-- Seat 6 -->
-            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
-                <androidx.cardview.widget.CardView android:layout_width="52dp" android:layout_height="52dp" app:cardCornerRadius="26dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="5dp">
+                <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="25dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
                     <ImageView android:id="@+id/seat6" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop"/>
                 </androidx.cardview.widget.CardView>
-                <TextView android:id="@+id/tvName6" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#DDA0FF" android:textSize="11sp" android:layout_marginTop="2dp" android:maxLines="1"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="6" android:textColor="#888888" android:textSize="10sp"/>
+                <TextView android:id="@+id/tvName6" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#DDA0FF" android:textSize="11sp" android:maxLines="1"/>
             </LinearLayout>
 
-            <!-- Seat 7 -->
-            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
-                <androidx.cardview.widget.CardView android:layout_width="52dp" android:layout_height="52dp" app:cardCornerRadius="26dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="5dp">
+                <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="25dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
                     <ImageView android:id="@+id/seat7" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop"/>
                 </androidx.cardview.widget.CardView>
-                <TextView android:id="@+id/tvName7" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#DDA0FF" android:textSize="11sp" android:layout_marginTop="2dp" android:maxLines="1"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="7" android:textColor="#888888" android:textSize="10sp"/>
+                <TextView android:id="@+id/tvName7" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#DDA0FF" android:textSize="11sp" android:maxLines="1"/>
             </LinearLayout>
 
-            <!-- Seat 8 -->
-            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
-                <androidx.cardview.widget.CardView android:layout_width="52dp" android:layout_height="52dp" app:cardCornerRadius="26dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="5dp">
+                <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="25dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
                     <ImageView android:id="@+id/seat8" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop"/>
                 </androidx.cardview.widget.CardView>
-                <TextView android:id="@+id/tvName8" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#DDA0FF" android:textSize="11sp" android:layout_marginTop="2dp" android:maxLines="1"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="8" android:textColor="#888888" android:textSize="10sp"/>
+                <TextView android:id="@+id/tvName8" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#DDA0FF" android:textSize="11sp" android:maxLines="1"/>
             </LinearLayout>
 
-            <!-- Seat 9 -->
-            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
-                <androidx.cardview.widget.CardView android:layout_width="52dp" android:layout_height="52dp" app:cardCornerRadius="26dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="5dp">
+                <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="25dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
                     <ImageView android:id="@+id/seat9" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop"/>
                 </androidx.cardview.widget.CardView>
-                <TextView android:id="@+id/tvName9" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#DDA0FF" android:textSize="11sp" android:layout_marginTop="2dp" android:maxLines="1"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="9" android:textColor="#888888" android:textSize="10sp"/>
+                <TextView android:id="@+id/tvName9" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#DDA0FF" android:textSize="11sp" android:maxLines="1"/>
             </LinearLayout>
 
-            <!-- Seat 10 -->
-            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
-                <androidx.cardview.widget.CardView android:layout_width="52dp" android:layout_height="52dp" app:cardCornerRadius="26dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
+            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:layout_margin="5dp">
+                <androidx.cardview.widget.CardView android:layout_width="50dp" android:layout_height="50dp" app:cardCornerRadius="25dp" app:cardBackgroundColor="#2A2A2A" app:cardElevation="0dp">
                     <ImageView android:id="@+id/seat10" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop"/>
                 </androidx.cardview.widget.CardView>
-                <TextView android:id="@+id/tvName10" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#DDA0FF" android:textSize="11sp" android:layout_marginTop="2dp" android:maxLines="1"/>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="10" android:textColor="#888888" android:textSize="10sp"/>
+                <TextView android:id="@+id/tvName10" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="#DDA0FF" android:textSize="11sp" android:maxLines="1"/>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
-    <!-- রিয়েল-টাইম চ্যাট মেসেজ স্ক্রিনে শো করার জন্য -->
-    <TextView android:id="@+id/tvChatDisplay"
+    <!-- বাঁ পাশে স্ক্রিনশটের মতো চ্যাট মেসেজ দেখানোর জন্য লিস্ট বা লেআউট -->
+    <LinearLayout
+        android:id="@+id/chatListContainer"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="200dp"
+        android:layout_above="@id/bottomBar"
         android:layout_below="@id/seatsContainer"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="15dp"
-        android:gravity="center"
-        android:textColor="#90EE90"
-        android:textSize="13sp"
-        android:textStyle="bold"
-        android:padding="6dp"/>
+        android:layout_marginHorizontal="16dp"
+        android:orientation="vertical"
+        android:gravity="bottom"
+        android:paddingBottom="10dp">
 
-    <!-- Bottom Control Bar -->
+        <TextView android:id="@+id/tvChat1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#90EE90"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:paddingVertical="2px"/>
+
+        <TextView android:id="@+id/tvChat2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#90EE90"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:paddingVertical="2px"/>
+    </LinearLayout>
+
+    <!-- Bottom Control Bar (মাইক, স্পিকার, টাইপিং বক্স, গিফট এবং গেম আইকন সহ) -->
     <LinearLayout
         android:id="@+id/bottomBar"
         android:layout_width="match_parent"
@@ -194,23 +210,23 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:background="#1E1E1E"
-        android:paddingHorizontal="16dp">
+        android:paddingHorizontal="12dp">
 
         <ImageView android:id="@+id/ivMute"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:src="@android:drawable/ic_lock_silent_mode_off"
             android:tint="#FFFFFF"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="10dp"
             android:clickable="true"
             android:focusable="true"/>
 
         <ImageView android:id="@+id/ivMic"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:src="@android:drawable/ic_btn_speak_now"
             android:tint="#FFFFFF"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="10dp"
             android:clickable="true"
             android:focusable="true"/>
 
@@ -227,11 +243,31 @@
             android:textSize="14sp"/>
 
         <ImageView android:id="@+id/ivSendChat"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:src="@android:drawable/ic_menu_send"
             android:tint="#FFFFFF"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="10dp"
+            android:clickable="true"
+            android:focusable="true"/>
+
+        <!-- গিফট আইকন -->
+        <ImageView android:id="@+id/ivGift"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@android:drawable/ic_menu_agenda"
+            android:tint="#FFD700"
+            android:layout_marginStart="10dp"
+            android:clickable="true"
+            android:focusable="true"/>
+
+        <!-- গেম আইকন -->
+        <ImageView android:id="@+id/ivGames"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@android:drawable/ic_menu_manage"
+            android:tint="#00FFFF"
+            android:layout_marginStart="10dp"
             android:clickable="true"
             android:focusable="true"/>
     </LinearLayout>
