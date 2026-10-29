@@ -25,6 +25,18 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // অ্যাপ ওপেন হলেই চেক করবে ইউজার আগে থেকেই লগইন করা আছে কিনা
+        SharedPreferences checkPrefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        String savedName = checkPrefs.getString("user_name", "");
+        
+        if (!savedName.isEmpty()) {
+            // যদি আগে থেকেই লগইন করা থাকে, সরাসরি ভয়েস রুমে পাঠিয়ে দেবে (লগইন পেজ দেখাবে না)
+            startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_login);
 
         etName = findViewById(R.id.etName);
@@ -78,14 +90,23 @@ public class LoginActivity extends AppCompatActivity {
         if (savedImagePath.isEmpty()) {
             Toast.makeText(this, "Photo choose koro", Toast.LENGTH_SHORT).show(); return;
         }
-        SharedPreferences.Editor editor = getSharedPreferences("user_prefs", MODE_PRIVATE).edit();
+        
+        // ৭ ডিজিটের ইউনিক আইডি জেনারেশন (পার্সোনাল আইডি এবং রুম আইডি একই রাখার জন্য)
+        SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
+        String existingGroupId = prefs.getString("group_id", "");
+        
+        SharedPreferences.Editor editor = prefs.edit();
         editor.putString("user_name", name);
         editor.putString("user_image", savedImagePath);
         editor.putString("room_name", name);
-        if (isCreate) {
-            editor.putString("group_id", String.valueOf(System.currentTimeMillis() % 100000000));
+        
+        if (existingGroupId.isEmpty()) {
+            String generatedId = String.valueOf(1000000 + (long)(Math.random() * 9000000));
+            editor.putString("group_id", generatedId);
         }
+        
         editor.apply();
         startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
+        finish();
     }
 }
