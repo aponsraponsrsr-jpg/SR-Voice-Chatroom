@@ -24,17 +24,17 @@ public class VoiceRoomActivity extends AppCompatActivity {
     
     ImageView[] seats = new ImageView[11];
     TextView[] seatNames = new TextView[11];
-    int currentSeat = 7; // আপনার স্ক্রিনশট অনুযায়ী ডিফল্ট ৭ নাম্বার সিট
+    int currentSeat = 2; // ডিফল্ট ২ নাম্বার সিট
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_voice_room);
 
-        SharedPreferences prefs = getSharedPreferences("SRVoicePrefs", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("SR_Permanent_Prefs", MODE_PRIVATE);
         userName = prefs.getString("user_name", "User");
         userImage = prefs.getString("user_image", "");
-        groupId = prefs.getString("group_id", "43370317");
+        groupId = prefs.getString("group_id", "24018271");
         roomName = prefs.getString("room_name", userName + "'s Room");
         String savedTheme = prefs.getString("room_theme", "#121212");
 
@@ -53,7 +53,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         ivGift = findViewById(R.id.ivGift);
         ivGames = findViewById(R.id.ivGames);
 
-        // ব্যাকগ্রাউন্ড থিম সেট করা
         try {
             rootLayout.setBackgroundColor(Color.parseColor(savedTheme));
         } catch (Exception e) {
@@ -74,18 +73,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         updateSeatsDisplay();
 
-        // সিট ক্লিক হ্যান্ডলিং (কোনো চ্যাট মেসেজ দেখাবে না)
+        // সিটে ক্লিক করলে Take Mic / Leave Mic পপআপ আসবে
         for (int i = 1; i <= 10; i++) {
             final int targetSeat = i;
             if (seats[i] != null) {
                 seats[i].setOnClickListener(v -> {
-                    if (currentSeat == targetSeat) {
-                        showProfilePopup();
-                    } else {
-                        currentSeat = targetSeat;
-                        updateSeatsDisplay();
-                        Toast.makeText(this, "Moved to Seat " + targetSeat, Toast.LENGTH_SHORT).show();
-                    }
+                    showSeatActionDialog(targetSeat);
                 });
             }
         }
@@ -110,7 +103,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         ivGift.setOnClickListener(v -> Toast.makeText(this, "Gift Box Clicked (Coming Soon)", Toast.LENGTH_SHORT).show());
         ivGames.setOnClickListener(v -> Toast.makeText(this, "Games Hub Clicked (Coming Soon)", Toast.LENGTH_SHORT).show());
 
-        // শুধু ইউজার টাইপ করা মেসেজ চ্যাটে দেখাবে
         ivSendChat.setOnClickListener(v -> {
             String message = etChatInput.getText().toString().trim();
             if (!message.isEmpty()) {
@@ -121,6 +113,30 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 Toast.makeText(this, "দয়া করে কিছু লিখুন", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    // সিট পরিবর্তনের জন্য Take Mic / Leave Mic ডায়ালগ
+    private void showSeatActionDialog(int targetSeat) {
+        CharSequence[] options = {"Take Mic (সিটে বসুন)", "Leave Mic (সিট ছাড়ুন)"};
+        
+        new AlertDialog.Builder(this)
+                .setTitle("Seat " + targetSeat + " Options")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        currentSeat = targetSeat;
+                        updateSeatsDisplay();
+                        Toast.makeText(this, "Taken Seat " + targetSeat, Toast.LENGTH_SHORT).show();
+                    } else if (which == 1) {
+                        if (currentSeat == targetSeat) {
+                            currentSeat = -1; // খালি করে দেওয়া
+                            updateSeatsDisplay();
+                            Toast.makeText(this, "Left Seat " + targetSeat, Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this, "আপনি এই সিটে নেই!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                })
+                .show();
     }
 
     private void updateSeatsDisplay() {
@@ -177,7 +193,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 selectedTheme = "#121212";
             }
 
-            SharedPreferences.Editor editor = getSharedPreferences("SRVoicePrefs", MODE_PRIVATE).edit();
+            SharedPreferences.Editor editor = getSharedPreferences("SR_Permanent_Prefs", MODE_PRIVATE).edit();
             editor.putString("room_theme", selectedTheme);
             editor.apply();
             Toast.makeText(this, "থিম ব্যাকগ্রাউন্ড পরিবর্তন হয়েছে!", Toast.LENGTH_SHORT).show();
@@ -188,7 +204,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             if (!newName.isEmpty()) {
                 roomName = newName;
                 tvRoomName.setText(roomName);
-                SharedPreferences.Editor editor = getSharedPreferences("SRVoicePrefs", MODE_PRIVATE).edit();
+                SharedPreferences.Editor editor = getSharedPreferences("SR_Permanent_Prefs", MODE_PRIVATE).edit();
                 editor.putString("room_name", roomName);
                 editor.apply();
                 Toast.makeText(this, "রুমের নাম আপডেট হয়েছে!", Toast.LENGTH_SHORT).show();
@@ -197,13 +213,5 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         builder.setNegativeButton("Close", (dialog, which) -> dialog.dismiss());
         builder.show();
-    }
-
-    private void showProfilePopup() {
-        new AlertDialog.Builder(this)
-                .setTitle("User Profile")
-                .setMessage("Name: " + userName + "\nID: " + groupId)
-                .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
-                .show();
     }
 }
