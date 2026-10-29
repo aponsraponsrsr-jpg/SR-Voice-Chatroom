@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -17,13 +16,14 @@ import androidx.appcompat.app.AppCompatActivity;
 public class VoiceRoomActivity extends AppCompatActivity {
 
     String userName, userImage, groupId, roomName;
-    TextView tvRoomName, tvRoomIds, tvEntryLog;
+    TextView tvRoomName, tvRoomIds, tvChatDisplay;
     ImageView ivExit, ivMute, ivMic, ivSendChat;
     EditText etChatInput;
     LinearLayout headerProfileLayout;
     RelativeLayout rootLayout;
     
     ImageView[] seats = new ImageView[11];
+    TextView[] seatNames = new TextView[11];
     int currentSeat = 3; // ডিফল্ট ৩ নাম্বার সিট
 
     @Override
@@ -41,7 +41,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         // ভিউ ইনিশিয়ালাইজেশন
         tvRoomName = findViewById(R.id.tvRoomName);
         tvRoomIds = findViewById(R.id.tvRoomIds);
-        tvEntryLog = findViewById(R.id.tvEntryLog);
+        tvChatDisplay = findViewById(R.id.tvChatDisplay);
         ivExit = findViewById(R.id.ivHomeSettings);
         headerProfileLayout = findViewById(R.id.headerProfileLayout);
         rootLayout = findViewById(R.id.rootLayout);
@@ -51,7 +51,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         ivSendChat = findViewById(R.id.ivSendChat);
         etChatInput = findViewById(R.id.etChatInput);
 
-        // থিম ব্যাকগ্রাউন্ড সেট করা
+        // সেভ করা থিম ব্যাকগ্রাউন্ড কালার সেট করা
         try {
             rootLayout.setBackgroundColor(Color.parseColor(savedTheme));
         } catch (Exception e) {
@@ -60,37 +60,40 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         tvRoomName.setText(roomName);
         tvRoomIds.setText("ID: " + groupId);
-        tvEntryLog.setText(userName + " joined seat 3");
+        tvChatDisplay.setText(userName + " joined the room");
 
+        // সিট এবং সিটের নিচের নামগুলো বাইন্ড করা
         for (int i = 1; i <= 10; i++) {
-            int resId = getResources().getIdentifier("seat" + i, "id", getPackageName());
-            seats[i] = findViewById(resId);
+            int seatResId = getResources().getIdentifier("seat" + i, "id", getPackageName());
+            int nameResId = getResources().getIdentifier("tvName" + i, "id", getPackageName());
+            seats[i] = findViewById(seatResId);
+            seatNames[i] = findViewById(nameResId);
         }
 
         updateSeatsDisplay();
 
-        // সিট এক্সচেঞ্জ ও ইউজার প্রোফাইল পপআপ (সিটে ক্লিক করলে নিজের আইডি ও নাম দেখাবে)
+        // সিট এক্সচেঞ্জ ও প্রোফাইল পপআপ
         for (int i = 1; i <= 10; i++) {
             final int targetSeat = i;
             if (seats[i] != null) {
                 seats[i].setOnClickListener(v -> {
                     if (currentSeat == targetSeat) {
-                        // নিজের সিটে ক্লিক করলে প্রোফাইল পপআপ দেখাবে (আইডি ও নাম সহ)
+                        // নিজের সিটে ক্লিক করলে প্রোফাইল পপআপ (আইডি সহ দেখাবে)
                         showProfilePopup();
                     } else {
-                        // খালি সিটে ক্লিক করলে সিট চেঞ্জ হবে
+                        // অন্য সিটে ক্লিক করলে সিট এক্সচেঞ্জ হবে
                         currentSeat = targetSeat;
                         updateSeatsDisplay();
-                        tvEntryLog.setText(userName + " moved to seat " + targetSeat);
+                        tvChatDisplay.setText(userName + " moved to seat " + targetSeat);
                         Toast.makeText(this, "Moved to Seat " + targetSeat, Toast.LENGTH_SHORT).show();
                     }
                 });
             }
         }
 
-        // হেডারে ক্লিক করলে রুম এডিট ও থিম পরিবর্তনের অপশন
+        // হেডারে ক্লিক করলে রুম এডিট ও থিম গ্যালারি ডায়ালগ
         if (headerProfileLayout != null) {
-            headerProfileLayout.setOnClickListener(v -> showEditRoomDialog());
+            headerProfileLayout.setOnClickListener(v -> showRoomSettingsDialog());
         }
 
         // এক্সিট বাটন
@@ -105,24 +108,28 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // কন্ট্রোল বার বাটনগুলো সক্রিয় করা
+        // মাইক ও সাউন্ড কন্ট্রোল
         ivMute.setOnClickListener(v -> Toast.makeText(this, "Audio Muted/Unmuted", Toast.LENGTH_SHORT).show());
         ivMic.setOnClickListener(v -> Toast.makeText(this, "Mic On/Off", Toast.LENGTH_SHORT).show());
 
+        // রিয়েল-টাইম চ্যাট মেসেজ সেন্ড ও স্ক্রিনে শো করানোর লজিক
         ivSendChat.setOnClickListener(v -> {
             String message = etChatInput.getText().toString().trim();
             if (!message.isEmpty()) {
-                tvEntryLog.setText(userName + ": " + message);
+                tvChatDisplay.setText(userName + ": " + message);
                 etChatInput.setText("");
-                Toast.makeText(this, "Message Sent", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "দয়া করে কিছু লিখুন", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
+    // সিট এবং সিটের নিচে নাম আপডেট করার মেথড
     private void updateSeatsDisplay() {
         for (int i = 1; i <= 10; i++) {
-            if (seats[i] != null) {
+            if (seats[i] != null && seatNames[i] != null) {
                 if (i == currentSeat) {
+                    seatNames[i].setText(userName); // ডিপি-র ঠিক নিচে নাম শো করবে
                     if (userImage != null && !userImage.isEmpty()) {
                         try {
                             seats[i].setImageURI(Uri.parse(userImage));
@@ -133,16 +140,17 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         seats[i].setImageResource(android.R.drawable.sym_def_app_icon);
                     }
                 } else {
+                    seatNames[i].setText(""); // খালি সিটের নিচে নাম থাকবে না
                     seats[i].setImageDrawable(null);
                 }
             }
         }
     }
 
-    // রুম এডিট এবং থিম পরিবর্তনের ডায়ালগ
-    private void showEditRoomDialog() {
+    // রুম এডিট এবং থিম সিলেক্ট করার ডায়ালগ (সিংহ, ড্রাগন বা বিভিন্ন স্টাইলিশ থিম কালার)
+    private void showRoomSettingsDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Room Settings & Theme");
+        builder.setTitle("Room Settings & Themes");
 
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
@@ -154,42 +162,48 @@ public class VoiceRoomActivity extends AppCompatActivity {
         inputRoomName.setTextColor(Color.WHITE);
         layout.addView(inputRoomName);
 
-        final EditText inputThemeColor = new EditText(this);
-        inputThemeColor.setHint("থিম কালার কোড (যেমন: #1E1E2F বা #221133)");
-        inputThemeColor.setText("#121212");
-        inputThemeColor.setTextColor(Color.WHITE);
-        layout.addView(inputThemeColor);
+        final TextView tvThemeLabel = new TextView(this);
+        tvThemeLabel.setText("\nথিম সিলেক্ট করুন:");
+        tvThemeLabel.setTextColor(Color.parseColor("#DDA0FF"));
+        layout.addView(tvThemeLabel);
+
+        // প্রিভিউ থিম অপশনগুলো (যেমন: ডার্ক টাইগার, ড্রাগন গ্রিন, প্রকৃতি ইত্যাদি)
+        String[] themeNames = {"Dark Classic (#121212)", "Royal Dark (#1E1E2F)", "Tiger Gold (#2E1C0C)", "Dragon Teal (#0A2F2D)"};
+        String[] themeCodes = {"#121212", "#1E1E2F", "#2E1C0C", "#0A2F2D"};
 
         builder.setView(layout);
 
-        builder.setPositiveButton("Save", (dialog, which) -> {
-            String newName = inputRoomName.getText().toString().trim();
-            String newTheme = inputThemeColor.getText().toString().trim();
-
-            if (!newName.isEmpty()) {
-                roomName = newName;
-                tvRoomName.setText(roomName);
-            }
-
+        builder.setSingleChoiceItems(themeNames, -1, (dialog, which) -> {
+            String selectedTheme = themeCodes[which];
             try {
-                rootLayout.setBackgroundColor(Color.parseColor(newTheme));
+                rootLayout.setBackgroundColor(Color.parseColor(selectedTheme));
             } catch (Exception e) {
-                newTheme = "#121212";
+                selectedTheme = "#121212";
             }
 
             SharedPreferences.Editor editor = getSharedPreferences("user_prefs", MODE_PRIVATE).edit();
-            editor.putString("room_name", roomName);
-            editor.putString("room_theme", newTheme);
+            editor.putString("room_theme", selectedTheme);
             editor.apply();
-
-            Toast.makeText(this, "রুম আপডেট হয়েছে!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "থিম ব্যাকগ্রাউন্ড পরিবর্তন হয়েছে!", Toast.LENGTH_SHORT).show();
         });
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
 
+        builder.setPositiveButton("Update Name", (dialog, which) -> {
+            String newName = inputRoomName.getText().toString().trim();
+            if (!newName.isEmpty()) {
+                roomName = newName;
+                tvRoomName.setText(roomName);
+                SharedPreferences.Editor editor = getSharedPreferences("user_prefs", MODE_PRIVATE).edit();
+                editor.putString("room_name", roomName);
+                editor.apply();
+                Toast.makeText(this, "রুমের নাম আপডেট হয়েছে!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNegativeButton("Close", (dialog, which) -> dialog.dismiss());
         builder.show();
     }
 
-    // ইউজারের নিজস্ব প্রোফাইল পপআপ (সিটে ক্লিক করলে আইডি ও নাম দেখাবে)
+    // ইউজারের প্রোফাইল পপআপ (সিটে ক্লিক করলে নাম ও ইউনিক আইডি শো করবে)
     private void showProfilePopup() {
         new AlertDialog.Builder(this)
                 .setTitle("User Profile")
