@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+ android:layout_width="match_parent" android:layout_height="match_parent"
+ android:orientation="vertical" android:background="#0F0F1A">
+
+ <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+  android:background="#1A1A2E" android:gravity="center_vertical" android:padding="12dp">
+  <TextView android:layout_width="32dp" android:layout_height="32dp" android:text="SR" android:gravity="center" android:background="#7C3AED" android:textColor="white" android:textStyle="bold"/>
+  <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" SR VOICE" android:textColor="white" android:textStyle="bold" android:textSize="16sp"/>
+ </LinearLayout>
+
+ <LinearLayout android:id="@+id/bannerArea" android:layout_width="match_parent" android:layout_height="150dp" android:layout_margin="12dp" android:background="#2D1B69" android:gravity="center" android:orientation="vertical">
+  <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="BANNER AREA" android:textColor="#FFD700" android:textStyle="bold" android:textSize="18sp"/>
+  <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Ads Here" android:textColor="white"/>
+ </LinearLayout>
+
+ <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center" android:orientation="vertical" android:layout_marginTop="60dp">
+  <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎙️" android:textSize="50sp"/>
+  <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="No Rooms Yet" android:textColor="white" android:textSize="18sp" android:textStyle="bold" android:layout_marginTop="10dp"/>
+  <TextView android:id="@+id/btnCreateFirst" android:layout_width="160dp" android:layout_height="44dp" android:text="+ Create Room" android:gravity="center" android:background="#7C3AED" android:textColor="white" android:layout_marginTop="16dp"/>
+ </LinearLayout>
+
+ <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"/>
+
+ <LinearLayout android:layout_width="match_parent" android:layout_height="60dp" android:background="#1A1A2E" android:orientation="horizontal" android:gravity="center">
+  <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="🏠 Home" android:gravity="center" android:textColor="white"/>
+  <TextView android:id="@+id/navCreate" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="➕ Create" android:gravity="center" android:textColor="#7C3AED" android:textStyle="bold"/>
+  <TextView android:id="@+id/navMe" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="👤 Me" android:gravity="center" android:textColor="gray"/>
+ </LinearLayout>
+</LinearLayout>
