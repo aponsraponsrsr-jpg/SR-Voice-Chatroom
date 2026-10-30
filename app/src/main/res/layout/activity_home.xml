@@ -4,49 +4,40 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#121212">
-
-    <!-- Top Bar with My Permanent ID -->
     <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
         android:background="#1A1A2E" android:gravity="center_vertical" android:padding="12dp">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎙️ SR VOICE" android:textColor="white" android:textStyle="bold"/>
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎙️ SR VOICE" android:textColor="#FFFFFF" android:textStyle="bold"/>
         <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
-        <TextView android:id="@+id/tvCoin" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ID: Loading..." android:textColor="#FFD700" android:textSize="12sp" android:background="#333" android:padding="8dp"/>
+        <TextView android:id="@+id/tvCoin" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ID: Loading..." android:textColor="#FFD700" android:textSize="12sp" android:background="#333333" android:padding="8dp"/>
     </LinearLayout>
-
-    <!-- Search by Permanent ID -->
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
         android:orientation="horizontal" android:background="#1E1E1E" android:padding="8dp" android:gravity="center_vertical">
         <EditText android:id="@+id/etSearchId" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1"
-            android:hint="🔍 ID Search e.g. 10052384" android:textColor="white" android:textColorHint="#888"
+            android:hint="🔍 ID Search e.g. 10052384" android:textColor="#FFFFFF" android:textColorHint="#888888"
             android:background="#2A2A2A" android:padding="12dp" android:inputType="number"/>
-        <Button android:id="@+id/btnSearch" android:layout_width="80dp" android:layout_height="48dp" android:text="JOIN" android:textColor="white" android:backgroundTint="#7B61FF" android:layout_marginStart="8dp"/>
+        <Button android:id="@+id/btnSearch" android:layout_width="80dp" android:layout_height="48dp" android:text="JOIN" android:textColor="#FFFFFF" android:backgroundTint="#7B61FF" android:layout_marginStart="8dp"/>
     </LinearLayout>
-
     <Button android:id="@+id/btnCreateFirst" android:layout_width="match_parent" android:layout_height="56dp"
-        android:text="+ Create My Room (My Permanent ID)" android:textColor="white" android:backgroundTint="#7B61FF" android:layout_margin="16dp"/>
-
+        android:text="+ Create My Room (My Permanent ID)" android:textColor="#FFFFFF" android:backgroundTint="#7B61FF" android:layout_margin="16dp"/>
     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="🔥 LIVE Rooms - Tap to Join" android:textColor="#888" android:layout_margin="16dp"/>
-
-    <!-- LIVE ROOMS LIST - HOME PAGE E SHOW KORBE -->
+        android:text="🔥 LIVE Rooms - Tap to Join" android:textColor="#888888" android:layout_margin="16dp"/>
     <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
         <LinearLayout android:id="@+id/roomListContainer"
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:orientation="vertical" android:padding="8dp"/>
     </ScrollView>
-
     <LinearLayout android:layout_width="match_parent" android:layout_height="60dp" android:background="#1A1A2E" android:orientation="horizontal">
         <LinearLayout android:id="@+id/navHome" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🏠" android:textSize="18sp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Home" android:textColor="white" android:textSize="10sp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Home" android:textColor="#FFFFFF" android:textSize="10sp"/>
         </LinearLayout>
         <LinearLayout android:id="@+id/navCreate" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="➕" android:textSize="18sp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Create" android:textColor="white" android:textSize="10sp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Create" android:textColor="#FFFFFF" android:textSize="10sp"/>
         </LinearLayout>
         <LinearLayout android:id="@+id/navMe" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👤" android:textSize="18sp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Me" android:textColor="white" android:textSize="10sp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Me" android:textColor="#FFFFFF" android:textSize="10sp"/>
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>
