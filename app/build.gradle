@@ -33,9 +33,7 @@ dependencies {
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.multidex:multidex:2.0.1'
-    
-    // ফায়ারবেসের এই সুনির্দিষ্ট ভার্সনগুলো ব্যবহার করলে ডেক্স এরর আসবে না:
-    implementation 'com.google.firebase:firebase-auth:22.1.2'
-    implementation 'com.google.firebase:firebase-firestore:24.8.1'
-    implementation 'com.google.firebase:firebase-storage:20.2.1'
+    implementation 'com.google.firebase:firebase-auth:22.3.0'
+    implementation 'com.google.firebase:firebase-firestore:24.10.0'
+    implementation 'com.google.firebase:firebase-storage:20.3.0'
 }
