@@ -2,19 +2,19 @@ package com.sr.voicechatroom;
 
 import android.app.AlertDialog;
 import android.os.Bundle;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class VoiceRoomActivity extends AppCompatActivity {
 
-    private TextView tvHostName, tvOnline, middleBg;
+    private TextView tvHostName, tvOnline, middleBg, tvName2;
     private TextView seat1, seat2, seat3, seat4, seat5, seat6, seat7, seat8, seat9, seat10;
-    private TextView tvName2;
     private int myCurrentSeat = -1;
     private String myName = "Ham Tum";
-    private int bgIndex = 0;
-    private int[] bgColors = {0xFFFFE4B5, 0xFFB2DFDB, 0xFFFFCDD2, 0xFFBBDEFB, 0xFF1A1A2E};
+    private final int[] bgColors = {0xFFFFE4B5, 0xFFB2DFDB, 0xFFFFCDD2, 0xFFBBDEFB, 0xFF1A1A2E};
+    private final String[] bgNames = {"Beach Heart 💖", "Ocean Blue 🌊", "Sunset Pink 🌅", "Sky Blue ☁️", "Dark Night 🌙"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,50 +37,21 @@ public class VoiceRoomActivity extends AppCompatActivity {
         seat9 = findViewById(R.id.seat9);
         seat10 = findViewById(R.id.seat10);
 
-        // 1. Host Name Edit
-        tvHostName.setOnClickListener(v -> {
-            AlertDialog.Builder b = new AlertDialog.Builder(this);
-            b.setTitle("Edit Name");
-            final TextView input = new TextView(this);
-            input.setText(myName);
-            input.setPadding(40,40,40,40);
-            b.setView(input);
-            b.setPositiveButton("Save", (d,w) -> {
-                myName = "Ham Tum";
-                tvHostName.setText(myName + " ✏️");
-                if(myCurrentSeat==2) tvName2.setText(myName);
-                Toast.makeText(this, "Name Saved", Toast.LENGTH_SHORT).show();
-            });
-            b.setNegativeButton("Cancel", null);
-            b.show();
-            // Simple edit - you can change to EditText later
-            showNameEditDialog();
-        });
+        tvHostName.setOnClickListener(v -> showNameEditDialog());
 
-        // 2. Online Click
         tvOnline.setOnClickListener(v -> {
-            new AlertDialog.Builder(this)
-                .setTitle("Online Users (2)")
-                .setMessage("1. Host - Online\n2. " + myName + " - Online\n\nTotal: 2 users in room")
-                .setPositiveButton("OK", null)
-                .show();
+            String msg = myCurrentSeat == -1 ? "1. Host - Online\nTotal: 1 user" : "1. Host - Online\n2. " + myName + " - Seat " + myCurrentSeat + "\nTotal: 2 users";
+            new AlertDialog.Builder(this).setTitle("👥 Online Users").setMessage(msg).setPositiveButton("OK", null).show();
         });
 
-        // 3. Setting - Background Change
         findViewById(R.id.btnHeaderSetting).setOnClickListener(v -> {
-            String[] themes = {"Beach Heart 💖", "Ocean Blue 🌊", "Sunset Pink 🌅", "Sky Blue ☁️", "Dark Night 🌙"};
-            new AlertDialog.Builder(this)
-                .setTitle("Change Background")
-                .setItems(themes, (d,which) -> {
-                    bgIndex = which;
-                    middleBg.setBackgroundColor(bgColors[which]);
-                    middleBg.setText(themes[which]);
-                    Toast.makeText(this, "Theme Changed: " + themes[which], Toast.LENGTH_SHORT).show();
-                })
-                .show();
+            new AlertDialog.Builder(this).setTitle("🎨 Change Theme").setItems(bgNames, (d, which) -> {
+                middleBg.setBackgroundColor(bgColors[which]);
+                middleBg.setText(bgNames[which] + "\n🏖️🌈");
+                Toast.makeText(this, "Theme: " + bgNames[which], Toast.LENGTH_SHORT).show();
+            }).show();
         });
 
-        // 4. Seats Click - GOL SEAT + Take Mic
         setupSeat(seat2, 2);
         setupSeat(seat3, 3);
         setupSeat(seat4, 4);
@@ -94,73 +65,52 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void setupSeat(TextView seat, int number) {
         seat.setOnClickListener(v -> {
-            if(myCurrentSeat == number) {
-                new AlertDialog.Builder(this)
-                    .setTitle("Leave Mic?")
-                    .setMessage("Do you want to leave seat " + number + "?")
-                    .setPositiveButton("Leave", (d,w) -> {
-                        seat.setText("+");
-                        seat.setBackgroundResource(R.drawable.circle_seat_bg);
-                        if(number==2) tvName2.setText("");
-                        myCurrentSeat = -1;
-                        tvOnline.setText("👥 online 1");
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .show();
-            } else if(myCurrentSeat != -1) {
-                // Change seat from 6 to 8
-                new AlertDialog.Builder(this)
-                    .setTitle("Take Mic?")
-                    .setMessage("You are on seat " + myCurrentSeat + ". Move to seat " + number + "?")
-                    .setPositiveButton("Take Mic", (d,w) -> {
-                        clearAllSeats();
-                        seat.setText("😊");
-                        seat.setBackgroundResource(R.drawable.circle_shape);
-                        if(number==2) tvName2.setText(myName);
-                        myCurrentSeat = number;
-                        Toast.makeText(this, "Moved to seat " + number, Toast.LENGTH_SHORT).show();
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .show();
+            if (myCurrentSeat == number) {
+                new AlertDialog.Builder(this).setTitle("Leave Seat " + number + "?").setPositiveButton("Leave", (d, w) -> {
+                    seat.setText("+");
+                    seat.setBackgroundResource(R.drawable.circle_seat_bg);
+                    if (number == 2) tvName2.setText("Ham Tum");
+                    myCurrentSeat = -1;
+                    tvOnline.setText("👥 online 1");
+                }).setNegativeButton("Cancel", null).show();
+            } else if (myCurrentSeat != -1) {
+                new AlertDialog.Builder(this).setTitle("Take Mic?").setMessage("You are on seat " + myCurrentSeat + ". Move to " + number + "?").setPositiveButton("Take Mic", (d, w) -> {
+                    clearAllSeats();
+                    seat.setText("😊");
+                    seat.setBackgroundResource(R.drawable.circle_shape);
+                    if (number == 2) tvName2.setText(myName);
+                    myCurrentSeat = number;
+                }).setNegativeButton("Cancel", null).show();
             } else {
-                new AlertDialog.Builder(this)
-                    .setTitle("Take Mic?")
-                    .setMessage("Take seat " + number + "?")
-                    .setPositiveButton("Take Mic", (d,w) -> {
-                        clearAllSeats();
-                        seat.setText("😊");
-                        seat.setBackgroundResource(R.drawable.circle_shape);
-                        if(number==2) tvName2.setText(myName);
-                        myCurrentSeat = number;
-                        tvOnline.setText("👥 online 2");
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .show();
+                new AlertDialog.Builder(this).setTitle("Take Mic?").setMessage("Take seat " + number + "?").setPositiveButton("Take Mic", (d, w) -> {
+                    seat.setText("😊");
+                    seat.setBackgroundResource(R.drawable.circle_shape);
+                    if (number == 2) tvName2.setText(myName);
+                    myCurrentSeat = number;
+                    tvOnline.setText("👥 online 2");
+                }).setNegativeButton("Cancel", null).show();
             }
         });
     }
 
     private void clearAllSeats() {
         TextView[] seats = {seat2, seat3, seat4, seat5, seat6, seat7, seat8, seat9, seat10};
-        for(TextView s : seats) {
+        for (TextView s : seats) {
             s.setText("+");
             s.setBackgroundResource(R.drawable.circle_seat_bg);
         }
-        tvName2.setText("");
+        tvName2.setText("Ham Tum");
     }
 
     private void showNameEditDialog() {
-        final android.widget.EditText input = new android.widget.EditText(this);
+        final EditText input = new EditText(this);
         input.setText(myName);
-        new AlertDialog.Builder(this)
-            .setTitle("Edit Your Name")
-            .setView(input)
-            .setPositiveButton("Save", (d,w) -> {
-                myName = input.getText().toString();
-                tvHostName.setText(myName + " ✏️");
-                if(myCurrentSeat==2) tvName2.setText(myName);
-            })
-            .setNegativeButton("Cancel", null)
-            .show();
+        input.setPadding(60,40,60,40);
+        new AlertDialog.Builder(this).setTitle("Edit Your Name").setView(input).setPositiveButton("Save", (d, w) -> {
+            myName = input.getText().toString().trim();
+            if(myName.isEmpty()) myName = "Ham Tum";
+            tvHostName.setText(myName + " ✏️");
+            if (myCurrentSeat == 2) tvName2.setText(myName);
+        }).setNegativeButton("Cancel", null).show();
     }
 }
