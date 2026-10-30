@@ -2,97 +2,83 @@ package com.sr.voicechat;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import com.google.android.gms.auth.api.signin.*;
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.*;
-import com.google.firebase.firestore.*;
-import java.util.*;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Random;
 
 public class LoginActivity extends AppCompatActivity {
-    GoogleSignInClient mGoogleSignInClient;
-    FirebaseAuth mAuth;
+    FirebaseAuth auth;
     FirebaseFirestore db;
-    int RC_SIGN_IN = 100;
+    EditText etEmail, etPass;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        mAuth = FirebaseAuth.getInstance();
+        auth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
-
-        if(mAuth.getCurrentUser()!=null){
-            checkAndGo(mAuth.getCurrentUser().getUid());
+        
+        if(auth.getCurrentUser()!=null){
+            startActivity(new Intent(this, HomeActivity.class));
+            finish();
             return;
         }
 
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail().build();
-        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+        etEmail = findViewById(R.id.etEmail);
+        etPass = findViewById(R.id.etPassword);
+        Button btnLogin = findViewById(R.id.btnLogin);
+        Button btnRegister = findViewById(R.id.btnRegister);
+        
+        // Google Button - Safe check
+        try{
+            findViewById(R.id.btnGoogle).setOnClickListener(v -> {
+                Toast.makeText(this,"Google Login Coming Soon",Toast.LENGTH_SHORT).show();
+            });
+        }catch(Exception e){}
 
-        findViewById(R.id.btnGoogle).setOnClickListener(v -> {
-            startActivityForResult(mGoogleSignInClient.getSignInIntent(), RC_SIGN_IN);
-        });
+        btnLogin.setOnClickListener(v -> login());
+        btnRegister.setOnClickListener(v -> register());
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == RC_SIGN_IN) {
-            try {
-                GoogleSignInAccount account = GoogleSignIn.getSignedInAccountFromIntent(data).getResult(ApiException.class);
-                AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
-                mAuth.signInWithCredential(credential).addOnCompleteListener(task -> {
-                    if(task.isSuccessful()){
-                        checkAndGo(mAuth.getCurrentUser().getUid());
-                    }
-                });
-            } catch (Exception e) {}
-        }
+    void login(){
+        String email = etEmail.getText().toString().trim();
+        String pass = etPass.getText().toString().trim();
+        if(email.isEmpty()||pass.isEmpty()){Toast.makeText(this,"Email Pass Likho",Toast.LENGTH_SHORT).show();return;}
+        auth.signInWithEmailAndPassword(email,pass).addOnSuccessListener(r->{
+            startActivity(new Intent(this, HomeActivity.class));
+            finish();
+        }).addOnFailureListener(e->Toast.makeText(this,"Login Failed: "+e.getMessage(),Toast.LENGTH_SHORT).show());
     }
 
-    void checkAndGo(String uid){
-        // Check if user already has permanent ID
-        db.collection("users").document(uid).get().addOnSuccessListener(doc -> {
-            if(doc.exists() && doc.contains("sr_id")){
-                // Already has permanent ID - Go to Home
-                goToHome();
-            } else {
-                // FIRST TIME - Generate 7-8 Digit Permanent ID
-                generatePermanentId(uid);
-            }
-        });
-    }
-
-    void generatePermanentId(String uid){
-        // 7-8 Digit Mixed ID e.g. 10052384
-        Random rand = new Random();
-        int myId = 1000000 + rand.nextInt(90000000); // 7 to 8 digit
-        String srId = String.valueOf(myId);
-
-        // Save Permanent - Never changes
-        Map<String, Object> user = new HashMap<>();
-        user.put("uid", uid);
-        user.put("sr_id", srId); // Permanent ID = Room ID
-        user.put("room_id", srId);
-        user.put("created_at", FieldValue.serverTimestamp());
-
-        db.collection("users").document(uid).set(user).addOnSuccessListener(a -> {
-            // Also create room index for search
-            Map<String, Object> room = new HashMap<>();
-            room.put("room_id", srId);
-            room.put("owner_uid", uid);
-            room.put("active", true);
-            db.collection("rooms").document(srId).set(room);
-            goToHome();
-        });
-    }
-
-    void goToHome(){
-        startActivity(new Intent(LoginActivity.this, HomeActivity.class));
-        finish();
+    void register(){
+        String email = etEmail.getText().toString().trim();
+        String pass = etPass.getText().toString().trim();
+        if(email.isEmpty()||pass.isEmpty()){Toast.makeText(this,"Email Pass Likho",Toast.LENGTH_SHORT).show();return;}
+        if(pass.length()<6){Toast.makeText(this,"Password 6+ hote hobe",Toast.LENGTH_SHORT).show();return;}
+        
+        auth.createUserWithEmailAndPassword(email,pass).addOnSuccessListener(r->{
+            FirebaseUser user = r.getUser();
+            if(user==null) return;
+            String srId = "1005" + (1000 + new Random().nextInt(9000));
+            Map<String,Object> data = new HashMap<>();
+            data.put("email", email);
+            data.put("sr_id", srId);
+            data.put("room_id", srId);
+            data.put("coins", 1000);
+            data.put("created_at", FieldValue.serverTimestamp());
+            db.collection("users").document(user.getUid()).set(data).addOnSuccessListener(a->{
+                Toast.makeText(this,"Registered! Your ID: "+srId,Toast.LENGTH_LONG).show();
+                startActivity(new Intent(this, HomeActivity.class));
+                finish();
+            });
+        }).addOnFailureListener(e->Toast.makeText(this,"Register Failed: "+e.getMessage(),Toast.LENGTH_SHORT).show());
     }
 }
