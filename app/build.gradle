@@ -39,9 +39,8 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.multidex:multidex:2.0.1'
     
-    // ফায়ারবেসের স্ট্যাবিল ও ক্লিন ডিপেন্ডেন্সি
-    implementation platform('com.google.firebase:firebase-bom:32.7.0')
-    implementation 'com.google.firebase:firebase-auth'
-    implementation 'com.google.firebase:firebase-firestore'
-    implementation 'com.google.firebase:firebase-storage'
+    // ফায়ারবেসের অত্যন্ত স্টেবল ও ডেক্সিং-মুক্ত পুরোনো ভার্সনসমূহ:
+    implementation 'com.google.firebase:firebase-auth:21.1.0'
+    implementation 'com.google.firebase:firebase-firestore:24.4.1'
+    implementation 'com.google.firebase:firebase-storage:20.1.0'
 }
