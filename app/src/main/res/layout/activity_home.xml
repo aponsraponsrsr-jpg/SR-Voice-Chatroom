@@ -6,92 +6,46 @@
     android:background="#121212">
 
     <!-- Top Bar with My Permanent ID -->
-    <LinearLayout android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:background="#1A1A2E"
-        android:gravity="center_vertical"
-        android:padding="12dp">
-        <TextView android:layout_width="32dp" android:layout_height="32dp"
-            android:text="🎙️" android:textSize="20sp" android:gravity="center"
-            android:background="#2D2D44"/>
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text=" SR VOICE" android:textColor="white" android:textStyle="bold"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
+        android:background="#1A1A2E" android:gravity="center_vertical" android:padding="12dp">
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎙️ SR VOICE" android:textColor="white" android:textStyle="bold"/>
         <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
-        <TextView android:id="@+id/tvCoin"
-            android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="ID: Loading..." android:textColor="#FFD700" android:textSize="12sp"
-            android:background="#333" android:padding="8dp"/>
+        <TextView android:id="@+id/tvCoin" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ID: Loading..." android:textColor="#FFD700" android:textSize="12sp" android:background="#333" android:padding="8dp"/>
     </LinearLayout>
 
-    <!-- 🔍 SEARCH BAR - Permanent ID Search -->
-    <LinearLayout android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="#1E1E1E"
-        android:padding="8dp"
-        android:gravity="center_vertical">
-        <EditText android:id="@+id/etSearchId"
-            android:layout_width="0dp" android:layout_height="48dp"
-            android:layout_weight="1"
-            android:hint="🔍 Enter Permanent ID e.g. 10052384"
-            android:textColor="white" android:textColorHint="#888"
-            android:background="#2A2A2A"
-            android:padding="12dp"
-            android:inputType="number"/>
-        <Button android:id="@+id/btnSearch"
-            android:layout_width="80dp" android:layout_height="48dp"
-            android:text="JOIN" android:textColor="white"
-            android:backgroundTint="#7B61FF"
-            android:layout_marginStart="8dp"/>
+    <!-- Search by Permanent ID -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:background="#1E1E1E" android:padding="8dp" android:gravity="center_vertical">
+        <EditText android:id="@+id/etSearchId" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1"
+            android:hint="🔍 ID Search e.g. 10052384" android:textColor="white" android:textColorHint="#888"
+            android:background="#2A2A2A" android:padding="12dp" android:inputType="number"/>
+        <Button android:id="@+id/btnSearch" android:layout_width="80dp" android:layout_height="48dp" android:text="JOIN" android:textColor="white" android:backgroundTint="#7B61FF" android:layout_marginStart="8dp"/>
     </LinearLayout>
 
-    <!-- Banner -->
-    <LinearLayout android:id="@+id/bannerArea"
-        android:layout_width="match_parent"
-        android:layout_height="120dp"
-        android:background="#7B61FF"
-        android:gravity="center"
-        android:orientation="vertical">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="🎉 Create Your Voice Room"
-            android:textColor="white" android:textSize="18sp" android:textStyle="bold"/>
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Your ID = Your Room ID (Permanent)"
-            android:textColor="#E0E0E0" android:textSize="12sp"/>
-    </LinearLayout>
+    <Button android:id="@+id/btnCreateFirst" android:layout_width="match_parent" android:layout_height="56dp"
+        android:text="+ Create My Room (My Permanent ID)" android:textColor="white" android:backgroundTint="#7B61FF" android:layout_margin="16dp"/>
 
-    <!-- Create First Room -->
-    <Button android:id="@+id/btnCreateFirst"
-        android:layout_width="match_parent" android:layout_height="56dp"
-        android:text="+ Create My Room (My Permanent ID)"
-        android:textColor="white" android:backgroundTint="#7B61FF"
-        android:layout_margin="16dp"/>
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="🔥 LIVE Rooms - Tap to Join" android:textColor="#888" android:layout_margin="16dp"/>
 
-    <TextView android:id="@+id/tvPopular"
-        android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="🔥 Popular Rooms - Long Press Banner to Search"
-        android:textColor="#888" android:layout_margin="16dp"/>
+    <!-- LIVE ROOMS LIST - HOME PAGE E SHOW KORBE -->
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <LinearLayout android:id="@+id/roomListContainer"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="vertical" android:padding="8dp"/>
+    </ScrollView>
 
-    <!-- Bottom Nav -->
-    <View android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"/>
-    <LinearLayout android:layout_width="match_parent" android:layout_height="60dp"
-        android:background="#1A1A2E" android:orientation="horizontal">
-        <LinearLayout android:id="@+id/navHome"
-            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-            android:gravity="center" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🏠" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="60dp" android:background="#1A1A2E" android:orientation="horizontal">
+        <LinearLayout android:id="@+id/navHome" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🏠" android:textSize="18sp"/>
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Home" android:textColor="white" android:textSize="10sp"/>
         </LinearLayout>
-        <LinearLayout android:id="@+id/navCreate"
-            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-            android:gravity="center" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="➕" />
+        <LinearLayout android:id="@+id/navCreate" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="➕" android:textSize="18sp"/>
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Create" android:textColor="white" android:textSize="10sp"/>
         </LinearLayout>
-        <LinearLayout android:id="@+id/navMe"
-            android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1"
-            android:gravity="center" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👤" />
+        <LinearLayout android:id="@+id/navMe" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👤" android:textSize="18sp"/>
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Me" android:textColor="white" android:textSize="10sp"/>
         </LinearLayout>
     </LinearLayout>
