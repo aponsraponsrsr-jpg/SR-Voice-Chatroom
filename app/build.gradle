@@ -14,8 +14,6 @@ android {
         targetSdk 33
         versionCode 1
         versionName "1.0"
-        multiDexEnabled true
-
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -32,26 +30,25 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+    buildFeatures {
+        viewBinding true
+    }
 }
 
 dependencies {
-    implementation 'androidx.core:core-ktx:1.9.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     
-    // MultiDex Support
-    implementation 'androidx.multidex:multidex:2.0.1'
-
-    // Google Sign-In Library
-    implementation 'com.google.android.gms:play-services-auth:20.7.0'
-
-    // Firebase BOM & Services (Compatible Versions)
-    implementation platform('com.google.firebase:firebase-bom:32.3.1')
-    implementation 'com.google.firebase:firebase-analytics'
-    implementation 'com.google.firebase:firebase-database'
-    implementation 'com.google.firebase:firebase-storage'
+    // Firebase - Main Library
+    implementation platform('com.google.firebase:firebase-bom:32.7.0')
     implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-storage'
+    implementation 'com.google.firebase:firebase-database'
+
+    // Agora Voice - যদি লাগে
+    implementation 'io.agora.rtc:full-sdk:4.2.6'
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
