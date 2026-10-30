@@ -9,85 +9,86 @@ import com.google.firebase.firestore.*;
 
 public class HomeActivity extends AppCompatActivity {
     FirebaseFirestore db;
-    FirebaseAuth mAuth;
     String mySrId = "";
     TextView tvCoin;
     EditText etSearchId;
+    LinearLayout roomListContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         db = FirebaseFirestore.getInstance();
-        mAuth = FirebaseAuth.getInstance();
-
         tvCoin = findViewById(R.id.tvCoin);
         etSearchId = findViewById(R.id.etSearchId);
-        Button btnSearch = findViewById(R.id.btnSearch);
+        roomListContainer = findViewById(R.id.roomListContainer);
 
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         db.collection("users").document(uid).get().addOnSuccessListener(doc -> {
             if(doc.exists()){
                 mySrId = doc.getString("sr_id");
                 if(mySrId==null) mySrId = doc.getString("room_id");
-                if(mySrId!=null && tvCoin!=null){
-                    tvCoin.setText("ID: " + mySrId);
-                    Toast.makeText(this, "My Permanent ID: " + mySrId, Toast.LENGTH_LONG).show();
-                }
+                if(mySrId!=null) tvCoin.setText("ID: " + mySrId);
             }
         });
 
         findViewById(R.id.navCreate).setOnClickListener(v -> createMyRoom());
         findViewById(R.id.btnCreateFirst).setOnClickListener(v -> createMyRoom());
-        findViewById(R.id.navMe).setOnClickListener(v -> {
-            startActivity(new Intent(this, ProfileActivity.class));
+        findViewById(R.id.navMe).setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
+        findViewById(R.id.btnSearch).setOnClickListener(v -> {
+            String s = etSearchId.getText().toString().trim();
+            if(s.length() < 6){ Toast.makeText(this,"ID likho!",Toast.LENGTH_SHORT).show(); return; }
+            joinRoom(s);
         });
-
-        btnSearch.setOnClickListener(v -> doSearch());
-        findViewById(R.id.bannerArea).setOnLongClickListener(v -> {
-            showSearchDialog();
-            return true;
-        });
+        loadActiveRooms();
     }
 
     void createMyRoom(){
-        if(mySrId==null || mySrId.isEmpty()){
-            Toast.makeText(this, "ID Loading...", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        if(mySrId==null || mySrId.isEmpty()){ Toast.makeText(this,"ID Loading...",Toast.LENGTH_SHORT).show(); return; }
+        joinRoom(mySrId);
+    }
+
+    void joinRoom(String roomId){
         Intent i = new Intent(this, VoiceRoomActivity.class);
-        i.putExtra("room_id", mySrId);
-        i.putExtra("is_owner", true);
+        i.putExtra("room_id", roomId);
+        i.putExtra("is_owner", roomId.equals(mySrId));
         startActivity(i);
     }
 
-    void doSearch(){
-        String searchId = etSearchId.getText().toString().trim();
-        if(searchId.length() < 6){
-            Toast.makeText(this, "7-8 Digit ID লিখো!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        Intent i = new Intent(this, VoiceRoomActivity.class);
-        i.putExtra("room_id", searchId);
-        i.putExtra("is_owner", false);
-        startActivity(i);
-        Toast.makeText(this, "Joining Room: " + searchId, Toast.LENGTH_SHORT).show();
-    }
-
-    void showSearchDialog(){
-        EditText input = new EditText(this);
-        input.setHint("Enter ID e.g. 10052384");
-        new androidx.appcompat.app.AlertDialog.Builder(this)
-            .setTitle("🔍 Search by Permanent ID")
-            .setView(input)
-            .setPositiveButton("Join Room", (d,w)->{
-                String searchId = input.getText().toString().trim();
-                Intent i = new Intent(this, VoiceRoomActivity.class);
-                i.putExtra("room_id", searchId);
-                i.putExtra("is_owner", false);
-                startActivity(i);
-            })
-            .setNegativeButton("Cancel", null)
-            .show();
+    void loadActiveRooms(){
+        db.collection("rooms").addSnapshotListener((value, error) -> {
+            if(value==null || roomListContainer==null) return;
+            roomListContainer.removeAllViews();
+            for(DocumentSnapshot doc : value.getDocuments()){
+                String roomId = doc.getId();
+                String name = doc.getString("owner_name");
+                if(name==null) name = "User " + roomId;
+                LinearLayout item = new LinearLayout(this);
+                item.setOrientation(LinearLayout.HORIZONTAL);
+                item.setPadding(24,24,24,24);
+                item.setBackgroundColor(0xFF2A2A2A);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1,-2);
+                lp.setMargins(0,0,0,16);
+                item.setLayoutParams(lp);
+                TextView tv = new TextView(this);
+                tv.setText("🎙️ " + name + "\nID: " + roomId + " - LIVE");
+                tv.setTextColor(0xFFFFFFFF);
+                tv.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1));
+                Button btn = new Button(this);
+                btn.setText("JOIN");
+                btn.setOnClickListener(v -> joinRoom(roomId));
+                item.addView(tv);
+                item.addView(btn);
+                item.setOnClickListener(v -> joinRoom(roomId));
+                roomListContainer.addView(item);
+            }
+            if(value.isEmpty()){
+                TextView e = new TextView(this);
+                e.setText("Keu room dhore nai, tumi prothom room dhoro!");
+                e.setTextColor(0xFF888888);
+                e.setPadding(16,16,16,16);
+                roomListContainer.addView(e);
+            }
+        });
     }
 }
