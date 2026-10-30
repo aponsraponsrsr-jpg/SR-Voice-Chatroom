@@ -3,30 +3,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFF8E1"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:gravity="center">
 
-    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp" android:orientation="horizontal" android:gravity="center_vertical" android:background="#0A0A0A" android:padding="12dp">
-        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Beach Heart Room" android:textColor="#D4AF37" android:textStyle="bold" android:textSize="18sp"/>
-        <TextView android:id="@+id/btnSettings" android:layout_width="40dp" android:layout_height="40dp" android:text="⚙️" android:gravity="center" android:background="#222222" android:textSize="20sp"/>
-    </LinearLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Beach Heart Room - Fixed"
+        android:textColor="#000000"
+        android:textSize="22sp"
+        android:textStyle="bold"/>
 
-    <GridLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:columnCount="5" android:rowCount="2" android:padding="12dp" android:background="#FFE0B2">
-        <TextView android:layout_width="64dp" android:layout_height="64dp" android:layout_margin="6dp" android:background="#222222" android:text="👑" android:gravity="center" android:textSize="24sp" android:textColor="#FFFFFF"/>
-        <TextView android:layout_width="64dp" android:layout_height="64dp" android:layout_margin="6dp" android:background="#222222" android:text="💛" android:gravity="center" android:textColor="#FFFFFF"/>
-        <TextView android:layout_width="64dp" android:layout_height="64dp" android:layout_margin="6dp" android:background="#222222" android:text="💛" android:gravity="center" android:textColor="#FFFFFF"/>
-        <TextView android:layout_width="64dp" android:layout_height="64dp" android:layout_margin="6dp" android:background="#222222" android:text="💛" android:gravity="center" android:textColor="#FFFFFF"/>
-        <TextView android:layout_width="64dp" android:layout_height="64dp" android:layout_margin="6dp" android:background="#222222" android:text="💛" android:gravity="center" android:textColor="#FFFFFF"/>
-        <TextView android:layout_width="64dp" android:layout_height="64dp" android:layout_margin="6dp" android:background="#222222" android:text="💛" android:gravity="center" android:textColor="#FFFFFF"/>
-        <TextView android:layout_width="64dp" android:layout_height="64dp" android:layout_margin="6dp" android:background="#222222" android:text="💛" android:gravity="center" android:textColor="#FFFFFF"/>
-        <TextView android:layout_width="64dp" android:layout_height="64dp" android:layout_margin="6dp" android:background="#222222" android:text="💛" android:gravity="center" android:textColor="#FFFFFF"/>
-        <TextView android:layout_width="64dp" android:layout_height="64dp" android:layout_margin="6dp" android:background="#222222" android:text="💛" android:gravity="center" android:textColor="#FFFFFF"/>
-        <TextView android:layout_width="64dp" android:layout_height="64dp" android:layout_margin="6dp" android:background="#222222" android:text="💛" android:gravity="center" android:textColor="#FFFFFF"/>
-    </GridLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Build Success Test"
+        android:textColor="#D4AF37"
+        android:textSize="18sp"/>
 
-    <TextView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:text="Chat messages here..." android:padding="16dp" android:textColor="#000000"/>
-
-    <LinearLayout android:layout_width="match_parent" android:layout_height="60dp" android:orientation="horizontal" android:gravity="center" android:background="#111111">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎤 Mic" android:textColor="#FFFFFF" android:padding="12dp"/>
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎁 Gift" android:textColor="#D4AF37" android:padding="12dp"/>
-    </LinearLayout>
 </LinearLayout>
