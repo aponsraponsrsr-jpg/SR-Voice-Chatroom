@@ -5,37 +5,24 @@
     android:background="#0A0A0A"
     android:orientation="vertical">
 
-    <!-- Top Tabs: Mine / Hot / Discover -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:background="#111111">
-        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Mine" android:textColor="#D4AF37" android:textStyle="bold" android:gravity="center" android:textSize="16sp"/>
-        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Hot" android:textColor="#888888" android:gravity="center" android:textSize="16sp"/>
-        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Discover" android:textColor="#888888" android:gravity="center" android:textSize="16sp"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp" android:orientation="horizontal" android:gravity="center" android:background="#111111">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Mine" android:textColor="#D4AF37" android:textStyle="bold" android:gravity="center"/>
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Hot" android:textColor="#888888" android:gravity="center"/>
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Discover" android:textColor="#888888" android:gravity="center"/>
     </LinearLayout>
 
-    <!-- Big Empty Banner -->
     <View android:layout_width="match_parent" android:layout_height="160dp" android:layout_margin="12dp" android:background="@drawable/rounded_bg" />
 
-    <!-- Category: Family / CP / Weekly Star / Best / New -->
-    <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp">
+    <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content">
         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="8dp">
-            <TextView android:text="Family" android:layout_margin="8dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="#D4AF37"/>
-            <TextView android:text="CP" android:layout_margin="8dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="#FFFFFF"/>
-            <TextView android:text="Weekly Star" android:layout_margin="8dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="#FFFFFF"/>
-            <TextView android:text="Best" android:layout_margin="8dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="#FFFFFF"/>
-            <TextView android:text="New" android:layout_margin="8dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="#FFFFFF"/>
+            <TextView android:text="Family" android:layout_margin="6dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="#D4AF37"/>
+            <TextView android:text="CP" android:layout_margin="6dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="white"/>
+            <TextView android:text="Weekly Star" android:layout_margin="6dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="white"/>
+            <TextView android:text="Best" android:layout_margin="6dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="white"/>
+            <TextView android:text="New" android:layout_margin="6dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="white"/>
         </LinearLayout>
     </HorizontalScrollView>
 
-    <!-- 2 Column Small Cards - Left Right Serial -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerRooms"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="8dp"/>
+    <TextView android:layout_width="match_parent" android:layout_height="match_parent" android:text="Rooms will show here in 2 columns" android:textColor="#666666" android:gravity="center"/>
 
 </LinearLayout>
