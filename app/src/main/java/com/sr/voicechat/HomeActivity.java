@@ -22,7 +22,6 @@ public class HomeActivity extends AppCompatActivity {
         tvCoin = findViewById(R.id.tvCoin);
         etSearchId = findViewById(R.id.etSearchId);
         roomListContainer = findViewById(R.id.roomListContainer);
-
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         db.collection("users").document(uid).get().addOnSuccessListener(doc -> {
             if(doc.exists()){
@@ -31,7 +30,6 @@ public class HomeActivity extends AppCompatActivity {
                 if(mySrId!=null) tvCoin.setText("ID: " + mySrId);
             }
         });
-
         findViewById(R.id.navCreate).setOnClickListener(v -> createMyRoom());
         findViewById(R.id.btnCreateFirst).setOnClickListener(v -> createMyRoom());
         findViewById(R.id.navMe).setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
@@ -42,19 +40,16 @@ public class HomeActivity extends AppCompatActivity {
         });
         loadActiveRooms();
     }
-
     void createMyRoom(){
         if(mySrId==null || mySrId.isEmpty()){ Toast.makeText(this,"ID Loading...",Toast.LENGTH_SHORT).show(); return; }
         joinRoom(mySrId);
     }
-
     void joinRoom(String roomId){
         Intent i = new Intent(this, VoiceRoomActivity.class);
         i.putExtra("room_id", roomId);
         i.putExtra("is_owner", roomId.equals(mySrId));
         startActivity(i);
     }
-
     void loadActiveRooms(){
         db.collection("rooms").addSnapshotListener((value, error) -> {
             if(value==null || roomListContainer==null) return;
@@ -81,13 +76,6 @@ public class HomeActivity extends AppCompatActivity {
                 item.addView(btn);
                 item.setOnClickListener(v -> joinRoom(roomId));
                 roomListContainer.addView(item);
-            }
-            if(value.isEmpty()){
-                TextView e = new TextView(this);
-                e.setText("Keu room dhore nai, tumi prothom room dhoro!");
-                e.setTextColor(0xFF888888);
-                e.setPadding(16,16,16,16);
-                roomListContainer.addView(e);
             }
         });
     }
