@@ -12,7 +12,21 @@ jobs:
           java-version: '17'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
+      - name: Create dummy google-services.json
+        run: |
+          if [ ! -f app/google-services.json ]; then
+            echo '{"project_info":{"project_number":"123456789","project_id":"sr-voice-dummy"},"client":[{"client_info":{"mobilesdk_app_id":"1:123456789:android:dummy","android_client_info":{"package_name":"com.example.srvoice"}},"oauth_client":[],"api_key":[{"current_key":"dummy"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}' > app/google-services.json
+          fi
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+        run: |
+          if [ -f ./gradlew ]; then
+            chmod +x ./gradlew
+            ./gradlew assembleDebug --stacktrace
+          else
+            gradle assembleDebug --stacktrace
+          fi
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: SR-Voice-APK
+          path: app/build/outputs/apk/debug/*.apk
