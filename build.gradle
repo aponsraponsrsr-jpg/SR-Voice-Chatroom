@@ -7,7 +7,8 @@ buildscript {
     dependencies {
         classpath "com.android.tools.build:gradle:7.4.2"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-        classpath 'com.google.gms:google-services:4.4.2'
+        // ফায়ারবেস গুগল সার্ভিসেস প্লাগইনটি গ্র্যাডল ৭.৪.২ এর সাথে সামঞ্জস্যপূর্ণ ভার্সনে নামিয়ে আনা হলো:
+        classpath 'com.google.gms:google-services:4.3.15'
     }
 }
 
