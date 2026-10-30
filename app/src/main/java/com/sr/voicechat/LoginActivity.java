@@ -1,101 +1,98 @@
 package com.sr.voicechat;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.Toast;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
-import java.util.Random;
+import com.google.android.gms.auth.api.signin.*;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.*;
+import com.google.firebase.firestore.*;
+import java.util.*;
 
 public class LoginActivity extends AppCompatActivity {
-
-    private EditText etName;
-    private ImageView ivPreview;
-    private String savedImagePath = "";
-    private ActivityResultLauncher<String> pickImage;
-    private SharedPreferences prefs;
+    GoogleSignInClient mGoogleSignInClient;
+    FirebaseAuth mAuth;
+    FirebaseFirestore db;
+    int RC_SIGN_IN = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_login);
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
 
-        prefs = getSharedPreferences("SR_Ultimate_Fixed_Prefs", MODE_PRIVATE);
-        boolean isRegistered = prefs.getBoolean("is_registered", false);
-
-        if (isRegistered) {
-            startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
-            finish();
+        if(mAuth.getCurrentUser()!=null){
+            checkAndGo(mAuth.getCurrentUser().getUid());
             return;
         }
 
-        setContentView(R.layout.activity_login);
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail().build();
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        etName = findViewById(R.id.etName);
-        ivPreview = findViewById(R.id.ivPreview);
-        Button btnCreate = findViewById(R.id.btnCreateRoom);
-
-        pickImage = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
-            if (uri != null) {
-                String path = copyImageToInternal(uri);
-                if (path != null) {
-                    savedImagePath = path;
-                    ivPreview.setImageURI(Uri.parse(path));
-                }
-            }
-        });
-
-        ivPreview.setOnClickListener(v -> pickImage.launch("image/*"));
-
-        btnCreate.setOnClickListener(v -> {
-            String name = etName.getText().toString().trim();
-            if (name.isEmpty()) {
-                Toast.makeText(this, "Please enter your name", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            String existingId = prefs.getString("group_id", "");
-            if (existingId.isEmpty()) {
-                Random random = new Random();
-                existingId = String.valueOf(10000000 + random.nextInt(90000000));
-            }
-
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putBoolean("is_registered", true);
-            editor.putString("user_name", name);
-            editor.putString("user_image", savedImagePath);
-            editor.putString("room_name", name + "'s Room");
-            editor.putString("group_id", existingId);
-            editor.apply();
-
-            startActivity(new Intent(LoginActivity.this, VoiceRoomActivity.class));
-            finish();
+        findViewById(R.id.btnGoogle).setOnClickListener(v -> {
+            startActivityForResult(mGoogleSignInClient.getSignInIntent(), RC_SIGN_IN);
         });
     }
 
-    private String copyImageToInternal(Uri uri) {
-        try {
-            InputStream input = getContentResolver().openInputStream(uri);
-            File file = new File(getFilesDir(), "permanent_profile.jpg");
-            FileOutputStream output = new FileOutputStream(file);
-            byte[] buffer = new byte[1024];
-            int len;
-            while ((len = input.read(buffer)) > 0) {
-                output.write(buffer, 0, len);
-            }
-            input.close();
-            output.close();
-            return Uri.fromFile(file).toString();
-        } catch (Exception e) {
-            return null;
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == RC_SIGN_IN) {
+            try {
+                GoogleSignInAccount account = GoogleSignIn.getSignedInAccountFromIntent(data).getResult(ApiException.class);
+                AuthCredential credential = GoogleAuthProvider.getCredential(account.getIdToken(), null);
+                mAuth.signInWithCredential(credential).addOnCompleteListener(task -> {
+                    if(task.isSuccessful()){
+                        checkAndGo(mAuth.getCurrentUser().getUid());
+                    }
+                });
+            } catch (Exception e) {}
         }
+    }
+
+    void checkAndGo(String uid){
+        // Check if user already has permanent ID
+        db.collection("users").document(uid).get().addOnSuccessListener(doc -> {
+            if(doc.exists() && doc.contains("sr_id")){
+                // Already has permanent ID - Go to Home
+                goToHome();
+            } else {
+                // FIRST TIME - Generate 7-8 Digit Permanent ID
+                generatePermanentId(uid);
+            }
+        });
+    }
+
+    void generatePermanentId(String uid){
+        // 7-8 Digit Mixed ID e.g. 10052384
+        Random rand = new Random();
+        int myId = 1000000 + rand.nextInt(90000000); // 7 to 8 digit
+        String srId = String.valueOf(myId);
+
+        // Save Permanent - Never changes
+        Map<String, Object> user = new HashMap<>();
+        user.put("uid", uid);
+        user.put("sr_id", srId); // Permanent ID = Room ID
+        user.put("room_id", srId);
+        user.put("created_at", FieldValue.serverTimestamp());
+
+        db.collection("users").document(uid).set(user).addOnSuccessListener(a -> {
+            // Also create room index for search
+            Map<String, Object> room = new HashMap<>();
+            room.put("room_id", srId);
+            room.put("owner_uid", uid);
+            room.put("active", true);
+            db.collection("rooms").document(srId).set(room);
+            goToHome();
+        });
+    }
+
+    void goToHome(){
+        startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+        finish();
     }
 }
