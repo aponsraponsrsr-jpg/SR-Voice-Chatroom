@@ -45,17 +45,16 @@
         android:rowCount="2"
         android:useDefaultMargins="true">
 
-        <!-- সিট ১ থেকে ১০ -->
-        <Button android:id="@+id/seat1" android:layout_width="60dp" android:layout_height="60dp" android:background="@android:drawable/dialog_holo_dark_frame" android:text="1" android:textColor="#FFFFFF" />
-        <Button android:id="@+id/seat2" android:layout_width="60dp" android:layout_height="60dp" android:background="@android:drawable/dialog_holo_dark_frame" android:text="2" android:textColor="#FFFFFF" />
-        <Button android:id="@+id/seat3" android:layout_width="60dp" android:layout_height="60dp" android:background="@android:drawable/dialog_holo_dark_frame" android:text="3" android:textColor="#FFFFFF" />
-        <Button android:id="@+id/seat4" android:layout_width="60dp" android:layout_height="60dp" android:background="@android:drawable/dialog_holo_dark_frame" android:text="4" android:textColor="#FFFFFF" />
-        <Button android:id="@+id/seat5" android:layout_width="60dp" android:layout_height="60dp" android:background="@android:drawable/dialog_holo_dark_frame" android:text="5" android:textColor="#FFFFFF" />
-        <Button android:id="@+id/seat6" android:layout_width="60dp" android:layout_height="60dp" android:background="@android:drawable/dialog_holo_dark_frame" android:text="6" android:textColor="#FFFFFF" />
-        <Button android:id="@+id/seat7" android:layout_width="60dp" android:layout_height="60dp" android:background="@android:drawable/dialog_holo_dark_frame" android:text="7" android:textColor="#FFFFFF" />
-        <Button android:id="@+id/seat8" android:layout_width="60dp" android:layout_height="60dp" android:background="@android:drawable/dialog_holo_dark_frame" android:text="8" android:textColor="#FFFFFF" />
-        <Button android:id="@+id/seat9" android:layout_width="60dp" android:layout_height="60dp" android:background="@android:drawable/dialog_holo_dark_frame" android:text="9" android:textColor="#FFFFFF" />
-        <Button android:id="@+id/seat10" android:layout_width="60dp" android:layout_height="60dp" android:background="@android:drawable/dialog_holo_dark_frame" android:text="10" android:textColor="#FFFFFF" />
+        <Button android:id="@+id/seat1" android:layout_width="60dp" android:layout_height="60dp" android:text="1" android:textColor="#FFFFFF" />
+        <Button android:id="@+id/seat2" android:layout_width="60dp" android:layout_height="60dp" android:text="2" android:textColor="#FFFFFF" />
+        <Button android:id="@+id/seat3" android:layout_width="60dp" android:layout_height="60dp" android:text="3" android:textColor="#FFFFFF" />
+        <Button android:id="@+id/seat4" android:layout_width="60dp" android:layout_height="60dp" android:text="4" android:textColor="#FFFFFF" />
+        <Button android:id="@+id/seat5" android:layout_width="60dp" android:layout_height="60dp" android:text="5" android:textColor="#FFFFFF" />
+        <Button android:id="@+id/seat6" android:layout_width="60dp" android:layout_height="60dp" android:text="6" android:textColor="#FFFFFF" />
+        <Button android:id="@+id/seat7" android:layout_width="60dp" android:layout_height="60dp" android:text="7" android:textColor="#FFFFFF" />
+        <Button android:id="@+id/seat8" android:layout_width="60dp" android:layout_height="60dp" android:text="8" android:textColor="#FFFFFF" />
+        <Button android:id="@+id/seat9" android:layout_width="60dp" android:layout_height="60dp" android:text="9" android:textColor="#FFFFFF" />
+        <Button android:id="@+id/seat10" android:layout_width="60dp" android:layout_height="60dp" android:text="10" android:textColor="#FFFFFF" />
 
     </GridLayout>
 
@@ -71,7 +70,6 @@
         android:paddingHorizontal="12dp"
         android:weightSum="5">
 
-        <!-- ১. SMS -->
         <ImageView
             android:id="@+id/btnSms"
             android:layout_width="0dp"
@@ -80,7 +78,6 @@
             android:src="@android:drawable/ic_communication_clear_portal"
             app:tint="#FFFFFF" />
 
-        <!-- ২. Emoji -->
         <ImageView
             android:id="@+id/btnEmoji"
             android:layout_width="0dp"
@@ -89,7 +86,6 @@
             android:src="@android:drawable/btn_star"
             app:tint="#FFD700" />
 
-        <!-- ৩. Gift (মাঝখানে) -->
         <ImageView
             android:id="@+id/btnGift"
             android:layout_width="0dp"
@@ -98,7 +94,6 @@
             android:src="@android:drawable/ic_menu_send"
             app:tint="#E91E63" />
 
-        <!-- ৪. Mic -->
         <ImageView
             android:id="@+id/btnMic"
             android:layout_width="0dp"
@@ -107,7 +102,6 @@
             android:src="@android:drawable/ic_btn_speak_now"
             app:tint="#FFFFFF" />
 
-        <!-- ৫. Games -->
         <ImageView
             android:id="@+id/btnGames"
             android:layout_width="0dp"
