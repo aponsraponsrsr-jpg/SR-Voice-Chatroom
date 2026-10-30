@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId "com.sr.voicechat"
-        minSdk 23
+        minSdk 24
         targetSdk 34
         versionCode 2
         versionName "1.1"
@@ -39,8 +39,9 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.multidex:multidex:2.0.1'
     
-    // পরামর্শ অনুযায়ী ডেক্সিং-মুক্ত ও পরীক্ষিত নির্দিষ্ট ভার্সনসমূহ:
-    implementation 'com.google.firebase:firebase-auth:22.2.0'
-    implementation 'com.google.firebase:firebase-firestore:24.4.1'
-    implementation 'com.google.firebase:firebase-storage:20.1.0'
+    // R8 এবং সার্কুলার রেফারেন্স এড়াতে আধুনিক বোম (BoM) ভার্সন ব্যবহার করা হলো:
+    implementation platform('com.google.firebase:firebase-bom:32.8.1')
+    implementation 'com.google.firebase:firebase-auth'
+    implementation 'com.google.firebase:firebase-firestore'
+    implementation 'com.google.firebase:firebase-storage'
 }
