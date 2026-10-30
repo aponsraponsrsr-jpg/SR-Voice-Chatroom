@@ -6,12 +6,12 @@ plugins {
 
 android {
     namespace 'com.sr.voicechat'
-    compileSdk 34
+    compileSdk 33
 
     defaultConfig {
         applicationId "com.sr.voicechat"
         minSdk 21
-        targetSdk 34
+        targetSdk 33
         versionCode 2
         versionName "1.1"
         multiDexEnabled true
@@ -39,7 +39,7 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.multidex:multidex:2.0.1'
     
-    // ফায়ারবেসের সঠিক ভার্সন ম্যানেজ করার জন্য বোম ব্যবহার করা হলো
+    // ফায়ারবেসের নির্ভরতা ঠিক রাখতে বোম এবং নির্দিষ্ট ভার্সন ব্যবহার করা হলো
     implementation platform('com.google.firebase:firebase-bom:32.7.0')
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-firestore'
