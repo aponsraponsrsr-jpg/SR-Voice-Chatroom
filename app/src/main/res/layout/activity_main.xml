@@ -11,15 +11,15 @@
         <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Discover" android:textColor="#888888" android:gravity="center"/>
     </LinearLayout>
 
-    <View android:layout_width="match_parent" android:layout_height="160dp" android:layout_margin="12dp" android:background="@drawable/rounded_bg" />
+    <View android:layout_width="match_parent" android:layout_height="160dp" android:layout_margin="12dp" android:background="#222222" />
 
     <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content">
         <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="8dp">
-            <TextView android:text="Family" android:layout_margin="6dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="#D4AF37"/>
-            <TextView android:text="CP" android:layout_margin="6dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="white"/>
-            <TextView android:text="Weekly Star" android:layout_margin="6dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="white"/>
-            <TextView android:text="Best" android:layout_margin="6dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="white"/>
-            <TextView android:text="New" android:layout_margin="6dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="white"/>
+            <TextView android:text="Family" android:layout_margin="6dp" android:background="#222222" android:padding="12dp" android:textColor="#D4AF37"/>
+            <TextView android:text="CP" android:layout_margin="6dp" android:background="#222222" android:padding="12dp" android:textColor="#FFFFFF"/>
+            <TextView android:text="Weekly Star" android:layout_margin="6dp" android:background="#222222" android:padding="12dp" android:textColor="#FFFFFF"/>
+            <TextView android:text="Best" android:layout_margin="6dp" android:background="#222222" android:padding="12dp" android:textColor="#FFFFFF"/>
+            <TextView android:text="New" android:layout_margin="6dp" android:background="#222222" android:padding="12dp" android:textColor="#FFFFFF"/>
         </LinearLayout>
     </HorizontalScrollView>
 
