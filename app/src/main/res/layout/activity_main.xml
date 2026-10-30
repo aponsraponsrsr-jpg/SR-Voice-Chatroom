@@ -1,141 +1,41 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212">
+    android:background="#0A0A0A"
+    android:orientation="vertical">
 
-    <!-- হেডার: টাইটেল এবং প্লাস (+) আইকন -->
-    <RelativeLayout
-        android:id="@+id/headerLayout"
+    <!-- Top Tabs: Mine / Hot / Discover -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:paddingHorizontal="16dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerVertical="true"
-            android:text="Group List"
-            android:textColor="#FFFFFF"
-            android:textSize="20sp"
-            android:textStyle="bold" />
-
-        <!-- প্লাস আইকন (রুম ক্রিয়েট করার জন্য) -->
-        <ImageView
-            android:id="@+id/btnCreateGroup"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_input_add"
-            app:tint="#D81B60" />
-    </RelativeLayout>
-
-    <!-- গ্রুপ লিস্ট রাখার জায়গা -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewGroups"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/bottomNavigation"
-        android:layout_below="@id/headerLayout"
-        android:padding="8dp" />
-
-    <!-- বটম নেভিগেশন বার (Home, Event, Moment, Me) -->
-    <LinearLayout
-        android:id="@+id/bottomNavigation"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_alignParentBottom="true"
-        android:background="#1F1F1F"
         android:orientation="horizontal"
-        android:weightSum="4">
-
-        <!-- Home -->
-        <LinearLayout
-            android:id="@+id/navHome"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_compass"
-                app:tint="#D81B60"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Home"
-                android:textColor="#D81B60"
-                android:textSize="12sp" />
-        </LinearLayout>
-
-        <!-- Event -->
-        <LinearLayout
-            android:id="@+id/navEvent"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_agenda"
-                app:tint="#AAAAAA"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Event"
-                android:textColor="#AAAAAA"
-                android:textSize="12sp" />
-        </LinearLayout>
-
-        <!-- Moment -->
-        <LinearLayout
-            android:id="@+id/navMoment"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_gallery"
-                app:tint="#AAAAAA"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Moment"
-                android:textColor="#AAAAAA"
-                android:textSize="12sp" />
-        </LinearLayout>
-
-        <!-- Me -->
-        <LinearLayout
-            android:id="@+id/navMe"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_myplaces"
-                app:tint="#AAAAAA"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Me"
-                android:textColor="#AAAAAA"
-                android:textSize="12sp" />
-        </LinearLayout>
-
+        android:gravity="center"
+        android:background="#111111">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Mine" android:textColor="#D4AF37" android:textStyle="bold" android:gravity="center" android:textSize="16sp"/>
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Hot" android:textColor="#888888" android:gravity="center" android:textSize="16sp"/>
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Discover" android:textColor="#888888" android:gravity="center" android:textSize="16sp"/>
     </LinearLayout>
 
-</RelativeLayout>
+    <!-- Big Empty Banner -->
+    <View android:layout_width="match_parent" android:layout_height="160dp" android:layout_margin="12dp" android:background="@drawable/rounded_bg" />
+
+    <!-- Category: Family / CP / Weekly Star / Best / New -->
+    <HorizontalScrollView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="8dp">
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="8dp">
+            <TextView android:text="Family" android:layout_margin="8dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="#D4AF37"/>
+            <TextView android:text="CP" android:layout_margin="8dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="#FFFFFF"/>
+            <TextView android:text="Weekly Star" android:layout_margin="8dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="#FFFFFF"/>
+            <TextView android:text="Best" android:layout_margin="8dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="#FFFFFF"/>
+            <TextView android:text="New" android:layout_margin="8dp" android:background="@drawable/rounded_bg" android:padding="12dp" android:textColor="#FFFFFF"/>
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- 2 Column Small Cards - Left Right Serial -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerRooms"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="8dp"/>
+
+</LinearLayout>
