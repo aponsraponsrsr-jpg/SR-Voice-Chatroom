@@ -21,7 +21,6 @@ public class HomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
         db = FirebaseFirestore.getInstance();
         TextView tvCoin = findViewById(R.id.tvCoin);
-        EditText etSearchId = findViewById(R.id.etSearchId);
         db.collection("users").document(FirebaseAuth.getInstance().getCurrentUser().getUid()).get().addOnSuccessListener(doc -> {
             if(doc.exists()){
                 mySrId = doc.getString("sr_id");
