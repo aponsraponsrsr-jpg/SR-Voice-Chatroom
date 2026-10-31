@@ -32,7 +32,6 @@ public class ProfileActivity extends AppCompatActivity {
         rgGender = findViewById(R.id.rgGender);
         btnSaveAndEnter = findViewById(R.id.btnSaveAndEnter);
 
-        // প্রোফাইল ছবি বা ক্যামেরা আইকনে ক্লিক করলে গ্যালারি খোলার জন্য
         if (imgProfile != null) {
             imgProfile.setOnClickListener(v -> {
                 Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -40,7 +39,6 @@ public class ProfileActivity extends AppCompatActivity {
             });
         }
 
-        // Save & Enter বাটনে ক্লিক করলে ডেটা সেভ হয়ে হোমপেজে যাওয়ার জন্য
         if (btnSaveAndEnter != null) {
             btnSaveAndEnter.setOnClickListener(v -> {
                 if (etName == null) return;
@@ -81,7 +79,8 @@ public class ProfileActivity extends AppCompatActivity {
 
                 Toast.makeText(ProfileActivity.this, "Profile Saved Successfully!", Toast.LENGTH_SHORT).show();
 
-                Intent intent = new Intent(ProfileActivity.this, HomeActivity.java);
+                // এখানে ঠিক করে HomeActivity.class দেওয়া হয়েছে
+                Intent intent = new Intent(ProfileActivity.this, HomeActivity.class);
                 startActivity(intent);
                 finish();
             });
