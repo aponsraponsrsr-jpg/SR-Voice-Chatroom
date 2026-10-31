@@ -1,58 +1,62 @@
 package com.sr.voicechat;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.Toast;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import java.util.Random;
 
 public class ProfileActivity extends AppCompatActivity {
 
-    ImageView ivProfile;
-    EditText etName;
-    Uri selectedImageUri = null;
-
-    ActivityResultLauncher<String> pickImage = registerForActivityResult(
-        new ActivityResultContracts.GetContent(),
-        uri -> {
-            if(uri != null){
-                selectedImageUri = uri;
-                ivProfile.setImageURI(uri);
-            }
-        });
+    private ImageView imgProfile;
+    private EditText etName;
+    private RadioGroup rgGender;
+    private Button btnSaveAndEnter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        ivProfile = findViewById(R.id.ivProfile);
+        imgProfile = findViewById(R.id.imgProfile);
         etName = findViewById(R.id.etName);
-        Button btnSave = findViewById(R.id.btnSaveProfile);
+        rgGender = findViewById(R.id.rgGender);
+        btnSaveAndEnter = findViewById(R.id.btnSaveAndEnter);
 
-        // লোগোতে টাচ করলেই গ্যালারি খুলবে
-        ivProfile.setOnClickListener(v -> pickImage.launch("image/*"));
+        imgProfile.setOnClickListener(v -> {
+            Toast.makeText(ProfileActivity.this, "Gallery picker will open here", Toast.LENGTH_SHORT).show();
+        });
 
-        btnSave.setOnClickListener(v -> {
+        btnSaveAndEnter.setOnClickListener(v -> {
             String name = etName.getText().toString().trim();
-            if(name.isEmpty()){
-                Toast.makeText(this,"Nick name দাও বন্ধু",Toast.LENGTH_SHORT).show();
+            int selectedGenderId = rgGender.getCheckedRadioButtonId();
+
+            if (name.isEmpty()) {
+                etName.setError("Please enter your name");
                 return;
             }
-            SharedPreferences prefs = getSharedPreferences("user_prefs", MODE_PRIVATE);
-            prefs.edit()
-                .putString("user_name", name)
-                .putString("user_image", selectedImageUri != null ? selectedImageUri.toString() : "")
-                .putBoolean("profile_saved", true)
-                .apply();
 
-            startActivity(new Intent(this, MainActivity.class));
+            if (selectedGenderId == -1) {
+                Toast.makeText(ProfileActivity.this, "Please select your gender", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            RadioButton selectedGender = findViewById(selectedGenderId);
+            String genderText = selectedGender.getText().toString();
+
+            // Generate 7-digit unique permanent ID
+            int randomId = 1000000 + new Random().nextInt(9000000);
+
+            Intent intent = new Intent(ProfileActivity.this, HomeActivity.class);
+            intent.putExtra("USER_NAME", name);
+            intent.putExtra("USER_GENDER", genderText);
+            intent.putExtra("USER_ID", String.valueOf(randomId));
+            startActivity(intent);
             finish();
         });
     }
