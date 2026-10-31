@@ -1,3 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#121212">
+
+    <!-- Header Section -->
+    <RelativeLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:paddingHorizontal="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:text="SR Voice Chatroom"
+            android:textColor="#E5C158"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Popular"
+                android:textColor="#E5C158"
+                android:textSize="12sp" />
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="16dp"
+                android:src="@android:drawable/ic_menu_search" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <!-- Permanent Room List -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvRooms"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/headerLayout"
+        android:layout_above="@+id/bottomNav"
+        android:padding="12dp"
+        android:clipToPadding="false"/>
+
+    <!-- Empty Message -->
+    <LinearLayout
+        android:id="@+id/emptyLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="No rooms live. Tap '+' below to\ncreate one and start a party!"
+            android:textColor="#E5C158"
+            android:textSize="18sp" />
+    </LinearLayout>
+
     <!-- Bottom Navigation Bar -->
     <LinearLayout
         android:id="@+id/bottomNav"
@@ -46,7 +121,6 @@
             android:text="Message"
             android:textColor="#AAAAAA" />
 
-        <!-- Me Option with Clickable & Focusable enabled -->
         <TextView
             android:id="@+id/tvMe"
             android:layout_width="0dp"
@@ -59,3 +133,5 @@
             android:focusable="true"
             android:background="?attr/selectableItemBackground" />
     </LinearLayout>
+
+</RelativeLayout>
