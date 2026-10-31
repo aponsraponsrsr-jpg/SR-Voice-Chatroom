@@ -2,23 +2,20 @@ package com.sr.voicechat;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.TextView;
+import android.view.View;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class HomeActivity extends AppCompatActivity {
 
-    private TextView tvMeTab;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home); // অথবা তোমার হোম লেআউট
+        setContentView(R.layout.activity_home);
 
-        // নিচের মেনুর 'Me' বাটন খুঁজে বের করা (তোমার লেআউটের আইডি অনুযায়ী এটি মিলিয়ে নেবে)
-        tvMeTab = findViewById(R.id.tvMeTab); // লেআউটে আইডি না থাকলে নিচে আইডি সহ লেআউট দেওয়া হলো
-
-        if (tvMeTab != null) {
-            tvMeTab.setOnClickListener(v -> {
+        // নিচের মেনুর Me অপশনে ক্লিক করলে MeActivity তে যাওয়ার জন্য
+        View meBtn = findViewById(R.id.meLayout); // অথবা তোমার Me লেআউটের আইডি
+        if (meBtn != null) {
+            meBtn.setOnClickListener(v -> {
                 Intent intent = new Intent(HomeActivity.this, MeActivity.class);
                 startActivity(intent);
             });
