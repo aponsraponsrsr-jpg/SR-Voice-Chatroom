@@ -36,7 +36,7 @@
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="40dp"
         android:backgroundTint="#E5C158"
-        android:text="Enter SR Voice Chatroom"
+        android:text="Sign in with Google"
         android:textAllCaps="false"
         android:textColor="#121212"
         android:textSize="16sp"
