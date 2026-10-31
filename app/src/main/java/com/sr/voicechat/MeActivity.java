@@ -19,6 +19,7 @@ public class MeActivity extends AppCompatActivity {
         try {
             setContentView(R.layout.activity_me);
 
+            // লেআউট থেকে আইডিগুলো ইনিশিয়ালাইজ করা
             imgProfileMe = findViewById(R.id.imgProfileMe);
             tvProfileName = findViewById(R.id.tvProfileName);
             tvProfileId = findViewById(R.id.tvProfileId);
@@ -31,6 +32,7 @@ public class MeActivity extends AppCompatActivity {
             String gender = prefs.getString("USER_GENDER", "Male");
             String imageUriStr = prefs.getString("USER_IMAGE", null);
 
+            // ভিউগুলোতে ডেটা সেট করা (সেফটি চেকসহ)
             if (tvProfileName != null) {
                 tvProfileName.setText(name);
             }
