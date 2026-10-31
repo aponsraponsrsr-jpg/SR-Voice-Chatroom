@@ -4,18 +4,41 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="20dp"
-    android:background="#1E1E1E">
+    android:background="@android:color/white">
 
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Create Room" android:textColor="white" android:textSize="18sp" android:textStyle="bold"/>
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_gravity="center"
+        android:src="@mipmap/ic_launcher_round" />
 
-    <ImageView android:id="@+id/imgRoomPick" android:layout_width="100dp" android:layout_height="100dp" android:layout_gravity="center" android:layout_marginTop="16dp" android:background="#333333" android:src="@mipmap/ic_launcher"/>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create Room"
+        android:textColor="#000000"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginTop="10dp" />
 
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tap to pick from gallery" android:textColor="#AAAAAA" android:textSize="12sp" android:layout_gravity="center" android:layout_marginTop="4dp"/>
+    <EditText
+        android:id="@+id/etRoomName"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:hint="Room Name"
+        android:textColor="#000000"
+        android:textColorHint="#888888"
+        android:layout_marginTop="15dp"
+        android:background="@android:drawable/edit_text"
+        android:padding="10dp" />
 
-    <EditText android:id="@+id/etRoomName" android:layout_width="match_parent" android:layout_height="50dp" android:hint="Room Name" android:textColor="white" android:textColorHint="#777777" android:background="#2C2C2C" android:layout_marginTop="16dp" android:padding="12dp"/>
-
-    <EditText android:id="@+id/etRoomBio" android:layout_width="match_parent" android:layout_height="80dp" android:hint="Room Bio" android:textColor="white" android:textColorHint="#777777" android:background="#2C2C2C" android:layout_marginTop="12dp" android:padding="12dp" android:gravity="top"/>
-
-    <Button android:id="@+id/btnSaveRoom" android:layout_width="match_parent" android:layout_height="50dp" android:text="Save &amp; Create 10 Seat Room" android:backgroundTint="#6C5CE7" android:layout_marginTop="20dp"/>
+    <Button
+        android:id="@+id/btnCreateRoom"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="Create"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="15dp" />
 
 </LinearLayout>
