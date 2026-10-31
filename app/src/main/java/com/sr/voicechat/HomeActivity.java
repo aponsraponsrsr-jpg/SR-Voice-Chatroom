@@ -12,7 +12,7 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        // প্রোফাইল বা Me অপশনে ক্লিক করলে MeActivity তে যাওয়ার নিরাপদ লজিক
+        // Me পেজে যাওয়ার জন্য সিম্পল ক্লিক লজিক
         View meBtn = findViewById(R.id.meLayout);
         if (meBtn != null) {
             meBtn.setOnClickListener(v -> {
