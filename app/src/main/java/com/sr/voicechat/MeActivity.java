@@ -10,7 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public class MeActivity extends AppCompatActivity {
 
     private ImageView imgProfileMe;
-    private TextView tvNameMe, tvIdMe, tvGenderMe, tvFans, tvFollowing, tvVisitors;
+    private TextView tvNameMe, tvIdMe, tvGenderMe;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,15 +22,6 @@ public class MeActivity extends AppCompatActivity {
         tvIdMe = findViewById(R.id.tvIdMe);
         tvGenderMe = findViewById(R.id.tvGenderMe);
 
-        // সেফ চেক সহ অন্যান্য ভিউ ফাইন্ড করা
-        try {
-            tvFans = findViewById(R.id.tvFans);
-            tvFollowing = findViewById(R.id.tvFollowing);
-            tvVisitors = findViewById(R.id.tvVisitors);
-        } catch (Exception e) {
-            // Ignored if IDs are missing in xml
-        }
-
         SharedPreferences prefs = getSharedPreferences("UserProfile", MODE_PRIVATE);
         String name = prefs.getString("USER_NAME", "SR User");
         String id = prefs.getString("USER_ID", "1000000");
@@ -40,10 +31,6 @@ public class MeActivity extends AppCompatActivity {
         if (tvNameMe != null) tvNameMe.setText(name);
         if (tvIdMe != null) tvIdMe.setText("ID: " + id);
         if (tvGenderMe != null) tvGenderMe.setText("Gender: " + gender);
-        
-        if (tvFans != null) tvFans.setText("0\nFans");
-        if (tvFollowing != null) tvFollowing.setText("0\nFollowing");
-        if (tvVisitors != null) tvVisitors.setText("0\nVisitors");
 
         if (imageUriStr != null && imgProfileMe != null) {
             imgProfileMe.setImageURI(Uri.parse(imageUriStr));
