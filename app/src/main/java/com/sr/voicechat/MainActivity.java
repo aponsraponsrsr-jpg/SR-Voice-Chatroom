@@ -1,206 +1,71 @@
 package com.sr.voicechat;
 
-import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RadioButton;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import com.google.firebase.firestore.FirebaseFirestore;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
-
-    private Uri profileImageUri = null;
-    private Uri roomImageUri = null;
-    private ImageView imgProfile, imgRoomPick;
+    private Uri profileUri = null;
+    private ImageView imgProfile;
     private EditText etName;
-    private Button btnSaveEnter;
-    private RadioButton rbMale, rbFemale;
-    private FirebaseFirestore db;
-    
-    private ActivityResultLauncher<Intent> pickProfileImageLauncher;
-    private ActivityResultLauncher<Intent> pickRoomImageLauncher;
+    private Button btnSave;
+    private ActivityResultLauncher<Intent> launcher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        db = FirebaseFirestore.getInstance();
-
-        // Launchers
-        pickProfileImageLauncher = registerForActivityResult(
+        launcher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
                 if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    profileImageUri = result.getData().getData();
-                    if (imgProfile != null) {
-                        imgProfile.setImageURI(profileImageUri);
-                    }
+                    profileUri = result.getData().getData();
+                    if (imgProfile != null) imgProfile.setImageURI(profileUri);
                 }
             }
         );
 
-        pickRoomImageLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    roomImageUri = result.getData().getData();
-                    if (imgRoomPick != null) {
-                        imgRoomPick.setImageURI(roomImageUri);
-                    }
-                }
-            }
-        );
+        imgProfile = findImg("imgProfile","imgPick","profileImage","ivProfile","imgAvatar");
+        etName = findEdit("etName","etUserName","etRoomName","name");
+        btnSave = findBtn("btnSave","btnSaveAndEnter","btnSaveEnterChatroom","btnEnter","btnOpenRoom");
 
-        // Find Views - Fail proof
-        imgProfile = findViewById(R.id.imgProfile);
-        if (imgProfile == null) {
-             int id = getResources().getIdentifier("imgPick", "id", getPackageName());
-             if(id!=0) imgProfile = findViewById(id);
-        }
-        if (imgProfile == null) {
-             int id = getResources().getIdentifier("profileImage", "id", getPackageName());
-             if(id!=0) imgProfile = findViewById(id);
-        }
-
-        etName = findViewById(R.id.etName);
-        if (etName == null) etName = findViewById(R.id.etUserName);
-        if (etName == null) {
-            int id = getResources().getIdentifier("etRoomName", "id", getPackageName());
-            if(id!=0) etName = findViewById(id);
-        }
-
-        btnSaveEnter = findViewById(R.id.btnSave);
-        if (btnSaveEnter == null) btnSaveEnter = findViewById(R.id.btnSaveAndEnter);
-        if (btnSaveEnter == null) btnSaveEnter = findViewById(R.id.btnSaveEnterChatroom);
-        if (btnSaveEnter == null) btnSaveEnter = findViewById(R.id.btnEnter);
-        if (btnSaveEnter == null) {
-            int id = getResources().getIdentifier("btnSave", "id", getPackageName());
-            if(id!=0) btnSaveEnter = findViewById(id);
-        }
-        if (btnSaveEnter == null) {
-            int id = getResources().getIdentifier("btnOpenRoom", "id", getPackageName());
-            if(id!=0) btnSaveEnter = findViewById(id);
-        }
-
-        rbMale = findViewById(R.id.rbMale);
-        rbFemale = findViewById(R.id.rbFemale);
-
-        // Profile Image Click -> Gallery Open
         if (imgProfile != null) {
             imgProfile.setOnClickListener(v -> {
-                Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                pickProfileImageLauncher.launch(intent);
+                Intent i = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                launcher.launch(i);
             });
         }
 
-        // Save & Enter Chatroom Click
-        if (btnSaveEnter != null) {
-            btnSaveEnter.setOnClickListener(v -> {
-                String name = "real CEO";
-                if (etName != null) {
-                    name = etName.getText().toString().trim();
-                }
+        if (btnSave != null) {
+            btnSave.setOnClickListener(v -> {
+                String name = etName != null ? etName.getText().toString().trim() : "CEO";
                 if (name.isEmpty()) {
-                    if(etName!=null) etName.setError("Enter name");
-                    Toast.makeText(this, "Please enter name", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Enter Name", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                String gender = "Male";
-                if (rbFemale != null && rbFemale.isChecked()) gender = "Female";
-
-                SharedPreferences prefs = getSharedPreferences("SRVoice", MODE_PRIVATE);
-                SharedPreferences.Editor editor = prefs.edit();
-                editor.putString("userName", name);
-                editor.putString("userGender", gender);
-                if (profileImageUri != null) editor.putString("userImage", profileImageUri.toString());
-                editor.apply();
-
-                // Save to Firebase - NO UserModel needed
-                String myId = IdManager.getOrCreateUserId(this);
-                Map<String, Object> userMap = new HashMap<>();
-                userMap.put("id", myId);
-                userMap.put("name", name);
-                userMap.put("gender", gender);
-                userMap.put("image", profileImageUri != null ? profileImageUri.toString() : "");
-                db.collection("users").document(myId).set(userMap);
-
-                Toast.makeText(this, "Welcome " + name + "!", Toast.LENGTH_SHORT).show();
-
+                SharedPreferences p = getSharedPreferences("SRVoice", MODE_PRIVATE);
+                p.edit().putString("userName", name).putString("userImage", profileUri != null ? profileUri.toString() : "").apply();
+                Toast.makeText(this, "Welcome " + name, Toast.LENGTH_SHORT).show();
                 try {
-                    Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-                    startActivity(intent);
+                    startActivity(new Intent(this, HomeActivity.class));
                     finish();
                 } catch (Exception e) {
-                    showCreateRoomDialog();
+                    Toast.makeText(this, "Saved!", Toast.LENGTH_SHORT).show();
                 }
             });
         }
     }
-
-    private void showCreateRoomDialog() {
-        Dialog dialog = new Dialog(this);
-        dialog.setContentView(R.layout.dialog_create_room);
-        if (dialog.getWindow() != null) {
-            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        }
-
-        imgRoomPick = dialog.findViewById(R.id.imgRoomPick);
-        EditText etRoomName = dialog.findViewById(R.id.etRoomName);
-        EditText etBio = dialog.findViewById(R.id.etRoomBio);
-        Button btnSaveRoom = dialog.findViewById(R.id.btnSaveRoom);
-
-        if(imgRoomPick != null){
-            imgRoomPick.setOnClickListener(v -> {
-                Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                pickRoomImageLauncher.launch(intent);
-            });
-        }
-
-        if(btnSaveRoom != null){
-            btnSaveRoom.setOnClickListener(v -> {
-                String name = etRoomName.getText().toString().trim();
-                String bio = etBio.getText().toString().trim();
-
-                if (name.isEmpty()) {
-                    etRoomName.setError("Enter room name");
-                    return;
-                }
-
-                String roomId = UUID.randomUUID().toString();
-                String myId = IdManager.getOrCreateUserId(this);
-
-                RoomModel room = new RoomModel(roomId, name, bio, roomImageUri != null ? roomImageUri.toString() : "", myId);
-                
-                db.collection("rooms").document(roomId).set(room)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(this, "Room Created Permanently!", Toast.LENGTH_SHORT).show();
-                        dialog.dismiss();
-                        Intent roomIntent = new Intent(MainActivity.this, VoiceRoomActivity.class);
-                        roomIntent.putExtra("roomId", roomId);
-                        roomIntent.putExtra("roomName", name);
-                        startActivity(roomIntent);
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
-            });
-        }
-
-        dialog.show();
-    }
+    private ImageView findImg(String... names){for(String n:names){int id=getResources().getIdentifier(n,"id",getPackageName()); if(id!=0){try{return findViewById(id);}catch(Exception e){}}}return null;}
+    private EditText findEdit(String... names){for(String n:names){int id=getResources().getIdentifier(n,"id",getPackageName()); if(id!=0){try{return findViewById(id);}catch(Exception e){}}}return null;}
+    private Button findBtn(String... names){for(String n:names){int id=getResources().getIdentifier(n,"id",getPackageName()); if(id!=0){try{return findViewById(id);}catch(Exception e){}}}return null;}
 }
