@@ -15,36 +15,41 @@ public class MeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_me);
+        
+        try {
+            setContentView(R.layout.activity_me);
 
-        imgProfileMe = findViewById(R.id.imgProfileMe);
-        tvProfileName = findViewById(R.id.tvProfileName);
-        tvProfileId = findViewById(R.id.tvProfileId);
-        tvProfileGender = findViewById(R.id.tvProfileGender);
+            imgProfileMe = findViewById(R.id.imgProfileMe);
+            tvProfileName = findViewById(R.id.tvProfileName);
+            tvProfileId = findViewById(R.id.tvProfileId);
+            tvProfileGender = findViewById(R.id.tvProfileGender);
 
-        // SharedPreferences থেকে ইউজারের সেভ করা ডেটা লোড করা
-        SharedPreferences prefs = getSharedPreferences("UserProfile", MODE_PRIVATE);
-        String name = prefs.getString("USER_NAME", "SR User");
-        String id = prefs.getString("USER_ID", "1000000");
-        String gender = prefs.getString("USER_GENDER", "Male");
-        String imageUriStr = prefs.getString("USER_IMAGE", null);
+            // SharedPreferences থেকে ইউজারের সেভ করা ডেটা লোড করা
+            SharedPreferences prefs = getSharedPreferences("UserProfile", MODE_PRIVATE);
+            String name = prefs.getString("USER_NAME", "SR User");
+            String id = prefs.getString("USER_ID", "1000000");
+            String gender = prefs.getString("USER_GENDER", "Male");
+            String imageUriStr = prefs.getString("USER_IMAGE", null);
 
-        if (tvProfileName != null) {
-            tvProfileName.setText(name);
-        }
-        if (tvProfileId != null) {
-            tvProfileId.setText("ID: " + id);
-        }
-        if (tvProfileGender != null) {
-            tvProfileGender.setText("Gender: " + gender);
-        }
-
-        if (imgProfileMe != null && imageUriStr != null) {
-            try {
-                imgProfileMe.setImageURI(Uri.parse(imageUriStr));
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (tvProfileName != null) {
+                tvProfileName.setText(name);
             }
+            if (tvProfileId != null) {
+                tvProfileId.setText("ID: " + id);
+            }
+            if (tvProfileGender != null) {
+                tvProfileGender.setText("Gender: " + gender);
+            }
+
+            if (imgProfileMe != null && imageUriStr != null && !imageUriStr.isEmpty()) {
+                try {
+                    imgProfileMe.setImageURI(Uri.parse(imageUriStr));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
