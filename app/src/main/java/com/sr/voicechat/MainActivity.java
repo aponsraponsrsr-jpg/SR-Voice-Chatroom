@@ -16,6 +16,8 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
@@ -30,7 +32,6 @@ public class MainActivity extends AppCompatActivity {
     
     private ActivityResultLauncher<Intent> pickProfileImageLauncher;
     private ActivityResultLauncher<Intent> pickRoomImageLauncher;
-    private boolean isPickingProfile = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,10 +39,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         
         db = FirebaseFirestore.getInstance();
-
-        // Check if already setup - then go to Home
-        SharedPreferences prefs = getSharedPreferences("SRVoice", MODE_PRIVATE);
-        // যদি আগে Save করা থাকে, তাও এই Page দেখাবো, Skip করবো না তোমার Testing এর জন্য
 
         // Launchers
         pickProfileImageLauncher = registerForActivityResult(
@@ -68,18 +65,15 @@ public class MainActivity extends AppCompatActivity {
             }
         );
 
-        // Find Views Dynamically - ID যাই হোক কাজ করবে
+        // Find Views - Fail proof
         imgProfile = findViewById(R.id.imgProfile);
-        if (imgProfile == null) imgProfile = findViewById(R.id.imgRoomPick);
+        if (imgProfile == null) {
+             int id = getResources().getIdentifier("imgPick", "id", getPackageName());
+             if(id!=0) imgProfile = findViewById(id);
+        }
         if (imgProfile == null) {
              int id = getResources().getIdentifier("profileImage", "id", getPackageName());
              if(id!=0) imgProfile = findViewById(id);
-        }
-        // activity_main এর camera icon টা
-        if (imgProfile == null) {
-            // Try common image id from your layout
-            int camId = getResources().getIdentifier("imgPick", "id", getPackageName());
-            if(camId!=0) imgProfile = findViewById(camId);
         }
 
         etName = findViewById(R.id.etName);
@@ -97,7 +91,6 @@ public class MainActivity extends AppCompatActivity {
             int id = getResources().getIdentifier("btnSave", "id", getPackageName());
             if(id!=0) btnSaveEnter = findViewById(id);
         }
-        // Last try: Find button by layout - if still null, use btnOpenRoom id if your layout still has it
         if (btnSaveEnter == null) {
             int id = getResources().getIdentifier("btnOpenRoom", "id", getPackageName());
             if(id!=0) btnSaveEnter = findViewById(id);
@@ -105,10 +98,6 @@ public class MainActivity extends AppCompatActivity {
 
         rbMale = findViewById(R.id.rbMale);
         rbFemale = findViewById(R.id.rbFemale);
-        if(rbMale == null){
-            int id = getResources().getIdentifier("male", "id", getPackageName());
-            if(id!=0) rbMale = findViewById(id);
-        }
 
         // Profile Image Click -> Gallery Open
         if (imgProfile != null) {
@@ -134,28 +123,29 @@ public class MainActivity extends AppCompatActivity {
                 String gender = "Male";
                 if (rbFemale != null && rbFemale.isChecked()) gender = "Female";
 
-                // Save Locally
+                SharedPreferences prefs = getSharedPreferences("SRVoice", MODE_PRIVATE);
                 SharedPreferences.Editor editor = prefs.edit();
                 editor.putString("userName", name);
                 editor.putString("userGender", gender);
                 if (profileImageUri != null) editor.putString("userImage", profileImageUri.toString());
                 editor.apply();
 
-                // Save to Firebase (Optional but good for CEO)
+                // Save to Firebase - NO UserModel needed
                 String myId = IdManager.getOrCreateUserId(this);
-                // Save user profile permanently
-                UserModel user = new UserModel(myId, name, gender, profileImageUri != null ? profileImageUri.toString() : "");
-                db.collection("users").document(myId).set(user);
+                Map<String, Object> userMap = new HashMap<>();
+                userMap.put("id", myId);
+                userMap.put("name", name);
+                userMap.put("gender", gender);
+                userMap.put("image", profileImageUri != null ? profileImageUri.toString() : "");
+                db.collection("users").document(myId).set(userMap);
 
                 Toast.makeText(this, "Welcome " + name + "!", Toast.LENGTH_SHORT).show();
 
-                // Go to Home / Voice Room List
                 try {
                     Intent intent = new Intent(MainActivity.this, HomeActivity.class);
                     startActivity(intent);
                     finish();
                 } catch (Exception e) {
-                    // If HomeActivity not found, show Create Room Dialog
                     showCreateRoomDialog();
                 }
             });
