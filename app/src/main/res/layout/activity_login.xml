@@ -5,7 +5,6 @@
     android:background="#121212"
     android:padding="24dp">
 
-    <!-- App Logo / Header Section -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -30,15 +29,14 @@
             android:textSize="14sp" />
     </LinearLayout>
 
-    <!-- Google Sign-In Button at Bottom -->
     <Button
-        android:id="@+id/btnGoogleSignIn"
+        android:id="@+id/btnLoginDirect"
         android:layout_width="match_parent"
         android:layout_height="52dp"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="40dp"
         android:backgroundTint="#E5C158"
-        android:text="Sign in with Google"
+        android:text="Enter SR Voice Chatroom"
         android:textAllCaps="false"
         android:textColor="#121212"
         android:textSize="16sp"
