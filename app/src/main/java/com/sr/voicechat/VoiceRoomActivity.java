@@ -76,6 +76,17 @@ public class VoiceRoomActivity extends AppCompatActivity {
         setup(seat10, tvName10, 10);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // রুমের ভেতরে ফিরে আসার সময় বা রিফ্রেশ করার সময় লেটেস্ট নাম লোড করা
+        SharedPreferences prefs = getSharedPreferences("UserProfile", MODE_PRIVATE);
+        myName = prefs.getString("USER_NAME", "User");
+        if (tvHostName != null) {
+            tvHostName.setText(myName + " ✏️");
+        }
+    }
+
     private void setup(TextView seat, TextView nameView, int num){
         if (seat == null || nameView == null) return;
         
