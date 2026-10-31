@@ -9,22 +9,27 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
     private Uri roomImageUri = null;
     private ImageView imgRoomPick;
     private ActivityResultLauncher<Intent> pickImageLauncher;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        
+        db = FirebaseFirestore.getInstance();
 
-        // Gallery Launcher
         pickImageLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -37,7 +42,6 @@ public class MainActivity extends AppCompatActivity {
             }
         );
 
-        // তোমার আগের Room Button - এটাতে ক্লিক করলেই Dialog আসবে
         Button btnOpenRoom = findViewById(R.id.btnOpenRoom);
         btnOpenRoom.setOnClickListener(v -> {
             showCreateRoomDialog();
@@ -70,14 +74,25 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            dialog.dismiss();
+            // Permanent ID Create
+            String roomId = UUID.randomUUID().toString();
+            String myId = IdManager.getUserId(this); // তোমার IdManager থেকে ID নেবে
+
+            // RoomModel Save to Firebase
+            RoomModel room = new RoomModel(roomId, name, bio, roomImageUri != null ? roomImageUri.toString() : "", myId);
             
-            // 10 Seat Room Activity তে নিয়ে যাবে
-            Intent roomIntent = new Intent(MainActivity.this, VoiceRoomActivity.class);
-            roomIntent.putExtra("roomName", name);
-            roomIntent.putExtra("roomBio", bio);
-            roomIntent.putExtra("roomImage", roomImageUri != null ? roomImageUri.toString() : "");
-            startActivity(roomIntent);
+            db.collection("rooms").document(roomId).set(room)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Room Created Permanently!", Toast.LENGTH_SHORT).show();
+                    dialog.dismiss();
+                    Intent roomIntent = new Intent(MainActivity.this, VoiceRoomActivity.class);
+                    roomIntent.putExtra("roomId", roomId);
+                    roomIntent.putExtra("roomName", name);
+                    startActivity(roomIntent);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
         });
 
         dialog.show();
