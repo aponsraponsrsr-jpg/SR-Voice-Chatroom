@@ -8,7 +8,6 @@ import android.provider.MediaStore;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
@@ -33,7 +32,6 @@ public class ProfileActivity extends AppCompatActivity {
         rgGender = findViewById(R.id.rgGender);
         btnSaveAndEnter = findViewById(R.id.btnSaveAndEnter);
 
-        // Open Gallery to choose profile picture
         imgProfile.setOnClickListener(v -> {
             Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             startActivityForResult(galleryIntent, GALLERY_REQ_CODE);
@@ -53,10 +51,9 @@ public class ProfileActivity extends AppCompatActivity {
                 return;
             }
 
-            RadioButton selectedGender = findViewById(selectedGenderId);
+            android.widget.RadioButton selectedGender = findViewById(selectedGenderId);
             String genderText = selectedGender.getText().toString();
 
-            // Generate 7-digit unique permanent ID if not exists
             SharedPreferences prefs = getSharedPreferences("UserProfile", MODE_PRIVATE);
             String savedId = prefs.getString("USER_ID", null);
             if (savedId == null) {
@@ -64,7 +61,6 @@ public class ProfileActivity extends AppCompatActivity {
                 savedId = String.valueOf(randomId);
             }
 
-            // Save data permanently using SharedPreferences
             SharedPreferences.Editor editor = prefs.edit();
             editor.putString("USER_NAME", name);
             editor.putString("USER_GENDER", genderText);
@@ -75,8 +71,7 @@ public class ProfileActivity extends AppCompatActivity {
             editor.putBoolean("IS_LOGGED_IN", true);
             editor.apply();
 
-            // Navigate to HomeActivity
-            Intent intent = new Intent(ProfileActivity.this, HomeActivity.class);
+            Intent intent = new Intent(ProfileActivity.this, HomeActivity.java);
             startActivity(intent);
             finish();
         });
