@@ -12,11 +12,20 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        // হোমপেজের নিচের 'Me' ট্যাবের সঠিক আইডি দিয়ে MeActivity-তে যাওয়ার লজিক
+        // ১. 'Me' ট্যাবে ক্লিক করলে MeActivity-তে যাওয়ার লজিক
         TextView tvMe = findViewById(R.id.tvMe);
         if (tvMe != null) {
             tvMe.setOnClickListener(v -> {
                 Intent intent = new Intent(HomeActivity.this, MeActivity.class);
+                startActivity(intent);
+            });
+        }
+
+        // ২. '+' আইকনে ক্লিক করলে VoiceRoomActivity-তে যাওয়ার লজিক
+        TextView btnPlus = findViewById(R.id.btnPlus);
+        if (btnPlus != null) {
+            btnPlus.setOnClickListener(v -> {
+                Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
                 startActivity(intent);
             });
         }
