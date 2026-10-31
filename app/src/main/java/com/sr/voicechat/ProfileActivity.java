@@ -1,7 +1,9 @@
 package com.sr.voicechat;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -17,6 +19,7 @@ public class ProfileActivity extends AppCompatActivity {
     private EditText etName;
     private RadioGroup rgGender;
     private Button btnSaveAndEnter;
+    private static final int GALLERY_REQ_CODE = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,8 +31,10 @@ public class ProfileActivity extends AppCompatActivity {
         rgGender = findViewById(R.id.rgGender);
         btnSaveAndEnter = findViewById(R.id.btnSaveAndEnter);
 
+        // Open Gallery on Profile Picture Click
         imgProfile.setOnClickListener(v -> {
-            Toast.makeText(ProfileActivity.this, "Gallery picker will open here", Toast.LENGTH_SHORT).show();
+            Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            startActivityForResult(galleryIntent, GALLERY_REQ_CODE);
         });
 
         btnSaveAndEnter.setOnClickListener(v -> {
@@ -59,5 +64,14 @@ public class ProfileActivity extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == GALLERY_REQ_CODE && resultCode == RESULT_OK && data != null) {
+            Uri imageUri = data.getData();
+            imgProfile.setImageURI(imageUri);
+        }
     }
 }
