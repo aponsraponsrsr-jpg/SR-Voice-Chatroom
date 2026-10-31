@@ -15,7 +15,7 @@ public class MainActivity extends AppCompatActivity {
         boolean isLoggedIn = prefs.getBoolean("IS_LOGGED_IN", false);
         String savedName = prefs.getString("USER_NAME", null);
 
-        // যদি ইউজার আগে থেকেই নাম এবং লগইন স্ট্যাটাস সেভ করে থাকে, সরাসরি HomeActivity-তে যাবে
+        // একবার প্রোফাইল সেভ হয়ে গেলে সরাসরি হোমপেজে যাবে, বারবার সেটআপ পেজে আসবে না
         if (isLoggedIn && savedName != null && !savedName.isEmpty()) {
             Intent intent = new Intent(MainActivity.this, HomeActivity.class);
             startActivity(intent);
