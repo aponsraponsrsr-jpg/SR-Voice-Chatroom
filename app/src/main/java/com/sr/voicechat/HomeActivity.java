@@ -12,7 +12,7 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        // ১. 'Me' ট্যাবে ক্লিক করলে MeActivity-তে যাওয়ার লজিক
+        // ১. বটম মেনুর 'Me' অপশনে ক্লিক করলে MeActivity ওপেন হবে
         TextView tvMe = findViewById(R.id.tvMe);
         if (tvMe != null) {
             tvMe.setOnClickListener(v -> {
@@ -21,7 +21,7 @@ public class HomeActivity extends AppCompatActivity {
             });
         }
 
-        // ২. '+' আইকনে ক্লিক করলে VoiceRoomActivity-তে যাওয়ার লজিক
+        // ২. '+' আইকনে ক্লিক করলে VoiceRoomActivity ওপেন হবে
         TextView btnPlus = findViewById(R.id.btnPlus);
         if (btnPlus != null) {
             btnPlus.setOnClickListener(v -> {
