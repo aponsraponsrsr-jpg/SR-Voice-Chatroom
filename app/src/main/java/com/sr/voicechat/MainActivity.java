@@ -13,14 +13,14 @@ public class MainActivity extends AppCompatActivity {
 
         SharedPreferences prefs = getSharedPreferences("UserProfile", MODE_PRIVATE);
         boolean isLoggedIn = prefs.getBoolean("IS_LOGGED_IN", false);
+        String savedName = prefs.getString("USER_NAME", null);
 
-        if (isLoggedIn) {
-            // যদি আগেই প্রোফাইল সেভ করা থাকে, সরাসরি HomeActivity-তে যাবে
+        // যদি ইউজার আগে থেকেই নাম এবং লগইন স্ট্যাটাস সেভ করে থাকে, সরাসরি HomeActivity-তে যাবে
+        if (isLoggedIn && savedName != null && !savedName.isEmpty()) {
             Intent intent = new Intent(MainActivity.this, HomeActivity.class);
             startActivity(intent);
             finish();
         } else {
-            // না থাকলে প্রথমে ProfileActivity-তে গিয়ে প্রোফাইল সেটআপ করবে
             Intent intent = new Intent(MainActivity.this, ProfileActivity.class);
             startActivity(intent);
             finish();
