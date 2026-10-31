@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#121212">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:id="@+id/imgProfile"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:src="@mipmap/ic_launcher"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginStart="12dp">
+
+                <TextView android:id="@+id/tvName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SR Official" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold"/>
+                <TextView android:id="@+id/tvUserId" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ID: 10001" android:textColor="#AAAAAA" android:textSize="13sp"/>
+
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp">
+                    <TextView android:id="@+id/tvFollow" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="0&#10;Follow" android:textColor="white" android:gravity="center"/>
+                    <TextView android:id="@+id/tvFans" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="0&#10;Fans" android:textColor="white" android:gravity="center"/>
+                    <TextView android:id="@+id/tvVisitor" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="0&#10;Visitor" android:textColor="white" android:gravity="center"/>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginTop="20dp">
+            <TextView android:id="@+id/itemAgency" android:layout_width="match_parent" android:layout_height="55dp" android:text="🏢  Agency" android:textColor="white" android:gravity="center_vertical" android:background="#1E1E1E" android:layout_marginTop="8dp" android:paddingStart="12dp"/>
+            <TextView android:id="@+id/itemInvite" android:layout_width="match_parent" android:layout_height="55dp" android:text="👥  Invite Friends" android:textColor="white" android:gravity="center_vertical" android:background="#1E1E1E" android:layout_marginTop="8dp" android:paddingStart="12dp"/>
+            <TextView android:id="@+id/itemMedal" android:layout_width="match_parent" android:layout_height="55dp" android:text="🏅  Medal" android:textColor="white" android:gravity="center_vertical" android:background="#1E1E1E" android:layout_marginTop="8dp" android:paddingStart="12dp"/>
+            <TextView android:id="@+id/itemFamily" android:layout_width="match_parent" android:layout_height="55dp" android:text="👨‍👩‍👧‍👦  Family" android:textColor="white" android:gravity="center_vertical" android:background="#1E1E1E" android:layout_marginTop="8dp" android:paddingStart="12dp"/>
+            <TextView android:id="@+id/itemHost" android:layout_width="match_parent" android:layout_height="55dp" android:text="🎙️  Host Center" android:textColor="white" android:gravity="center_vertical" android:background="#1E1E1E" android:layout_marginTop="8dp" android:paddingStart="12dp"/>
+            <TextView android:id="@+id/itemTask" android:layout_width="match_parent" android:layout_height="55dp" android:text="📋  Daily Tasks" android:textColor="white" android:gravity="center_vertical" android:background="#1E1E1E" android:layout_marginTop="8dp" android:paddingStart="12dp"/>
+            <TextView android:id="@+id/itemSetting" android:layout_width="match_parent" android:layout_height="55dp" android:text="⚙️  Setting" android:textColor="white" android:gravity="center_vertical" android:background="#1E1E1E" android:layout_marginTop="8dp" android:paddingStart="12dp"/>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>
