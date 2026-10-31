@@ -2,63 +2,26 @@ package com.sr.voicechat;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Toast;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import java.util.ArrayList;
-import java.util.List;
 
 public class HomeActivity extends AppCompatActivity {
 
-    private RecyclerView rvRooms;
-    private FirebaseFirestore db;
-    private List<RoomModel> roomList = new ArrayList<>();
-    private RoomAdapter adapter;
+    private TextView tvMeTab;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_home);
+        setContentView(R.layout.activity_home); // অথবা তোমার হোম লেআউট
 
-        db = FirebaseFirestore.getInstance();
-        rvRooms = findViewById(R.id.rvRooms);
-        
-        if (rvRooms == null) {
-            Toast.makeText(this, "rvRooms not found in layout", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        // নিচের মেনুর 'Me' বাটন খুঁজে বের করা (তোমার লেআউটের আইডি অনুযায়ী এটি মিলিয়ে নেবে)
+        tvMeTab = findViewById(R.id.tvMeTab); // লেআউটে আইডি না থাকলে নিচে আইডি সহ লেআউট দেওয়া হলো
 
-        rvRooms.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new RoomAdapter(roomList, room -> {
-            Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
-            intent.putExtra("roomId", room.roomId);
-            intent.putExtra("roomName", room.roomName);
-            startActivity(intent);
-        });
-        rvRooms.setAdapter(adapter);
-
-        // Permanent Room Load from Firebase
-        loadRooms();
-    }
-
-    private void loadRooms() {
-        db.collection("rooms")
-            .addSnapshotListener((value, error) -> {
-                if (error != null) {
-                    Toast.makeText(this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if (value != null) {
-                    roomList.clear();
-                    for (QueryDocumentSnapshot doc : value) {
-                        RoomModel room = doc.toObject(RoomModel.class);
-                        roomList.add(room);
-                    }
-                    adapter.notifyDataSetChanged();
-                }
+        if (tvMeTab != null) {
+            tvMeTab.setOnClickListener(v -> {
+                Intent intent = new Intent(HomeActivity.this, MeActivity.class);
+                startActivity(intent);
             });
+        }
     }
 }
