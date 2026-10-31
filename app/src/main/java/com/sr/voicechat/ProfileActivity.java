@@ -42,20 +42,11 @@ public class ProfileActivity extends AppCompatActivity {
         if (btnSaveAndEnter != null) {
             btnSaveAndEnter.setOnClickListener(v -> {
                 String name = etName.getText().toString().trim();
-                int selectedGenderId = rgGender.getCheckedRadioButtonId();
-
+                
                 if (name.isEmpty()) {
-                    etName.setError("Please enter your name");
+                    etName.setError("Enter name");
                     return;
                 }
-
-                if (selectedGenderId == -1) {
-                    Toast.makeText(ProfileActivity.this, "Please select your gender", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                android.widget.RadioButton selectedGender = findViewById(selectedGenderId);
-                String genderText = selectedGender != null ? selectedGender.getText().toString() : "Not Specified";
 
                 SharedPreferences prefs = getSharedPreferences("UserProfile", MODE_PRIVATE);
                 String savedId = prefs.getString("USER_ID", null);
@@ -66,7 +57,6 @@ public class ProfileActivity extends AppCompatActivity {
 
                 SharedPreferences.Editor editor = prefs.edit();
                 editor.putString("USER_NAME", name);
-                editor.putString("USER_GENDER", genderText);
                 editor.putString("USER_ID", savedId);
                 if (imageUri != null) {
                     editor.putString("USER_IMAGE", imageUri.toString());
