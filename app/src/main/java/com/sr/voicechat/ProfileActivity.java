@@ -79,7 +79,6 @@ public class ProfileActivity extends AppCompatActivity {
 
                 Toast.makeText(ProfileActivity.this, "Profile Saved Successfully!", Toast.LENGTH_SHORT).show();
 
-                // এখানে ঠিক করে HomeActivity.class দেওয়া হয়েছে
                 Intent intent = new Intent(ProfileActivity.this, HomeActivity.class);
                 startActivity(intent);
                 finish();
