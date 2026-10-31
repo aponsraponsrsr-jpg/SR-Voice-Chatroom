@@ -1,43 +1,117 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="#121212">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp"
-        android:background="#1A1A2E" android:gravity="center_vertical" android:padding="12dp">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎙️ SR VOICE" android:textColor="#FFFFFF" android:textStyle="bold"/>
-        <View android:layout_width="0dp" android:layout_height="0dp" android:layout_weight="1"/>
-        <TextView android:id="@+id/tvCoin" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ID: Loading..." android:textColor="#FFD700" android:textSize="12sp" android:background="#333333" android:padding="8dp"/>
-    </LinearLayout>
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal" android:background="#1E1E1E" android:padding="8dp" android:gravity="center_vertical">
-        <EditText android:id="@+id/etSearchId" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1"
-            android:hint="🔍 ID Search e.g. 10052384" android:textColor="#FFFFFF" android:textColorHint="#888888"
-            android:background="#2A2A2A" android:padding="12dp" android:inputType="number"/>
-        <Button android:id="@+id/btnSearch" android:layout_width="80dp" android:layout_height="48dp" android:text="JOIN" android:textColor="#FFFFFF" android:backgroundTint="#7B61FF" android:layout_marginStart="8dp"/>
-    </LinearLayout>
-    <Button android:id="@+id/btnCreateFirst" android:layout_width="match_parent" android:layout_height="56dp"
-        android:text="+ Create My Room (My Permanent ID)" android:textColor="#FFFFFF" android:backgroundTint="#7B61FF" android:layout_margin="16dp"/>
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="🔥 LIVE Rooms - Tap to Join" android:textColor="#888888" android:layout_margin="16dp"/>
-    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
-        <LinearLayout android:id="@+id/roomListContainer"
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="vertical" android:padding="8dp"/>
-    </ScrollView>
-    <LinearLayout android:layout_width="match_parent" android:layout_height="60dp" android:background="#1A1A2E" android:orientation="horizontal">
-        <LinearLayout android:id="@+id/navHome" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🏠" android:textSize="18sp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Home" android:textColor="#FFFFFF" android:textSize="10sp"/>
+
+    <!-- Header Section -->
+    <RelativeLayout
+        android:id="@+id/headerLayout"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:paddingHorizontal="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:text="SR Voice Chatroom"
+            android:textColor="#E5C158"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Popular"
+                android:textColor="#E5C158"
+                android:textSize="12sp" />
+
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginStart="16dp"
+                android:src="@android:drawable/ic_menu_search" />
         </LinearLayout>
-        <LinearLayout android:id="@+id/navCreate" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="➕" android:textSize="18sp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Create" android:textColor="#FFFFFF" android:textSize="10sp"/>
-        </LinearLayout>
-        <LinearLayout android:id="@+id/navMe" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👤" android:textSize="18sp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Me" android:textColor="#FFFFFF" android:textSize="10sp"/>
-        </LinearLayout>
+    </RelativeLayout>
+
+    <!-- Empty Live Rooms Message -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="No rooms live. Tap '+' below to\ncreate one and start a party!"
+            android:textColor="#E5C158"
+            android:textSize="18sp" />
     </LinearLayout>
-</LinearLayout>
+
+    <!-- Bottom Navigation Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="65dp"
+        android:layout_alignParentBottom="true"
+        android:background="#1A1A1A"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:weightSum="5">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Home"
+            android:textColor="#E5C158" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Explore"
+            android:textColor="#AAAAAA" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="+"
+            android:textColor="#E5C158"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Message"
+            android:textColor="#AAAAAA" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="Me"
+            android:textColor="#AAAAAA" />
+    </LinearLayout>
+
+</RelativeLayout>
