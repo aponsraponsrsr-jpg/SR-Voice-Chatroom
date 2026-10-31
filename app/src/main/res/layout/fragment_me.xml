@@ -3,34 +3,101 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F5F5"
+    android:background="#121212"
     android:padding="16dp">
 
-    <ImageView
-        android:id="@+id/ivProfile"
-        android:layout_width="90dp"
-        android:layout_height="90dp"
-        android:layout_gravity="center"
-        android:src="@android:drawable/sym_def_app_icon"
-        android:layout_marginTop="30dp" />
-
-    <TextView
-        android:id="@+id/tvName"
+    <!-- Top Profile Header Section -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="My Profile"
-        android:textColor="#000000"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:layout_marginTop="12dp" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#1E1E1E"
+        android:padding="16dp">
 
-    <Button
-        android:id="@+id/btnLogout"
+        <ImageView
+            android:id="@+id/imgProfileMe"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/ic_launcher"
+            android:background="#333333" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:layout_marginStart="16dp">
+
+            <TextView
+                android:id="@+id/tvNameMe"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SR User"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvIdMe"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ID: 1000000"
+                android:textColor="#AAAAAA"
+                android:textSize="14sp"
+                android:layout_marginTop="4dp" />
+
+            <TextView
+                android:id="@+id/tvGenderMe"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gender: Not Specified"
+                android:textColor="#888888"
+                android:textSize="12sp"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Stats Row -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:text="Logout"
-        android:textColor="#FFFFFF"
-        android:layout_marginTop="30dp" />
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="3"
+        android:layout_marginTop="16dp"
+        android:background="#1E1E1E"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tvFans"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="0\nFans"
+            android:textColor="#FFD700"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tvFollowing"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="0\nFollowing"
+            android:textColor="#FFD700"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/tvVisitors"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:text="0\nVisitors"
+            android:textColor="#FFD700"
+            android:textSize="14sp" />
+    </LinearLayout>
 
 </LinearLayout>
