@@ -74,11 +74,11 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
 
-            // Permanent ID Create
+            // Permanent ID Create - তোমার IdManager দিয়ে
             String roomId = UUID.randomUUID().toString();
-            String myId = IdManager.getUserId(this); // তোমার IdManager থেকে ID নেবে
+            String myId = IdManager.getOrCreateUserId(this);
 
-            // RoomModel Save to Firebase
+            // RoomModel Save to Firebase - Permanent
             RoomModel room = new RoomModel(roomId, name, bio, roomImageUri != null ? roomImageUri.toString() : "", myId);
             
             db.collection("rooms").document(roomId).set(room)
