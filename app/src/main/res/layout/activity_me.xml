@@ -7,12 +7,12 @@
     android:orientation="vertical"
     android:padding="24dp">
 
-    <!-- Profile Picture with safe background color instead of missing drawable -->
+    <!-- Profile Picture -->
     <ImageView
         android:id="@+id/imgProfileMe"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:layout_marginTop="40dp"
+        android:layout_marginTop="30dp"
         android:background="#2A2A2A"
         android:scaleType="centerCrop" />
 
@@ -21,7 +21,7 @@
         android:id="@+id/tvProfileName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="12dp"
         android:text="User Name"
         android:textColor="#E5C158"
         android:textSize="22sp"
@@ -32,7 +32,7 @@
         android:id="@+id/tvProfileId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="6dp"
         android:text="ID: 0000000"
         android:textColor="#AAAAAA"
         android:textSize="14sp" />
@@ -42,9 +42,50 @@
         android:id="@+id/tvProfileGender"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
         android:text="Gender: Male"
         android:textColor="#AAAAAA"
         android:textSize="14sp" />
+
+    <!-- Wallet & VIP Section Container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <!-- Coin Wallet Card -->
+        <TextView
+            android:id="@+id/tvWalletCoins"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="#1E1E1E"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="16dp"
+            android:text="🪙 Coins: 1,000"
+            android:textColor="#E5C158"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginBottom="12dp" />
+
+        <!-- VIP Status Card -->
+        <TextView
+            android:id="@+id/tvVipStatus"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="#1E1E1E"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="16dp"
+            android:text="👑 VIP: Not Active"
+            android:textColor="#E5C158"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:clickable="true"
+            android:focusable="true" />
+
+    </LinearLayout>
 
 </LinearLayout>
