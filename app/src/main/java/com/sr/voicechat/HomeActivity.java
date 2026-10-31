@@ -2,7 +2,7 @@ package com.sr.voicechat;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class HomeActivity extends AppCompatActivity {
@@ -12,10 +12,10 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        // নিরাপদভাবে 'Me' অপশন হ্যান্ডেল করার কোড
-        View tvMeTab = findViewById(R.id.tvMeTab);
-        if (tvMeTab != null) {
-            tvMeTab.setOnClickListener(v -> {
+        // হোমপেজের নিচের 'Me' ট্যাবের সঠিক আইডি দিয়ে MeActivity-তে যাওয়ার লজিক
+        TextView tvMe = findViewById(R.id.tvMe);
+        if (tvMe != null) {
+            tvMe.setOnClickListener(v -> {
                 Intent intent = new Intent(HomeActivity.this, MeActivity.class);
                 startActivity(intent);
             });
