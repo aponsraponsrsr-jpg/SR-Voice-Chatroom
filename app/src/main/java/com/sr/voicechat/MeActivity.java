@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
+import java.util.Random;
 
 public class MeActivity extends AppCompatActivity {
 
@@ -27,12 +28,19 @@ public class MeActivity extends AppCompatActivity {
 
         SharedPreferences prefs = getSharedPreferences("UserProfile", MODE_PRIVATE);
         String name = prefs.getString("USER_NAME", "SR User");
-        String id = prefs.getString("USER_ID", "1000000");
         String gender = prefs.getString("USER_GENDER", "Not Specified");
         String imageUriStr = prefs.getString("USER_IMAGE", null);
 
+        // পার্মানেন্ট আইডি জেনারেট বা ফেচ করা (একবার তৈরি হলে আর বদলাবে না)
+        String userId = prefs.getString("USER_UNIQUE_ID", null);
+        if (userId == null) {
+            int randomId = 1000000 + new Random().nextInt(9000000);
+            userId = String.valueOf(randomId);
+            prefs.edit().putString("USER_UNIQUE_ID", userId).apply();
+        }
+
         if (tvNameMe != null) tvNameMe.setText(name);
-        if (tvIdMe != null) tvIdMe.setText("ID: " + id);
+        if (tvIdMe != null) tvIdMe.setText("ID: " + userId);
         if (tvGenderMe != null) tvGenderMe.setText("Gender: " + gender);
         
         if (tvFans != null) tvFans.setText("0\nFans");
