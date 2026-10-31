@@ -21,9 +21,15 @@ public class MeActivity extends AppCompatActivity {
         tvNameMe = findViewById(R.id.tvNameMe);
         tvIdMe = findViewById(R.id.tvIdMe);
         tvGenderMe = findViewById(R.id.tvGenderMe);
-        tvFans = findViewById(R.id.tvFans);
-        tvFollowing = findViewById(R.id.tvFollowing);
-        tvVisitors = findViewById(R.id.tvVisitors);
+
+        // সেফ চেক সহ অন্যান্য ভিউ ফাইন্ড করা
+        try {
+            tvFans = findViewById(R.id.tvFans);
+            tvFollowing = findViewById(R.id.tvFollowing);
+            tvVisitors = findViewById(R.id.tvVisitors);
+        } catch (Exception e) {
+            // Ignored if IDs are missing in xml
+        }
 
         SharedPreferences prefs = getSharedPreferences("UserProfile", MODE_PRIVATE);
         String name = prefs.getString("USER_NAME", "SR User");
