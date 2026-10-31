@@ -1,18 +1,16 @@
 package com.sr.voicechat;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MeActivity extends AppCompatActivity {
 
     private ImageView imgProfileMe;
-    private TextView tvProfileName, tvProfileId, tvProfileGender, btnWallet, btnVip;
+    private TextView tvProfileName, tvProfileId, tvProfileGender;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,8 +24,6 @@ public class MeActivity extends AppCompatActivity {
             tvProfileName = findViewById(R.id.tvProfileName);
             tvProfileId = findViewById(R.id.tvProfileId);
             tvProfileGender = findViewById(R.id.tvProfileGender);
-            btnWallet = findViewById(R.id.btnWallet);
-            btnVip = findViewById(R.id.btnVip);
 
             // SharedPreferences থেকে ইউজারের সেভ করা ডেটা লোড করা
             SharedPreferences prefs = getSharedPreferences("UserProfile", MODE_PRIVATE);
@@ -53,20 +49,6 @@ public class MeActivity extends AppCompatActivity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-            }
-
-            // Wallet Click Action
-            if (btnWallet != null) {
-                btnWallet.setOnClickListener(v -> {
-                    Toast.makeText(MeActivity.this, "Wallet opening...", Toast.LENGTH_SHORT).show();
-                });
-            }
-
-            // VIP Click Action
-            if (btnVip != null) {
-                btnVip.setOnClickListener(v -> {
-                    Toast.makeText(MeActivity.this, "VIP section opening...", Toast.LENGTH_SHORT).show();
-                });
             }
 
         } catch (Exception e) {
