@@ -12,8 +12,8 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        // নিচের মেনুর Me অপশনে ক্লিক করলে MeActivity তে যাওয়ার জন্য
-        View meBtn = findViewById(R.id.meLayout); // অথবা তোমার Me লেআউটের আইডি
+        // প্রোফাইল বা Me অপশনে ক্লিক করলে MeActivity তে যাওয়ার নিরাপদ লজিক
+        View meBtn = findViewById(R.id.meLayout);
         if (meBtn != null) {
             meBtn.setOnClickListener(v -> {
                 Intent intent = new Intent(HomeActivity.this, MeActivity.class);
