@@ -2,7 +2,7 @@ package com.sr.voicechat;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.View;
+import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class HomeActivity extends AppCompatActivity {
@@ -12,10 +12,10 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        // Me পেজে যাওয়ার জন্য সিম্পল ক্লিক লজিক
-        View meBtn = findViewById(R.id.meLayout);
-        if (meBtn != null) {
-            meBtn.setOnClickListener(v -> {
+        // হোমপেজ থেকে Me পেজে যাওয়ার একদম নিরাপদ ও সিম্পল লজিক
+        TextView tvMe = findViewById(R.id.tvMe);
+        if (tvMe != null) {
+            tvMe.setOnClickListener(v -> {
                 Intent intent = new Intent(HomeActivity.this, MeActivity.class);
                 startActivity(intent);
             });
