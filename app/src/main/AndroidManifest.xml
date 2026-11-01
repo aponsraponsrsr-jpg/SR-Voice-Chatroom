@@ -6,13 +6,12 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@android:mipmap/sym_def_app_icon"
         android:label="SR Voice Chatroom"
-        android:roundIcon="@mipmap/ic_launcher_round"
+        android:roundIcon="@android:mipmap/sym_def_app_icon"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
 
-        <!-- MainActivity: App Entry -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
