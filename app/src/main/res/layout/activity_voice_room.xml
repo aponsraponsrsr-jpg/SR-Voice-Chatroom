@@ -14,19 +14,11 @@
         android:gravity="center_vertical"
         android:background="#1E1E1E">
 
-        <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@android:drawable/ic_menu_gallery"
-            android:background="#333333"
-            android:padding="4dp"/>
-
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical"
-            android:layout_marginStart="10dp">
+            android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -43,19 +35,6 @@
                 android:textColor="#FFC107"
                 android:textSize="12sp" />
         </LinearLayout>
-
-        <ImageView
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:src="@android:drawable/ic_menu_share"
-            android:tint="#FFFFFF"
-            android:layout_marginEnd="12dp"/>
-
-        <ImageView
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:src="@android:drawable/ic_lock_power_off"
-            android:tint="#FF5252"/>
     </LinearLayout>
 
     <!-- Voice Seats Grid Container -->
@@ -63,8 +42,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:columnCount="4"
-        android:alignmentMode="alignMargins"
-        android:columnOrderPreserved="false"
         android:padding="16dp"
         android:gravity="center">
 
@@ -76,13 +53,10 @@
             android:orientation="vertical"
             android:gravity="center"
             android:layout_margin="8dp">
-            <ImageView
+            <View
                 android:layout_width="60dp"
                 android:layout_height="60dp"
-                android:background="@android:drawable/presence_online"
-                android:src="@android:drawable/ic_menu_mic"
-                android:padding="15dp"
-                android:tint="#FFFFFF"/>
+                android:background="#333333"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -100,13 +74,10 @@
             android:orientation="vertical"
             android:gravity="center"
             android:layout_margin="8dp">
-            <ImageView
+            <View
                 android:layout_width="60dp"
                 android:layout_height="60dp"
-                android:background="@android:drawable/presence_online"
-                android:src="@android:drawable/ic_menu_mic"
-                android:padding="15dp"
-                android:tint="#FFFFFF"/>
+                android:background="#333333"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -124,13 +95,10 @@
             android:orientation="vertical"
             android:gravity="center"
             android:layout_margin="8dp">
-            <ImageView
+            <View
                 android:layout_width="60dp"
                 android:layout_height="60dp"
-                android:background="@android:drawable/presence_online"
-                android:src="@android:drawable/ic_menu_mic"
-                android:padding="15dp"
-                android:tint="#FFFFFF"/>
+                android:background="#333333"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -140,7 +108,7 @@
                 android:layout_marginTop="4dp"/>
         </LinearLayout>
 
-        <!-- Seat 4 (Locked) -->
+        <!-- Seat 4 -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -148,13 +116,10 @@
             android:orientation="vertical"
             android:gravity="center"
             android:layout_margin="8dp">
-            <ImageView
+            <View
                 android:layout_width="60dp"
                 android:layout_height="60dp"
-                android:background="@android:drawable/presence_busy"
-                android:src="@android:drawable/ic_lock_lock"
-                android:padding="15dp"
-                android:tint="#FFFFFF"/>
+                android:background="#442222"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
