@@ -1,36 +1,34 @@
-package com.sr.voicechat;
+package com.srvoice.chatroom;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-
-import com.google.firebase.auth.FirebaseAuth;
+import java.util.Random;
 
 public class LoginActivity extends AppCompatActivity {
-
-    private Button btnGoogleSignIn;
-    private FirebaseAuth mAuth;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // ফায়ারবেস অথ ইনিশিয়ালাইজ
-        mAuth = FirebaseAuth.getInstance();
+        Button btnGoogle = findViewById(R.id.btnGoogle);
+        btnGoogle.setOnClickListener(v -> {
+            // Permanent 8 Digit ID Generate
+            String permanentId = "SR-" + (10000000 + new Random().nextInt(90000000));
+            
+            // Save Permanent ID
+            SharedPreferences prefs = getSharedPreferences("SRVoicePrefs", MODE_PRIVATE);
+            prefs.edit().putString("permanent_id", permanentId).putBoolean("is_first_login", true).apply();
 
-        btnGoogleSignIn = findViewById(R.id.btnGoogleSignIn);
-        if (btnGoogleSignIn != null) {
-            btnGoogleSignIn.setOnClickListener(v -> {
-                Toast.makeText(LoginActivity.this, "Sign in clicked successfully!", Toast.LENGTH_SHORT).show();
-                
-                // সফল ক্লিকের পর সরাসরি তোমার প্রোফাইল পেজে যাওয়ার Intent
-                Intent intent = new Intent(LoginActivity.this, ProfileActivity.class);
-                startActivity(intent);
-                finish(); // যাতে ব্যাক করলে লগইন পেজে ফিরে না আসে
-            });
-        }
+            Toast.makeText(this, "ID Created: " + permanentId, Toast.LENGTH_SHORT).show();
+
+            // Go to Profile Setup
+            Intent intent = new Intent(LoginActivity.this, ProfileSetupActivity.class);
+            startActivity(intent);
+            finish();
+        });
     }
 }
