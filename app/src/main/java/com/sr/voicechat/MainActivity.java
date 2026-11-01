@@ -1,91 +1,55 @@
 package com.srvoice.chatroom;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.Gravity;
-import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
     SharedPreferences prefs;
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         prefs = getSharedPreferences("SRVoicePrefs", MODE_PRIVATE);
         boolean isLoggedIn = prefs.getBoolean("isLoggedIn", false);
-        
+
         if(isLoggedIn){
-            // Permanent ID - Direct Home
-            showHomeScreen();
+            // Already have Permanent ID - Go to Home
+            // For now show simple home, next file we will load real home
+            setContentView(R.layout.activity_main);
+            // If bottom_menu missing, fallback to simple text
+            try {
+                // Check if bottom menu exists
+                findViewById(R.id.bottomNavigation);
+            } catch (Exception e){
+                // Fallback safe
+                showSimpleHome();
+            }
         } else {
-            // First Time - Show Gmail Login
-            showLoginScreen();
+            // First Time - Show our new Gmail Login Design
+            setContentView(R.layout.activity_login);
+            LinearLayout btnGmail = findViewById(R.id.btnGmailLogin);
+            btnGmail.setOnClickListener(v -> {
+                // This will go to Profile Edit in next file
+                // For now save temporary Gmail and go to home
+                prefs.edit()
+                    .putBoolean("isLoggedIn", true)
+                    .putString("userGmail", "user@gmail.com")
+                    .putString("userName", "SR Voice User")
+                    .apply();
+                recreate(); // Reload to show home
+            });
         }
     }
     
-    void showLoginScreen(){
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setGravity(Gravity.CENTER);
-        layout.setPadding(50,100,50,100);
-        layout.setBackgroundColor(0xFF121212);
-        
-        TextView title = new TextView(this);
-        title.setText("SR Voice");
-        title.setTextSize(28f);
-        title.setTextColor(0xFFFFFFFF);
-        title.setGravity(Gravity.CENTER);
-        title.setPadding(0,0,0,50);
-        
-        TextView sub = new TextView(this);
-        sub.setText("Continue with Gmail to create Permanent ID");
-        sub.setTextSize(16f);
-        sub.setTextColor(0xFFBBBBBB);
-        sub.setGravity(Gravity.CENTER);
-        sub.setPadding(0,0,0,100);
-        
-        Button btn = new Button(this);
-        btn.setText("Continue with Gmail");
-        btn.setTextSize(18f);
-        
-        btn.setOnClickListener(v -> {
-            // Temporary: Save as logged in and go to profile edit
-            // Next file we will add real Gmail picker
-            prefs.edit().putBoolean("isLoggedIn", true).putString("userName", "SR Voice User").apply();
-            showHomeScreen();
-        });
-        
-        layout.addView(title);
-        layout.addView(sub);
-        layout.addView(btn);
-        setContentView(layout);
-    }
-    
-    void showHomeScreen(){
-        String name = prefs.getString("userName", "User");
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setGravity(Gravity.CENTER);
-        layout.setBackgroundColor(0xFF121212);
-        
-        TextView tv = new TextView(this);
-        tv.setText("Welcome " + name + "\n\nPermanent ID Saved!\n\nNext time no login needed\nDirect Home");
+    void showSimpleHome(){
+        android.widget.TextView tv = new android.widget.TextView(this);
+        tv.setText("SR Voice - Welcome!\n\nPermanent ID Saved!\n" + prefs.getString("userGmail",""));
         tv.setTextSize(20f);
         tv.setTextColor(0xFFFFFFFF);
-        tv.setGravity(Gravity.CENTER);
+        tv.setGravity(android.view.Gravity.CENTER);
         tv.setPadding(50,100,50,100);
-        
-        Button logout = new Button(this);
-        logout.setText("Logout (For Testing)");
-        logout.setOnClickListener(v -> {
-            prefs.edit().clear().apply();
-            showLoginScreen();
-        });
-        
-        layout.addView(tv);
-        layout.addView(logout);
-        setContentView(layout);
+        tv.setBackgroundColor(0xFF121212);
+        setContentView(tv);
     }
 }
