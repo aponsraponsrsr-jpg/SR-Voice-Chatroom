@@ -2,37 +2,59 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212"
-    android:gravity="center"
+    android:background="#1A0B2E"
     android:orientation="vertical"
+    android:gravity="center"
     android:padding="24dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="SR Voice Chat Room"
-        android:textColor="#FFD700"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="8dp" />
+    <ImageView
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:src="@android:mipmap/sym_def_app_icon"
+        android:layout_marginBottom="20dp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Welcome! Please sign in to continue."
+        android:text="SR Voice Chatroom"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="LIVE - VOICE PARTY - FRIENDS"
         android:textColor="#AAAAAA"
-        android:textSize="14sp"
-        android:layout_marginBottom="40dp" />
+        android:textSize="12sp"
+        android:layout_marginBottom="40dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Welcome to SR Voice\nJoin the community in one tap"
+        android:textColor="white"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:layout_marginBottom="30dp"/>
 
     <Button
-        android:id="@+id/btnGoogleSignIn"
+        android:id="@+id/btnGoogle"
         android:layout_width="match_parent"
         android:layout_height="55dp"
-        android:backgroundTint="#FFFFFF"
-        android:text="Sign in with Google"
-        android:textColor="#000000"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:textAllCaps="false" />
+        android:text="Continue with Google"
+        android:textColor="#1A0B2E"
+        android:backgroundTint="white"
+        android:drawableStart="@android:drawable/sym_def_app_icon"
+        android:drawablePadding="10dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Permanent ID will be created - One Time Only"
+        android:textColor="#888888"
+        android:textSize="11sp"
+        android:layout_marginTop="20dp"/>
 
 </LinearLayout>
