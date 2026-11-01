@@ -1,50 +1,22 @@
-plugins {
-    id 'com.android.application'
-    id 'org.jetbrains.kotlin.android'
-    id 'com.google.gms.google-services'
-}
-
-android {
-    namespace 'com.sr.voicechat'
-    compileSdk 34
-
-    defaultConfig {
-        applicationId "com.sr.voicechat"
-        minSdk 24
-        targetSdk 34
-        versionCode 2
-        versionName "1.1"
-        multiDexEnabled true
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
     }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-        }
-    }
-
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-
-    kotlinOptions {
-        jvmTarget = '1.8'
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.1.0' // অথবা তোমার প্রজেক্টে থাকা ভার্সন
+        classpath 'com.google.gms:google-services:4.4.1'
     }
 }
 
-dependencies {
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.11.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation 'androidx.multidex:multidex:2.0.1'
-    
-    // Firebase BoM এবং সার্ভিসেস
-    implementation platform('com.google.firebase:firebase-bom:32.8.1')
-    implementation 'com.google.firebase:firebase-auth'
-    implementation 'com.google.firebase:firebase-firestore'
-    implementation 'com.google.firebase:firebase-storage'
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
 
-    // Google Sign-In লাইব্রেরি (এটি নতুন যোগ করা হলো)
-    implementation 'com.google.android.gms:auth:21.1.0'
+task clean(type: Delete) {
+    delete rootProject.buildDir
 }
