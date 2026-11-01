@@ -26,10 +26,10 @@ public class LoginActivity extends AppCompatActivity {
             btnGoogleSignIn.setOnClickListener(v -> {
                 Toast.makeText(LoginActivity.this, "Sign in clicked successfully!", Toast.LENGTH_SHORT).show();
                 
-                // সফল ক্লিকের পর পরবর্তী পেজে যাওয়ার জন্য নিচের কোডটি ব্যবহার করতে পারো:
-                // Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                // startActivity(intent);
-                // finish();
+                // সফল ক্লিকের পর সরাসরি তোমার প্রোফাইল পেজে যাওয়ার Intent
+                Intent intent = new Intent(LoginActivity.this, ProfileActivity.class);
+                startActivity(intent);
+                finish(); // যাতে ব্যাক করলে লগইন পেজে ফিরে না আসে
             });
         }
     }
