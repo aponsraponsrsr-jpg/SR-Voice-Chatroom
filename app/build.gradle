@@ -39,9 +39,12 @@ dependencies {
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     implementation 'androidx.multidex:multidex:2.0.1'
     
-    // R8 এবং সার্কুলার রেফারেন্স এড়াতে আধুনিক বোম (BoM) ভার্সন ব্যবহার করা হলো:
+    // Firebase BoM এবং সার্ভিসেস
     implementation platform('com.google.firebase:firebase-bom:32.8.1')
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.firebase:firebase-firestore'
     implementation 'com.google.firebase:firebase-storage'
+
+    // Google Sign-In লাইব্রেরি (এটি নতুন যোগ করা হলো)
+    implementation 'com.google.android.gms:auth:21.1.0'
 }
