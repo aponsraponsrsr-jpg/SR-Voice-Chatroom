@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "525180106032-erkgiutv4f8q4v5t8ik0anm8fap2n04a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sr.voicechat",
+            "certificate_hash": "e51e7c598b00d3c571d5d69bb81e7ffbc0ed71cb"
+          }
+        },
+        {
           "client_id": "525180106032-v32p7av52rhvuu6mdv9ltfjeq6mpp1b7.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
