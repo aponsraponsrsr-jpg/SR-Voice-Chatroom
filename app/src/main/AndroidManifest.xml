@@ -6,13 +6,13 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@android:drawable/ic_menu_gallery"
+        android:icon="@mipmap/ic_launcher"
         android:label="SR Voice Chatroom"
-        android:roundIcon="@android:drawable/ic_menu_gallery"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
 
-        <!-- MainActivity: এটি অ্যাপের এন্ট্রি পয়েন্ট, যা চেক করবে ইউজার আগে থেকেই লগইন করা কি না -->
+        <!-- MainActivity: App Entry -->
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -21,11 +21,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- ProfileSetupActivity: শুধু প্রথমবার প্রোফাইল সেটআপের জন্য -->
-        <activity
-            android:name=".ProfileSetupActivity"
-            android:exported="false" />
 
     </application>
 
