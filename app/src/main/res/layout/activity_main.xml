@@ -1,15 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0A0A0A"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="24dp">
+    android:background="#121212">
 
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SR Voice Chatroom" android:textColor="#D4AF37" android:textSize="28sp" android:textStyle="bold"/>
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="8dp" android:text="Premium Beach Party" android:textColor="#FFFFFF" android:textSize="16sp"/>
+    <!-- ফ্রেমলেআউট ফ্র্যাগমেন্ট লোড করার জন্য -->
+    <FrameLayout
+        android:id="@+id/fragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottomNavigation" />
 
-    <Button android:id="@+id/btnOpenRoom" android:layout_width="match_parent" android:layout_height="56dp" android:layout_marginTop="40dp" android:text="🏖️ Open Beach Heart Room" android:backgroundTint="#D4AF37" android:textColor="#000000" android:textStyle="bold"/>
+    <!-- বটম নেভিগেশন বার -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="#1E1E1E"
+        app:itemIconTint="#FFC107"
+        app:itemTextColor="#FFFFFF"
+        app:menu="@menu/bottom_menu" />
 
-</LinearLayout>
+</RelativeLayout>
