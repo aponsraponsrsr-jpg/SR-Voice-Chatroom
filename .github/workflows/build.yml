@@ -16,16 +16,22 @@ jobs:
           gradle-version: 8.7
       - name: Build Debug APK
         run: |
-          cd android
-          chmod +x ./gradlew
-          ./gradlew assembleDebug --stacktrace
+          if [ -f ./gradlew ]; then
+            chmod +x ./gradlew
+            ./gradlew assembleDebug --stacktrace
+          else
+            gradle assembleDebug --stacktrace
+          fi
       - name: Show SHA1
         run: |
-          cd android
-          ./gradlew signingReport --stacktrace
+          if [ -f ./gradlew ]; then
+            ./gradlew signingReport --stacktrace
+          else
+            gradle signingReport --stacktrace
+          fi
       - name: Upload APK
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: SR-Voice-APK
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          path: app/build/outputs/apk/debug/*.apk
