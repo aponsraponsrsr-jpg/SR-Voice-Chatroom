@@ -3,6 +3,7 @@ package com.sr.voicechat;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
@@ -10,7 +11,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
@@ -37,8 +37,9 @@ public class MainActivity extends AppCompatActivity {
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        SignInButton signInButton = findViewById(R.id.sign_in_button);
-        signInButton.setOnClickListener(v -> signIn());
+        // তোমার XML এর ID অনুযায়ী ঠিক করা হলো
+        Button btnGoogleLogin = findViewById(R.id.btnGoogleLogin);
+        btnGoogleLogin.setOnClickListener(v -> signIn());
     }
 
     private void signIn() {
@@ -56,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
                 GoogleSignInAccount account = task.getResult(ApiException.class);
                 firebaseAuthWithGoogle(account.getIdToken());
             } catch (ApiException e) {
-                Log.e("GOOGLE_LOGIN", "Error Code: " + e.getStatusCode() + " Message: " + e.getMessage());
+                Log.e("GOOGLE_LOGIN", "Error Code: " + e.getStatusCode());
                 Toast.makeText(this, "Fail Code: " + e.getStatusCode(), Toast.LENGTH_LONG).show();
             }
         }
@@ -68,8 +69,6 @@ public class MainActivity extends AppCompatActivity {
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
                         Toast.makeText(this, "Login Success!", Toast.LENGTH_SHORT).show();
-                        // এখানে Homepage এ যাবে
-                        // startActivity(new Intent(this, HomeActivity.class));
                     } else {
                         Toast.makeText(this, "Firebase Auth Failed", Toast.LENGTH_SHORT).show();
                     }
