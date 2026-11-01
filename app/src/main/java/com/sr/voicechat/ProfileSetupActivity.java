@@ -2,110 +2,59 @@ package com.sr.voicechat;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.TextView;
 import android.widget.Toast;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.InputStream;
+import java.util.Random;
 
 public class ProfileSetupActivity extends AppCompatActivity {
-    ImageView imgProfile;
-    EditText etName;
-    Button btnConfirm;
-    TextView tvId;
-    String savedPath = "";
-    ActivityResultLauncher<Intent> launcher;
+
+    private EditText etName;
+    private RadioGroup rgGender;
+    private Button btnConfirm;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
-            setContentView(R.layout.activity_profile_setup);
-        } catch (Exception e) {
-            Toast.makeText(this, "Layout Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            return;
-        }
+        setContentView(R.layout.activity_profile_setup);
 
-        SharedPreferences prefs = getSharedPreferences("SRVoice", MODE_PRIVATE);
-
-        launcher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), r -> {
-            if (r.getResultCode() == RESULT_OK && r.getData() != null && r.getData().getData() != null) {
-                Uri uri = r.getData().getData();
-                String path = copyFile(uri);
-                if (path != null) {
-                    savedPath = path;
-                    if (imgProfile != null) {
-                        try { imgProfile.setImageURI(Uri.fromFile(new File(path))); } catch (Exception e) {}
-                    }
-                }
-            }
-        });
-
-        imgProfile = findViewById(R.id.imgProfile);
         etName = findViewById(R.id.etName);
-        tvId = findViewById(R.id.tvId);
+        rgGender = findViewById(R.id.rgGender);
         btnConfirm = findViewById(R.id.btnConfirm);
 
-        String uid = IdManager.getOrCreateUserId(this);
-        if (tvId != null) tvId.setText("ID: " + uid);
-
-        String oldImg = prefs.getString("userImage", "");
-        if (!oldImg.isEmpty()) {
-            savedPath = oldImg;
-            if (imgProfile != null) {
-                try { imgProfile.setImageURI(Uri.fromFile(new File(oldImg))); } catch (Exception e) {}
+        btnConfirm.setOnClickListener(v -> {
+            String name = etName.getText().toString().trim();
+            if (name.isEmpty()) {
+                Toast.makeText(this, "Please enter your name", Toast.LENGTH_SHORT).show();
+                return;
             }
-        }
 
-        if (imgProfile != null) {
-            imgProfile.setOnClickListener(v -> {
-                Intent i = new Intent(Intent.ACTION_PICK);
-                i.setType("image/*");
-                launcher.launch(i);
-            });
-        }
+            int selectedGenderId = rgGender.getCheckedRadioButtonId();
+            RadioButton rbSelected = findViewById(selectedGenderId);
+            String gender = rbSelected != null ? rbSelected.getText().toString() : "Male";
 
-        if (btnConfirm != null) {
-            btnConfirm.setOnClickListener(v -> {
-                String name = etName != null ? etName.getText().toString().trim() : "";
-                if (name.isEmpty()) {
-                    Toast.makeText(this, "Name লিখো", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                if (savedPath.isEmpty()) {
-                    Toast.makeText(this, "Photo সেট করো", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                prefs.edit()
-                    .putString("userName", name)
-                    .putString("userImage", savedPath)
-                    .putString("userId", uid)
-                    .apply();
-                startActivity(new Intent(this, HomeActivity.class));
-                finish();
-            });
-        }
-    }
+            // ৭ ডিজিটের ইউনিক ID জেনারেট করা
+            int randomId = 1000000 + new Random().nextInt(9000000);
+            String userId = String.valueOf(randomId);
 
-    private String copyFile(Uri uri) {
-        try {
-            InputStream is = getContentResolver().openInputStream(uri);
-            File f = new File(getFilesDir(), "profile.jpg");
-            FileOutputStream fos = new FileOutputStream(f);
-            byte[] buf = new byte[4096];
-            int len;
-            while ((len = is.read(buf)) > 0) fos.write(buf, 0, len);
-            is.close(); fos.close();
-            return f.getAbsolutePath();
-        } catch (Exception e) { return null; }
+            // ইউজারের ডাটা লোকালি সেভ করা
+            SharedPreferences pref = getSharedPreferences("UserProfile", MODE_PRIVATE);
+            SharedPreferences.Editor editor = pref.edit();
+            editor.putString("userName", name);
+            editor.putString("gender", gender);
+            editor.putString("userId", userId);
+            editor.putInt("coins", 1000); // প্রাথমিক অবস্থায় ১০০০ কয়েন ফ্রি
+            editor.putBoolean("isProfileSetupComplete", true);
+            editor.apply();
+
+            // সরাসরি হোম পেজে রিডাইরেক্ট
+            Intent intent = new Intent(ProfileSetupActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish();
+        });
     }
 }
