@@ -1,26 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212">
+    android:gravity="center"
+    android:orientation="vertical"
+    android:background="#FFFFFF">
 
-    <!-- ফ্রেমলেআউট ফ্র্যাগমেন্ট লোড করার জন্য -->
-    <FrameLayout
-        android:id="@+id/fragmentContainer"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/bottomNavigation" />
-
-    <!-- বটম নেভিগেশন বার -->
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavigation"
-        android:layout_width="match_parent"
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:background="#1E1E1E"
-        app:itemIconTint="#FFC107"
-        app:itemTextColor="#FFFFFF"
-        app:menu="@menu/bottom_menu" />
+        android:text="SR Voice Chatroom"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="#000000"/>
 
-</RelativeLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:text="App Successfully Opened!"
+        android:textSize="16sp"
+        android:textColor="#4CAF50"/>
+
+</LinearLayout>
