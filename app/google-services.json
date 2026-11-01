@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:525180106032:android:ccebc6b166ec6fe20604f5",
         "android_client_info": {
-          "package_name": "com.sr.voicechat"
+          "package_name": "com.aponsr.voicechatroom"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "525180106032-0ifnvdkd9a1q4rmpnrida315ted6g7hi.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.sr.voicechat",
+            "package_name": "com.aponsr.voicechatroom",
             "certificate_hash": "e6782ea12fe6d1e5e9eeb5d0ee955287a4818f57"
           }
         },
