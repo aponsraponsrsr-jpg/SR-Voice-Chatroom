@@ -29,7 +29,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
         btnConfirm.setOnClickListener(v -> {
             String name = etName.getText().toString().trim();
             if (name.isEmpty()) {
-                Toast.makeText(this, "Please enter your name", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "দয়া করে আপনার নাম লিখুন", Toast.LENGTH_SHORT).show();
                 return;
             }
 
@@ -37,21 +37,21 @@ public class ProfileSetupActivity extends AppCompatActivity {
             RadioButton rbSelected = findViewById(selectedGenderId);
             String gender = rbSelected != null ? rbSelected.getText().toString() : "Male";
 
-            // ৭ ডিজিটের ইউনিক ID জেনারেট করা
+            // ৭ ডিজিটের পার্মানেন্ট ইউনিক আইডি জেনারেট করা
             int randomId = 1000000 + new Random().nextInt(9000000);
             String userId = String.valueOf(randomId);
 
-            // ইউজারের ডাটা লোকালি সেভ করা
+            // SharedPreferences-এ পার্মানেন্টলি ডাটা সেভ করা (যাতে অ্যাপ থেকে বের হয়ে আবার ঢুকলে মুছে না যায়)
             SharedPreferences pref = getSharedPreferences("UserProfile", MODE_PRIVATE);
             SharedPreferences.Editor editor = pref.edit();
             editor.putString("userName", name);
             editor.putString("gender", gender);
             editor.putString("userId", userId);
-            editor.putInt("coins", 1000); // প্রাথমিক অবস্থায় ১০০০ কয়েন ফ্রি
-            editor.putBoolean("isProfileSetupComplete", true);
+            editor.putInt("coins", 1000); // ফ্রি স্টার্টিং কয়েন
+            editor.putBoolean("isProfileSetupComplete", true); // এটি ট্রু হয়ে থাকবে, ফলে পরবর্তীতে আর সেটআপ পেজ আসবে না
             editor.apply();
 
-            // সরাসরি হোম পেজে রিডাইরেক্ট
+            // সফলভাবে সেভ হওয়ার পর সরাসরি হোম পেজে প্রবেশ করবে
             Intent intent = new Intent(ProfileSetupActivity.this, MainActivity.class);
             startActivity(intent);
             finish();
