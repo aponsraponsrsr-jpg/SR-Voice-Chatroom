@@ -4,11 +4,11 @@ plugins {
 }
 
 android {
-    namespace 'com.aponsr.voicechatroom'
+    namespace 'com.sr.voicechat'
     compileSdk 34
 
     defaultConfig {
-        applicationId "com.aponsr.voicechatroom"
+        applicationId "com.sr.voicechat"
         minSdk 24
         targetSdk 34
         versionCode 1
