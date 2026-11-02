@@ -1,6 +1,7 @@
 package com.sr.voicechat;
 
 import android.os.Bundle;
+import android.content.Intent;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -9,7 +10,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements RoomAdapter.OnRoomClick {
 
     private RecyclerView recyclerRooms;
     private RoomAdapter roomAdapter;
@@ -42,5 +43,13 @@ public class MainActivity extends AppCompatActivity {
                 roomAdapter.notifyDataSetChanged();
             }
         });
+    }
+
+    @Override
+    public void onRoomClick(RoomModel room) {
+        Intent intent = new Intent(this, ChatRoomActivity.class);
+        intent.putExtra("roomId", room.getRoomId());
+        intent.putExtra("roomName", room.getRoomName());
+        startActivity(intent);
     }
 }
