@@ -20,13 +20,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class EditProfileActivity extends AppCompatActivity {
-    EditText etName;
+    EditText etGroupName, etAnnouncement; // CHANGE 1: etName -> etGroupName + Announcement
     RadioGroup rgGender;
     Button btnSave;
-    ImageView ivProfile; // ছবির জন্য
+    ImageView ivProfile;
     FirebaseFirestore db;
     FirebaseAuth auth;
-    String base64Image = ""; // Compressed ছবি এখানে থাকবে
+    String base64Image = "";
     int PICK_IMAGE = 100;
 
     @Override
@@ -34,14 +34,14 @@ public class EditProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
         
-        etName = findViewById(R.id.etName);
+        etGroupName = findViewById(R.id.etGroupName); // CHANGE 2
+        etAnnouncement = findViewById(R.id.etAnnouncement); // NEW
         rgGender = findViewById(R.id.rgGender);
         btnSave = findViewById(R.id.btnSave);
-        ivProfile = findViewById(R.id.ivProfile); // তোমার xml এ id টা ivProfile দিতে হবে
+        ivProfile = findViewById(R.id.ivProfile);
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
 
-        // ছবিতে ক্লিক করলে গ্যালারি খুলবে
         ivProfile.setOnClickListener(v -> {
             Intent intent = new Intent();
             intent.setType("image/*");
@@ -50,11 +50,17 @@ public class EditProfileActivity extends AppCompatActivity {
         });
 
         btnSave.setOnClickListener(v -> {
-            String name = etName.getText().toString().trim();
-            if(name.isEmpty()){
-                Toast.makeText(this,"Name লিখুন",Toast.LENGTH_SHORT).show();
+            String groupName = etGroupName.getText().toString().trim();
+            String announcement = etAnnouncement.getText().toString().trim();
+            
+            if(groupName.isEmpty()){
+                Toast.makeText(this,"Group Name লিখুন",Toast.LENGTH_SHORT).show();
                 return;
             }
+            if(announcement.isEmpty()){
+                announcement = "welcome"; // Default
+            }
+            
             String gender = "Male";
             int id = rgGender.getCheckedRadioButtonId();
             if(id == R.id.rbFemale) gender = "Female";
@@ -62,15 +68,22 @@ public class EditProfileActivity extends AppCompatActivity {
             String uid = auth.getCurrentUser().getUid();
             Map<String,Object> user = new HashMap<>();
             user.put("uid", uid);
-            user.put("name", name);
+            user.put("name", groupName); // Group Name টাই Name হিসাবে save হবে
+            user.put("groupName", groupName); // আলাদা ভাবেও save
+            user.put("announcement", announcement); // welcome save
             user.put("gender", gender);
             user.put("email", auth.getCurrentUser().getEmail());
-            user.put("photoUrl", base64Image); // Compressed ছবি save হবে, ফাঁকা থাকবে না
+            user.put("photoUrl", base64Image);
 
             db.collection("users").document(uid).set(user)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this,"Profile Saved! Blaze ছাড়াই!",Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(this, HomeActivity.class));
+                    Toast.makeText(this,"Saved! Group Opening...",Toast.LENGTH_SHORT).show();
+                    // CHANGE 3: Save করলে Voice Room ওপেন হবে
+                    Intent intent = new Intent(EditProfileActivity.this, VoiceRoomActivity.class);
+                    intent.putExtra("groupName", groupName);
+                    intent.putExtra("announcement", announcement);
+                    intent.putExtra("photoUrl", base64Image);
+                    startActivity(intent);
                     finish();
                 });
         });
@@ -83,12 +96,11 @@ public class EditProfileActivity extends AppCompatActivity {
             Uri uri = data.getData();
             try {
                 Bitmap original = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-                // COMPRESS - এটাই তোমার Normal (Compressed) অপশন, 70% ছোট
                 Bitmap resized = Bitmap.createScaledBitmap(original, 500, 500, true);
                 ivProfile.setImageBitmap(resized);
 
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                resized.compress(Bitmap.CompressFormat.JPEG, 40, baos); // 40% quality
+                resized.compress(Bitmap.CompressFormat.JPEG, 40, baos);
                 byte[] bytes = baos.toByteArray();
                 base64Image = Base64.encodeToString(bytes, Base64.DEFAULT);
 
