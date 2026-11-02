@@ -1,64 +1,64 @@
 package com.sr.voicechat;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RadioGroup;
 import android.widget.Toast;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import de.hdodenhof.circleimageview.CircleImageView;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.HashMap;
+import java.util.Map;
 
 public class RegisterActivity extends AppCompatActivity {
-    CircleImageView imgProfile;
-    EditText editName;
-    RadioGroup radioGender;
-    Button btnSave;
-    Uri imageUri;
-    int PICK_IMAGE = 100;
+
+    private EditText edtName, edtEmail, edtPassword;
+    private Button btnRegister;
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
-        imgProfile = findViewById(R.id.imgProfile);
-        editName = findViewById(R.id.editName);
-        radioGender = findViewById(R.id.radioGender);
-        btnSave = findViewById(R.id.btnSave);
 
-        imgProfile.setOnClickListener(v -> {
-            Intent intent = new Intent(Intent.ACTION_PICK);
-            intent.setType("image/*");
-            startActivityForResult(intent, PICK_IMAGE);
-        });
+        edtName = findViewById(R.id.edtName);
+        edtEmail = findViewById(R.id.edtEmail);
+        edtPassword = findViewById(R.id.edtPassword);
+        btnRegister = findViewById(R.id.btnRegister);
 
-        btnSave.setOnClickListener(v -> {
-            String name = editName.getText().toString().trim();
-            if (name.isEmpty()) {
-                editName.setError("নাম লেখো বন্ধু!");
-                return;
-            }
-            String gender = "Male";
-            if (radioGender.getCheckedRadioButtonId() == R.id.radioFemale) {
-                gender = "Female";
-            }
-            SharedPreferences pref = getSharedPreferences("SRVoice", MODE_PRIVATE);
-            pref.edit().putString("userName", name).putString("userGender", gender).putString("userImage", imageUri != null ? imageUri.toString() : "").putBoolean("isRegistered", true).apply();
-            Toast.makeText(this, "Welcome " + name + "!", Toast.LENGTH_SHORT).show();
-            startActivity(new Intent(RegisterActivity.this, HomeActivity.class));
-            finish();
-        });
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+        btnRegister.setOnClickListener(v -> registerUser());
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE && resultCode == RESULT_OK && data != null) {
-            imageUri = data.getData();
-            imgProfile.setImageURI(imageUri);
+    private void registerUser() {
+        String name = edtName.getText().toString().trim();
+        String email = edtEmail.getText().toString().trim();
+        String pass = edtPassword.getText().toString().trim();
+
+        if (name.isEmpty() || email.isEmpty() || pass.isEmpty()) {
+            Toast.makeText(this, "সব ঘর পূরণ করো", Toast.LENGTH_SHORT).show();
+            return;
         }
+
+        mAuth.createUserWithEmailAndPassword(email, pass)
+                .addOnSuccessListener(authResult -> {
+                    String uid = authResult.getUser().getUid();
+                    Map<String, Object> user = new HashMap<>();
+                    user.put("uid", uid);
+                    user.put("name", name);
+                    user.put("email", email);
+
+                    db.collection("users").document(uid).set(user)
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(this, "Registration Success!", Toast.LENGTH_SHORT).show();
+                                startActivity(new Intent(this, MainActivity.class));
+                                finish();
+                            });
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 }
