@@ -2,7 +2,7 @@ package com.sr.voicechat;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -30,7 +30,6 @@ public class LoginActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // আগেই লগইন থাকলে চেক করবে
         if (mAuth.getCurrentUser() != null) {
             checkUserProfile(mAuth.getCurrentUser().getUid());
             return;
@@ -42,8 +41,8 @@ public class LoginActivity extends AppCompatActivity {
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        Button btnGoogle = findViewById(R.id.btnGoogleSignIn);
-        btnGoogle.setOnClickListener(v -> signIn());
+        LinearLayout btnGmailLogin = findViewById(R.id.btnGmailLogin);
+        btnGmailLogin.setOnClickListener(v -> signIn());
     }
 
     private void signIn() {
@@ -60,7 +59,7 @@ public class LoginActivity extends AppCompatActivity {
                 GoogleSignInAccount account = task.getResult(ApiException.class);
                 firebaseAuthWithGoogle(account.getIdToken());
             } catch (ApiException e) {
-                Toast.makeText(this, "Gmail Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Gmail Failed", Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -77,7 +76,6 @@ public class LoginActivity extends AppCompatActivity {
             if (doc.exists() && doc.contains("name")) {
                 startActivity(new Intent(this, MainActivity.class));
             } else {
-                // নতুন ইউজার হলে Register এ যাবে Edit Profile এর জন্য
                 startActivity(new Intent(this, RegisterActivity.class));
             }
             finish();
