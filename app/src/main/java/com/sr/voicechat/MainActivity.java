@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -61,24 +60,22 @@ public class MainActivity extends AppCompatActivity implements RoomAdapter.OnRoo
         Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.dialog_create_room);
         
-        dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        }
 
         EditText etRoomName = dialog.findViewById(R.id.etRoomName);
         EditText etRoomBio = dialog.findViewById(R.id.etRoomBio);
         Button btnSaveRoom = dialog.findViewById(R.id.btnSaveRoom);
-        ImageView ivRoomImage = dialog.findViewById(R.id.ivRoomImage);
 
         String uid = mAuth.getCurrentUser().getUid();
         db.collection("rooms").document(uid).get().addOnSuccessListener(doc -> {
             if(doc.exists()){
-                etRoomName.setText(doc.getString("roomName"));
-                // ২ টা ফিল্ডই চেক করবে যাতে আগের ডাটা মিস না হয়
-                if(doc.contains("roomBio")){
-                    etRoomBio.setText(doc.getString("roomBio"));
-                } else if(doc.contains("roomNotice")){
-                    etRoomBio.setText(doc.getString("roomNotice"));
-                }
+                if(doc.getString("roomName") != null) etRoomName.setText(doc.getString("roomName"));
+                String bio = doc.getString("roomBio");
+                if(bio == null) bio = doc.getString("roomNotice");
+                if(bio != null) etRoomBio.setText(bio);
             }
         });
 
@@ -95,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements RoomAdapter.OnRoo
             roomMap.put("roomId", uid);
             roomMap.put("roomName", roomName);
             roomMap.put("roomBio", roomBio);
-            roomMap.put("roomNotice", roomBio); // ২ নামেই সেভ যাতে কোথাও Error না হয়
+            roomMap.put("roomNotice", roomBio);
             roomMap.put("ownerId", uid);
             roomMap.put("roomImage", ""); 
             roomMap.put("timestamp", System.currentTimeMillis());
