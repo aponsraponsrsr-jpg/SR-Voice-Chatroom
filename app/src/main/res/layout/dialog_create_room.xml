@@ -4,54 +4,41 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:padding="24dp"
-    android:background="@drawable/bg_dialog_white"
-    android:gravity="center_horizontal">
+    android:background="#FFFFFF">
 
-    <FrameLayout
-        android:layout_width="110dp"
-        android:layout_height="110dp">
-
-        <de.hdodenhof.circleimageview.CircleImageView
-            android:id="@+id/ivRoomImage"
-            android:layout_width="110dp"
-            android:layout_height="110dp"
-            android:src="@drawable/ic_person" />
-
-        <ImageView
-            android:id="@+id/ivCamera"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_gravity="bottom|end"
-            android:src="@android:drawable/ic_menu_camera"
-            android:background="@drawable/bg_circle_white"
-            android:padding="6dp"/>
-    </FrameLayout>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="নতুন রুম বানাও"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="#000000"
+        android:layout_marginBottom="16dp"/>
 
     <EditText
         android:id="@+id/etRoomName"
         android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:layout_marginTop="20dp"
-        android:hint="Group Name"
-        android:background="@drawable/bg_edittext_box"
-        android:padding="12dp"/>
+        android:layout_height="50dp"
+        android:hint="Room Name"
+        android:background="@drawable/bg_editttext_box"
+        android:padding="12dp"
+        android:layout_marginBottom="12dp"/>
 
     <EditText
         android:id="@+id/etRoomBio"
         android:layout_width="match_parent"
         android:layout_height="80dp"
-        android:layout_marginTop="12dp"
-        android:hint="Announcement / Notice"
+        android:hint="Room Bio"
         android:gravity="top"
-        android:background="@drawable/bg_edittext_box"
-        android:padding="12dp"/>
+        android:background="@drawable/bg_editttext_box"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp"/>
 
     <Button
         android:id="@+id/btnSaveRoom"
         android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:layout_marginTop="20dp"
-        android:text="SAVE ROOM"
-        android:textStyle="bold"/>
+        android:layout_height="50dp"
+        android:text="Save Room"
+        android:backgroundTint="#2196F3"/>
 
 </LinearLayout>
