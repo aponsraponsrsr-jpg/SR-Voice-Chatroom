@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements RoomAdapter.OnRoo
         }
 
         recyclerRooms = findViewById(R.id.recyclerRooms);
-        fabCreate = findViewById(R.id.fabCreateRoom); // তোমার activity_main.xml এ এই id দিয়ে একটা FAB বসাতে হবে
+        fabCreate = findViewById(R.id.fabCreateRoom);
         
         recyclerRooms.setLayoutManager(new LinearLayoutManager(this));
         roomAdapter = new RoomAdapter(roomList, this);
@@ -61,27 +61,30 @@ public class MainActivity extends AppCompatActivity implements RoomAdapter.OnRoo
         Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.dialog_create_room);
         
-        // এই ২ লাইন না দিলে ছোট দেখাবে, এটা মাস্ট
         dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
         EditText etRoomName = dialog.findViewById(R.id.etRoomName);
-        EditText etRoomNotice = dialog.findViewById(R.id.etRoomNotice);
+        EditText etRoomBio = dialog.findViewById(R.id.etRoomBio);
         Button btnSaveRoom = dialog.findViewById(R.id.btnSaveRoom);
         ImageView ivRoomImage = dialog.findViewById(R.id.ivRoomImage);
 
-        // আগে থেকে রুম থাকলে সেটা দেখাবে (Edit এর জন্য)
         String uid = mAuth.getCurrentUser().getUid();
         db.collection("rooms").document(uid).get().addOnSuccessListener(doc -> {
             if(doc.exists()){
                 etRoomName.setText(doc.getString("roomName"));
-                etRoomNotice.setText(doc.getString("roomNotice"));
+                // ২ টা ফিল্ডই চেক করবে যাতে আগের ডাটা মিস না হয়
+                if(doc.contains("roomBio")){
+                    etRoomBio.setText(doc.getString("roomBio"));
+                } else if(doc.contains("roomNotice")){
+                    etRoomBio.setText(doc.getString("roomNotice"));
+                }
             }
         });
 
         btnSaveRoom.setOnClickListener(v -> {
             String roomName = etRoomName.getText().toString().trim();
-            String roomNotice = etRoomNotice.getText().toString().trim();
+            String roomBio = etRoomBio.getText().toString().trim();
 
             if(roomName.isEmpty()){
                 etRoomName.setError("Group Name দাও ভাইজান");
@@ -91,12 +94,12 @@ public class MainActivity extends AppCompatActivity implements RoomAdapter.OnRoo
             Map<String, Object> roomMap = new HashMap<>();
             roomMap.put("roomId", uid);
             roomMap.put("roomName", roomName);
-            roomMap.put("roomNotice", roomNotice);
+            roomMap.put("roomBio", roomBio);
+            roomMap.put("roomNotice", roomBio); // ২ নামেই সেভ যাতে কোথাও Error না হয়
             roomMap.put("ownerId", uid);
             roomMap.put("roomImage", ""); 
             roomMap.put("timestamp", System.currentTimeMillis());
 
-            // UID দিয়ে সেভ = পার্মানেন্ট, একজনের একটাই রুম
             db.collection("rooms").document(uid).set(roomMap)
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this, "Room Permanent Save হয়ে গেছে!", Toast.LENGTH_SHORT).show();
