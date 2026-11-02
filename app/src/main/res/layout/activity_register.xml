@@ -73,7 +73,7 @@
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginTop="40dp"
-        android:text="Save & Go to Home"
+        android:text="Save &amp; Go to Home"
         android:textColor="#000000"
         android:textStyle="bold"
         android:backgroundTint="#D4AF37"/>
