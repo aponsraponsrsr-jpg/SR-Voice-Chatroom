@@ -3,59 +3,24 @@ package com.sr.voicechat;
 public class RoomModel {
     private String roomId;
     private String roomName;
-    private String hostId;
-    private long createdAt;
-    private int participantCount;
+    private String roomImage;
+    private int onlineCount;
+    private String topUserName;
 
-    public RoomModel() {
-        // Required for Firebase
-    }
+    public RoomModel() {}
 
-    public RoomModel(String roomId, String roomName, String hostId) {
-        this.roomId = roomId;
-        this.roomName = roomName;
-        this.hostId = hostId;
-        this.createdAt = System.currentTimeMillis();
-        this.participantCount = 0;
-    }
+    public String getRoomId() { return roomId; }
+    public void setRoomId(String roomId) { this.roomId = roomId; }
 
-    public String getRoomId() {
-        return roomId;
-    }
+    public String getRoomName() { return roomName; }
+    public void setRoomName(String roomName) { this.roomName = roomName; }
 
-    public void setRoomId(String roomId) {
-        this.roomId = roomId;
-    }
+    public int getOnlineCount() { return onlineCount; }
+    public void setOnlineCount(int onlineCount) { this.onlineCount = onlineCount; }
 
-    public String getRoomName() {
-        return roomName;
-    }
+    public String getRoomImage() { return roomImage; }
+    public void setRoomImage(String roomImage) { this.roomImage = roomImage; }
 
-    public void setRoomName(String roomName) {
-        this.roomName = roomName;
-    }
-
-    public String getHostId() {
-        return hostId;
-    }
-
-    public void setHostId(String hostId) {
-        this.hostId = hostId;
-    }
-
-    public long getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(long createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public int getParticipantCount() {
-        return participantCount;
-    }
-
-    public void setParticipantCount(int participantCount) {
-        this.participantCount = participantCount;
-    }
+    public String getTopUserName() { return topUserName; }
+    public void setTopUserName(String topUserName) { this.topUserName = topUserName; }
 }
