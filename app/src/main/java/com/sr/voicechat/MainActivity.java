@@ -28,7 +28,7 @@ public class MainActivity extends AppCompatActivity implements RoomAdapter.OnRoo
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // 1. Gmail Login Check - না থাকলে Login এ পাঠাবে
+        // SplashActivity already checked, but safety check
         if (mAuth.getCurrentUser() == null) {
             startActivity(new Intent(this, LoginActivity.class));
             finish();
@@ -63,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements RoomAdapter.OnRoo
 
     @Override
     public void onRoomClick(RoomModel room) {
+        // Click করলেই Round Room (ChatRoomActivity) এ ঢুকবে
         Intent intent = new Intent(this, ChatRoomActivity.class);
         intent.putExtra("roomId", room.getRoomId());
         intent.putExtra("roomName", room.getRoomName());
