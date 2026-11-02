@@ -37,7 +37,7 @@
         android:padding="12dp"/>
 
     <EditText
-        android:id="@+id/etRoomNotice"
+        android:id="@+id/etRoomBio"
         android:layout_width="match_parent"
         android:layout_height="80dp"
         android:layout_marginTop="12dp"
