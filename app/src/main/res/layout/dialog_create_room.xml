@@ -18,9 +18,9 @@
     <EditText
         android:id="@+id/etRoomName"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="55dp"
         android:hint="Room Name"
-        android:background="@drawable/bg_editttext_box"
+        android:background="#F5F5F5"
         android:padding="12dp"
         android:layout_marginBottom="12dp"/>
 
@@ -30,7 +30,7 @@
         android:layout_height="80dp"
         android:hint="Room Bio"
         android:gravity="top"
-        android:background="@drawable/bg_editttext_box"
+        android:background="#F5F5F5"
         android:padding="12dp"
         android:layout_marginBottom="16dp"/>
 
@@ -38,7 +38,6 @@
         android:id="@+id/btnSaveRoom"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:text="Save Room"
-        android:backgroundTint="#2196F3"/>
+        android:text="Save Room"/>
 
 </LinearLayout>
