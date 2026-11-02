@@ -8,14 +8,14 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
-public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.Holder> {
-
-    private List<RoomModel> list;
-    private OnRoomClick listener;
+public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomVH> {
 
     public interface OnRoomClick {
         void onRoomClick(RoomModel room);
     }
+
+    private List<RoomModel> list;
+    private OnRoomClick listener;
 
     public RoomAdapter(List<RoomModel> list, OnRoomClick listener) {
         this.list = list;
@@ -24,32 +24,38 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.Holder> {
 
     @NonNull
     @Override
-    public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public RoomVH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_room, parent, false);
-        return new Holder(v);
+        return new RoomVH(v);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull Holder h, int position) {
-        RoomModel r = list.get(position);
-        h.name.setText(r.getRoomName());
-        h.desc.setText("Host: " + r.getHostId() + " | " + r.getParticipantCount() + " people");
-        h.itemView.setOnClickListener(view -> {
-            if (listener != null) listener.onRoomClick(r);
-        });
+    public void onBindViewHolder(@NonNull RoomVH holder, int position) {
+        RoomModel room = list.get(position);
+        holder.txtName.setText(room.getRoomName());
+        holder.txtCount.setText(room.getOnlineCount() + " Online");
+        
+        // Star List Top User
+        if (room.getTopUserName() != null && !room.getTopUserName().isEmpty()) {
+            holder.txtTop.setText("⭐ " + room.getTopUserName());
+            holder.txtTop.setVisibility(View.VISIBLE);
+        } else {
+            holder.txtTop.setVisibility(View.GONE);
+        }
+
+        holder.itemView.setOnClickListener(v -> listener.onRoomClick(room));
     }
 
     @Override
-    public int getItemCount() {
-        return list.size();
-    }
+    public int getItemCount() { return list.size(); }
 
-    public static class Holder extends RecyclerView.ViewHolder {
-        TextView name, desc;
-        public Holder(@NonNull View itemView) {
+    static class RoomVH extends RecyclerView.ViewHolder {
+        TextView txtName, txtCount, txtTop;
+        public RoomVH(@NonNull View itemView) {
             super(itemView);
-            name = itemView.findViewById(R.id.txtRoomName);
-            desc = itemView.findViewById(R.id.txtRoomDesc);
+            txtName = itemView.findViewById(R.id.txtRoomNameItem);
+            txtCount = itemView.findViewById(R.id.txtOnlineCount);
+            txtTop = itemView.findViewById(R.id.txtTopUser);
         }
     }
 }
