@@ -1,3 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">এস আর ভয়েস চ্যাটরুম</string>
+    <string name="app_name">SR Voice Chatroom</string>
+    <string name="create_room">Create Room</string>
+    <string name="room_name_hint">Room Name *</string>
+    <string name="room_bio_hint">Announcement / Bio *</string>
+    <string name="save_room">SAVE ROOM PERMANENTLY</string>
+    <string name="gender_male">Male</string>
+    <string name="gender_female">Female</string>
+    <string name="profile_tap">Tap to add Profile Photo *</string>
+    <string name="take_mic">Take Mic</string>
+    <string name="exit">Exit</string>
+    <string name="cancel">Cancel</string>
+    <string name="change_seat_title">Change Seat?</string>
+    <string name="change_seat_msg">Do you want to change your seat?</string>
+    <string name="seat_taken">Everything is alone right now - Seat taken</string>
 </resources>
