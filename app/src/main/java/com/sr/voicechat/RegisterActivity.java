@@ -1,6 +1,7 @@
 package com.sr.voicechat;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -36,13 +37,12 @@ public class RegisterActivity extends AppCompatActivity {
 
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser != null) {
-            // Gmail থেকে নাম আর ইমেইল অটো বসবে
             if (currentUser.getDisplayName() != null) {
                 edtName.setText(currentUser.getDisplayName());
             }
             if (currentUser.getEmail() != null) {
                 edtEmail.setText(currentUser.getEmail());
-                edtEmail.setEnabled(false); // ইমেইল চেঞ্জ করতে দেবো না
+                edtEmail.setEnabled(false);
             }
         }
 
@@ -76,12 +76,19 @@ public class RegisterActivity extends AppCompatActivity {
         userMap.put("name", name);
         userMap.put("email", email);
         userMap.put("gender", gender);
+        userMap.put("isProfileComplete", true); // নতুন লাইন
         userMap.put("photoUrl", user.getPhotoUrl() != null ? user.getPhotoUrl().toString() : "");
 
         db.collection("users").document(uid).set(userMap)
                 .addOnSuccessListener(aVoid -> {
+                    
+                    // ===== PERMANENT LOGIN - এই ৩ লাইনই আসল জাদু =====
+                    SharedPreferences prefs = getSharedPreferences("SR_APP", MODE_PRIVATE);
+                    prefs.edit().putBoolean("IS_LOGGED_IN", true).apply();
+                    // ============================================
+
                     Toast.makeText(this, "Profile Saved!", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(this, MainActivity.class));
+                    startActivity(new Intent(this, MainActivity.class)); // তোমার Home Page
                     finish();
                 })
                 .addOnFailureListener(e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
