@@ -50,22 +50,29 @@ public class EditProfileActivity extends AppCompatActivity {
         });
 
         btnSave.setOnClickListener(v -> {
-            String groupName = etGroupName.getText().toString().trim();
-            String announcement = etAnnouncement.getText().toString().trim();
-            if(groupName.isEmpty()){
+            String groupNameStr = etGroupName.getText().toString().trim();
+            String announcementStr = etAnnouncement.getText().toString().trim();
+            if(groupNameStr.isEmpty()){
                 Toast.makeText(this,"Group Name likhun",Toast.LENGTH_SHORT).show();
                 return;
             }
-            if(announcement.isEmpty()) announcement = "welcome";
+            final String finalAnnouncement;
+            if(announcementStr.isEmpty()){
+                finalAnnouncement = "welcome";
+            } else {
+                finalAnnouncement = announcementStr;
+            }
+            final String finalGroupName = groupNameStr;
+            
             String gender = "Male";
             int id = rgGender.getCheckedRadioButtonId();
             if(id == R.id.rbFemale) gender = "Female";
             String uid = auth.getCurrentUser().getUid();
             Map<String,Object> user = new HashMap<>();
             user.put("uid", uid);
-            user.put("name", groupName);
-            user.put("groupName", groupName);
-            user.put("announcement", announcement);
+            user.put("name", finalGroupName);
+            user.put("groupName", finalGroupName);
+            user.put("announcement", finalAnnouncement);
             user.put("gender", gender);
             user.put("email", auth.getCurrentUser().getEmail());
             user.put("photoUrl", base64Image);
@@ -73,8 +80,8 @@ public class EditProfileActivity extends AppCompatActivity {
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(this,"Saved",Toast.LENGTH_SHORT).show();
                     Intent intent2 = new Intent(EditProfileActivity.this, VoiceRoomActivity.class);
-                    intent2.putExtra("groupName", groupName);
-                    intent2.putExtra("announcement", announcement);
+                    intent2.putExtra("groupName", finalGroupName);
+                    intent2.putExtra("announcement", finalAnnouncement);
                     startActivity(intent2);
                     finish();
                 });
