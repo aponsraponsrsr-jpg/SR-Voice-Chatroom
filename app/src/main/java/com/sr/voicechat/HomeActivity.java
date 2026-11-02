@@ -45,19 +45,13 @@ public class HomeActivity extends AppCompatActivity {
         Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.dialog_create_room);
         
-        // বড় ডিসপ্লের জন্য এই ২ লাইন মাস্ট, না হলে ছোট দেখাবে
         dialog.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
         EditText etRoomName = dialog.findViewById(R.id.etRoomName);
-        // তোমার XML এ etRoomBio আছে, আমার XML এ etRoomNotice, তাই ২টাই চেক করলাম
         EditText etRoomBio = dialog.findViewById(R.id.etRoomBio);
-        if (etRoomBio == null) {
-            etRoomBio = dialog.findViewById(R.id.etRoomNotice);
-        }
         Button btnSaveRoom = dialog.findViewById(R.id.btnSaveRoom);
 
-        // যদি আগে থেকেই রুম থাকে, তাহলে নামটা অটো দেখাবে
         String uid = auth.getCurrentUser().getUid();
         db.collection("rooms").document(uid).get().addOnSuccessListener(doc -> {
             if(doc.exists()){
@@ -87,19 +81,17 @@ public class HomeActivity extends AppCompatActivity {
     }
 
     private void createRoom(String roomName, String roomBio) {
-        // ভাইজান এখানেই ফিক্স - UUID বাদ, UID দিয়ে পার্মানেন্ট
         String userId = auth.getCurrentUser().getUid();
-        String roomId = userId; // একজনের একটাই রুম, UID = RoomID
+        String roomId = userId;
 
         Map<String, Object> room = new HashMap<>();
         room.put("roomId", roomId);
         room.put("roomName", roomName);
         room.put("roomBio", roomBio);
-        room.put("roomNotice", roomBio); // ২টা নামেই সেভ করলাম যাতে কোথাও মিস না হয়
+        room.put("roomNotice", roomBio);
         room.put("ownerId", userId);
         room.put("createdAt", System.currentTimeMillis());
 
-        // document(roomId) = document(userId) = পার্মানেন্ট
         db.collection("rooms").document(roomId).set(room)
             .addOnSuccessListener(aVoid -> {
                 Toast.makeText(this, "Room Permanent Save হয়ে গেছে!", Toast.LENGTH_SHORT).show();
