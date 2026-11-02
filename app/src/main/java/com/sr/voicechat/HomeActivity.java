@@ -34,67 +34,56 @@ public class HomeActivity extends AppCompatActivity {
         recyclerRooms = findViewById(R.id.recyclerRooms);
         btnCreate = findViewById(R.id.btnCreate);
 
-        // Grid 2 column
         recyclerRooms.setLayoutManager(new GridLayoutManager(this, 2));
-        // আপাতত খালি, Room লোড করার Adapter পরে যোগ করবো, এখন Crash করবে না
 
         btnCreate.setOnClickListener(v -> showCreateRoomDialog());
-        
-        // Popular Button
-        findViewById(R.id.btnPopular).setOnClickListener(v -> 
-            Toast.makeText(this, "Popular Coming Soon", Toast.LENGTH_SHORT).show()
-        );
     }
 
     private void showCreateRoomDialog() {
         Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.dialog_create_room);
         
-        EditText etRoomName = dialog.findViewById(R.id.et_room_name);
-        Button btnCreateRoom = dialog.findViewById(R.id.btn_dialog_create);
-        Button btnCancel = dialog.findViewById(R.id.btn_dialog_cancel);
+        // তোমার XML অনুযায়ী ID
+        EditText etRoomName = dialog.findViewById(R.id.etRoomName);
+        EditText etRoomBio = dialog.findViewById(R.id.etRoomBio);
+        Button btnSaveRoom = dialog.findViewById(R.id.btnSaveRoom);
 
-        if (etRoomName == null || btnCreateRoom == null) {
-            Toast.makeText(this, "dialog_create_room.xml ID ভুল আছে", Toast.LENGTH_LONG).show();
-            return;
-        }
-
-        btnCreateRoom.setOnClickListener(v -> {
+        btnSaveRoom.setOnClickListener(v -> {
             String roomName = etRoomName.getText().toString().trim();
+            String roomBio = etRoomBio.getText().toString().trim();
+            
             if (roomName.isEmpty()) {
-                Toast.makeText(this, "Room name দিন", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Room Name দিন", Toast.LENGTH_SHORT).show();
                 return;
             }
-            createRoom(roomName);
+            createRoom(roomName, roomBio);
             dialog.dismiss();
         });
 
-        if (btnCancel != null) {
-            btnCancel.setOnClickListener(v -> dialog.dismiss());
-        }
         dialog.show();
     }
 
-    private void createRoom(String roomName) {
+    private void createRoom(String roomName, String roomBio) {
         String roomId = UUID.randomUUID().toString();
         String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "guest";
 
         Map<String, Object> room = new HashMap<>();
         room.put("roomId", roomId);
         room.put("roomName", roomName);
+        room.put("roomBio", roomBio);
         room.put("ownerId", userId);
         room.put("createdAt", System.currentTimeMillis());
 
         db.collection("rooms").document(roomId).set(room)
             .addOnSuccessListener(aVoid -> {
-                Toast.makeText(this, "Room Created: " + roomName, Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Room Created!", Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(this, VoiceRoomActivity.class);
                 intent.putExtra("roomId", roomId);
                 intent.putExtra("roomName", roomName);
                 startActivity(intent);
             })
             .addOnFailureListener(e -> 
-                Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show()
             );
     }
 }
