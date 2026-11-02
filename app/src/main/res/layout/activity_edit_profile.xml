@@ -10,7 +10,6 @@
     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
         android:text="Edit Group" android:textColor="#FFFFFF" android:textSize="24sp" android:textStyle="bold"/>
 
-    <!-- ছবির জায়গা -->
     <ImageView
         android:id="@+id/ivProfile"
         android:layout_width="120dp"
@@ -47,7 +46,7 @@
     </RadioGroup>
 
     <Button android:id="@+id/btnSave" android:layout_width="match_parent" android:layout_height="55dp"
-        android:text="Save & Open Group" android:layout_marginTop="30dp" 
+        android:text="Save and Open Group" android:layout_marginTop="30dp" 
         android:backgroundTint="#FFFFFF" android:textColor="#000000"/>
 
 </LinearLayout>
