@@ -5,27 +5,23 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 public class HomeActivity extends AppCompatActivity {
 
     private RecyclerView recyclerRooms;
-    private Button btnCreateRoom;
+    private TextView btnCreate;
     private FirebaseFirestore db;
     private FirebaseAuth auth;
-    private List<DocumentSnapshot> roomList = new ArrayList<>();
-    private RoomAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,21 +31,19 @@ public class HomeActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
 
-        recyclerRooms = findViewById(R.id.recycler_rooms);
-        btnCreateRoom = findViewById(R.id.btn_create_room);
+        recyclerRooms = findViewById(R.id.recyclerRooms);
+        btnCreate = findViewById(R.id.btnCreate);
 
+        // Grid 2 column
         recyclerRooms.setLayoutManager(new GridLayoutManager(this, 2));
-        adapter = new RoomAdapter(roomList, room -> {
-            // Room এ ঢুকবে
-            Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
-            intent.putExtra("roomId", room.getId());
-            startActivity(intent);
-        });
-        recyclerRooms.setAdapter(adapter);
+        // আপাতত খালি, Room লোড করার Adapter পরে যোগ করবো, এখন Crash করবে না
 
-        btnCreateRoom.setOnClickListener(v -> showCreateRoomDialog());
-
-        loadRooms();
+        btnCreate.setOnClickListener(v -> showCreateRoomDialog());
+        
+        // Popular Button
+        findViewById(R.id.btnPopular).setOnClickListener(v -> 
+            Toast.makeText(this, "Popular Coming Soon", Toast.LENGTH_SHORT).show()
+        );
     }
 
     private void showCreateRoomDialog() {
@@ -57,10 +51,15 @@ public class HomeActivity extends AppCompatActivity {
         dialog.setContentView(R.layout.dialog_create_room);
         
         EditText etRoomName = dialog.findViewById(R.id.et_room_name);
-        Button btnCreate = dialog.findViewById(R.id.btn_dialog_create);
+        Button btnCreateRoom = dialog.findViewById(R.id.btn_dialog_create);
         Button btnCancel = dialog.findViewById(R.id.btn_dialog_cancel);
 
-        btnCreate.setOnClickListener(v -> {
+        if (etRoomName == null || btnCreateRoom == null) {
+            Toast.makeText(this, "dialog_create_room.xml ID ভুল আছে", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        btnCreateRoom.setOnClickListener(v -> {
             String roomName = etRoomName.getText().toString().trim();
             if (roomName.isEmpty()) {
                 Toast.makeText(this, "Room name দিন", Toast.LENGTH_SHORT).show();
@@ -70,45 +69,32 @@ public class HomeActivity extends AppCompatActivity {
             dialog.dismiss();
         });
 
-        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        if (btnCancel != null) {
+            btnCancel.setOnClickListener(v -> dialog.dismiss());
+        }
         dialog.show();
     }
 
     private void createRoom(String roomName) {
         String roomId = UUID.randomUUID().toString();
         String userId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "guest";
-        String userName = auth.getCurrentUser() != null ? auth.getCurrentUser().getDisplayName() : "Guest";
 
         Map<String, Object> room = new HashMap<>();
         room.put("roomId", roomId);
         room.put("roomName", roomName);
         room.put("ownerId", userId);
-        room.put("ownerName", userName);
         room.put("createdAt", System.currentTimeMillis());
-        room.put("memberCount", 1);
 
         db.collection("rooms").document(roomId).set(room)
             .addOnSuccessListener(aVoid -> {
-                Toast.makeText(this, "Room Created!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Room Created: " + roomName, Toast.LENGTH_SHORT).show();
                 Intent intent = new Intent(this, VoiceRoomActivity.class);
                 intent.putExtra("roomId", roomId);
+                intent.putExtra("roomName", roomName);
                 startActivity(intent);
             })
             .addOnFailureListener(e -> 
                 Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
             );
-    }
-
-    private void loadRooms() {
-        db.collection("rooms")
-            .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
-            .addSnapshotListener((value, error) -> {
-                if (error != null) return;
-                if (value != null) {
-                    roomList.clear();
-                    roomList.addAll(value.getDocuments());
-                    adapter.notifyDataSetChanged();
-                }
-            });
     }
 }
