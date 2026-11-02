@@ -3,79 +3,51 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#0E0E0E"
     android:padding="24dp"
-    android:gravity="center_horizontal">
+    android:gravity="center">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Profile Setup"
-        android:textColor="#D4AF37"
+        android:text="Create Account"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:layout_marginTop="20dp"/>
-
-    <de.hdodenhof.circleimageview.CircleImageView
-        android:id="@+id/imgProfile"
-        android:layout_width="110dp"
-        android:layout_height="110dp"
-        android:layout_marginTop="30dp"
-        android:src="@drawable/ic_person"
-        android:layout_gravity="center" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="ছবিতে টাচ করে ছবি দাও"
-        android:textColor="#888888"
-        android:textSize="12sp"
-        android:layout_marginTop="8dp"/>
+        android:layout_marginBottom="24dp"/>
 
     <EditText
-        android:id="@+id/editName"
+        android:id="@+id/edtName"
         android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:layout_marginTop="40dp"
-        android:background="@drawable/bg_edittext"
-        android:hint="তোমার নাম লেখো"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#888888"
-        android:paddingStart="16dp"/>
+        android:layout_height="50dp"
+        android:hint="Full Name"
+        android:layout_marginBottom="12dp"
+        android:padding="12dp"
+        android:background="@android:drawable/edit_text"/>
 
-    <RadioGroup
-        android:id="@+id/radioGender"
+    <EditText
+        android:id="@+id/edtEmail"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="25dp"
-        android:gravity="center">
+        android:layout_height="50dp"
+        android:hint="Email"
+        android:inputType="textEmailAddress"
+        android:layout_marginBottom="12dp"
+        android:padding="12dp"
+        android:background="@android:drawable/edit_text"/>
 
-        <RadioButton
-            android:id="@+id/radioMale"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Male ♂️"
-            android:textColor="#D4AF37"
-            android:checked="true"/>
-
-        <RadioButton
-            android:id="@+id/radioFemale"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Female ♀️"
-            android:textColor="#D4AF37"
-            android:layout_marginStart="30dp"/>
-    </RadioGroup>
+    <EditText
+        android:id="@+id/edtPassword"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:hint="Password"
+        android:inputType="textPassword"
+        android:layout_marginBottom="20dp"
+        android:padding="12dp"
+        android:background="@android:drawable/edit_text"/>
 
     <Button
-        android:id="@+id/btnSave"
+        android:id="@+id/btnRegister"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginTop="40dp"
-        android:text="Save &amp; Go to Home"
-        android:textColor="#000000"
-        android:textStyle="bold"
-        android:backgroundTint="#D4AF37"/>
+        android:layout_height="50dp"
+        android:text="Register"
+        android:textStyle="bold"/>
 
 </LinearLayout>
