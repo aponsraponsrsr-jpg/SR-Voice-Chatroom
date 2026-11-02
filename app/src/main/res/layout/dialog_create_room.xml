@@ -15,7 +15,7 @@
             android:id="@+id/ivRoomImage"
             android:layout_width="110dp"
             android:layout_height="110dp"
-            android:src="@mipmap/ic_launcher" />
+            android:src="@drawable/ic_person" />
 
         <ImageView
             android:id="@+id/ivCamera"
