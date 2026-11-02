@@ -18,36 +18,41 @@ import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LoginActivity extends AppCompatActivity {
-    Button btnGmail;
-    FirebaseAuth auth;
-    FirebaseFirestore db;
-    GoogleSignInClient mGoogleSignInClient;
-    int RC_SIGN_IN = 1001;
+
+    private static final int RC_SIGN_IN = 1001;
+    private GoogleSignInClient mGoogleSignInClient;
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private Button btnGmail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        auth = FirebaseAuth.getInstance();
+
+        mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         btnGmail = findViewById(R.id.btnGmail);
 
-        // Gmail Config - এটাই তোমার Gmail Login এর মেইন কোড
+        // Check if already logged in
+        if (mAuth.getCurrentUser() != null) {
+            checkUserProfile(mAuth.getCurrentUser().getUid());
+            return;
+        }
+
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
+
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        if(auth.getCurrentUser() != null){
-            checkUserExists();
-            return;
-        }
+        btnGmail.setOnClickListener(v -> signIn());
+    }
 
-        btnGmail.setOnClickListener(v -> {
-            Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-            startActivityForResult(signInIntent, RC_SIGN_IN);
-        });
+    private void signIn() {
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
     @Override
@@ -59,30 +64,41 @@ public class LoginActivity extends AppCompatActivity {
                 GoogleSignInAccount account = task.getResult(ApiException.class);
                 firebaseAuthWithGoogle(account.getIdToken());
             } catch (ApiException e) {
-                Toast.makeText(this, "Gmail Login Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Gmail SignIn Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         }
     }
 
     private void firebaseAuthWithGoogle(String idToken) {
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-        auth.signInWithCredential(credential)
-                .addOnSuccessListener(r -> checkUserExists())
-                .addOnFailureListener(e -> Toast.makeText(this, "Firebase Auth Failed", Toast.LENGTH_SHORT).show());
+        mAuth.signInWithCredential(credential)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        String uid = mAuth.getCurrentUser().getUid();
+                        checkUserProfile(uid);
+                    } else {
+                        Toast.makeText(this, "Firebase Auth Failed", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
-    private void checkUserExists(){
-        String uid = auth.getCurrentUser().getUid();
-        db.collection("users").document(uid).get().addOnSuccessListener(doc -> {
-            if(doc.exists()){
-                startActivity(new Intent(this, HomeActivity.class));
-            } else {
-                startActivity(new Intent(this, EditProfileActivity.class));
-            }
-            finish();
-        }).addOnFailureListener(e -> {
-            startActivity(new Intent(this, EditProfileActivity.class));
-            finish();
-        });
+    private void checkUserProfile(String uid) {
+        db.collection("users").document(uid).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // পুরাতন ইউজার, সরাসরি Home এ যাবে
+                        startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                        finish();
+                    } else {
+                        // নতুন ইউজার, Edit Profile এ যাবে - Name, Gender, Photo সিলেক্ট করতে
+                        startActivity(new Intent(LoginActivity.this, EditProfileActivity.class));
+                        finish();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    // Error হলেও Edit এ পাঠাবে যাতে প্রোফাইল বানাতে পারে
+                    startActivity(new Intent(LoginActivity.this, EditProfileActivity.class));
+                    finish();
+                });
     }
 }
