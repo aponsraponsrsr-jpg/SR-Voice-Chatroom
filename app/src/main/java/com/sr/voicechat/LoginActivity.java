@@ -26,7 +26,6 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         btnGmail.setOnClickListener(v -> {
-            // Demo login - সরাসরি Gmail Login ধরে নিচ্ছি
             auth.signInAnonymously().addOnSuccessListener(r -> checkUserExists());
         });
     }
@@ -39,6 +38,10 @@ public class LoginActivity extends AppCompatActivity {
             } else {
                 startActivity(new Intent(this, EditProfileActivity.class));
             }
+            finish();
+        }).addOnFailureListener(e -> {
+            // যদি internet না থাকে বা doc না পায়, তাও Edit এ নিয়ে যাবে
+            startActivity(new Intent(this, EditProfileActivity.class));
             finish();
         });
     }
