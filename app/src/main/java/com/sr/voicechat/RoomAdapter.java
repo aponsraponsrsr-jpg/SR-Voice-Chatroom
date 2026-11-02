@@ -8,30 +8,48 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
-public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.ViewHolder> {
-    List<RoomModel> list;
-    OnRoomClick listener;
-    public interface OnRoomClick { void onClick(RoomModel room); }
+public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.Holder> {
+
+    private List<RoomModel> list;
+    private OnRoomClick listener;
+
+    public interface OnRoomClick {
+        void onRoomClick(RoomModel room);
+    }
+
     public RoomAdapter(List<RoomModel> list, OnRoomClick listener) {
-        this.list = list; this.listener = listener;
+        this.list = list;
+        this.listener = listener;
     }
-    @NonNull @Override public ViewHolder onCreateViewHolder(@NonNull ViewGroup p, int t) {
-        View v = LayoutInflater.from(p.getContext()).inflate(R.layout.item_room, p, false);
-        return new ViewHolder(v);
+
+    @NonNull
+    @Override
+    public Holder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_room, parent, false);
+        return new Holder(v);
     }
-    @Override public void onBindViewHolder(@NonNull ViewHolder h, int i) {
-        RoomModel r = list.get(i);
-        h.name.setText(r.getName());
-        h.desc.setText(r.getDesc());
-        h.itemView.setOnClickListener(v -> listener.onClick(r));
+
+    @Override
+    public void onBindViewHolder(@NonNull Holder h, int position) {
+        RoomModel r = list.get(position);
+        h.name.setText(r.getRoomName());
+        h.desc.setText("Host: " + r.getHostId() + " | " + r.getParticipantCount() + " people");
+        h.itemView.setOnClickListener(view -> {
+            if (listener != null) listener.onRoomClick(r);
+        });
     }
-    @Override public int getItemCount() { return list.size(); }
-    static class ViewHolder extends RecyclerView.ViewHolder {
+
+    @Override
+    public int getItemCount() {
+        return list.size();
+    }
+
+    public static class Holder extends RecyclerView.ViewHolder {
         TextView name, desc;
-        public ViewHolder(@NonNull View v) {
-            super(v);
-            name = v.findViewById(R.id.roomName);
-            desc = v.findViewById(R.id.roomDesc);
+        public Holder(@NonNull View itemView) {
+            super(itemView);
+            name = itemView.findViewById(R.id.txtRoomName);
+            desc = itemView.findViewById(R.id.txtRoomDesc);
         }
     }
 }
