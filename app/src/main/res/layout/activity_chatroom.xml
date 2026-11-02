@@ -1,46 +1,122 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#121212">
+    android:background="#0E0E0E">
 
-    <!-- Top Bar -->
-    <TextView
-        android:id="@+id/txtRoomName"
+    <!-- TOP INFO - Only English, No Bengali -->
+    <LinearLayout
+        android:id="@+id/topInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="My Room"
-        android:textColor="#FFFFFF"
-        android:textStyle="bold"
-        android:textSize="20sp"
-        android:padding="16dp"
-        android:background="#1F1F1F"/>
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:background="#1A1A1A">
 
-    <!-- 10 Seat Grid -->
+        <TextView
+            android:id="@+id/tvRoomName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="A..tasnim"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tvRoomId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ID: 121"
+            android:textColor="#FFC107"
+            android:textSize="13sp"/>
+    </LinearLayout>
+
+    <!-- SEATS GRID 10 -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerUsers"
+        android:id="@+id/recyclerSeats"
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/topInfo"
         android:padding="8dp"/>
 
-    <!-- Bottom Buttons (Mic, Gift etc) -->
+    <!-- HEART + NOTICE -->
     <LinearLayout
+        android:id="@+id/centerLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:padding="12dp"
-        android:background="#1F1F1F">
+        android:layout_centerInParent="true"
+        android:orientation="vertical"
+        android:gravity="center">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🎤  🎁  💬"
+            android:text="❤️"
+            android:textSize="60sp"/>
+
+        <TextView
+            android:id="@+id/tvNotice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="12dp"
+            android:background="#222222"
+            android:padding="10dp"
+            android:text="Notice: welcome"
+            android:textColor="#FFC107"
+            android:textSize="14sp"/>
+    </LinearLayout>
+
+    <!-- BOTTOM BAR - REAL ICONS -->
+    <LinearLayout
+        android:id="@+id/bottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="65dp"
+        android:layout_alignParentBottom="true"
+        android:background="#1F1F1F"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="6dp">
+
+        <ImageButton
+            android:id="@+id/btnMic"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_btn_speak_now"/>
+
+        <ImageButton
+            android:id="@+id/btnGame"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_media_play"/>
+
+        <EditText
+            android:id="@+id/etChat"
+            android:layout_width="0dp"
+            android:layout_height="45dp"
+            android:layout_weight="1"
+            android:background="#2C2C2C"
+            android:hint="Chat sms..."
+            android:padding="12dp"
             android:textColor="#FFFFFF"
-            android:textSize="24sp"/>
+            android:textColorHint="#888888"/>
+
+        <ImageButton
+            android:id="@+id/btnGift"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_input_get"/>
+
+        <ImageButton
+            android:id="@+id/btnSend"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:backgroundTint="#FFC107"
+            android:src="@android:drawable/ic_menu_send"
+            android:background="?attr/selectableItemBackgroundBorderless"/>
 
     </LinearLayout>
 
-</LinearLayout>
+</RelativeLayout>
