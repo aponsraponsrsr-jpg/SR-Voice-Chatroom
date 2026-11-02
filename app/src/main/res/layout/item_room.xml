@@ -6,52 +6,27 @@
     android:layout_margin="8dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="4dp">
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="16dp">
-
-        <TextView
-            android:id="@+id/txtRoomNameItem"
+        <TextView android:id="@+id/txtRoomNameItem"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:text="Room Name" />
-
-        <TextView
-            android:id="@+id/txtRoomDesc"
+            android:textSize="18sp" android:textStyle="bold" android:text="Room Name"/>
+        <TextView android:id="@+id/txtRoomDesc"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Description" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="8dp">
-
-            <TextView
-                android:id="@+id/txtOnlineCount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0 Online"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/txtTopUser"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="12dp"
-                android:text="⭐ Top User"
-                android:textSize="12sp"
-                android:textColor="#FF9800"
-                android:visibility="gone" />
-
+            android:layout_marginTop="4dp" android:text="Description"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp">
+            <TextView android:id="@+id/txtOnlineCount"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="0 Online" android:textSize="12sp"/>
+            <TextView android:id="@+id/txtTopUser"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginStart="12dp" android:text="⭐ Top User"
+                android:textSize="12sp" android:textColor="#FF9800" android:visibility="gone"/>
         </LinearLayout>
-
     </LinearLayout>
 </androidx.cardview.widget.CardView>
