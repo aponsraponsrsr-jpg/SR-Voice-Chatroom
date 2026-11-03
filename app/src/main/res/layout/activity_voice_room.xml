@@ -34,6 +34,16 @@
                 android:text="ID: 777888 | 👑 VIP Room"
                 android:textColor="#FFD700"
                 android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvOnlineCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Online: 125 | 🕌 Mosque Theme"
+                android:textColor="#00E5FF"
+                android:textSize="11sp"
+                android:layout_marginTop="2dp" />
+
         </LinearLayout>
 
         <!-- Power / Exit Button -->
@@ -202,7 +212,6 @@
         android:gravity="center"
         android:paddingHorizontal="8dp">
 
-        <!-- ১. মাইক মিউট/আনমিউট -->
         <Button
             android:id="@+id/btnMicToggle"
             android:layout_width="0dp"
@@ -215,7 +224,6 @@
             android:layout_marginHorizontal="4dp"
             android:textStyle="bold"/>
 
-        <!-- ২. এসএমএস / চ্যাট -->
         <Button
             android:id="@+id/btnChatOption"
             android:layout_width="0dp"
@@ -228,7 +236,6 @@
             android:layout_marginHorizontal="4dp"
             android:textStyle="bold"/>
 
-        <!-- ৩. গিফট বক্স -->
         <Button
             android:id="@+id/btnGiftBox"
             android:layout_width="0dp"
@@ -241,7 +248,6 @@
             android:layout_marginHorizontal="4dp"
             android:textStyle="bold"/>
 
-        <!-- ৪. গেম বক্স -->
         <Button
             android:id="@+id/btnGameBox"
             android:layout_width="0dp"
