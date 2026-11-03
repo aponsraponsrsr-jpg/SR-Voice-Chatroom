@@ -1,0 +1,7 @@
+<resources>
+    <style name="Theme.SRVoiceChat" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">#FF4081</item>
+        <item name="android:statusBarColor">#FF4081</item>
+        <item name="android:windowLightStatusBar">true</item>
+    </style>
+</resources>
