@@ -10,7 +10,8 @@
         android:id="@+id/imgSeatAvatar"
         android:layout_width="60dp"
         android:layout_height="60dp"
-        android:src="@mipmap/ic_launcher" />
+        android:background="@android:drawable/sym_def_app_icon"
+        android:padding="8dp" />
 
     <TextView
         android:id="@+id/txtSeatName"
