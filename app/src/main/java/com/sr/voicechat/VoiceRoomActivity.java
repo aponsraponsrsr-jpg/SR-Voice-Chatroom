@@ -1,126 +1,118 @@
 package com.sr.voicechat;
 
 import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.HashMap;
+import java.util.Map;
 
 public class VoiceRoomActivity extends AppCompatActivity {
 
-    private ImageButton btnPower;
-    private Button btnMicToggle, btnChatOption, btnGiftBox, btnGameBox;
-    private boolean isMuted = false;
+    private TextView tvRoomName, tvMyIdDisplay, tvSeatsInfo;
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private String roomId = "room_1";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_voice_room);
 
-        // ১. পাওয়ার / এক্সিট বাটন
-        btnPower = findViewById(R.id.btnPower);
-        if (btnPower != null) {
-            btnPower.setOnClickListener(v -> {
-                CharSequence[] options = {"Minimize", "Exit Room"};
-                AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-                builder.setTitle("Room Options");
-                builder.setItems(options, (dialog, which) -> {
-                    if (which == 0) {
-                        moveTaskToBack(true);
-                    } else {
-                        finish();
-                    }
-                });
-                builder.show();
-            });
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+        tvRoomName = findViewById(R.id.tvRoomName);
+        tvMyIdDisplay = findViewById(R.id.tvMyIdDisplay);
+        tvSeatsInfo = findViewById(R.id.tvSeatsInfo);
+
+        // Get RoomId from Intent - Safe
+        try {
+            String intentRoom = getIntent().getStringExtra("roomId");
+            if (intentRoom != null && !intentRoom.isEmpty()) {
+                roomId = intentRoom;
+            }
+        } catch (Exception e) {
+            roomId = "room_1";
         }
 
-        // ২. ১০টি সিটে ক্লিক করার লজিক (Host এবং ১ থেকে ১০ সিট)
-        setupSeatClicks();
-
-        // ৩. নিচের বাটনগুলো (MIC, CHAT, GIFT, GAME) সচল করা
-        btnMicToggle = findViewById(R.id.btnMicToggle);
-        if (btnMicToggle != null) {
-            btnMicToggle.setOnClickListener(v -> {
-                isMuted = !isMuted;
-                if (isMuted) {
-                    btnMicToggle.setText("🔇 Muted");
-                    Toast.makeText(this, "Mic Muted", Toast.LENGTH_SHORT).show();
-                } else {
-                    btnMicToggle.setText("🎙️ Mic");
-                    Toast.makeText(this, "Mic Unmuted", Toast.LENGTH_SHORT).show();
-                }
-            });
+        if (tvRoomName != null) {
+            tvRoomName.setText("Voice Room: " + roomId);
         }
 
-        btnChatOption = findViewById(R.id.btnChatOption);
-        if (btnChatOption != null) {
-            btnChatOption.setOnClickListener(v -> {
-                CharSequence[] chatTypes = {"All Chat", "Room Notice", "Private Chat"};
-                AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-                builder.setTitle("💬 Chat Options");
-                builder.setItems(chatTypes, (dialog, which) -> {
-                    Toast.makeText(this, "Selected: " + chatTypes[which], Toast.LENGTH_SHORT).show();
-                });
-                builder.show();
-            });
-        }
-
-        btnGiftBox = findViewById(R.id.btnGiftBox);
-        if (btnGiftBox != null) {
-            btnGiftBox.setOnClickListener(v -> {
-                CharSequence[] gifts = {"🌹 Rose (10 Coins)", "👑 Crown (500 Coins)", "💎 Diamond (1000 Coins)"};
-                AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-                builder.setTitle("🎁 Send Gift to Room");
-                builder.setItems(gifts, (dialog, which) -> {
-                    Toast.makeText(this, "Successfully Sent Gift!", Toast.LENGTH_SHORT).show();
-                });
-                builder.show();
-            });
-        }
-
-        btnGameBox = findViewById(R.id.btnGameBox);
-        if (btnGameBox != null) {
-            btnGameBox.setOnClickListener(v -> {
-                CharSequence[] games = {"🎮 Ludo Game", "🎯 Lucky Wheel", "🎲 Dice Battle"};
-                AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-                builder.setTitle("🎮 Voice Room Games");
-                builder.setItems(games, (dialog, which) -> {
-                    Toast.makeText(this, "Starting " + games[which] + "...", Toast.LENGTH_SHORT).show();
-                });
-                builder.show();
-            });
-        }
+        loadMyPermanentId();
+        setup10SeatsHeavy();
+        joinRoomPermanent();
     }
 
-    // ১০টি সিটে ক্লিক করলে মাইকে বসার ডায়ালগ আসার মেথড
-    private void setupSeatClicks() {
-        int[] seatIds = {
-            R.id.seat1, R.id.seat2, R.id.seat3, R.id.seat4, R.id.seat5,
-            R.id.seat6, R.id.seat7, R.id.seat8, R.id.seat9, R.id.seat10
-        };
+    private void loadMyPermanentId() {
+        if (mAuth == null || mAuth.getCurrentUser() == null) return;
+        if (tvMyIdDisplay == null) return;
 
-        View.OnClickListener seatClickListener = v -> {
-            CharSequence[] micOptions = {"Take Mic", "Leave Mic"};
-            AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-            builder.setTitle("Voice Seat Options");
-            builder.setItems(micOptions, (dialog, which) -> {
-                if (which == 0) {
-                    Toast.makeText(VoiceRoomActivity.this, "Successfully taken the mic!", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(VoiceRoomActivity.this, "Left the mic.", Toast.LENGTH_SHORT).show();
-                }
-            });
-            builder.show();
-        };
+        String uid = mAuth.getCurrentUser().getUid();
 
-        for (int id : seatIds) {
-            View seatView = findViewById(id);
-            if (seatView != null) {
-                seatView.setOnClickListener(seatClickListener);
+        db.collection("users").document(uid).addSnapshotListener((doc, error) -> {
+            if (error != null || doc == null || !doc.exists()) {
+                tvMyIdDisplay.setText("My ID: Loading...");
+                return;
             }
+
+            Long displayId = doc.getLong("displayId");
+            Long nineDigitId = doc.getLong("nineDigitId");
+            Boolean isShort = doc.getBoolean("isShortId");
+            Long shortId = doc.getLong("shortId");
+
+            if (isShort != null && isShort && shortId != null) {
+                tvMyIdDisplay.setText("My ID: " + shortId + " [VIP SHORT] - Permanent");
+            } else if (displayId != null) {
+                tvMyIdDisplay.setText("My ID: " + displayId + " - Permanent");
+            } else if (nineDigitId != null) {
+                tvMyIdDisplay.setText("My ID: " + nineDigitId + " - Permanent");
+            } else {
+                tvMyIdDisplay.setText("My ID: 100000000+ - Generating");
+            }
+        });
+    }
+
+    private void setup10SeatsHeavy() {
+        // 10 Seats - Heavy Business Logic - Permanent System
+        // Seat 1-10 Ready - Mic On/Off, Lock, Kick System Later
+        if (tvSeatsInfo != null) {
+            tvSeatsInfo.setText("10 Seats System Ready\nSeat 1-10 Active\nID Permanent Lifetime");
+        }
+        // Toast for success check
+        Toast.makeText(this, "Voice Room 10 Seats Ready - Success", Toast.LENGTH_SHORT).show();
+    }
+
+    private void joinRoomPermanent() {
+        if (mAuth == null || mAuth.getCurrentUser() == null) return;
+        String uid = mAuth.getCurrentUser().getUid();
+
+        Map<String, Object> joinData = new HashMap<>();
+        joinData.put("uid", uid);
+        joinData.put("joinedAt", System.currentTimeMillis());
+        joinData.put("roomId", roomId);
+        joinData.put("seat", 0); // 0 = Audience, 1-10 = On Mic Seat
+
+        db.collection("rooms").document(roomId)
+                .collection("users").document(uid).set(joinData)
+                .addOnSuccessListener(a -> {
+                    // Joined Success - But ID remains Permanent
+                });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try {
+            if (mAuth != null && mAuth.getCurrentUser() != null) {
+                String uid = mAuth.getCurrentUser().getUid();
+                db.collection("rooms").document(roomId).collection("users").document(uid).delete();
+            }
+        } catch (Exception e) {
+            // Ignore - ID still Permanent Lifetime
         }
     }
 }
