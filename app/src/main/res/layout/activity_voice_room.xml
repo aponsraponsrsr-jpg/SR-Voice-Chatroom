@@ -60,13 +60,13 @@
         android:maxLines="1"
         android:ellipsize="end"/>
 
-    <!-- 10 Voice Seats Grid Container (১০টি গোল গোল প্রিমিয়াম সিট) -->
+    <!-- 10 Voice Seats Grid Container (উপরে ৫টি, নিচে ৫টি মোট ১০টি গোল সিট) -->
     <GridLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:columnCount="4"
-        android:padding="6dp"
+        android:columnCount="5"
+        android:padding="4dp"
         android:alignmentMode="alignMargins"
         android:columnOrderPreserved="false"
         android:gravity="center">
@@ -78,9 +78,9 @@
             android:layout_columnWeight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_margin="4dp">
-            <View android:id="@+id/seat1" android:layout_width="55dp" android:layout_height="55dp" android:background="@drawable/seat_circle_active"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Host" android:textColor="#00E676" android:textSize="11sp" android:textStyle="bold" android:layout_marginTop="2dp"/>
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat1" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_active"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Host" android:textColor="#00E676" android:textSize="10sp" android:textStyle="bold" android:layout_marginTop="2dp"/>
         </LinearLayout>
 
         <!-- Seat 2 -->
@@ -90,9 +90,9 @@
             android:layout_columnWeight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_margin="4dp">
-            <View android:id="@+id/seat2" android:layout_width="55dp" android:layout_height="55dp" android:background="@drawable/seat_circle_normal"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_marginTop="2dp"/>
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat2" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
         </LinearLayout>
 
         <!-- Seat 3 -->
@@ -102,9 +102,9 @@
             android:layout_columnWeight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_margin="4dp">
-            <View android:id="@+id/seat3" android:layout_width="55dp" android:layout_height="55dp" android:background="@drawable/seat_circle_normal"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_marginTop="2dp"/>
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat3" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
         </LinearLayout>
 
         <!-- Seat 4 -->
@@ -114,9 +114,9 @@
             android:layout_columnWeight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_margin="4dp">
-            <View android:id="@+id/seat4" android:layout_width="55dp" android:layout_height="55dp" android:background="@drawable/seat_circle_normal"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="4" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_marginTop="2dp"/>
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat4" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="4" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
         </LinearLayout>
 
         <!-- Seat 5 -->
@@ -126,9 +126,9 @@
             android:layout_columnWeight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_margin="4dp">
-            <View android:id="@+id/seat5" android:layout_width="55dp" android:layout_height="55dp" android:background="@drawable/seat_circle_normal"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_marginTop="2dp"/>
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat5" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
         </LinearLayout>
 
         <!-- Seat 6 -->
@@ -138,9 +138,9 @@
             android:layout_columnWeight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_margin="4dp">
-            <View android:id="@+id/seat6" android:layout_width="55dp" android:layout_height="55dp" android:background="@drawable/seat_circle_normal"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="6" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_marginTop="2dp"/>
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat6" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="6" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
         </LinearLayout>
 
         <!-- Seat 7 -->
@@ -150,9 +150,9 @@
             android:layout_columnWeight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_margin="4dp">
-            <View android:id="@+id/seat7" android:layout_width="55dp" android:layout_height="55dp" android:background="@drawable/seat_circle_normal"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="7" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_marginTop="2dp"/>
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat7" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="7" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
         </LinearLayout>
 
         <!-- Seat 8 -->
@@ -162,9 +162,9 @@
             android:layout_columnWeight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_margin="4dp">
-            <View android:id="@+id/seat8" android:layout_width="55dp" android:layout_height="55dp" android:background="@drawable/seat_circle_normal"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="8" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_marginTop="2dp"/>
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat8" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="8" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
         </LinearLayout>
 
         <!-- Seat 9 -->
@@ -174,9 +174,9 @@
             android:layout_columnWeight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_margin="4dp">
-            <View android:id="@+id/seat9" android:layout_width="55dp" android:layout_height="55dp" android:background="@drawable/seat_circle_normal"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="9" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_marginTop="2dp"/>
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat9" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="9" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
         </LinearLayout>
 
         <!-- Seat 10: Locked -->
@@ -186,14 +186,14 @@
             android:layout_columnWeight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:layout_margin="4dp">
-            <View android:id="@+id/seat10" android:layout_width="55dp" android:layout_height="55dp" android:background="@drawable/seat_circle_locked"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Locked" android:textColor="#FF5252" android:textSize="11sp" android:layout_marginTop="2dp"/>
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat10" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_locked"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="10" android:textColor="#FF5252" android:textSize="10sp" android:layout_marginTop="2dp"/>
         </LinearLayout>
 
     </GridLayout>
 
-    <!-- Bottom Action Bar (চারটি প্রিমিয়াম বাটন: মাইক, এসএমএস, গিফট বক্স, গেম বক্স) -->
+    <!-- Bottom Action Bar (চারটি প্রিমিয়াম বাটন: মাইক, চ্যাট, গিফট, গেম) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="65dp"
