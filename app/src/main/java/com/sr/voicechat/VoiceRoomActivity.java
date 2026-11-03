@@ -2,6 +2,8 @@ package com.sr.voicechat;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
@@ -10,7 +12,8 @@ import androidx.appcompat.app.AppCompatActivity;
 public class VoiceRoomActivity extends AppCompatActivity {
 
     private ImageButton btnPower;
-    private View seat1, seat2, seat3, seat4; // ভয়েস সিট বা মাইক ভিউগুলো
+    private EditText etMessageInput;
+    private Button btnSendMsg, btnMicToggle, btnChatOption, btnGiftBox, btnGameBox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,45 +23,72 @@ public class VoiceRoomActivity extends AppCompatActivity {
         // ১. পাওয়ার/এক্সিট বাটন ইনিশিয়ালাইজেশন
         btnPower = findViewById(R.id.btnPower);
         if (btnPower != null) {
-            btnPower.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    CharSequence[] options = {"Minimize", "Exit Room"};
-                    AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-                    builder.setTitle("Room Options");
-                    builder.setItems(options, (dialog, which) -> {
-                        if (which == 0) {
-                            moveTaskToBack(true); // Minimize Action
-                        } else {
-                            finish(); // Exit Action
-                        }
-                    });
-                    builder.show();
+            btnPower.setOnClickListener(v -> {
+                CharSequence[] options = {"Minimize", "Exit Room"};
+                AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
+                builder.setTitle("Room Options");
+                builder.setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        moveTaskToBack(true); // Minimize Action
+                    } else {
+                        finish(); // Exit Action
+                    }
+                });
+                builder.show();
+            });
+        }
+
+        // ২. ১০টি সিটে ক্লিক করার লজিক সেটআপ
+        setupSeatClicks();
+
+        // ৩. চ্যাট মেসেজ পাঠানোর লজিক
+        etMessageInput = findViewById(R.id.etMessageInput);
+        btnSendMsg = findViewById(R.id.btnSendMsg);
+        
+        if (btnSendMsg != null && etMessageInput != null) {
+            btnSendMsg.setOnClickListener(v -> {
+                String msg = etMessageInput.getText().toString().trim();
+                if (!msg.isEmpty()) {
+                    Toast.makeText(this, "Message sent: " + msg, Toast.LENGTH_SHORT).show();
+                    etMessageInput.setText(""); // বক্স খালি করে দেওয়া
+                } else {
+                    Toast.makeText(this, "Please write something...", Toast.LENGTH_SHORT).show();
                 }
             });
         }
 
-        // ২. ভয়েস সিট বা মাইকগুলোতে ক্লিক করলে 'Take Mic' এবং 'Leave Mic' অপশন আসার লজিক
-        // XML ফাইলে যদি সিটগুলোর আইডি দেওয়া থাকে, তবে সেগুলোর সাথে কানেক্ট করা হলো:
-        // (তুমি চাইলে তোমার লেআউটের সিটের আইডি অনুযায়ী এগুলো ব্যবহার করতে পারো)
-        
-        View.OnClickListener seatClickListener = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showMicActionDialog();
-            }
-        };
+        // ৪. নিচের অন্যান্য বাটনগুলোর ক্লিক ইভেন্ট
+        btnMicToggle = findViewById(R.id.btnMicToggle);
+        if (btnMicToggle != null) {
+            btnMicToggle.setOnClickListener(v -> Toast.makeText(this, "Mic Muted/Unmuted", Toast.LENGTH_SHORT).show());
+        }
 
-        // উদাহরণস্বরূপ যদি লেআউটে সিটগুলোর আইডি থাকে, তবে এভাবে সেট করতে পারی
-        // (কোডে যাতে ক্র্যাশ না করে, তাই সেফটি চেকসহ রাখা হয়েছে)
-        // findViewById দিয়ে সিট বা লেআউট বাইন্ড করা যেতে পারে।
-        // সরাসরি যেকোনো মাইকে টাচ করলে পপআপ দেখানোর ফাংশন নিচে দেওয়া হলো:
-        setupSeatClicks();
+        btnGiftBox = findViewById(R.id.btnGiftBox);
+        if (btnGiftBox != null) {
+            btnGiftBox.setOnClickListener(v -> Toast.makeText(this, "Opening Gift Box...", Toast.LENGTH_SHORT).show());
+        }
+
+        btnGameBox = findViewById(R.id.btnGameBox);
+        if (btnGameBox != null) {
+            btnGameBox.setOnClickListener(v -> Toast.makeText(this, "Opening Game Box...", Toast.LENGTH_SHORT).show());
+        }
     }
 
     private void setupSeatClicks() {
-        // রুমের যেকোনো সিটে বা মাইকে টাচ করলেই এই মেথডটি কাজ করবে
-        // এখানে আমরা একটি কমন পপআপ ডায়ালগ তৈরি করছি
+        // ১০টি সিটের আইডি অ্যারেতে রেখে লুপের মাধ্যমে ক্লিক লিসেনার সেট করা হলো (যাতে কোড পরিষ্কার থাকে)
+        int[] seatLayoutIds = {
+            R.id.layoutSeat1, R.id.layoutSeat2, R.id.layoutSeat3, R.id.layoutSeat4, R.id.layoutSeat5,
+            R.id.layoutSeat6, R.id.layoutSeat7, R.id.layoutSeat8, R.id.layoutSeat9, R.id.layoutSeat10
+        };
+
+        View.OnClickListener seatClickListener = v -> showMicActionDialog();
+
+        for (int id : seatLayoutIds) {
+            View seatView = findViewById(id);
+            if (seatView != null) {
+                seatView.setOnClickListener(seatClickListener);
+            }
+        }
     }
 
     private void showMicActionDialog() {
@@ -67,10 +97,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         builder.setTitle("Voice Seat Options");
         builder.setItems(micOptions, (dialog, which) -> {
             if (which == 0) {
-                // Take Mic Action (মাইকে বসার কোড বা লজিক এখানে বসবে)
                 Toast.makeText(VoiceRoomActivity.this, "Successfully taken the mic!", Toast.LENGTH_SHORT).show();
             } else {
-                // Leave Mic Action (মাইক থেকে নামার কোড বা লজিক এখানে বসবে)
                 Toast.makeText(VoiceRoomActivity.this, "Left the mic.", Toast.LENGTH_SHORT).show();
             }
         });
