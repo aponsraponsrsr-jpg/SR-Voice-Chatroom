@@ -1,67 +1,58 @@
-package com.srvoicechatroom;
+package com.sr.voicechat;
 
-import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import java.util.Random;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.HashMap;
+import java.util.Map;
 
 public class EditProfileActivity extends AppCompatActivity {
+
+    private EditText etName;
+    private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Simple layout create to avoid R error
         setContentView(R.layout.activity_edit_profile);
 
-        EditText etName = null;
-        TextView tvId = null;
-        Button btnSave = null;
-        ImageView imgProfile = null;
+        db = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
 
-        try { etName = findViewById(R.id.etName); } catch(Exception e){}
-        try { tvId = findViewById(R.id.tvId); } catch(Exception e){}
-        try { btnSave = findViewById(R.id.btnSave); } catch(Exception e){}
-        try { imgProfile = findViewById(R.id.imgProfile); } catch(Exception e){}
+        etName = findViewById(R.id.etName);
+        Button btnSave = findViewById(R.id.btnSave);
 
-        // ID বানানো
-        String randomId = "ID: 999" + new Random().nextInt(900000);
-        if (tvId != null) tvId.setText(randomId);
-
-        // Profile Pic এ Click করলে Toast দেখাবে, Gallery পরে Add করবো
-        if (imgProfile != null) {
-            imgProfile.setOnClickListener(v -> {
-                Toast.makeText(this, "Gallery Coming Soon - STEP 3", Toast.LENGTH_SHORT).show();
-            });
+        // Load current name
+        if (mAuth.getCurrentUser() != null) {
+            etName.setText(mAuth.getCurrentUser().getDisplayName());
         }
-        try {
-            findViewById(R.id.layoutProfilePic).setOnClickListener(v -> {
-                Toast.makeText(this, "Gallery Coming Soon - STEP 3", Toast.LENGTH_SHORT).show();
-            });
-        } catch(Exception e){}
 
-        // Save করলে Permanent
-        EditText finalEtName = etName;
-        TextView finalTvId = tvId;
-        if (btnSave != null) {
-            btnSave.setOnClickListener(v -> {
-                String name = finalEtName != null ? finalEtName.getText().toString() : "SR User";
-                String userId = finalTvId != null ? finalTvId.getText().toString() : randomId;
+        btnSave.setOnClickListener(v -> {
+            String newName = etName.getText().toString().trim();
+            if (newName.isEmpty()) {
+                Toast.makeText(this, "Enter name", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (mAuth.getCurrentUser() == null) return;
 
-                SharedPreferences prefs = getSharedPreferences("SRVoice", MODE_PRIVATE);
-                prefs.edit()
-                    .putBoolean("isProfileSaved", true)
-                    .putString("myName", name)
-                    .putString("myId", userId)
-                    .apply();
+            Map<String, Object> update = new HashMap<>();
+            update.put("name", newName);
 
-                Toast.makeText(this, "Profile Saved Permanent!", Toast.LENGTH_SHORT).show();
-                startActivity(new Intent(this, HomeActivity.class));
-                finish();
-            });
-        }
+            db.collection("users").document(mAuth.getCurrentUser().getUid())
+                    .update(update)
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "Profile Updated!", Toast.LENGTH_SHORT).show();
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+        });
     }
 }
