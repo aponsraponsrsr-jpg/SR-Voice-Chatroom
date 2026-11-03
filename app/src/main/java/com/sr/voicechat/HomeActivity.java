@@ -18,7 +18,6 @@ public class HomeActivity extends AppCompatActivity {
     private TextView tvUserId;
     private TextView tabMine, tabHot, tabDiscover;
     private List<RoomModel> allRooms;
-    private RoomAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,8 +46,7 @@ public class HomeActivity extends AppCompatActivity {
         allRooms.add(new RoomModel("Funny Jokes", "67 talking", 0xFF009688));
         allRooms.add(new RoomModel("Saudi to BD Live", "45 talking", 0xFF795548));
 
-        adapter = new RoomAdapter(allRooms);
-        rvRooms.setAdapter(adapter);
+        rvRooms.setAdapter(new RoomAdapter(allRooms));
 
         tabMine.setOnClickListener(v -> {
             tabMine.setTextColor(Color.parseColor("#FFD700"));
@@ -61,13 +59,19 @@ public class HomeActivity extends AppCompatActivity {
             tabHot.setTextColor(Color.parseColor("#FFD700"));
             tabMine.setTextColor(Color.parseColor("#888888"));
             tabDiscover.setTextColor(Color.parseColor("#888888"));
-            Toast.makeText(this, "Popular Rooms", Toast.LENGTH_SHORT).show();
+            // Popular filter - people বেশি
+            List<RoomModel> hot = new ArrayList<>();
+            for (RoomModel r : allRooms) {
+                if (r.people.contains("342") || r.people.contains("999") || r.people.contains("210")) hot.add(r);
+            }
+            rvRooms.setAdapter(new RoomAdapter(hot));
         });
 
         tabDiscover.setOnClickListener(v -> {
             tabDiscover.setTextColor(Color.parseColor("#FFD700"));
             tabMine.setTextColor(Color.parseColor("#888888"));
             tabHot.setTextColor(Color.parseColor("#888888"));
+            rvRooms.setAdapter(new RoomAdapter(allRooms));
         });
 
         fabCreateRoom.setOnClickListener(v -> {
