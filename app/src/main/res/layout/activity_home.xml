@@ -3,51 +3,53 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#121212"
-    android:padding="16dp">
+    android:background="#0F0F1A">
 
-    <TextView
-        android:id="@+id/tvRoomName"
+    <!-- Top Bar - Migo Style -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="SR Voice Chat - Home"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:padding="12dp"
-        android:background="#1E1E1E" />
-
-    <TextView
-        android:id="@+id/tvRoundHomeId"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="ID: Loading..."
-        android:textColor="#FFD700"
-        android:textSize="18sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:layout_marginTop="12dp"
-        android:padding="10dp"
-        android:background="#2A2A2A" />
-
-    <TextView
-        android:id="@+id/tvMyIdDisplay"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Rooms List - Global"
-        android:textColor="#AAAAAA"
-        android:textSize="14sp"
-        android:gravity="center"
-        android:layout_marginTop="20dp"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
         android:padding="16dp"
-        android:background="#1E1E1E" />
+        android:background="#1E1E32">
 
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SR Voice Chat"
+            android:textColor="#FF4081"
+            android:textSize="20sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tvUserId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ID: 100254789"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:background="#3A3A5C"
+            android:padding="6dp"/>
+    </LinearLayout>
+
+    <!-- Room List -->
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerRooms"
+        android:id="@+id/rvRooms"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:layout_marginTop="16dp" />
+        android:padding="8dp"/>
+
+    <!-- Create Room Button -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabCreateRoom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_margin="16dp"
+        android:src="@android:drawable/ic_input_add"
+        android:backgroundTint="#7C4DFF"/>
 
 </LinearLayout>
