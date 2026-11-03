@@ -10,7 +10,7 @@
         android:id="@+id/profileImage"
         android:layout_width="120dp"
         android:layout_height="120dp"
-        android:src="@mipmap/ic_launcher" />
+        android:src="@android:mipmap/sym_def_app_icon" />
 
     <EditText
         android:id="@+id/editName"
