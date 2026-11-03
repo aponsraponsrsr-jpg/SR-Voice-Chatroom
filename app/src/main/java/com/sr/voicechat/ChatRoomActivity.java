@@ -1,6 +1,8 @@
-package com.yourapp.voicechat; // তোমার package name টা এখানে থাকবে, চেঞ্জ করো না
+package com.sr.voicechat;
 
+import com.sr.voicechat.R;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.GridLayout;
 import android.widget.ImageView;
@@ -9,103 +11,101 @@ import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class ChatRoomActivity extends AppCompatActivity {
 
     GridLayout seatGrid;
     String myUid;
-    String roomId = "1024";
+    String roomId = "room_1";
+    DatabaseReference roomRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_room);
 
-        myUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
-        // --- TOP BAR ---
-        TextView txtRoomId = findViewById(R.id.txtRoomId);
-        ImageView btnEditRoom = findViewById(R.id.btnEditRoom);
-        ImageView btnLeaveRoom = findViewById(R.id.btnLeaveRoom);
-
-        // Room ID - Owner ID শো করবে (1024 এর জায়গায়)
-        txtRoomId.setText(roomId); // চাইলে এখানে myUid.substring(0,4) দিতে পারো
-
-        // Edit ON
-        btnEditRoom.setOnClickListener(v -> {
-            Toast.makeText(this, "Edit Room Open", Toast.LENGTH_SHORT).show();
-            // openEditRoomDialog();
-        });
-
-        // Power OFF / Exit ON
-        btnLeaveRoom.setOnClickListener(v -> {
-            leaveRoom();
-            finish();
-        });
-
-        // --- 10 SEATS - OPEN ---
         seatGrid = findViewById(R.id.seatGrid);
-        createSeats();
-
-        // --- BOTTOM BAR - তোমার অর্ডার অনুযায়ী ---
-        // 1. Chat ON
-        findViewById(R.id.btnChat).setOnClickListener(v -> {
-            Toast.makeText(this, "Message Box Open", Toast.LENGTH_SHORT).show();
-        });
-
-        // 2. Mic ON
-        findViewById(R.id.btnMic).setOnClickListener(v -> {
-            Toast.makeText(this, "Mic On/Off", Toast.LENGTH_SHORT).show();
-        });
-
-        // 3. Gift OFF / LOCK
-        findViewById(R.id.btnGift).setAlpha(0.4f);
-        findViewById(R.id.btnGift).setOnClickListener(v -> {
-            Toast.makeText(this, "Gift is Locked 🔒", Toast.LENGTH_SHORT).show();
-        });
-
-        // 4. Game OFF / LOCK
-        findViewById(R.id.btnGame).setAlpha(0.4f);
-        findViewById(R.id.btnGame).setOnClickListener(v -> {
-            Toast.makeText(this, "Game is Locked 🔒", Toast.LENGTH_SHORT).show();
-        });
-    }
-
-    private void createSeats() {
-        seatGrid.removeAllViews();
-        for (int i = 0; i < 10; i++) {
-            View seatView = getLayoutInflater().inflate(R.layout.item_seat, seatGrid, false);
-            TextView txtName = seatView.findViewById(R.id.txtSeatName);
-            txtName.setText("Seat " + (i + 1));
-
-            int index = i;
-            seatView.setOnClickListener(v -> onSeatClicked(index));
-            seatGrid.addView(seatView);
+        
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            myUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        } else {
+            myUid = "guest_" + System.currentTimeMillis();
         }
+
+        roomRef = FirebaseDatabase.getInstance().getReference("rooms").child(roomId).child("seats");
+        
+        loadSeats();
     }
 
-    private void onSeatClicked(int index) {
-        // সিটে বসা / নামা
-        new AlertDialog.Builder(this)
-                .setTitle("Seat " + (index + 1))
-                .setMessage("Take this seat?")
-                .setPositiveButton("Take / Mic On", (d, w) -> takeSeat(index))
-                .setNegativeButton("Leave / Exit", (d, w) -> leaveSeat(index))
-                .setNeutralButton("Cancel", null)
-                .show();
+    private void loadSeats() {
+        roomRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                seatGrid.removeAllViews();
+                for (int i = 0; i < 8; i++) {
+                    View seatView = LayoutInflater.from(ChatRoomActivity.this).inflate(R.layout.item_seat, null);
+                    
+                    ImageView imgAvatar = seatView.findViewById(R.id.imgSeatAvatar);
+                    TextView txtName = seatView.findViewById(R.id.txtSeatName);
+
+                    String seatUid = null;
+                    if (snapshot.hasChild(String.valueOf(i))) {
+                        seatUid = snapshot.child(String.valueOf(i)).getValue(String.class);
+                    }
+
+                    if (seatUid != null && !seatUid.isEmpty()) {
+                        txtName.setText("User " + (i+1));
+                    } else {
+                        txtName.setText("Empty Seat " + (i+1));
+                    }
+
+                    int seatIndex = i;
+                    String finalSeatUid = seatUid;
+                    seatView.setOnClickListener(v -> {
+                        if (finalSeatUid == null) {
+                            joinSeat(seatIndex);
+                        } else if (finalSeatUid.equals(myUid)) {
+                            leaveSeat(seatIndex);
+                        } else {
+                            Toast.makeText(ChatRoomActivity.this, "Seat busy", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
+                    GridLayout.LayoutParams param = new GridLayout.LayoutParams();
+                    param.width = GridLayout.LayoutParams.WRAP_CONTENT;
+                    param.height = GridLayout.LayoutParams.WRAP_CONTENT;
+                    param.setMargins(10, 10, 10, 10);
+                    seatView.setLayoutParams(param);
+                    
+                    seatGrid.addView(seatView);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                Toast.makeText(ChatRoomActivity.this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    private void takeSeat(int index) {
-        Toast.makeText(this, "Seat " + (index+1) + " Taken - Mic On", Toast.LENGTH_SHORT).show();
-        // Firebase: mDatabase.child("rooms").child(roomId).child("seats").child(String.valueOf(index)).child("userId").setValue(myUid);
+    private void joinSeat(int index) {
+        roomRef.child(String.valueOf(index)).setValue(myUid);
+        Toast.makeText(this, "Joined Seat " + (index+1), Toast.LENGTH_SHORT).show();
     }
 
     private void leaveSeat(int index) {
-        Toast.makeText(this, "Left Seat - Exit Done", Toast.LENGTH_SHORT).show();
-        // Firebase: mDatabase.child("rooms").child(roomId).child("seats").child(String.valueOf(index)).removeValue();
-    }
-
-    private void leaveRoom() {
-        Toast.makeText(this, "Leaving Room...", Toast.LENGTH_SHORT).show();
+        new AlertDialog.Builder(this)
+                .setTitle("Leave Seat?")
+                .setMessage("Do you want to leave this seat?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    roomRef.child(String.valueOf(index)).removeValue();
+                })
+                .setNegativeButton("No", null)
+                .show();
     }
 }
