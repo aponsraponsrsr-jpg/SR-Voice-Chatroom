@@ -1,54 +1,87 @@
-package com.sr.voicechat;
+package com.srvoicechatroom;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.TextView;
-import android.widget.Toast;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 public class EditProfileActivity extends AppCompatActivity {
+    private ImageView imgProfile;
+    private Uri selectedImageUri = null;
+    private FirebaseFirestore db;
 
-    EditText editName;
-    TextView textUserId;
-    RadioGroup genderGroup;
-    Button btnSave;
-    String generatedId;
+    // Gallery খোলার জন্য Launcher
+    private final ActivityResultLauncher<String> galleryLauncher = registerForActivityResult(
+        new ActivityResultContracts.GetContent(),
+        uri -> {
+            if (uri != null) {
+                selectedImageUri = uri;
+                imgProfile.setImageURI(uri);
+            }
+        });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
 
-        editName = findViewById(R.id.editName);
-        textUserId = findViewById(R.id.textUserId);
-        genderGroup = findViewById(R.id.genderGroup);
-        btnSave = findViewById(R.id.btnSave);
+        db = FirebaseFirestore.getInstance();
+        imgProfile = findViewById(R.id.imgProfile);
+        EditText etName = findViewById(R.id.etName);
+        RadioGroup rgGender = findViewById(R.id.rgGender);
+        TextView tvId = findViewById(R.id.tvId);
+        Button btnSave = findViewById(R.id.btnSave);
 
-        // Generate 9 Digit Permanent ID
-        Random random = new Random();
-        int id = 100000000 + random.nextInt(900000000);
-        generatedId = String.valueOf(id);
-        textUserId.setText("ID: " + generatedId);
+        // Random ID তৈরি, একবারই হবে
+        String randomId = "ID: 999" + new Random().nextInt(900000);
+        tvId.setText(randomId);
 
+        // 1. Profile Pic এ Click করলে Gallery খুলবে
+        findViewById(R.id.layoutProfilePic).setOnClickListener(v -> {
+            galleryLauncher.launch("image/*");
+        });
+
+        // 2. Save করলে Permanent হয়ে যাবে
         btnSave.setOnClickListener(v -> {
-            String name = editName.getText().toString().trim();
-            if (name.isEmpty()) {
-                Toast.makeText(this, "Enter Name", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            if (genderGroup.getCheckedRadioButtonId() == -1) {
-                Toast.makeText(this, "Select Gender", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            // Go to Home
-            Intent intent = new Intent(EditProfileActivity.this, HomeActivity.class);
-            intent.putExtra("userName", name);
-            intent.putExtra("userId", generatedId);
-            startActivity(intent);
+            String name = etName.getText().toString();
+            String gender = rgGender.getCheckedRadioButtonId() == R.id.rbMale ? "Male" : "Female";
+            String userId = tvId.getText().toString();
+            String firebaseUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+            // A. ফোনের ভিতরে Save (SharedPreferences) - যাতে App Delete করলেও মনে থাকে
+            SharedPreferences prefs = getSharedPreferences("SRVoice", MODE_PRIVATE);
+            prefs.edit()
+                .putBoolean("isProfileSaved", true)
+                .putString("myName", name)
+                .putString("myId", userId)
+                .putString("myGender", gender)
+                .putString("myPic", selectedImageUri != null ? selectedImageUri.toString() : "")
+                .apply();
+
+            // B. Firebase এ Save - যাতে সব ফোনে একই ID থাকে
+            Map<String, Object> user = new HashMap<>();
+            user.put("name", name);
+            user.put("gender", gender);
+            user.put("srId", userId);
+            user.put("uid", firebaseUid);
+            
+            db.collection("users").document(firebaseUid).set(user);
+
+            // C. সোজা Home Page এ যাবে
+            startActivity(new Intent(this, HomeActivity.class));
             finish();
         });
     }
