@@ -1,78 +1,60 @@
-package com.sr.voicechat;
+// --- TOP BAR ---
+ImageView btnEditRoom = findViewById(R.id.btnEditRoom);
+ImageView btnLeaveRoom = findViewById(R.id.btnLeaveRoom);
+TextView txtRoomId = findViewById(R.id.txtRoomId);
 
-import android.os.Bundle;
-import android.widget.Toast;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
-import java.util.HashMap;
-import java.util.Map;
+// 1. Edit Icon ON
+btnEditRoom.setOnClickListener(v -> {
+    // Room Edit Dialog
+    openEditRoomDialog();
+});
 
-public class ChatRoomActivity extends AppCompatActivity {
+// 2. Power OFF Icon ON - Room থেকে বের হবে
+btnLeaveRoom.setOnClickListener(v -> {
+    leaveRoom();
+    finish();
+});
 
-    private FirebaseFirestore db;
-    private String roomId;
-    private int myCurrentSeat = -1;
+// Room ID - Owner ID শো করবে
+String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+txtRoomId.setText(uid.substring(0,4)); // 1024 এর জায়গায়
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat_room);
-        
-        db = FirebaseFirestore.getInstance();
-        roomId = getIntent().getStringExtra("roomId");
-        if (roomId == null) {
-            if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-                roomId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-            }
-        }
-    }
-
-    public void handleSeatClick(int seatPos) {
-        String myUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        db.collection("rooms").document(roomId)
-          .collection("seats").document(String.valueOf(seatPos))
-          .get().addOnSuccessListener(doc -> {
-            if (!doc.exists()) {
-                if (myCurrentSeat != -1 && myCurrentSeat != seatPos) {
-                    new AlertDialog.Builder(this)
-                        .setTitle("Change Seat?")
-                        .setMessage("Do you want to change your seat?")
-                        .setPositiveButton("Take Mic", (d, w) -> { leaveCurrentSeat(); joinSeat(seatPos); })
-                        .setNegativeButton("Exit", (d, w) -> leaveCurrentSeat())
-                        .setNeutralButton("Cancel", null).show();
-                } else {
-                    joinSeat(seatPos);
-                }
-            } else {
-                String occupier = doc.getString("userId");
-                if (occupier != null && occupier.equals(myUid)) {
-                    new AlertDialog.Builder(this)
-                        .setTitle("Seat Options")
-                        .setMessage("Your seat")
-                        .setPositiveButton("Exit", (d, w) -> leaveCurrentSeat())
-                        .setNeutralButton("Cancel", null).show();
-                } else {
-                    Toast.makeText(this, "Everything is alone right now", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-    }
-
-    private void joinSeat(int pos) {
-        Map<String, Object> m = new HashMap<>();
-        m.put("userId", FirebaseAuth.getInstance().getCurrentUser().getUid());
-        m.put("seatNo", pos);
-        db.collection("rooms").document(roomId).collection("seats").document(String.valueOf(pos)).set(m);
-        myCurrentSeat = pos;
-        Toast.makeText(this, "Joined Seat " + pos, Toast.LENGTH_SHORT).show();
-    }
-
-    private void leaveCurrentSeat() {
-        if (myCurrentSeat != -1) {
-            db.collection("rooms").document(roomId).collection("seats").document(String.valueOf(myCurrentSeat)).delete();
-            myCurrentSeat = -1;
+// --- SEAT LOGIC - OPEN ---
+// তোমার seat click এর ভিতরে এই লজিকটা বসাও
+private void onSeatClicked(int seatIndex) {
+    // যদি সিট খালি থাকে -> বসবে
+    if (seats[seatIndex].isEmpty()) {
+        // Take Mic
+        takeSeat(seatIndex);
+        Toast.makeText(this, "Seat Taken - Mic On", Toast.LENGTH_SHORT).show();
+    } else {
+        // যদি নিজের সিট হয় -> নামবে
+        if (seats[seatIndex].getUserId().equals(myUserId)) {
+            // Leave Mic / Exit
+            new AlertDialog.Builder(this)
+                .setTitle("Leave Seat?")
+                .setPositiveButton("Leave / Exit", (d,w) -> leaveSeat(seatIndex))
+                .setNegativeButton("Cancel", null)
+                .show();
         }
     }
 }
+
+// --- BOTTOM BAR ---
+// 3. Chat ON
+findViewById(R.id.btnChat).setOnClickListener(v -> openChatBox());
+
+// 4. Mic ON - Seat এর সাথে কানেক্টেড
+findViewById(R.id.btnMic).setOnClickListener(v -> toggleMicMute());
+
+// 5. Gift OFF
+findViewById(R.id.btnGift).setAlpha(0.3f); // ফ্যাকাশে দেখাবে
+findViewById(R.id.btnGift).setOnClickListener(v -> {
+    Toast.makeText(this, "Gift is Locked 🔒", Toast.LENGTH_SHORT).show();
+});
+
+// 6. Game OFF
+findViewById(R.id.btnGame).setAlpha(0.3f);
+findViewById(R.id.btnGame).setOnClickListener(v -> {
+    Toast.makeText(this, "Game is Locked 🔒", Toast.LENGTH_SHORT).show();
+});
