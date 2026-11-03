@@ -6,6 +6,10 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    
+    <!-- গ্যালারি থেকে ছবি তোলার ও সিলেক্ট করার পারমিশন (নতুন যুক্ত করা হলো) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
     <application
         android:allowBackup="true"
