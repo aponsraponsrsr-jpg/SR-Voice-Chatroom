@@ -27,36 +27,16 @@ public class LoginActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
         mAuth = FirebaseAuth.getInstance();
 
-        // Google Sign In Setup
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        // Permanent - Find Sign in Button - Your photo button
-        // We try all possible IDs - so click will work 100%
-        android.view.View signInBtn = null;
-        try { signInBtn = findViewById(R.id.sign_in_button); } catch (Exception e) {}
-        if (signInBtn == null) {
-            try { signInBtn = findViewById(R.id.btnGoogleSignIn); } catch (Exception e) {}
-        }
-        if (signInBtn == null) {
-            try { signInBtn = findViewById(R.id.btnSignIn); } catch (Exception e) {}
-        }
-        if (signInBtn == null) {
-            try { signInBtn = findViewById(R.id.google_sign_in_button); } catch (Exception e) {}
-        }
-
-        if (signInBtn != null) {
-            signInBtn.setOnClickListener(v -> signIn());
-        } else {
-            // If ID not found, make whole screen clickable as backup
-            findViewById(android.R.id.content).setOnClickListener(v -> signIn());
-        }
+        // Only one ID - sign_in_button - 100% exists now
+        findViewById(R.id.sign_in_button).setOnClickListener(v -> signIn());
     }
 
     private void signIn() {
@@ -73,39 +53,33 @@ public class LoginActivity extends AppCompatActivity {
                 GoogleSignInAccount account = task.getResult(ApiException.class);
                 firebaseAuthWithGoogle(account.getIdToken());
             } catch (ApiException e) {
-                Toast.makeText(this, "Google Sign In Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Google Sign In Failed", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
     private void firebaseAuthWithGoogle(String idToken) {
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        // Save 9 Digit ID First Time - Lifetime
-                        SharedPreferences prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
-                        if (!prefs.contains("MY_9_DIGIT_ID")) {
-                            int randomId = 100000000 + (int)(Math.random() * 900000000);
-                            prefs.edit().putString("MY_9_DIGIT_ID", String.valueOf(randomId)).apply();
-                            prefs.edit().putString("MY_NAME", user.getDisplayName()).apply();
-                            prefs.edit().putString("MY_PHOTO", String.valueOf(user.getPhotoUrl())).apply();
-                        }
-                        // Go Home
-                        startActivity(new Intent(LoginActivity.this, HomeActivity.class));
-                        finish();
-                    } else {
-                        Toast.makeText(LoginActivity.this, "Auth Failed", Toast.LENGTH_SHORT).show();
-                    }
-                });
+        mAuth.signInWithCredential(credential).addOnCompleteListener(this, task -> {
+            if (task.isSuccessful()) {
+                FirebaseUser user = mAuth.getCurrentUser();
+                SharedPreferences prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
+                if (!prefs.contains("MY_9_DIGIT_ID")) {
+                    int randomId = 100000000 + (int)(Math.random() * 900000000);
+                    prefs.edit().putString("MY_9_DIGIT_ID", String.valueOf(randomId)).apply();
+                }
+                startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                finish();
+            } else {
+                Toast.makeText(this, "Auth Failed", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if (currentUser != null) {
+        if (mAuth.getCurrentUser() != null) {
             startActivity(new Intent(this, HomeActivity.class));
             finish();
         }
