@@ -1,163 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0F0F0F">
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#121212">
 
-    <!-- Top Bar -->
-    <LinearLayout
-        android:id="@+id/topBar"
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="12dp"
-        android:background="#1A1A1A">
+        android:layout_height="wrap_content"
+        android:text="Voice Chat Room"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:gravity="center"
+        android:layout_marginBottom="20dp"/>
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="ID: 882734"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp"/>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Online: 2.1k"
-            android:textColor="#AAAAAA"
-            android:textSize="13sp"/>
-    </LinearLayout>
-
-    <!-- 8 Seats Grid -->
     <GridLayout
+        android:id="@+id/seatGrid"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/topBar"
-        android:layout_above="@id/bottomBar"
-        android:columnCount="4"
-        android:rowCount="2"
-        android:padding="16dp">
+        android:layout_height="wrap_content"
+        android:columnCount="2"
+        android:rowCount="4"
+        android:alignmentMode="alignMargins"/>
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="8dp">
-            <ImageView
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:background="@drawable/circle_bg"
-                android:src="@android:drawable/ic_btn_speak_now"
-                android:padding="12dp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Host" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_marginTop="4dp"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="8dp">
-            <ImageView
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:background="@drawable/circle_bg"
-                android:src="@android:drawable/ic_btn_speak_now"
-                android:padding="12dp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Seat 1" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_marginTop="4dp"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="8dp">
-            <ImageView
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:background="@drawable/circle_bg"
-                android:src="@android:drawable/ic_btn_speak_now"
-                android:padding="12dp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Seat 2" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_marginTop="4dp"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="8dp">
-            <ImageView
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:background="@drawable/circle_bg"
-                android:src="@android:drawable/ic_btn_speak_now"
-                android:padding="12dp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Seat 3" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_marginTop="4dp"/>
-        </LinearLayout>
-
-    </GridLayout>
-
-    <!-- Bottom Bar -->
-    <LinearLayout
-        android:id="@+id/bottomBar"
-        android:layout_width="match_parent"
-        android:layout_height="75dp"
-        android:layout_alignParentBottom="true"
-        android:background="#1E1E1E"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="10dp">
-
-        <ImageView
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:background="@drawable/circle_bg"
-            android:src="@android:drawable/ic_media_play"
-            android:padding="10dp"/>
-
-        <ImageView
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:layout_marginStart="10dp"
-            android:background="@drawable/circle_bg"
-            android:src="@android:drawable/ic_input_add"
-            android:padding="10dp"/>
-
-        <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1"/>
-
-        <ImageView
-            android:layout_width="65dp"
-            android:layout_height="65dp"
-            android:background="@drawable/circle_gold"
-            android:src="@android:drawable/ic_btn_speak_now"
-            android:padding="15dp"/>
-
-        <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1"/>
-
-        <ImageView
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:background="@drawable/circle_bg"
-            android:src="@android:drawable/ic_dialog_email"
-            android:padding="10dp"/>
-
-        <ImageView
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:layout_marginStart="10dp"
-            android:background="@drawable/circle_bg"
-            android:src="@android:drawable/ic_menu_share"
-            android:padding="10dp"/>
-
-    </LinearLayout>
-
-</RelativeLayout>
+</LinearLayout>
