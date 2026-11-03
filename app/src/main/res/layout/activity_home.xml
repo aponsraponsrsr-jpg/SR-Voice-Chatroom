@@ -1,22 +1,78 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="#0D0D12">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0D0D12">
 
-<!-- TOP TABS - Mine / Hot / Discover -->
-<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="12dp" android:gravity="center_vertical">
-<TextView android:id="@+id/tabMine" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Mine" android:textColor="#FFD700" android:textSize="18sp" android:textStyle="bold" android:gravity="center"/>
-<TextView android:id="@+id/tabHot" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Popular" android:textColor="#888888" android:textSize="16sp" android:gravity="center"/>
-<TextView android:id="@+id/tabDiscover" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Discover" android:textColor="#888888" android:textSize="16sp" android:gravity="center"/>
-</LinearLayout>
+    <!-- TOP TABS Mine / Popular / Discover - তুমি যেটা বলেছো -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp">
 
-<!-- ROOM GRID -->
-<androidx.recyclerview.widget.RecyclerView android:id="@+id/recyclerView" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:padding="8dp"/>
+        <TextView
+            android:id="@+id/tabMine"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Mine"
+            android:textColor="#FFD700"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:gravity="center"/>
 
-<!-- BOTTOM NAV -->
-<LinearLayout android:layout_width="match_parent" android:layout_height="60dp" android:orientation="horizontal" android:background="#1A1A22">
-<TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Home" android:gravity="center" android:textColor="#FFD700"/>
-<TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Inbox" android:gravity="center" android:textColor="#888"/>
-<TextView android:id="@+id/btnCreateMyRoom" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="+" android:textSize="28sp" android:gravity="center" android:textColor="#FFD700" android:background="#2A2A35"/>
-<TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Event" android:gravity="center" android:textColor="#888"/>
-<TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Me" android:gravity="center" android:textColor="#888"/>
-</LinearLayout>
+        <TextView
+            android:id="@+id/tabHot"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Popular"
+            android:textColor="#888888"
+            android:textSize="16sp"
+            android:gravity="center"/>
+
+        <TextView
+            android:id="@+id/tabDiscover"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Discover"
+            android:textColor="#888888"
+            android:textSize="16sp"
+            android:gravity="center"/>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvUserId"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="ID: 100254789"
+        android:textColor="#888888"
+        android:paddingStart="16dp"
+        android:paddingBottom="8dp"
+        android:textSize="12sp"/>
+
+    <!-- তোমার rvRooms -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvRooms"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="8dp"
+        android:clipToPadding="false"/>
+
+    <!-- তোমার fabCreateRoom - এটাই Create My Room -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabCreateRoom"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:layout_margin="16dp"
+        android:src="@android:drawable/ic_input_add"
+        app:tint="@android:color/white"
+        app:backgroundTint="#FFD700"/>
+
 </LinearLayout>
