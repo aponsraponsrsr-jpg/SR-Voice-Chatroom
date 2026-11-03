@@ -1,110 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#121212">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="#0D0D12">
 
-    <!-- উপরের বার - তোমার ফটোর মতো -->
-    <LinearLayout
-        android:id="@+id/topBar"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_alignParentTop="true"
-        android:background="#1F1F2E"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="16dp">
+<!-- TOP TABS - Mine / Hot / Discover -->
+<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:padding="12dp" android:gravity="center_vertical">
+<TextView android:id="@+id/tabMine" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Mine" android:textColor="#FFD700" android:textSize="18sp" android:textStyle="bold" android:gravity="center"/>
+<TextView android:id="@+id/tabHot" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Popular" android:textColor="#888888" android:textSize="16sp" android:gravity="center"/>
+<TextView android:id="@+id/tabDiscover" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Discover" android:textColor="#888888" android:textSize="16sp" android:gravity="center"/>
+</LinearLayout>
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content"
-            android:text="SR Voice Chat"
-            android:textColor="#FF2E7E"
-            android:textSize="20sp"
-            android:textStyle="bold"/>
+<!-- ROOM GRID -->
+<androidx.recyclerview.widget.RecyclerView android:id="@+id/recyclerView" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:padding="8dp"/>
 
-        <TextView
-            android:id="@+id/tvUserId"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="ID: 100254789"
-            android:textColor="#FFFFFF"
-            android:background="#3A3A5C"
-            android:paddingLeft="12dp"
-            android:paddingRight="12dp"
-            android:paddingTop="6dp"
-            android:paddingBottom="6dp"/>
-    </LinearLayout>
-
-    <!-- মাঝখানে রুম লিস্ট - তোমার Java এটা খুঁজছে -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvRooms"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/topBar"
-        android:layout_above="@id/bottomBar"
-        android:padding="8dp"/>
-
-    <!-- + বাটন - তোমার Java এটা খুঁজছে -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabCreateRoom"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentEnd="true"
-        android:layout_above="@id/bottomBar"
-        android:layout_margin="16dp"
-        android:src="@android:drawable/ic_input_add"
-        android:contentDescription="Create Room"/>
-
-    <!-- নিচে ৪ টা আইকন - তুমি যেটা চেয়েছো -->
-    <LinearLayout
-        android:id="@+id/bottomBar"
-        android:layout_width="match_parent"
-        android:layout_height="70dp"
-        android:layout_alignParentBottom="true"
-        android:background="#1F1F2E"
-        android:orientation="horizontal">
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:gravity="center">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🏠" android:textSize="22sp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Home" android:textColor="#FF2E7E" android:textSize="12sp" android:textStyle="bold"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:gravity="center">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔍" android:textSize="22sp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Explore" android:textColor="#888888" android:textSize="12sp"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:gravity="center">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💬" android:textSize="22sp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Message" android:textColor="#888888" android:textSize="12sp"/>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:gravity="center">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👤" android:textSize="22sp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Profile" android:textColor="#888888" android:textSize="12sp"/>
-        </LinearLayout>
-    </LinearLayout>
-
-</RelativeLayout>
+<!-- BOTTOM NAV -->
+<LinearLayout android:layout_width="match_parent" android:layout_height="60dp" android:orientation="horizontal" android:background="#1A1A22">
+<TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Home" android:gravity="center" android:textColor="#FFD700"/>
+<TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Inbox" android:gravity="center" android:textColor="#888"/>
+<TextView android:id="@+id/btnCreateMyRoom" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="+" android:textSize="28sp" android:gravity="center" android:textColor="#FFD700" android:background="#2A2A35"/>
+<TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Event" android:gravity="center" android:textColor="#888"/>
+<TextView android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:text="Me" android:gravity="center" android:textColor="#888"/>
+</LinearLayout>
+</LinearLayout>
