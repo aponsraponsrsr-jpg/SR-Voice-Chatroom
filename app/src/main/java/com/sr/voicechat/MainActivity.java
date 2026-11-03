@@ -1,4 +1,4 @@
-package com.sr.voice.chat;
+package com.sr.voicechat;
 
 import android.app.Dialog;
 import android.graphics.Color;
@@ -28,17 +28,8 @@ public class MainActivity extends AppCompatActivity {
         
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
-
-        // তোমার আগের বাটন গুলো এখানে থাকবে
-        // Example: findViewById(R.id.btnCreateRoom).setOnClickListener(v -> showCreateRoomDialog());
-        
-        // টেস্ট করার জন্য সরাসরি ডায়লগ খুলবে
-        if(mAuth.getCurrentUser() != null){
-             // চাইলে এখান থেকে কল করতে পারো
-        }
     }
 
-    // ===== FINAL CREATE ROOM DIALOG - Room Name + Profile Pic + Gender + Announcement - Mandatory & Permanent =====
     private void showCreateRoomDialog() {
         Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.dialog_create_room);
@@ -57,8 +48,6 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
         String uid = mAuth.getCurrentUser().getUid();
-
-        ivProfile.setOnClickListener(v -> Toast.makeText(this, "Profile Picker - Next update will add image upload", Toast.LENGTH_SHORT).show());
 
         btnSaveRoom.setOnClickListener(v -> {
             String name = etRoomName.getText().toString().trim();
