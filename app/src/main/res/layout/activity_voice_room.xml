@@ -1,128 +1,259 @@
-package com.sr.voicechat;
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/voice_room_bg">
 
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.Toast;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
+    <!-- Top Bar: Room Title, VIP Tag & Power Button -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:gravity="center_vertical"
+        android:background="#22000000">
 
-public class VoiceRoomActivity extends AppCompatActivity {
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-    private ImageButton btnPower;
-    private EditText etMessageInput;
-    private Button btnSendMsg, btnMicToggle, btnChatOption, btnGiftBox, btnGameBox;
-    private boolean isMuted = false;
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🌟 SR Official Voice Room 🌟"
+                android:textColor="#FFFFFF"
+                android:textSize="16sp"
+                android:textStyle="bold" />
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_voice_room);
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ID: 777888 | 👑 VIP Room"
+                android:textColor="#FFD700"
+                android:textSize="12sp" />
+        </LinearLayout>
 
-        // ১. পাওয়ার / এক্সিট বাটন
-        btnPower = findViewById(R.id.btnPower);
-        if (btnPower != null) {
-            btnPower.setOnClickListener(v -> {
-                CharSequence[] options = {"Minimize", "Exit Room"};
-                AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-                builder.setTitle("Room Options");
-                builder.setItems(options, (dialog, which) -> {
-                    if (which == 0) {
-                        moveTaskToBack(true);
-                    } else {
-                        finish();
-                    }
-                });
-                builder.show();
-            });
-        }
+        <!-- Power / Exit Button -->
+        <ImageButton
+            android:id="@+id/btnPower"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_lock_power_off"
+            android:tint="#FF4081"
+            android:contentDescription="Power Button" />
+    </LinearLayout>
 
-        // ২. ১০টি সিটে ক্লিক করার লজিক (Host এবং ১ থেকে ১০ সিট)
-        setupSeatClicks();
+    <!-- Notice Bar -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="📢 Notice: এসআর ভয়েস চ্যাটরুমে সবাইকে স্বাগতম! কেউ কাউকে অশ্লীল গালিগালাজ করবেন না।"
+        android:textColor="#FFEB3B"
+        android:textSize="12sp"
+        android:padding="8dp"
+        android:background="#44000000"
+        android:layout_margin="8dp"
+        android:maxLines="1"
+        android:ellipsize="end"/>
 
-        // ৩. নিচের বাটনগুলো (MIC, CHAT, GIFT, GAME) সচল করা
-        btnMicToggle = findViewById(R.id.btnMicToggle);
-        if (btnMicToggle != null) {
-            btnMicToggle.setOnClickListener(v -> {
-                isMuted = !isMuted;
-                if (isMuted) {
-                    btnMicToggle.setText("🔇 Muted");
-                    Toast.makeText(this, "Mic Muted", Toast.LENGTH_SHORT).show();
-                } else {
-                    btnMicToggle.setText("🎙️ Mic");
-                    Toast.makeText(this, "Mic Unmuted", Toast.LENGTH_SHORT).show();
-                }
-            });
-        }
+    <!-- 10 Voice Seats Grid Container (উপরে ৫টি, নিচে ৫টি মোট ১০টি গোল সিট) -->
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:columnCount="5"
+        android:padding="4dp"
+        android:alignmentMode="alignMargins"
+        android:columnOrderPreserved="false"
+        android:gravity="center">
 
-        btnChatOption = findViewById(R.id.btnChatOption);
-        if (btnChatOption != null) {
-            btnChatOption.setOnClickListener(v -> {
-                CharSequence[] chatTypes = {"All Chat", "Room Notice", "Private Chat"};
-                AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-                builder.setTitle("💬 Chat Options");
-                builder.setItems(chatTypes, (dialog, which) -> {
-                    Toast.makeText(this, "Selected: " + chatTypes[which], Toast.LENGTH_SHORT).show();
-                });
-                builder.show();
-            });
-        }
+        <!-- Seat 1: Host (Active) -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat1" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_active"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Host" android:textColor="#00E676" android:textSize="10sp" android:textStyle="bold" android:layout_marginTop="2dp"/>
+        </LinearLayout>
 
-        btnGiftBox = findViewById(R.id.btnGiftBox);
-        if (btnGiftBox != null) {
-            btnGiftBox.setOnClickListener(v -> {
-                CharSequence[] gifts = {"🌹 Rose (10 Coins)", "👑 Crown (500 Coins)", "💎 Diamond (1000 Coins)"};
-                AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-                builder.setTitle("🎁 Send Gift to Room");
-                builder.setItems(gifts, (dialog, which) -> {
-                    Toast.makeText(this, "Successfully Sent Gift!", Toast.LENGTH_SHORT).show();
-                });
-                builder.show();
-            });
-        }
+        <!-- Seat 2 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat2" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
+        </LinearLayout>
 
-        btnGameBox = findViewById(R.id.btnGameBox);
-        if (btnGameBox != null) {
-            btnGameBox.setOnClickListener(v -> {
-                CharSequence[] games = {"🎮 Ludo Game", "🎯 Lucky Wheel", "🎲 Dice Battle"};
-                AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-                builder.setTitle("🎮 Voice Room Games");
-                builder.setItems(games, (dialog, which) -> {
-                    Toast.makeText(this, "Starting " + games[which] + "...", Toast.LENGTH_SHORT).show();
-                });
-                builder.show();
-            });
-        }
-    }
+        <!-- Seat 3 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat3" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
+        </LinearLayout>
 
-    // ১০টি সিটে ক্লিক করলে মাইকে বসার ডায়ালগ আসার মেথড
-    private void setupSeatClicks() {
-        int[] seatIds = {
-            R.id.seat1, R.id.seat2, R.id.seat3, R.id.seat4, R.id.seat5,
-            R.id.seat6, R.id.seat7, R.id.seat8, R.id.seat9, R.id.seat10
-        };
+        <!-- Seat 4 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat4" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="4" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
+        </LinearLayout>
 
-        View.OnClickListener seatClickListener = v -> {
-            CharSequence[] micOptions = {"Take Mic", "Leave Mic"};
-            AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-            builder.setTitle("Voice Seat Options");
-            builder.setItems(micOptions, (dialog, which) -> {
-                if (which == 0) {
-                    Toast.makeText(VoiceRoomActivity.this, "Successfully taken the mic!", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(VoiceRoomActivity.this, "Left the mic.", Toast.LENGTH_SHORT).show();
-                }
-            });
-            builder.show();
-        };
+        <!-- Seat 5 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat5" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
+        </LinearLayout>
 
-        for (int id : seatIds) {
-            View seatView = findViewById(id);
-            if (seatView != null) {
-                seatView.setOnClickListener(seatClickListener);
-            }
-        }
-    }
-}
+        <!-- Seat 6 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat6" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="6" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
+        </LinearLayout>
+
+        <!-- Seat 7 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat7" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="7" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
+        </LinearLayout>
+
+        <!-- Seat 8 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat8" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="8" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
+        </LinearLayout>
+
+        <!-- Seat 9 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat9" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="9" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
+        </LinearLayout>
+
+        <!-- Seat 10: Locked -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_margin="3dp">
+            <View android:id="@+id/seat10" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_locked"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="10" android:textColor="#FF5252" android:textSize="10sp" android:layout_marginTop="2dp"/>
+        </LinearLayout>
+
+    </GridLayout>
+
+    <!-- Bottom Action Bar (চারটি প্রিমিয়াম বাটন: মাইক, চ্যাট, গিফট, গেম) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="65dp"
+        android:orientation="horizontal"
+        android:background="#22000000"
+        android:gravity="center"
+        android:paddingHorizontal="8dp">
+
+        <!-- ১. মাইক মিউট/আনমিউট -->
+        <Button
+            android:id="@+id/btnMicToggle"
+            android:layout_width="0dp"
+            android:layout_height="42dp"
+            android:layout_weight="1"
+            android:text="🎙️ Mic"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:backgroundTint="#00E676"
+            android:layout_marginHorizontal="4dp"
+            android:textStyle="bold"/>
+
+        <!-- ২. এসএমএস / চ্যাট -->
+        <Button
+            android:id="@+id/btnChatOption"
+            android:layout_width="0dp"
+            android:layout_height="42dp"
+            android:layout_weight="1"
+            android:text="💬 Chat"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:backgroundTint="#333333"
+            android:layout_marginHorizontal="4dp"
+            android:textStyle="bold"/>
+
+        <!-- ৩. গিফট বক্স -->
+        <Button
+            android:id="@+id/btnGiftBox"
+            android:layout_width="0dp"
+            android:layout_height="42dp"
+            android:layout_weight="1"
+            android:text="🎁 Gift"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:backgroundTint="#FFD700"
+            android:layout_marginHorizontal="4dp"
+            android:textStyle="bold"/>
+
+        <!-- ৪. গেম বক্স -->
+        <Button
+            android:id="@+id/btnGameBox"
+            android:layout_width="0dp"
+            android:layout_height="42dp"
+            android:layout_weight="1"
+            android:text="🎮 Game"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:backgroundTint="#00E5FF"
+            android:layout_marginHorizontal="4dp"
+            android:textStyle="bold"/>
+
+    </LinearLayout>
+
+</LinearLayout>
