@@ -5,7 +5,7 @@
     android:orientation="vertical"
     android:background="@drawable/voice_room_bg">
 
-    <!-- Top Bar: Room Title, VIP Tag & Power Button (ডাবল নাম বাদ দিয়ে শুধু রুম ইনফো রাখা হয়েছে) -->
+    <!-- Top Bar: Room Title, VIP Tag & Power Button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -193,58 +193,66 @@
 
     </GridLayout>
 
-    <!-- Bottom Action Bar (চারটি আইকন: মাইক মিউট, এসএমএস, গিফট বক্স, গেম বক্স) -->
+    <!-- Bottom Action Bar (চারটি প্রিমিয়াম বাটন: মাইক, এসএমএস, গিফট বক্স, গেম বক্স) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="65dp"
         android:orientation="horizontal"
         android:background="#22000000"
         android:gravity="center"
-        android:paddingHorizontal="12dp">
+        android:paddingHorizontal="8dp">
 
-        <!-- ১. মাইক মিউট/আনমিউট অপশন -->
-        <ImageButton
+        <!-- ১. মাইক মিউট/আনমিউট -->
+        <Button
             android:id="@+id/btnMicToggle"
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_mic"
-            android:tint="#00E676"
-            android:layout_marginHorizontal="10dp"
-            android:contentDescription="Mic Mute Toggle" />
+            android:layout_width="0dp"
+            android:layout_height="42dp"
+            android:layout_weight="1"
+            android:text="🎙️ Mic"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:backgroundTint="#00E676"
+            android:layout_marginHorizontal="4dp"
+            android:textStyle="bold"/>
 
-        <!-- ২. এসএমএস / চ্যাট অপশন -->
-        <ImageButton
+        <!-- ২. এসএমএস / চ্যাট -->
+        <Button
             android:id="@+id/btnChatOption"
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_dialog_email"
-            android:tint="#FFFFFF"
-            android:layout_marginHorizontal="10dp"
-            android:contentDescription="SMS Chat Option" />
+            android:layout_width="0dp"
+            android:layout_height="42dp"
+            android:layout_weight="1"
+            android:text="💬 Chat"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:backgroundTint="#333333"
+            android:layout_marginHorizontal="4dp"
+            android:textStyle="bold"/>
 
-        <!-- ৩. গিফট বক্স আইকন -->
-        <ImageButton
+        <!-- ৩. গিফট বক্স -->
+        <Button
             android:id="@+id/btnGiftBox"
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_award"
-            android:tint="#FFD700"
-            android:layout_marginHorizontal="10dp"
-            android:contentDescription="Gift Box Icon" />
+            android:layout_width="0dp"
+            android:layout_height="42dp"
+            android:layout_weight="1"
+            android:text="🎁 Gift"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:backgroundTint="#FFD700"
+            android:layout_marginHorizontal="4dp"
+            android:textStyle="bold"/>
 
-        <!-- ৪. গেম বক্স আইকন -->
-        <ImageButton
+        <!-- ৪. গেম বক্স -->
+        <Button
             android:id="@+id/btnGameBox"
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_manage"
-            android:tint="#00E5FF"
-            android:layout_marginHorizontal="10dp"
-            android:contentDescription="Game Box Icon" />
+            android:layout_width="0dp"
+            android:layout_height="42dp"
+            android:layout_weight="1"
+            android:text="🎮 Game"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:backgroundTint="#00E5FF"
+            android:layout_marginHorizontal="4dp"
+            android:textStyle="bold"/>
 
     </LinearLayout>
 
