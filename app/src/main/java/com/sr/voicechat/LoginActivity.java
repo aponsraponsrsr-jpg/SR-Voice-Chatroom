@@ -1,56 +1,45 @@
-package com.sr.voicechat;
+package com.srvoicechatroom;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity {
-
-    GoogleSignInClient mGoogleSignInClient;
-    int RC_SIGN_IN = 100;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        
+        mAuth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        SharedPreferences prefs = getSharedPreferences("SRVoice", MODE_PRIVATE);
+        boolean isProfileSaved = prefs.getBoolean("isProfileSaved", false);
 
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .build();
-
-        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
-
-        findViewById(R.id.btnGoogleSignIn).setOnClickListener(v -> signIn());
-    }
-
-    private void signIn() {
-        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == RC_SIGN_IN) {
-            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            try {
-                GoogleSignInAccount account = task.getResult(ApiException.class);
-                // Gmail Success -> Go to Profile Setup
-                Intent intent = new Intent(LoginActivity.this, EditProfileActivity.class);
-                intent.putExtra("gmail", account.getEmail());
-                intent.putExtra("gmailName", account.getDisplayName());
-                startActivity(intent);
-                finish();
-            } catch (ApiException e) {
-                Toast.makeText(this, "Gmail SignIn Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
+        // Permanent System
+        if (currentUser != null && isProfileSaved) {
+            // পুরাতন User - সোজা Home এ যাবে
+            startActivity(new Intent(this, HomeActivity.class));
+            finish();
+            return;
+        } else if (currentUser != null) {
+            // Gmail Login আছে কিন্তু Profile Save করে নাই
+            startActivity(new Intent(this, EditProfileActivity.class));
+            finish();
+            return;
         }
+
+        // নতুন User - Login Page দেখবে
+        setContentView(R.layout.activity_login);
+        
+        findViewById(R.id.btnGoogleSignIn).setOnClickListener(v -> {
+            // তোমার আগের Google Sign In কোড এখানে থাকবে
+            // Sign In Success হলে EditProfile এ যাবে
+            startActivity(new Intent(this, EditProfileActivity.class));
+            finish();
+        });
     }
 }
