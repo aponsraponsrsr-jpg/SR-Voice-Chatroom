@@ -3,13 +3,12 @@ package com.sr.voicechat;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import java.util.HashMap;
@@ -17,83 +16,94 @@ import java.util.Map;
 
 public class ChatRoomActivity extends AppCompatActivity {
 
-    private FirebaseFirestore db;
-    private FirebaseAuth mAuth;
-    private String roomId;
-    private LinearLayout chatContainer;
+    private TextView tvChatMyId;
+    private RecyclerView recyclerChat;
     private EditText etMessage;
+    private Button btnSend;
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private String roomId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_chat_room);
 
-        db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+        tvChatMyId = findViewById(R.id.tvChatMyId);
+        recyclerChat = findViewById(R.id.recyclerChat);
+        etMessage = findViewById(R.id.etMessage);
+        btnSend = findViewById(R.id.btnSend);
+
         roomId = getIntent().getStringExtra("roomId");
-        if (roomId == null) roomId = "global_room";
+        if (roomId == null) roomId = "global_chat";
 
-        // Create UI without R.id - 100% No Error
-        LinearLayout main = new LinearLayout(this);
-        main.setOrientation(LinearLayout.VERTICAL);
-        main.setPadding(20, 20, 20, 20);
+        if (recyclerChat != null) {
+            recyclerChat.setLayoutManager(new LinearLayoutManager(this));
+        }
 
-        TextView title = new TextView(this);
-        title.setText("Room: " + roomId + " - Heavy Global Chat");
-        title.setTextSize(18);
-        main.addView(title);
+        loadMyId();
+        loadMessages();
 
-        ScrollView scroll = new ScrollView(this);
-        chatContainer = new LinearLayout(this);
-        chatContainer.setOrientation(LinearLayout.VERTICAL);
-        scroll.addView(chatContainer);
-        LinearLayout.LayoutParams scrollParams = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f);
-        main.addView(scroll, scrollParams);
+        if (btnSend != null) {
+            btnSend.setOnClickListener(v -> sendMessage());
+        }
+    }
 
-        LinearLayout inputRow = new LinearLayout(this);
-        inputRow.setOrientation(LinearLayout.HORIZONTAL);
-        etMessage = new EditText(this);
-        etMessage.setHint("Type message...");
-        LinearLayout.LayoutParams etParams = new LinearLayout.LayoutParams(0,
-                LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
-        inputRow.addView(etMessage, etParams);
-        Button btnSend = new Button(this);
-        btnSend.setText("Send");
-        inputRow.addView(btnSend);
-        main.addView(inputRow);
+    private void loadMyId() {
+        if (mAuth.getCurrentUser() == null || tvChatMyId == null) return;
+        String uid = mAuth.getCurrentUser().getUid();
 
-        setContentView(main);
+        db.collection("users").document(uid).get().addOnSuccessListener(doc -> {
+            if (doc.exists()) {
+                Long displayId = doc.getLong("displayId");
+                Boolean isShort = doc.getBoolean("isShortId");
+                Long shortId = doc.getLong("shortId");
+                
+                if (isShort != null && isShort && shortId != null) {
+                    tvChatMyId.setText("My ID: " + shortId + " [VIP] - Chat");
+                } else if (displayId != null) {
+                    tvChatMyId.setText("My ID: " + displayId);
+                }
+            }
+        });
+    }
 
-        // HEAVY GLOBAL LISTENER - Firestore
-        db.collection("rooms").document(roomId).collection("messages")
+    private void loadMessages() {
+        // Heavy Chat Loading - Firestore Real-time
+        db.collection("chats").document(roomId).collection("messages")
                 .orderBy("timestamp", Query.Direction.ASCENDING)
                 .addSnapshotListener((value, error) -> {
                     if (error != null) return;
-                    if (value != null) {
-                        chatContainer.removeAllViews();
-                        for (DocumentSnapshot doc : value.getDocuments()) {
-                            Map<String, Object> data = doc.getData();
-                            if (data == null) continue;
-                            String name = data.get("name") != null ? data.get("name").toString() : "User";
-                            String text = data.get("text") != null ? data.get("text").toString() : "";
-                            TextView tv = new TextView(this);
-                            tv.setText(name + ": " + text);
-                            tv.setPadding(10, 10, 10, 10);
-                            chatContainer.addView(tv);
-                        }
-                    }
+                    // Adapter will be added later - For now just listening
                 });
+    }
 
-        btnSend.setOnClickListener(v -> {
-            String text = etMessage.getText().toString().trim();
-            if (text.isEmpty() || mAuth.getCurrentUser() == null) return;
-            Map<String, Object> msg = new HashMap<>();
-            msg.put("text", text);
-            msg.put("uid", mAuth.getCurrentUser().getUid());
-            msg.put("name", mAuth.getCurrentUser().getDisplayName() != null ? mAuth.getCurrentUser().getDisplayName() : "User");
-            msg.put("timestamp", System.currentTimeMillis());
-            db.collection("rooms").document(roomId).collection("messages").add(msg);
-            etMessage.setText("");
+    private void sendMessage() {
+        if (etMessage == null) return;
+        String msg = etMessage.getText().toString().trim();
+        if (msg.isEmpty()) return;
+        if (mAuth.getCurrentUser() == null) return;
+
+        String uid = mAuth.getCurrentUser().getUid();
+
+        db.collection("users").document(uid).get().addOnSuccessListener(userDoc -> {
+            Long displayId = userDoc.getLong("displayId");
+            if (displayId == null) displayId = userDoc.getLong("nineDigitId");
+            if (displayId == null) displayId = 100000000L;
+
+            Map<String, Object> chatData = new HashMap<>();
+            chatData.put("uid", uid);
+            chatData.put("senderId", displayId); // 9 Digit ID দিয়েই Chat যাবে - Permanent
+            chatData.put("message", msg);
+            chatData.put("timestamp", System.currentTimeMillis());
+            chatData.put("name", userDoc.getString("name"));
+
+            db.collection("chats").document(roomId).collection("messages").add(chatData)
+                    .addOnSuccessListener(a -> etMessage.setText(""))
+                    .addOnFailureListener(e -> Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
         });
     }
 }
