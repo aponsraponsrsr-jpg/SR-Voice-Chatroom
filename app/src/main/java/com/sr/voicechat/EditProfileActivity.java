@@ -1,165 +1,137 @@
-package com.sr.voicechat;
+package com.srvoicechatroom; // তোমার package নামটা যদি অন্য হয়, এটা চেঞ্জ করো না, আগেরটাই রাখো
 
 import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Base64;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
-import java.io.ByteArrayOutputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Random;
+import java.security.SecureRandom;
 
 public class EditProfileActivity extends AppCompatActivity {
-    EditText etGroupName, etAnnouncement;
-    RadioGroup rgGender;
-    Button btnSave;
-    ImageView ivProfile;
-    FirebaseFirestore db;
-    FirebaseAuth auth;
-    String base64Image = "";
-    int PICK_IMAGE = 100;
-    private static final int STORAGE_PERMISSION_CODE = 101;
+
+    private ImageView imgProfile;
+    private EditText etName, etBio;
+    private TextView tvIdShow;
+    private Uri selectedUri;
+    private SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_edit_profile);
+        setContentView(R.layout.activity_edit_profile); // তোমার xml এর নাম
 
-        etGroupName = findViewById(R.id.etGroupName);
-        etAnnouncement = findViewById(R.id.etAnnouncement);
-        rgGender = findViewById(R.id.rgGender);
-        btnSave = findViewById(R.id.btnSave);
-        ivProfile = findViewById(R.id.ivProfile);
-        db = FirebaseFirestore.getInstance();
-        auth = FirebaseAuth.getInstance();
+        prefs = getSharedPreferences("SR_PREF", MODE_PRIVATE);
 
-        // প্রোফাইল পিকচার আইকনে ক্লিক করলে পারমিশন চেক করে গ্যালারি ওপেন হবে
-        ivProfile.setOnClickListener(v -> checkPermissionAndOpenGallery());
+        imgProfile = findViewById(R.id.profileImage); // তোমার xml এ id টা profileImage / imgProfile / ivProfile হতে পারে
+        if (imgProfile == null) imgProfile = findViewById(R.id.imgProfile);
+        if (imgProfile == null) imgProfile = findViewById(R.id.ivProfile);
+        if (imgProfile == null) imgProfile = findViewById(R.id.addProfileImage);
 
-        // সেভ বাটন ক্লিক লিসেনার
-        btnSave.setOnClickListener(v -> {
-            String groupNameStr = etGroupName.getText().toString().trim();
-            String announcementStr = etAnnouncement.getText().toString().trim();
-            
-            if (groupNameStr.isEmpty()) {
-                Toast.makeText(this, "Group Name likhun", Toast.LENGTH_SHORT).show();
+        etName = findViewById(R.id.etName);
+        if (etName == null) etName = findViewById(R.id.nameEdit);
+        if (etName == null) etName = findViewById(R.id.editName);
+
+        etBio = findViewById(R.id.etBio);
+        if (etBio == null) etBio = findViewById(R.id.bioEdit);
+        if (etBio == null) etBio = findViewById(R.id.editBio);
+
+        tvIdShow = findViewById(R.id.tvId);
+        if (tvIdShow == null) tvIdShow = findViewById(R.id.idShowText);
+        if (tvIdShow == null) tvIdShow = findViewById(R.id.txtId);
+
+        Button btnConfirm = findViewById(R.id.btnConfirm);
+        if (btnConfirm == null) btnConfirm = findViewById(R.id.confirmBtn);
+        if (btnConfirm == null) btnConfirm = findViewById(R.id.btnSave);
+
+        // 1. অটো 8 Digit Mix ID - যেমন 78294105, 77381902
+        String myId = prefs.getString("my_id", null);
+        if (myId == null) {
+            myId = generateMixId();
+            prefs.edit().putString("my_id", myId).apply();
+        }
+        if (tvIdShow != null) tvIdShow.setText("ID: " + myId);
+
+        // আগের নাম থাকলে দেখাবে
+        if (etName != null) etName.setText(prefs.getString("my_name", ""));
+        if (etBio != null) etBio.setText(prefs.getString("my_bio", ""));
+
+        // 2. ফটোতে ট্যাপ করলেই গ্যালারি খুলবে
+        if (imgProfile != null) {
+            imgProfile.setOnClickListener(v -> openGallery());
+        }
+
+        // 3. Confirm করলে Permanent Save - আর কখনো Edit করতে হবে না
+        String finalMyId = myId;
+        btnConfirm.setOnClickListener(v -> {
+            String name = etName != null ? etName.getText().toString().trim() : "User";
+            String bio = etBio != null ? etBio.getText().toString().trim() : "";
+
+            if (name.isEmpty()) {
+                Toast.makeText(this, "Name লিখো বন্ধু", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            final String finalAnnouncement = announcementStr.isEmpty() ? "welcome" : announcementStr;
-            final String finalGroupName = groupNameStr;
+            prefs.edit()
+                .putString("my_name", name)
+                .putString("my_bio", bio)
+                .putString("my_id", finalMyId)
+                .putString("my_image", selectedUri != null ? selectedUri.toString() : prefs.getString("my_image", ""))
+                .putBoolean("profile_created", true)
+                .apply();
 
-            String gender = "Male";
-            int id = rgGender.getCheckedRadioButtonId();
-            if (id == R.id.rbFemale) gender = "Female";
-
-            if (auth.getCurrentUser() == null) return;
-            String uid = auth.getCurrentUser().getUid();
-
-            // র্যান্ডম ৯ ডিজিট ইউনিক আইডি জেনারেট করা
-            int randomId = 100000000 + new Random().nextInt(900000000);
-
-            Map<String, Object> user = new HashMap<>();
-            user.put("uid", uid);
-            user.put("name", finalGroupName);
-            user.put("groupName", finalGroupName);
-            user.put("announcement", finalAnnouncement);
-            user.put("gender", gender);
-            user.put("email", auth.getCurrentUser().getEmail());
-            user.put("photoUrl", base64Image);
-            user.put("userId", String.valueOf(randomId));
-
-            db.collection("users").document(uid).set(user)
-                    .addOnSuccessListener(aVoid -> {
-                        SharedPreferences prefs = getSharedPreferences("SR_APP", MODE_PRIVATE);
-                        SharedPreferences.Editor editor = prefs.edit();
-                        editor.putBoolean("IS_LOGGED_IN", true);
-                        editor.putString("USER_ID", String.valueOf(randomId));
-                        editor.apply();
-
-                        Toast.makeText(this, "Profile Saved Successfully!", Toast.LENGTH_SHORT).show();
-                        Intent intent2 = new Intent(EditProfileActivity.this, VoiceRoomActivity.class);
-                        intent2.putExtra("groupName", finalGroupName);
-                        intent2.putExtra("announcement", finalAnnouncement);
-                        startActivity(intent2);
-                        finish();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    });
+            Toast.makeText(this, "Saved! ID: " + finalMyId, Toast.LENGTH_SHORT).show();
+            // Home এ যাবে
+            startActivity(new Intent(this, MainActivity.class));
+            finish();
         });
     }
 
-    // গ্যালারি পারমিশন চেক করার মেথড
-    private void checkPermissionAndOpenGallery() {
-        String permission;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            permission = Manifest.permission.READ_MEDIA_IMAGES;
-        } else {
-            permission = Manifest.permission.READ_EXTERNAL_STORAGE;
+    private void openGallery() {
+        if (Build.VERSION.SDK_INT >= 33) {
+            if (checkSelfPermission(Manifest.permission.READ_MEDIA_IMAGES) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{Manifest.permission.READ_MEDIA_IMAGES}, 101);
+                return;
+            }
         }
-
-        if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED) {
-            openGallery();
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{permission}, STORAGE_PERMISSION_CODE);
-        }
+        Intent i = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(i, 102);
     }
 
-    // গ্যালারি ওপেন করার ইনটেন্ট
-    private void openGallery() {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, "Select Image"), PICK_IMAGE);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 102 && resultCode == RESULT_OK && data != null) {
+            selectedUri = data.getData();
+            if (imgProfile != null) imgProfile.setImageURI(selectedUri);
+        }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == STORAGE_PERMISSION_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                openGallery();
-            } else {
-                Toast.makeText(this, "Gallery Permission Denied!", Toast.LENGTH_SHORT).show();
-            }
+        if (requestCode == 101 && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            openGallery();
         }
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            Uri uri = data.getData();
-            try {
-                Bitmap original = MediaStore.Images.Media.getBitmap(getContentResolver(), uri);
-                Bitmap resized = Bitmap.createScaledBitmap(original, 500, 500, true);
-                ivProfile.setImageBitmap(resized);
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                resized.compress(Bitmap.CompressFormat.JPEG, 40, baos);
-                byte[] bytes = baos.toByteArray();
-                base64Image = Base64.encodeToString(bytes, Base64.DEFAULT);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+    private String generateMixId() {
+        SecureRandom r = new SecureRandom();
+        StringBuilder sb = new StringBuilder();
+        sb.append(1 + r.nextInt(9)); // প্রথম digit 0 না
+        for (int i = 1; i < 8; i++) sb.append(r.nextInt(10));
+        String id = sb.toString();
+        // সব digit একই হলে আবার বানাবে - যেমন 77777777 হবে না
+        if (id.matches("^(.)\\1+$")) return generateMixId();
+        return id;
     }
 }
