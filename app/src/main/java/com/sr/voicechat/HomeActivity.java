@@ -1,9 +1,9 @@
 package com.sr.voicechat;
 
-import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -32,11 +32,9 @@ public class HomeActivity extends AppCompatActivity {
         tabHot = findViewById(R.id.tabHot);
         tabDiscover = findViewById(R.id.tabDiscover);
 
-        // 2 কলাম গ্রিড - তোমার Beach ডেমোর মতো
         rvRooms.setLayoutManager(new GridLayoutManager(this, 2));
         tvUserId.setText("ID: 100254789");
 
-        // 10 টা রঙিন রুম - Premium Blue Pink Purple
         allRooms = new ArrayList<>();
         allRooms.add(new RoomModel("Bangla Adda ❤️", "125 talking", 0xFFFF2E7E));
         allRooms.add(new RoomModel("Voice Party Night", "98 talking", 0xFF7C4DFF));
@@ -52,34 +50,28 @@ public class HomeActivity extends AppCompatActivity {
         adapter = new RoomAdapter(allRooms);
         rvRooms.setAdapter(adapter);
 
-        // Mine / Hot / Discover - কালার চেঞ্জ
         tabMine.setOnClickListener(v -> {
             tabMine.setTextColor(Color.parseColor("#FFD700"));
             tabHot.setTextColor(Color.parseColor("#888888"));
             tabDiscover.setTextColor(Color.parseColor("#888888"));
-            rvRooms.setAdapter(new RoomAdapter(allRooms)); // Mine = সব রুম
+            rvRooms.setAdapter(new RoomAdapter(allRooms));
         });
 
         tabHot.setOnClickListener(v -> {
             tabHot.setTextColor(Color.parseColor("#FFD700"));
             tabMine.setTextColor(Color.parseColor("#888888"));
             tabDiscover.setTextColor(Color.parseColor("#888888"));
-            // Popular = বেশি talking
-            List<RoomModel> hot = new ArrayList<>();
-            for (RoomModel r : allRooms) if (r.members.contains("342") || r.members.contains("999") || r.members.contains("210")) hot.add(r);
-            rvRooms.setAdapter(new RoomAdapter(hot));
+            Toast.makeText(this, "Popular Rooms", Toast.LENGTH_SHORT).show();
         });
 
         tabDiscover.setOnClickListener(v -> {
             tabDiscover.setTextColor(Color.parseColor("#FFD700"));
             tabMine.setTextColor(Color.parseColor("#888888"));
             tabHot.setTextColor(Color.parseColor("#888888"));
-            rvRooms.setAdapter(new RoomAdapter(allRooms));
         });
 
         fabCreateRoom.setOnClickListener(v -> {
-            // Next Step - Create Room Page - তোমার Mosque Theme সহ
-            startActivity(new Intent(this, CreateRoomActivity.class));
+            Toast.makeText(this, "Next Step: Create Room", Toast.LENGTH_SHORT).show();
         });
     }
 }
