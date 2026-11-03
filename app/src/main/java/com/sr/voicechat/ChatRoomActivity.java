@@ -1,111 +1,103 @@
 package com.sr.voicechat;
 
-import com.sr.voicechat.R;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.GridLayout;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ChatRoomActivity extends AppCompatActivity {
 
-    GridLayout seatGrid;
-    String myUid;
-    DatabaseReference roomRef;
-    String roomId = "room_1";
+    private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
+    private String roomId;
+    private EditText etMessage;
+    private RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat_room);
 
-        seatGrid = findViewById(R.id.seatGrid);
+        db = FirebaseFirestore.getInstance();
+        mAuth = FirebaseAuth.getInstance();
+        roomId = getIntent().getStringExtra("roomId");
 
-        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            myUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        } else {
-            myUid = "guest_" + System.currentTimeMillis();
-        }
+        recyclerView = findViewById(R.id.recyclerChat);
+        etMessage = findViewById(R.id.etMessage);
+        ImageView btnSend = findViewById(R.id.btnSend);
+        TextView tvRoomName = findViewById(R.id.tvRoomName);
 
-        roomRef = FirebaseDatabase.getInstance().getReference("rooms").child(roomId).child("seats");
+        if (roomId != null) tvRoomName.setText("Room: " + roomId);
 
-        loadSeats();
-    }
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        List<Map<String, Object>> messages = new ArrayList<>();
+        // Simple adapter - will show messages
+        ChatAdapter adapter = new ChatAdapter(messages);
+        recyclerView.setAdapter(adapter);
 
-    private void loadSeats() {
-        roomRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                seatGrid.removeAllViews();
-                for (int i = 0; i < 8; i++) {
-                    View seatView = LayoutInflater.from(ChatRoomActivity.this).inflate(R.layout.item_seat, null);
-                    
-                    TextView txtName = seatView.findViewById(R.id.txtSeatName);
-                    ImageView imgAvatar = seatView.findViewById(R.id.imgSeatAvatar);
-
-                    String seatUid = null;
-                    if (snapshot.hasChild(String.valueOf(i))) {
-                        seatUid = snapshot.child(String.valueOf(i)).getValue(String.class);
+        // HEAVY GLOBAL LISTENER - Real time chat
+        db.collection("rooms").document(roomId).collection("messages")
+                .orderBy("timestamp", Query.Direction.ASCENDING)
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) {
+                        Toast.makeText(this, "Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                        return;
                     }
-
-                    if (seatUid != null && !seatUid.isEmpty()) {
-                        txtName.setText("Seat " + (i+1) + " - Joined");
-                    } else {
-                        txtName.setText("Empty Seat " + (i+1));
-                    }
-
-                    int seatIndex = i;
-                    String finalSeatUid = seatUid;
-                    seatView.setOnClickListener(v -> {
-                        if (finalSeatUid == null) {
-                            joinSeat(seatIndex);
-                        } else if (finalSeatUid.equals(myUid)) {
-                            leaveSeat(seatIndex);
-                        } else {
-                            Toast.makeText(ChatRoomActivity.this, "This seat is busy", Toast.LENGTH_SHORT).show();
+                    if (value != null) {
+                        messages.clear();
+                        for (DocumentSnapshot doc : value.getDocuments()) {
+                            messages.add(doc.getData());
                         }
-                    });
+                        adapter.notifyDataSetChanged();
+                        if (messages.size() > 0) recyclerView.scrollToPosition(messages.size() - 1);
+                    }
+                });
 
-                    GridLayout.LayoutParams param = new GridLayout.LayoutParams();
-                    param.width = GridLayout.LayoutParams.WRAP_CONTENT;
-                    param.height = GridLayout.LayoutParams.WRAP_CONTENT;
-                    param.setMargins(15, 15, 15, 15);
-                    seatView.setLayoutParams(param);
-                    
-                    seatGrid.addView(seatView);
-                }
-            }
+        btnSend.setOnClickListener(v -> {
+            String text = etMessage.getText().toString().trim();
+            if (text.isEmpty() || mAuth.getCurrentUser() == null) return;
 
-            @Override
-            public void onCancelled(DatabaseError error) {
-                Toast.makeText(ChatRoomActivity.this, "DB Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
+            Map<String, Object> msg = new HashMap<>();
+            msg.put("text", text);
+            msg.put("uid", mAuth.getCurrentUser().getUid());
+            msg.put("name", mAuth.getCurrentUser().getDisplayName());
+            msg.put("timestamp", System.currentTimeMillis());
+
+            db.collection("rooms").document(roomId).collection("messages").add(msg);
+            etMessage.setText("");
         });
     }
 
-    private void joinSeat(int index) {
-        roomRef.child(String.valueOf(index)).setValue(myUid)
-            .addOnSuccessListener(aVoid -> Toast.makeText(this, "Joined Seat " + (index+1), Toast.LENGTH_SHORT).show());
-    }
-
-    private void leaveSeat(int index) {
-        new AlertDialog.Builder(this)
-                .setTitle("Leave Seat?")
-                .setMessage("Do you want to leave seat " + (index+1) + "?")
-                .setPositiveButton("Yes", (dialog, which) -> {
-                    roomRef.child(String.valueOf(index)).removeValue();
-                })
-                .setNegativeButton("No", null)
-                .show();
+    // Simple inner adapter to avoid other file error
+    static class ChatAdapter extends RecyclerView.Adapter<ChatAdapter.ViewHolder> {
+        List<Map<String, Object>> list;
+        ChatAdapter(List<Map<String, Object>> list) { this.list = list; }
+        @Override
+        public ViewHolder onCreateViewHolder(android.view.ViewGroup parent, int viewType) {
+            TextView tv = new TextView(parent.getContext());
+            tv.setPadding(24, 24, 24, 24);
+            return new ViewHolder(tv);
+        }
+        @Override
+        public void onBindViewHolder(ViewHolder holder, int position) {
+            Map<String, Object> m = list.get(position);
+            ((TextView) holder.itemView).setText(m.get("name") + ": " + m.get("text"));
+        }
+        @Override public int getItemCount() { return list.size(); }
+        static class ViewHolder extends RecyclerView.ViewHolder {
+            ViewHolder(android.view.View itemView) { super(itemView); }
+        }
     }
 }
