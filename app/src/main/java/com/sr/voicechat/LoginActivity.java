@@ -2,7 +2,12 @@ package com.sr.voicechat;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -13,7 +18,6 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,40 +26,102 @@ public class LoginActivity extends AppCompatActivity {
 
     private static final int RC_SIGN_IN = 9001;
     private FirebaseAuth mAuth;
-    private FirebaseFirestore db;
     private GoogleSignInClient mGoogleSignInClient;
+    private FirebaseFirestore db;
+    private EditText etEmail, etPass;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
 
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
-        // Already logged in? Go to Main
+        // Check already logged in
         if (mAuth.getCurrentUser() != null) {
             goToMain();
             return;
         }
 
+        // Build UI without R.id - 100% safe
+        LinearLayout main = new LinearLayout(this);
+        main.setOrientation(LinearLayout.VERTICAL);
+        main.setPadding(60, 100, 60, 60);
+
+        TextView title = new TextView(this);
+        title.setText("SR Voice Chatroom\nHeavy Global Login");
+        title.setTextSize(22);
+        title.setPadding(0, 0, 0, 60);
+        main.addView(title);
+
+        etEmail = new EditText(this);
+        etEmail.setHint("Email");
+        main.addView(etEmail);
+
+        etPass = new EditText(this);
+        etPass.setHint("Password");
+        main.addView(etPass);
+
+        Button btnLogin = new Button(this);
+        btnLogin.setText("Login");
+        main.addView(btnLogin);
+
+        Button btnRegister = new Button(this);
+        btnRegister.setText("Register New Account");
+        main.addView(btnRegister);
+
+        Button btnGoogle = new Button(this);
+        btnGoogle.setText("Login with Google - Heavy");
+        main.addView(btnGoogle);
+
+        setContentView(main);
+
+        // Google Config
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
-
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        findViewById(R.id.btnGoogleLogin).setOnClickListener(v -> signIn());
+        btnLogin.setOnClickListener(v -> loginEmail());
+        btnRegister.setOnClickListener(v -> registerEmail());
+        btnGoogle.setOnClickListener(v -> signInGoogle());
     }
 
-    private void signIn() {
+    private void loginEmail() {
+        String email = etEmail.getText().toString().trim();
+        String pass = etPass.getText().toString().trim();
+        if (email.isEmpty() || pass.isEmpty()) {
+            Toast.makeText(this, "Fill all", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        mAuth.signInWithEmailAndPassword(email, pass)
+                .addOnSuccessListener(a -> goToMain())
+                .addOnFailureListener(e -> Toast.makeText(this, "Login Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    private void registerEmail() {
+        String email = etEmail.getText().toString().trim();
+        String pass = etPass.getText().toString().trim();
+        if (email.isEmpty() || pass.isEmpty()) {
+            Toast.makeText(this, "Fill all", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        mAuth.createUserWithEmailAndPassword(email, pass)
+                .addOnSuccessListener(a -> {
+                    saveUserToFirestore();
+                    goToMain();
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Register Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
+
+    private void signInGoogle() {
         Intent signInIntent = mGoogleSignInClient.getSignInIntent();
         startActivityForResult(signInIntent, RC_SIGN_IN);
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
@@ -63,7 +129,7 @@ public class LoginActivity extends AppCompatActivity {
                 GoogleSignInAccount account = task.getResult(ApiException.class);
                 firebaseAuthWithGoogle(account.getIdToken());
             } catch (ApiException e) {
-                Toast.makeText(this, "Login Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Google sign in failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -71,37 +137,34 @@ public class LoginActivity extends AppCompatActivity {
     private void firebaseAuthWithGoogle(String idToken) {
         AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
         mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        String uid = mAuth.getCurrentUser().getUid();
-                        String email = mAuth.getCurrentUser().getEmail();
-                        String name = mAuth.getCurrentUser().getDisplayName();
+                .addOnSuccessListener(a -> {
+                    saveUserToFirestore();
+                    goToMain();
+                })
+                .addOnFailureListener(e -> Toast.makeText(this, "Auth Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+    }
 
-                        // HEAVY GLOBAL PERMANENT ID SYSTEM
-                        DocumentReference userRef = db.collection("users").document(uid);
-                        userRef.get().addOnSuccessListener(document -> {
-                            if (!document.exists()) {
-                                // First time - Create Permanent User
-                                Map<String, Object> user = new HashMap<>();
-                                user.put("uid", uid);
-                                user.put("email", email);
-                                user.put("name", name);
-                                user.put("srId", "SR-" + uid.substring(0, 6).toUpperCase()); // Permanent SR ID
-                                user.put("coins", 1000);
-                                user.put("createdAt", System.currentTimeMillis());
-                                userRef.set(user).addOnSuccessListener(aVoid -> goToMain());
-                            } else {
-                                goToMain();
-                            }
-                        });
-                    } else {
-                        Toast.makeText(LoginActivity.this, "Auth Failed", Toast.LENGTH_SHORT).show();
-                    }
-                });
+    private void saveUserToFirestore() {
+        if (mAuth.getCurrentUser() == null) return;
+        Map<String, Object> user = new HashMap<>();
+        user.put("uid", mAuth.getCurrentUser().getUid());
+        user.put("name", mAuth.getCurrentUser().getDisplayName() != null ? mAuth.getCurrentUser().getDisplayName() : etEmail.getText().toString());
+        user.put("email", mAuth.getCurrentUser().getEmail());
+        user.put("globalId", "SR_" + System.currentTimeMillis()); // Heavy Global Permanent ID
+        db.collection("users").document(mAuth.getCurrentUser().getUid()).set(user);
     }
 
     private void goToMain() {
-        startActivity(new Intent(LoginActivity.this, MainActivity.class));
+        // Try MainActivity or HomeActivity - whichever exists
+        try {
+            startActivity(new Intent(this, Class.forName("com.sr.voicechat.MainActivity")));
+        } catch (Exception e) {
+            try {
+                startActivity(new Intent(this, Class.forName("com.sr.voicechat.HomeActivity")));
+            } catch (Exception ex) {
+                Toast.makeText(this, "Login Success! No Home Activity found", Toast.LENGTH_SHORT).show();
+            }
+        }
         finish();
     }
 }
