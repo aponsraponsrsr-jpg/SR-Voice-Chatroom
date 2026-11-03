@@ -2,52 +2,89 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212">
+    android:background="#0F0F0F">
 
-    <!-- Top Room Info -->
+    <!-- Top Bar -->
     <LinearLayout
-        android:id="@+id/topLayout"
+        android:id="@+id/topBar"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="55dp"
         android:orientation="horizontal"
-        android:padding="10dp"
-        android:background="#1E1E1E">
+        android:gravity="center_vertical"
+        android:padding="12dp"
+        android:background="#1A1A1A">
 
         <TextView
-            android:id="@+id/tvRoomName"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="ID: 882734"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"/>
+
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="SR Voice Room"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:text="👁 2.1k"
+            android:textColor="#AAAAAA"
+            android:textSize="13sp"/>
     </LinearLayout>
 
-    <!-- Center Seats - 8 Seats -->
+    <!-- 8 Seats Grid - Like Photo 2 -->
     <GridLayout
-        android:id="@+id/seatsGrid"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/topLayout"
+        android:layout_height="match_parent"
+        android:layout_below="@id/topBar"
+        android:layout_above="@id/bottomBar"
         android:columnCount="4"
-        android:rowCount="2"
-        android:padding="15dp" />
+        android:rowCount="4"
+        android:padding="16dp"
+        android:alignmentMode="alignMargins">
 
-    <!-- Bottom Bar - Real Icons like Photo 2 -->
+        <!-- Example 1 Seat -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="8dp">
+            <ImageView
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:background="@drawable/circle_bg"
+                android:src="@android:drawable/ic_btn_speak_now"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Host" android:textColor="white" android:textSize="11sp" android:layout_marginTop="4dp"/>
+        </LinearLayout>
+        <!-- এইভাবে 8 টা Seat কপি হবে -->
+
+    </GridLayout>
+
+    <!-- Bottom Bar - REAL ICONS LIKE PHOTO 2 -->
     <LinearLayout
+        android:id="@+id/bottomBar"
         android:layout_width="match_parent"
-        android:layout_height="70dp"
+        android:layout_height="75dp"
         android:layout_alignParentBottom="true"
         android:background="#1E1E1E"
         android:orientation="horizontal"
-        android:gravity="center"
-        android:weightSum="5">
+        android:gravity="center_vertical"
+        android:padding="10dp">
 
-        <ImageView android:layout_width="0dp" android:layout_height="30dp" android:layout_weight="1" android:src="@android:drawable/ic_media_play" />
-        <ImageView android:layout_width="0dp" android:layout_height="30dp" android:layout_weight="1" android:src="@android:drawable/ic_menu_gallery" />
-        <ImageView android:layout_width="0dp" android:layout_height="45dp" android:layout_weight="1" android:src="@android:drawable/ic_input_add" />
-        <ImageView android:layout_width="0dp" android:layout_height="30dp" android:layout_weight="1" android:src="@android:drawable/ic_dialog_email" />
-        <ImageView android:layout_width="0dp" android:layout_height="30dp" android:layout_weight="1" android:src="@android:drawable/ic_menu_send" />
+        <!-- Left: Game & Gift -->
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+            <TextView android:layout_width="40dp" android:layout_height="40dp" android:text="🎮" android:textSize="24sp" android:background="#2A2A2A" android:gravity="center" android:layout_marginEnd="10dp"/>
+            <TextView android:layout_width="40dp" android:layout_height="40dp" android:text="🎁" android:textSize="24sp" android:background="#2A2A2A" android:gravity="center"/>
+        </LinearLayout>
+
+        <!-- Center: Big Mic -->
+        <TextView android:layout_width="60dp" android:layout_height="60dp" android:text="🎤" android:textSize="28sp" android:background="@drawable/circle_yellow" android:gravity="center"/>
+
+        <!-- Right: Message & More -->
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="end">
+            <TextView android:layout_width="40dp" android:layout_height="40dp" android:text="💬" android:textSize="22sp" android:background="#2A2A2A" android:gravity="center" android:layout_marginEnd="10dp"/>
+            <TextView android:layout_width="40dp" android:layout_height="40dp" android:text="😊" android:textSize="22sp" android:background="#2A2A2A" android:gravity="center"/>
+        </LinearLayout>
 
     </LinearLayout>
 
