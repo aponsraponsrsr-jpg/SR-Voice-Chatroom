@@ -10,40 +10,37 @@
         android:id="@+id/profileImage"
         android:layout_width="120dp"
         android:layout_height="120dp"
-        android:src="@android:drawable/sym_def_app_icon"
-        android:background="@android:drawable/btn_default"
-        android:layout_marginBottom="20dp" />
+        android:src="@mipmap/ic_launcher" />
+
+    <EditText
+        android:id="@+id/editName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Your Name"
+        android:layout_marginTop="16dp"/>
 
     <TextView
-        android:id="@+id/idShowText"
+        android:id="@+id/textUserId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="ID: Loading..."
-        android:textStyle="bold"
-        android:layout_marginBottom="20dp" />
+        android:layout_marginTop="8dp"/>
 
-    <EditText
-        android:id="@+id/nameEdit"
+    <RadioGroup
+        android:id="@+id/genderGroup"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:hint="Your Name"
-        android:background="@android:drawable/edit_text"
-        android:padding="10dp"
-        android:layout_marginBottom="15dp" />
-
-    <EditText
-        android:id="@+id/bioEdit"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:hint="Your Bio"
-        android:background="@android:drawable/edit_text"
-        android:padding="10dp"
-        android:layout_marginBottom="25dp" />
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp">
+        <RadioButton android:id="@+id/radioMale" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Male"/>
+        <RadioButton android:id="@+id/radioFemale" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Female"/>
+    </RadioGroup>
 
     <Button
-        android:id="@+id/confirmBtn"
+        android:id="@+id/btnSave"
         android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:text="Confirm &amp; Go" />
+        android:layout_height="wrap_content"
+        android:text="Save &amp; Continue"
+        android:layout_marginTop="24dp"/>
 
 </LinearLayout>
