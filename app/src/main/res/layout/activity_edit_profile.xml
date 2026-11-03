@@ -2,51 +2,48 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212"
     android:orientation="vertical"
     android:padding="24dp"
-    android:gravity="center_horizontal">
-
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="Edit Group" android:textColor="#FFFFFF" android:textSize="24sp" android:textStyle="bold"/>
+    android:gravity="center">
 
     <ImageView
-        android:id="@+id/ivProfile"
+        android:id="@+id/profileImage"
         android:layout_width="120dp"
         android:layout_height="120dp"
-        android:layout_marginTop="30dp"
-        android:background="@android:drawable/sym_def_app_icon"
         android:src="@android:drawable/sym_def_app_icon"
-        android:contentDescription="Profile Photo" />
+        android:background="@android:drawable/btn_default"
+        android:layout_marginBottom="20dp" />
 
-    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:text="Tap on image to select photo" android:textColor="#888888"
-        android:textSize="12sp" android:layout_marginTop="8dp"/>
+    <TextView
+        android:id="@+id/idShowText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ID: Loading..."
+        android:textStyle="bold"
+        android:layout_marginBottom="20dp" />
 
-    <EditText android:id="@+id/etGroupName" 
-        android:layout_width="match_parent" android:layout_height="55dp"
-        android:hint="Group Name - ex: Sr voice chat" 
-        android:textColor="#FFFFFF" android:textColorHint="#888888"
-        android:background="@android:drawable/editbox_background" 
-        android:layout_marginTop="30dp" android:padding="12dp"/>
+    <EditText
+        android:id="@+id/nameEdit"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:hint="Your Name"
+        android:background="@android:drawable/edit_text"
+        android:padding="10dp"
+        android:layout_marginBottom="15dp" />
 
-    <EditText android:id="@+id/etAnnouncement" 
-        android:layout_width="match_parent" android:layout_height="55dp"
-        android:hint="Announcement - ex: welcome" 
-        android:textColor="#FFFFFF" android:textColorHint="#888888"
-        android:background="@android:drawable/editbox_background" 
-        android:layout_marginTop="15dp" android:padding="12dp"/>
+    <EditText
+        android:id="@+id/bioEdit"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:hint="Your Bio"
+        android:background="@android:drawable/edit_text"
+        android:padding="10dp"
+        android:layout_marginBottom="25dp" />
 
-    <RadioGroup android:id="@+id/rgGender" android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:orientation="horizontal" android:layout_marginTop="20dp">
-        <RadioButton android:id="@+id/rbMale" android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Male" android:textColor="#FFFFFF" android:checked="true"/>
-        <RadioButton android:id="@+id/rbFemale" android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Female" android:textColor="#FFFFFF" android:layout_marginStart="20dp"/>
-    </RadioGroup>
-
-    <Button android:id="@+id/btnSave" android:layout_width="match_parent" android:layout_height="55dp"
-        android:text="Save and Open Group" android:layout_marginTop="30dp" 
-        android:backgroundTint="#FFFFFF" android:textColor="#000000"/>
+    <Button
+        android:id="@+id/confirmBtn"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:text="Confirm &amp; Go" />
 
 </LinearLayout>
