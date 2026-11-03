@@ -4,18 +4,21 @@ plugins {
 }
 
 android {
-    namespace "com.sr.voicechat"
+    namespace 'com.srvoicechatroom'
     compileSdk 34
+
     defaultConfig {
-        applicationId "com.sr.voicechat"
+        applicationId "com.srvoicechatroom"
         minSdk 24
         targetSdk 34
         versionCode 1
         versionName "1.0"
     }
+
     buildTypes {
         release {
             minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     compileOptions {
@@ -27,11 +30,11 @@ android {
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    
+    // Heavy Google Server - Firebase
+    implementation 'com.google.firebase:firebase-auth:22.3.0'
+    implementation 'com.google.firebase:firebase-firestore:24.10.0'
+    implementation 'com.google.firebase:firebase-storage:20.3.0'
     implementation 'com.google.android.gms:play-services-auth:20.7.0'
-    implementation platform('com.google.firebase:firebase-bom:32.7.0')
-    implementation 'com.google.firebase:firebase-auth'
-    implementation 'com.google.firebase:firebase-firestore'
-    implementation 'com.google.firebase:firebase-storage'
-    implementation 'com.google.firebase:firebase-database'
-    implementation 'com.github.bumptech.glide:glide:4.16.0'
 }
