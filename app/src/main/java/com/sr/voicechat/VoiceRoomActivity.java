@@ -1,6 +1,5 @@
 package com.sr.voicechat;
 
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -50,7 +49,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         // ২. স্ক্রিন চ্যাট লিস্ট ইনিশিয়ালাইজেশন
         chatListView = findViewById(R.id.chatListView);
         chatMessages = new ArrayList<>();
-        // কিছু ডিফল্ট ওয়েলকাম মেসেজ
         chatMessages.add("🌟 System: SR Voice Chatroom এ সবাইকে স্বাগতম!");
         chatMessages.add("💬 ইউজাররা এখন স্ক্রিন চ্যাট ব্যবহার করতে পারবেন।");
 
@@ -59,7 +57,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             chatListView.setAdapter(chatAdapter);
         }
 
-        // ৩. ১০টি সিটে যেকোনো সিটে বসার এবং সিট পরিবর্তনের (Switch Seat / Take Mic) লজিক
+        // ৩. ১০টি সিটে যেকোনো সিটে বসার এবং সিট পরিবর্তনের লজিক
         setupSeatClicks();
 
         // ৪. নিচের অ্যাকশন বার বাটনগুলো (Mic, Chat, Gift, Game)
@@ -77,7 +75,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // চ্যাট বাটনে ক্লিক করলে এসএমএস লেখার ডায়ালগ ওপেন হবে এবং স্ক্রিনে দেখাবে
+        // চ্যাট বাটনে ক্লিক করলে এসএমএস লেখার ডায়ালগ ওপেন হবে
         btnChatOption = findViewById(R.id.btnChatOption);
         if (btnChatOption != null) {
             btnChatOption.setOnClickListener(v -> {
@@ -130,7 +128,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // যেকোনো সিটে (Host এবং ১ থেকে ১০) ট্যাপ করলে Take Mic, Switch Seat বা Leave Mic অপشن দেখাবে
+    // যেকোনো সিটে ট্যাপ করলে Take Mic, Switch Seat বা Leave Mic অপশন দেখাবে
     private void setupSeatClicks() {
         int[] seatIds = {
             R.id.seat1, R.id.seat2, R.id.seat3, R.id.seat4, R.id.seat5,
@@ -149,7 +147,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     builder.setTitle("🎙️ " + seatTitle + " Options");
                     builder.setItems(seatOptions, (dialog, which) -> {
                         if (which == 0) {
-                            Toast.lang(VoiceRoomActivity.this, "Joined " + seatTitle + " successfully!", Toast.LENGTH_SHORT).show(); // wait, use Toast.makeText
                             Toast.makeText(VoiceRoomActivity.this, "Joined " + seatTitle + " successfully!", Toast.LENGTH_SHORT).show();
                             chatMessages.add("🎙️ System: User joined " + seatTitle);
                             chatAdapter.notifyDataSetChanged();
