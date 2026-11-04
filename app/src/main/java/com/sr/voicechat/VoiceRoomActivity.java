@@ -1,8 +1,11 @@
 package com.sr.voicechat;
 
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -22,7 +25,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.io.File;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 public class VoiceRoomActivity extends AppCompatActivity {
@@ -71,7 +75,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         chatListView = findViewById(R.id.chatListView);
         chatMessages = new ArrayList<>();
         chatMessages.add("🌟 System: SR Voice Chatroom এ সবাইকে স্বাগতম!");
-        chatMessages.add("💬 গ্লোবাল সিট এবং প্রোফাইল সিঙ্ক্রোনাইজেশন সক্রিয় রয়েছে।");
+        chatMessages.add("💬 গ্লোবাল পার্মানেন্ট সিট এবং প্রোফাইল সিঙ্ক্রোনাইজেশন সক্রিয় রয়েছে।");
 
         chatAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, chatMessages);
         if (chatListView != null) {
@@ -150,7 +154,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // গ্লোবালি ফায়ারবেস থেকে সিটের ছবি ও নাম রিয়েল-টাইমে রেন্ডার করার লজিক
+    // ফায়ারবেস থেকে গ্লোবালি সিটের ছবি (Base64 থেকে ডিকোড করে) ও নাম রেন্ডার করার লজিক
     private void listenToFirebaseSeats() {
         int[] seatImgIds = {
             R.id.seatImg1, R.id.seatImg2, R.id.seatImg3, R.id.seatImg4, R.id.seatImg5,
@@ -172,22 +176,19 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
                     if (snapshot.hasChild(seatKey)) {
                         String name = snapshot.child(seatKey).child("userName").getValue(String.class);
-                        String image = snapshot.child(seatKey).child("userImage").getValue(String.class);
+                        String imageBase64 = snapshot.child(seatKey).child("userImage").getValue(String.class);
 
                         // নাম সেট করা
                         if (seatTxt != null) {
                             seatTxt.setText(name != null ? name : (i == 0 ? "Host" : String.valueOf(i + 1)));
                         }
 
-                        // প্রোফাইল পিকচার গোল আকারে গ্লোবালি রেন্ডার করা
-                        if (seatImg != null && image != null && !image.isEmpty()) {
+                        // Base64 ইমেজ ডিকোড করে গোল প্রোফাইল পিকচার গ্লোবালি শো করা
+                        if (seatImg != null && imageBase64 != null && !imageBase64.isEmpty()) {
                             try {
-                                Uri imageUri = Uri.parse(image);
-                                if (image.startsWith("content://") || image.startsWith("file://")) {
-                                    seatImg.setImageURI(imageUri);
-                                } else {
-                                    seatImg.setImageURI(Uri.fromFile(new File(image)));
-                                }
+                                byte[] decodedString = Base64.decode(imageBase64, Base64.DEFAULT);
+                                Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                                seatImg.setImageBitmap(decodedByte);
                                 seatImg.setPadding(0, 0, 0, 0);
                                 seatImg.setImageTintList(null);
                             } catch (Exception e) {
@@ -211,12 +212,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                // কোনো এরর হ্যান্ডলিং প্রয়োজন হলে
+                // কোনো এরর হ্যান্ডলিং
             }
         });
     }
 
-    // সিটে ক্লিক করে নিজের নাম ও ছবি ফায়ারবেসে গ্লোবালি পাঠানোর লজিক
+    // সিটে ক্লিক করে নিজের নাম ও ছবি (Base64 এ কনভার্ট করে) ফায়ারবেসে গ্লোবালি পাঠানোর লজিক
     private void setupSeatInteractions() {
         int[] seatCardIds = {
             R.id.seatCard1, R.id.seatCard2, R.id.seatCard3, R.id.seatCard4, R.id.seatCard5,
@@ -237,13 +238,33 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     builder.setTitle("🎙️ " + seatTitle + " Options");
                     builder.setItems(seatOptions, (dialog, which) -> {
                         String userName = prefs.getString("USER_NAME", "User");
-                        String userImage = prefs.getString("USER_IMAGE", "");
+                        String userImageUriStr = prefs.getString("USER_IMAGE", "");
                         String seatKey = "seat_" + seatIndex;
 
                         if (which == 0) {
-                            // Take Mic: ফায়ারবেসে নাম ও ছবি গ্লোবালি সেভ করা
+                            // ছবিটিকে Base64 স্ট্রিংয়ে কনভার্ট করার প্রসেস
+                            String imageBase64 = "";
+                            if (!userImageUriStr.isEmpty()) {
+                                try {
+                                    Uri uri = Uri.parse(userImageUriStr);
+                                    InputStream inputStream = getContentResolver().openInputStream(uri);
+                                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                                    
+                                    // সাইজ অপ্টিমাইজ করার জন্য রিসাইজ করা যেতে পারে
+                                    Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 150, 150, true);
+                                    
+                                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                    resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 70, baos);
+                                    byte[] imageBytes = baos.toByteArray();
+                                    imageBase64 = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+                                } catch (Exception e) {
+                                    imageBase64 = "";
+                                }
+                            }
+
+                            // ফায়ারবেসে পার্মানেন্টলি নাম ও ছবির Base64 ডেটা গ্লোবালি সেভ করা
                             databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
-                            databaseReference.child("seats").child(seatKey).child("userImage").setValue(userImage);
+                            databaseReference.child("seats").child(seatKey).child("userImage").setValue(imageBase64);
 
                             Toast.makeText(VoiceRoomActivity.this, "Joined " + seatTitle + " successfully!", Toast.LENGTH_SHORT).show();
                             chatMessages.add("🎙️ System: " + userName + " took " + seatTitle);
