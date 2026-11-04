@@ -14,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import java.io.File;
 import java.util.ArrayList;
 
 public class VoiceRoomActivity extends AppCompatActivity {
@@ -134,7 +135,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // সিটে ক্লিক করলে ইউজারের প্রোফাইল ছবি ও নাম রেন্ডার করার লজিক
+    // সিটে ক্লিক করলে ইউজারের প্রোফাইল ছবি ও নাম নিখুঁতভাবে রেন্ডার করার লজিক
     private void setupSeatInteractions() {
         int[] seatCardIds = {
             R.id.seatCard1, R.id.seatCard2, R.id.seatCard3, R.id.seatCard4, R.id.seatCard5,
@@ -174,9 +175,15 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             if (seatImg != null) {
                                 if (!userImage.isEmpty()) {
                                     try {
-                                        seatImg.setImageURI(Uri.parse(userImage));
+                                        Uri imageUri = Uri.parse(userImage);
+                                        // যদি ফাইল পাথ হয় অথবা কন্টেন্ট ইউআরআই হয়
+                                        if (userImage.startsWith("content://") || userImage.startsWith("file://")) {
+                                            seatImg.setImageURI(imageUri);
+                                        } else {
+                                            seatImg.setImageURI(Uri.fromFile(new File(userImage)));
+                                        }
                                         seatImg.setPadding(0, 0, 0, 0);
-                                        seatImg.setImageTintList(null); // টিং রিমুভ করা যাতে আসল ছবি ভেসে ওঠে
+                                        seatImg.setImageTintList(null);
                                     } catch (Exception e) {
                                         seatImg.setImageResource(android.R.drawable.ic_menu_my_calendar);
                                         seatImg.setPadding(12, 12, 12, 12);
@@ -190,7 +197,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 seatTxt.setText(userName);
                             }
 
-                            Toast.makeText(VoiceRoomActivity.this, "Joined " + seatTitle + " successfully!", Toast.LENGTH_SHORT).show();
+                            Toast.MakedText(VoiceRoomActivity.this, "Joined " + seatTitle + " successfully!", Toast.LENGTH_SHORT).show();
                             chatMessages.add("🎙️ System: " + userName + " took " + seatTitle);
                             chatAdapter.notifyDataSetChanged();
                         } else {
@@ -198,6 +205,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             if (seatImg != null) {
                                 seatImg.setImageResource(android.R.drawable.ic_menu_my_calendar);
                                 seatImg.setPadding(12, 12, 12, 12);
+                                seatImg.setImageTintList(null);
                             }
                             if (seatTxt != null) {
                                 seatTxt.setText(seatNumber == 1 ? "Host" : String.valueOf(seatNumber));
