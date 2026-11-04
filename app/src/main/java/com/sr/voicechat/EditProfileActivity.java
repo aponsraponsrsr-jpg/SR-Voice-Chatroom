@@ -47,15 +47,20 @@ public class EditProfileActivity extends AppCompatActivity {
         genderGroup = findViewById(R.id.genderGroup);
         btnSave = findViewById(R.id.btnSave);
 
-        // ইউনিক আইডি লোড করা
+        // পার্মানেন্ট ইউনিক আইডি লোড করা
         String uniqueId = prefs.getString("MY_9_DIGIT_ID", "77788899");
         textUserId.setText("ID: " + uniqueId);
 
-        // আগের সেভ করা ছবি বা নাম থাকলে লোড করা
+        // আগের সেভ করা ছবি বা নাম থাকলে তা লোড করে দেখানো
         String savedImage = prefs.getString("USER_IMAGE", "");
         if (!savedImage.isEmpty()) {
-            profileImage.setImageURI(Uri.parse(savedImage));
             imageUriString = savedImage;
+            try {
+                profileImage.setImageURI(Uri.parse(savedImage));
+                profileImage.setPadding(0, 0, 0, 0); // ক্যামেরা আইকনের প্যাডিং রিমুভ করে ফুল ছবি সেট করা
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getDisplayName() != null) {
@@ -109,7 +114,12 @@ public class EditProfileActivity extends AppCompatActivity {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
             Uri imageUri = data.getData();
             imageUriString = imageUri.toString();
-            profileImage.setImageURI(imageUri);
+            try {
+                profileImage.setImageURI(imageUri);
+                profileImage.setPadding(0, 0, 0, 0); // গ্যালারি থেকে সিলেক্ট করা ছবি বক্সে পারফেক্ট দেখানোর জন্য
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }
