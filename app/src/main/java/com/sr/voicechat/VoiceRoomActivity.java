@@ -176,7 +176,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 if (!userImage.isEmpty()) {
                                     try {
                                         Uri imageUri = Uri.parse(userImage);
-                                        // যদি ফাইল পাথ হয় অথবা কন্টেন্ট ইউআরআই হয়
                                         if (userImage.startsWith("content://") || userImage.startsWith("file://")) {
                                             seatImg.setImageURI(imageUri);
                                         } else {
@@ -197,7 +196,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 seatTxt.setText(userName);
                             }
 
-                            Toast.MakedText(VoiceRoomActivity.this, "Joined " + seatTitle + " successfully!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(VoiceRoomActivity.this, "Joined " + seatTitle + " successfully!", Toast.LENGTH_SHORT).show();
                             chatMessages.add("🎙️ System: " + userName + " took " + seatTitle);
                             chatAdapter.notifyDataSetChanged();
                         } else {
