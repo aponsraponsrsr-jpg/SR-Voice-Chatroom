@@ -5,7 +5,7 @@
     android:orientation="vertical"
     android:background="#120E1F">
 
-    <!-- TOP: Mine Hot Discover + Search -->
+    <!-- TOP -->
     <LinearLayout android:layout_width="match_parent" android:layout_height="52dp" android:orientation="horizontal" android:background="#1E1930" android:gravity="center_vertical" android:paddingLeft="12dp" android:paddingRight="12dp">
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Mine" android:textColor="#FFC107" android:textStyle="bold" android:textSize="18sp" android:layout_marginRight="16dp"/>
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Hot" android:textColor="#888888" android:textSize="16sp" android:layout_marginRight="16dp"/>
@@ -20,7 +20,7 @@
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="▶" android:textColor="#000000"/>
     </LinearLayout>
 
-    <!-- Family CP Weekly Star -->
+    <!-- Family CP Weekly -->
     <LinearLayout android:layout_width="match_parent" android:layout_height="90dp" android:orientation="horizontal" android:layout_marginTop="8dp" android:paddingLeft="8dp" android:paddingRight="8dp">
         <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:background="#2A2540" android:gravity="center" android:layout_marginRight="6dp">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👨‍👩‍👧‍👦" android:textSize="22sp"/>
@@ -36,36 +36,58 @@
         </LinearLayout>
     </LinearLayout>
 
-    <!-- 4 ROOMS - HEAVY -->
+    <!-- 4 ROOMS -->
     <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="vertical" android:paddingLeft="8dp" android:paddingRight="8dp" android:layout_marginTop="8dp">
         <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal" android:layout_marginBottom="8dp">
-            <LinearLayout android:id="@+id/room1" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:background="#2C2C2C" android:gravity="center" android:layout_marginRight="6dp" android:paddingTop="10dp" android:paddingBottom="10dp">
+            <LinearLayout android:id="@+id/room1" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:background="#2C2C2C" android:gravity="center" android:layout_marginRight="6dp">
                 <TextView android:layout_width="65dp" android:layout_height="65dp" android:text="SR" android:background="#FFC107" android:gravity="center" android:textStyle="bold" android:textSize="22sp" android:textColor="#000000"/>
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SR Official" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="12sp" android:layout_marginTop="8dp"/>
             </LinearLayout>
-            <LinearLayout android:id="@+id/room2" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:background="#2C2C2C" android:gravity="center" android:paddingTop="10dp" android:paddingBottom="10dp">
+            <LinearLayout android:id="@+id/room2" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:background="#2C2C2C" android:gravity="center">
                 <TextView android:layout_width="65dp" android:layout_height="65dp" android:text="SR" android:background="#FFC107" android:gravity="center" android:textStyle="bold" android:textSize="22sp" android:textColor="#000000"/>
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SR Voice" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="12sp" android:layout_marginTop="8dp"/>
             </LinearLayout>
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal">
-            <LinearLayout android:id="@+id/room3" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:background="#2C2C2C" android:gravity="center" android:layout_marginRight="6dp" android:paddingTop="10dp" android:paddingBottom="10dp">
+            <LinearLayout android:id="@+id/room3" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:background="#2C2C2C" android:gravity="center" android:layout_marginRight="6dp">
                 <TextView android:layout_width="65dp" android:layout_height="65dp" android:text="SR" android:background="#FFC107" android:gravity="center" android:textStyle="bold" android:textSize="22sp" android:textColor="#000000"/>
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SR Official" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="12sp" android:layout_marginTop="8dp"/>
             </LinearLayout>
-            <LinearLayout android:id="@+id/room4" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:background="#2C2C2C" android:gravity="center" android:paddingTop="10dp" android:paddingBottom="10dp">
+            <LinearLayout android:id="@+id/room4" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:background="#2C2C2C" android:gravity="center">
                 <TextView android:layout_width="65dp" android:layout_height="65dp" android:text="SR" android:background="#FFC107" android:gravity="center" android:textStyle="bold" android:textSize="22sp" android:textColor="#000000"/>
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SR Chat" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="12sp" android:layout_marginTop="8dp"/>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
-    <!-- BOTTOM: Right to Left as you said -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="65dp" android:orientation="horizontal" android:background="#1A1A1A" android:gravity="center_vertical">
-        <View android:layout_width="0dp" android:layout_weight="1" android:layout_height="1dp"/>
-        <LinearLayout android:layout_width="60dp" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🏠" android:textSize="22sp"/><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Home" android:textColor="#888888" android:textSize="11sp"/></LinearLayout>
-        <LinearLayout android:layout_width="60dp" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💫" android:textSize="22sp"/><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Moment" android:textColor="#888888" android:textSize="11sp"/></LinearLayout>
-        <LinearLayout android:layout_width="60dp" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📩" android:textSize="22sp"/><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Inbox" android:textColor="#888888" android:textSize="11sp"/></LinearLayout>
-        <LinearLayout android:layout_width="60dp" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👤" android:textSize="22sp"/><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Mine" android:textColor="#FFC107" android:textStyle="bold" android:textSize="11sp"/></LinearLayout>
+    <!-- BOTTOM - FIXED + PLUS ICON IN MIDDLE -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="70dp" android:orientation="horizontal" android:background="#1A1A1A" android:gravity="center_vertical">
+
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🏠" android:textSize="22sp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Home" android:textColor="#888888" android:textSize="11sp"/>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💫" android:textSize="22sp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Moment" android:textColor="#888888" android:textSize="11sp"/>
+        </LinearLayout>
+
+        <!-- PLUS ICON - MIDDLE - ROOM OPEN -->
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center">
+            <TextView android:id="@+id/btnPlus" android:layout_width="56dp" android:layout_height="56dp" android:text="+" android:textColor="#000000" android:textStyle="bold" android:textSize="32sp" android:gravity="center" android:background="#FFD700"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Create" android:textColor="#FFD700" android:textSize="10sp" android:textStyle="bold"/>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📩" android:textSize="22sp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Inbox" android:textColor="#888888" android:textSize="11sp"/>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👤" android:textSize="22sp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Mine" android:textColor="#FFC107" android:textStyle="bold" android:textSize="11sp"/>
+        </LinearLayout>
+
     </LinearLayout>
 </LinearLayout>
