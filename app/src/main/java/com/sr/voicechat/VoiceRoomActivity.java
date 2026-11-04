@@ -1,74 +1,126 @@
 package com.sr.voicechat;
 
-import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class VoiceRoomActivity extends AppCompatActivity {
 
-    private int currentSeat = -1;
+    private ImageButton btnPower;
+    private Button btnMicToggle, btnChatOption, btnGiftBox, btnGameBox;
+    private boolean isMuted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_voice_room);
 
-        findViewById(R.id.btnPower).setOnClickListener(v -> showPowerDialog());
-
-        for (int i = 1; i <= 10; i++) {
-            int resId = getResources().getIdentifier("seat" + i, "id", getPackageName());
-            View seat = findViewById(resId);
-            int seatNum = i;
-            if (seat != null) {
-                seat.setOnClickListener(v -> onSeatClicked(seatNum));
-            }
-        }
-
-        findViewById(R.id.btnMic).setOnClickListener(v -> Toast.makeText(this, "Mic On/Off 🎙️", Toast.LENGTH_SHORT).show());
-        findViewById(R.id.btnChat).setOnClickListener(v -> Toast.makeText(this, "Chat Open 💬", Toast.LENGTH_SHORT).show());
-        findViewById(R.id.btnGift).setOnClickListener(v -> Toast.makeText(this, "Gift Box 🎁", Toast.LENGTH_SHORT).show());
-        findViewById(R.id.btnGame).setOnClickListener(v -> Toast.makeText(this, "Game Zone 🎮", Toast.LENGTH_SHORT).show());
-    }
-
-    private void onSeatClicked(int seatNum) {
-        if (currentSeat == seatNum) {
-            new AlertDialog.Builder(this)
-                    .setTitle("Seat " + seatNum)
-                    .setItems(new String[]{"Leave Mic", "Close"}, (dialog, which) -> {
-                        if (which == 0) {
-                            currentSeat = -1;
-                            Toast.makeText(this, "Left Seat " + seatNum + " ✅", Toast.LENGTH_SHORT).show();
-                        }
-                    }).show();
-        } else {
-            new AlertDialog.Builder(this)
-                    .setTitle("Seat " + seatNum)
-                    .setItems(new String[]{"Take Mic", "View Profile"}, (dialog, which) -> {
-                        if (which == 0) {
-                            if (currentSeat != -1) {
-                                Toast.makeText(this, "Moved from " + currentSeat + " to " + seatNum + " ✅", Toast.LENGTH_SHORT).show();
-                            } else {
-                                Toast.makeText(this, "Joined Seat " + seatNum + " 🎙️", Toast.LENGTH_SHORT).show();
-                            }
-                            currentSeat = seatNum;
-                        }
-                    }).show();
-        }
-    }
-
-    private void showPowerDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle("Exit Room?")
-                .setItems(new String[]{"Minimize", "Leave Room", "Exit App"}, (dialog, which) -> {
+        // ১. পাওয়ার / এক্সিট বাটন ইনিশিয়ালাইজেশন
+        btnPower = findViewById(R.id.btnPower);
+        if (btnPower != null) {
+            btnPower.setOnClickListener(v -> {
+                CharSequence[] options = {"Minimize", "Exit Room"};
+                AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
+                builder.setTitle("Room Options");
+                builder.setItems(options, (dialog, which) -> {
                     if (which == 0) {
                         moveTaskToBack(true);
-                    } else if (which == 1) {
-                        finish();
                     } else {
-                        finishAffinity();
+                        finish();
                     }
-                }).show();
+                });
+                builder.show();
+            });
+        }
+
+        // ২. ১০টি ভয়েস সিটে (Host এবং ১ থেকে ১০) ক্লিক লজিক সেটআপ
+        setupSeatClicks();
+
+        // ৩. নিচের অ্যাকশন বার বাটনগুলো (Mic, Chat, Gift, Game) ইনিশিয়ালাইজেশন
+        btnMicToggle = findViewById(R.id.btnMicToggle);
+        if (btnMicToggle != null) {
+            btnMicToggle.setOnClickListener(v -> {
+                isMuted = !isMuted;
+                if (isMuted) {
+                    btnMicToggle.setText("🔇 Muted");
+                    Toast.makeText(this, "Mic Muted", Toast.LENGTH_SHORT).show();
+                } else {
+                    btnMicToggle.setText("🎙️ Mic");
+                    Toast.makeText(this, "Mic Unmuted", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        btnChatOption = findViewById(R.id.btnChatOption);
+        if (btnChatOption != null) {
+            btnChatOption.setOnClickListener(v -> {
+                CharSequence[] chatTypes = {"All Chat", "Room Notice", "Private Chat"};
+                AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
+                builder.setTitle("💬 Chat Options");
+                builder.setItems(chatTypes, (dialog, which) -> {
+                    Toast.makeText(this, "Selected: " + chatTypes[which], Toast.LENGTH_SHORT).show();
+                });
+                builder.show();
+            });
+        }
+
+        btnGiftBox = findViewById(R.id.btnGiftBox);
+        if (btnGiftBox != null) {
+            btnGiftBox.setOnClickListener(v -> {
+                CharSequence[] gifts = {"🌹 Rose (10 Coins)", "👑 Crown (500 Coins)", "💎 Diamond (1000 Coins)"};
+                AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
+                builder.setTitle("🎁 Send Gift to Room");
+                builder.setItems(gifts, (dialog, which) -> {
+                    Toast.makeText(this, "Successfully Sent Gift!", Toast.LENGTH_SHORT).show();
+                });
+                builder.show();
+            });
+        }
+
+        btnGameBox = findViewById(R.id.btnGameBox);
+        if (btnGameBox != null) {
+            btnGameBox.setOnClickListener(v -> {
+                CharSequence[] games = {"🎮 Ludo Game", "🎯 Lucky Wheel", "🎲 Dice Battle"};
+                AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
+                builder.setTitle("🎮 Voice Room Games");
+                builder.setItems(games, (dialog, which) -> {
+                    Toast.makeText(this, "Starting " + games[which] + "...", Toast.LENGTH_SHORT).show();
+                });
+                builder.show();
+            });
+        }
+    }
+
+    // ১০টি সিটে ক্লিক করলে মাইকে বসার বা ছাড়ার ডায়ালগ আসার মেথড
+    private void setupSeatClicks() {
+        int[] seatIds = {
+            R.id.seat1, R.id.seat2, R.id.seat3, R.id.seat4, R.id.seat5,
+            R.id.seat6, R.id.seat7, R.id.seat8, R.id.seat9, R.id.seat10
+        };
+
+        View.OnClickListener seatClickListener = v -> {
+            CharSequence[] micOptions = {"Take Mic", "Leave Mic"};
+            AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
+            builder.setTitle("Voice Seat Options");
+            builder.setItems(micOptions, (dialog, which) -> {
+                if (which == 0) {
+                    Toast.makeText(VoiceRoomActivity.this, "Successfully taken the mic!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(VoiceRoomActivity.this, "Left the mic.", Toast.LENGTH_SHORT).show();
+                }
+            });
+            builder.show();
+        };
+
+        for (int id : seatIds) {
+            View seatView = findViewById(id);
+            if (seatView != null) {
+                seatView.setOnClickListener(seatClickListener);
+            }
+        }
     }
 }
