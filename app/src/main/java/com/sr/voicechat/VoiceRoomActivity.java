@@ -42,6 +42,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     // ফায়ারবেস ডেটাবেস রেফারেন্স
     private DatabaseReference databaseReference;
+    private DatabaseReference userDatabaseRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,6 +53,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         // ফায়ারবেস রিয়েলটাইম ডেটাবেস ইনিশিয়ালাইজেশন
         databaseReference = FirebaseDatabase.getInstance().getReference("rooms").child("room_01");
+        userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
+
+        // পার্মানেন্ট আইডি ও জিমেইল সিঙ্ক্রোনাইজেশন চেক
+        checkAndSyncPermanentUser();
 
         // ১. পাওয়ার / এক্সিট বাটন
         btnPower = findViewById(R.id.btnPower);
@@ -74,8 +79,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         // ২. স্ক্রিন চ্যাট লিস্ট ইনিশিয়ালাইজেশন
         chatListView = findViewById(R.id.chatListView);
         chatMessages = new ArrayList<>();
-        chatMessages.add("🌟 System: SR Voice Chatroom এ সবাইকে স্বাগতম!");
-        chatMessages.add("💬 গ্লোবাল পার্মানেন্ট সিট এবং প্রোফাইল সিঙ্ক্রোনাইজেশন সক্রিয় রয়েছে।");
+        chatMessages.add("🌟 System: SR Voice Room-এ স্বাগতম!");
+        chatMessages.add("💬 পার্মানেন্ট গ্লোবাল আইডি ও সিট সিঙ্ক্রোনাইজেশন সক্রিয় রয়েছে।");
 
         chatAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, chatMessages);
         if (chatListView != null) {
@@ -154,7 +159,44 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // ফায়ারবেস থেকে গ্লোবালি সিটের ছবি (Base64 থেকে ডিকোড করে) ও নাম রেন্ডার করার লজিক
+    // জিমেইল বা ইউজার আইডি পার্মানেন্টলি চেক ও সিঙ্ক করার লজিক
+    private void checkAndSyncPermanentUser() {
+        String userEmail = prefs.getString("USER_EMAIL", "default_user@sr.com");
+        // জিমেইলের স্পেশাল ক্যারেক্টার রিমুভ করে ফায়ারবেস সেফ কি তৈরি করা
+        String safeEmailKey = userEmail.replace(".", "_").replace("@", "_");
+
+        userDatabaseRef.child(safeEmailKey).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    // যদি আগে থেকেই এই জিমেইলের ডেটা থাকে, তবে পার্মানেন্ট আইডি ও ডেটা লোড করবে
+                    String savedId = snapshot.child("userId").getValue(String.class);
+                    String savedName = snapshot.child("userName").getValue(String.class);
+                    String savedImage = snapshot.child("userImage").getValue(String.class);
+
+                    SharedPreferences.Editor editor = prefs.edit();
+                    if (savedId != null) editor.putString("USER_ID", savedId);
+                    if (savedName != null) editor.putString("USER_NAME", savedName);
+                    if (savedImage != null) editor.putString("USER_IMAGE", savedImage);
+                    editor.apply();
+                } else {
+                    // প্রথমবার হলে নতুন পার্মানেন্ট আইডি জেনারেট করে সেভ করবে
+                    String currentId = prefs.getString("USER_ID", "884516806");
+                    String currentName = prefs.getString("USER_NAME", "User");
+                    String currentImage = prefs.getString("USER_IMAGE", "");
+
+                    userDatabaseRef.child(safeEmailKey).child("userId").setValue(currentId);
+                    userDatabaseRef.child(safeEmailKey).child("userName").setValue(currentName);
+                    userDatabaseRef.child(safeEmailKey).child("userImage").setValue(currentImage);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    // ফায়ারবেস থেকে গ্লোবালি সিটের ছবি ও নাম রেন্ডার করার লজিক
     private void listenToFirebaseSeats() {
         int[] seatImgIds = {
             R.id.seatImg1, R.id.seatImg2, R.id.seatImg3, R.id.seatImg4, R.id.seatImg5,
@@ -211,13 +253,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                // কোনো এরর হ্যান্ডলিং
-            }
+            public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
-    // সিটে ক্লিক করে নিজের নাম ও ছবি (Base64 এ কনভার্ট করে) ফায়ারবেসে গ্লোবালি পাঠানোর লজিক
+    // সিটে ক্লিক করে নিজের নাম ও ছবি ফায়ারবেসে গ্লোবালি পাঠানোর লজিক
     private void setupSeatInteractions() {
         int[] seatCardIds = {
             R.id.seatCard1, R.id.seatCard2, R.id.seatCard3, R.id.seatCard4, R.id.seatCard5,
@@ -242,15 +282,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         String seatKey = "seat_" + seatIndex;
 
                         if (which == 0) {
-                            // ছবিটিকে Base64 স্ট্রিংয়ে কনভার্ট করার প্রসেস
                             String imageBase64 = "";
-                            if (!userImageUriStr.isEmpty()) {
+                            if (!userImageUriStr.isEmpty() && !userImageUriStr.startsWith("/")) {
                                 try {
                                     Uri uri = Uri.parse(userImageUriStr);
                                     InputStream inputStream = getContentResolver().openInputStream(uri);
                                     Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                                    
-                                    // সাইজ অপ্টিমাইজ করার জন্য রিসাইজ করা যেতে পারে
                                     Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 150, 150, true);
                                     
                                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -262,7 +299,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 }
                             }
 
-                            // ফায়ারবেসে পার্মানেন্টলি নাম ও ছবির Base64 ডেটা গ্লোবালি সেভ করা
+                            // ফায়ারবেসে পার্মানেন্টলি নাম ও ছবির ডেটা গ্লোবালি সেভ করা
                             databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
                             databaseReference.child("seats").child(seatKey).child("userImage").setValue(imageBase64);
 
