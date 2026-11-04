@@ -1,12 +1,17 @@
 package com.sr.voicechat;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import java.util.ArrayList;
 
 public class VoiceRoomActivity extends AppCompatActivity {
 
@@ -14,12 +19,17 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private Button btnMicToggle, btnChatOption, btnGiftBox, btnGameBox;
     private boolean isMuted = false;
 
+    // স্ক্রিন চ্যাট লিস্টের জন্য ভ্যারিয়েবল
+    private ListView chatListView;
+    private ArrayList<String> chatMessages;
+    private ArrayAdapter<String> chatAdapter;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_voice_room);
 
-        // ১. পাওয়ার / এক্সিট বাটন ইনিশিয়ালাইজেশন
+        // ১. পাওয়ার / এক্সিট বাটন
         btnPower = findViewById(R.id.btnPower);
         if (btnPower != null) {
             btnPower.setOnClickListener(v -> {
@@ -37,10 +47,22 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // ২. ১০টি ভয়েস সিটে (Host এবং ১ থেকে ১০) ক্লিক লজিক সেটআপ
+        // ২. স্ক্রিন চ্যাট লিস্ট ইনিশিয়ালাইজেশন
+        chatListView = findViewById(R.id.chatListView);
+        chatMessages = new ArrayList<>();
+        // কিছু ডিফল্ট ওয়েলকাম মেসেজ
+        chatMessages.add("🌟 System: SR Voice Chatroom এ সবাইকে স্বাগতম!");
+        chatMessages.add("💬 ইউজাররা এখন স্ক্রিন চ্যাট ব্যবহার করতে পারবেন।");
+
+        chatAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, chatMessages);
+        if (chatListView != null) {
+            chatListView.setAdapter(chatAdapter);
+        }
+
+        // ৩. ১০টি সিটে যেকোনো সিটে বসার এবং সিট পরিবর্তনের (Switch Seat / Take Mic) লজিক
         setupSeatClicks();
 
-        // ৩. নিচের অ্যাকশন বার বাটনগুলো (Mic, Chat, Gift, Game) ইনিশিয়ালাইজেশন
+        // ৪. নিচের অ্যাকশন বার বাটনগুলো (Mic, Chat, Gift, Game)
         btnMicToggle = findViewById(R.id.btnMicToggle);
         if (btnMicToggle != null) {
             btnMicToggle.setOnClickListener(v -> {
@@ -55,15 +77,26 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
+        // চ্যাট বাটনে ক্লিক করলে এসএমএস লেখার ডায়ালগ ওপেন হবে এবং স্ক্রিনে দেখাবে
         btnChatOption = findViewById(R.id.btnChatOption);
         if (btnChatOption != null) {
             btnChatOption.setOnClickListener(v -> {
-                CharSequence[] chatTypes = {"All Chat", "Room Notice", "Private Chat"};
                 AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-                builder.setTitle("💬 Chat Options");
-                builder.setItems(chatTypes, (dialog, which) -> {
-                    Toast.makeText(this, "Selected: " + chatTypes[which], Toast.LENGTH_SHORT).show();
+                builder.setTitle("💬 Send Message to Room");
+
+                final EditText input = new EditText(VoiceRoomActivity.this);
+                input.setHint("Type your message here...");
+                builder.setView(input);
+
+                builder.setPositiveButton("Send", (dialog, which) -> {
+                    String message = input.getText().toString().trim();
+                    if (!message.isEmpty()) {
+                        chatMessages.add("👤 You: " + message);
+                        chatAdapter.notifyDataSetChanged();
+                        Toast.makeText(this, "Message sent!", Toast.LENGTH_SHORT).show();
+                    }
                 });
+                builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
                 builder.show();
             });
         }
@@ -73,8 +106,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
             btnGiftBox.setOnClickListener(v -> {
                 CharSequence[] gifts = {"🌹 Rose (10 Coins)", "👑 Crown (500 Coins)", "💎 Diamond (1000 Coins)"};
                 AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-                builder.setTitle("🎁 Send Gift to Room");
+                builder.setTitle("🎁 Send Gift");
                 builder.setItems(gifts, (dialog, which) -> {
+                    chatMessages.add("🎁 Gift Sent: " + gifts[which]);
+                    chatAdapter.notifyDataSetChanged();
                     Toast.makeText(this, "Successfully Sent Gift!", Toast.LENGTH_SHORT).show();
                 });
                 builder.show();
@@ -95,31 +130,37 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // ১০টি সিটে ক্লিক করলে মাইকে বসার বা ছাড়ার ডায়ালগ আসার মেথড
+    // যেকোনো সিটে (Host এবং ১ থেকে ১০) ট্যাপ করলে Take Mic, Switch Seat বা Leave Mic অপشن দেখাবে
     private void setupSeatClicks() {
         int[] seatIds = {
             R.id.seat1, R.id.seat2, R.id.seat3, R.id.seat4, R.id.seat5,
             R.id.seat6, R.id.seat7, R.id.seat8, R.id.seat9, R.id.seat10
         };
 
-        View.OnClickListener seatClickListener = v -> {
-            CharSequence[] micOptions = {"Take Mic", "Leave Mic"};
-            AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-            builder.setTitle("Voice Seat Options");
-            builder.setItems(micOptions, (dialog, which) -> {
-                if (which == 0) {
-                    Toast.makeText(VoiceRoomActivity.this, "Successfully taken the mic!", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(VoiceRoomActivity.this, "Left the mic.", Toast.LENGTH_SHORT).show();
-                }
-            });
-            builder.show();
-        };
-
-        for (int id : seatIds) {
-            View seatView = findViewById(id);
+        for (int i = 0; i < seatIds.length; i++) {
+            final int seatNumber = i + 1;
+            View seatView = findViewById(seatIds[i]);
             if (seatView != null) {
-                seatView.setOnClickListener(seatClickListener);
+                seatView.setOnClickListener(v -> {
+                    String seatTitle = (seatNumber == 1) ? "Host Seat" : "Seat " + seatNumber;
+                    CharSequence[] seatOptions = {"Take Mic (" + seatTitle + ")", "Switch Seat", "Leave Mic"};
+                    
+                    AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
+                    builder.setTitle("🎙️ " + seatTitle + " Options");
+                    builder.setItems(seatOptions, (dialog, which) -> {
+                        if (which == 0) {
+                            Toast.lang(VoiceRoomActivity.this, "Joined " + seatTitle + " successfully!", Toast.LENGTH_SHORT).show(); // wait, use Toast.makeText
+                            Toast.makeText(VoiceRoomActivity.this, "Joined " + seatTitle + " successfully!", Toast.LENGTH_SHORT).show();
+                            chatMessages.add("🎙️ System: User joined " + seatTitle);
+                            chatAdapter.notifyDataSetChanged();
+                        } else if (which == 1) {
+                            Toast.makeText(VoiceRoomActivity.this, "Switched to " + seatTitle, Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(VoiceRoomActivity.this, "Left " + seatTitle, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                    builder.show();
+                });
             }
         }
     }
