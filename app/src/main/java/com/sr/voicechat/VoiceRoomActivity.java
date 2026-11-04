@@ -1,7 +1,6 @@
 package com.sr.voicechat;
 
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -132,7 +131,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // যেকোনো সিটে ট্যাপ করলে সিট অকুপাই এবং ইউজারের নাম ও ছবি সিটে রেন্ডার করার লজিক
+    // যেকোনো সিটে ট্যাপ করলে সিট অকুপাই এবং ইউজারের নাম ও সিট স্ট্যাটাস আপডেট করার লজিক
     private void setupSeatClicks() {
         int[] seatIds = {
             R.id.seat1, R.id.seat2, R.id.seat3, R.id.seat4, R.id.seat5,
@@ -151,20 +150,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     builder.setTitle("🎙️ " + seatTitle + " Options");
                     builder.setItems(seatOptions, (dialog, which) -> {
                         String userName = prefs.getString("USER_NAME", "User");
-                        String userImage = prefs.getString("USER_IMAGE", "");
 
                         if (which == 0) {
-                            // Take Mic: সিটে ইউজারের ছবি বা ব্যাকগ্রাউন্ড আপডেট করার লজিক
-                            if (!userImage.isEmpty()) {
-                                try {
-                                    seatView.setBackground(Drawable.createFromStream(getContentResolver().openInputStream(Uri.parse(userImage)), null));
-                                } catch (Exception e) {
-                                    seatView.setBackgroundResource(R.drawable.seat_circle_active);
-                                }
-                            } else {
-                                seatView.setBackgroundResource(R.drawable.seat_circle_active);
-                            }
-
+                            // Take Mic: সিট অ্যাক্টিভ ব্যাকগ্রাউন্ড সেট করা
+                            seatView.setBackgroundResource(R.drawable.seat_circle_active);
                             Toast.makeText(VoiceRoomActivity.this, "Joined " + seatTitle + " successfully!", Toast.LENGTH_SHORT).show();
                             chatMessages.add("🎙️ System: " + userName + " joined " + seatTitle);
                             chatAdapter.notifyDataSetChanged();
@@ -173,7 +162,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             chatMessages.add("🔄 System: " + userName + " switched to " + seatTitle);
                             chatAdapter.notifyDataSetChanged();
                         } else {
-                            // Leave Mic: সিট খালি করে নরমালে ফিরিয়ে আনা
+                            // Leave Mic: সিট খালি করে নরমাল অবস্থায় ফিরিয়ে আনা
                             seatView.setBackgroundResource(R.drawable.seat_circle_normal);
                             Toast.makeText(VoiceRoomActivity.this, "Left " + seatTitle, Toast.LENGTH_SHORT).show();
                             chatMessages.add("❌ System: " + userName + " left " + seatTitle);
