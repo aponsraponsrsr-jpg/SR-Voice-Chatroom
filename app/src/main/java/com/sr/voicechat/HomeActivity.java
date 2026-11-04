@@ -4,7 +4,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import com.sr.voice.chatroom.R;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -13,13 +12,12 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        // Search button - top right corner
         View btnSearch = findViewById(R.id.btnSearch);
         if (btnSearch != null) {
             btnSearch.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Toast.makeText(HomeActivity.this, "Search Coming Soon", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(HomeActivity.this, "SR Official Search Coming Soon", Toast.LENGTH_SHORT).show();
                 }
             });
         }
