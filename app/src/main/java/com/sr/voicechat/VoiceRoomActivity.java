@@ -171,12 +171,19 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
                         if (which == 0) {
                             // Take Mic: ইউজারের ছবি ও নাম সিটে সেট করা
-                            if (!userImage.isEmpty() && seatImg != null) {
-                                try {
-                                    seatImg.setImageURI(Uri.parse(userImage));
-                                    seatImg.setPadding(0, 0, 0, 0);
-                                } catch (Exception e) {
-                                    seatImg.setImageResource(android.R.drawable.ic_menu_camera);
+                            if (seatImg != null) {
+                                if (!userImage.isEmpty()) {
+                                    try {
+                                        seatImg.setImageURI(Uri.parse(userImage));
+                                        seatImg.setPadding(0, 0, 0, 0);
+                                        seatImg.setImageTintList(null); // টিং রিমুভ করা যাতে আসল ছবি ভেসে ওঠে
+                                    } catch (Exception e) {
+                                        seatImg.setImageResource(android.R.drawable.ic_menu_my_calendar);
+                                        seatImg.setPadding(12, 12, 12, 12);
+                                    }
+                                } else {
+                                    seatImg.setImageResource(android.R.drawable.ic_menu_my_calendar);
+                                    seatImg.setPadding(12, 12, 12, 12);
                                 }
                             }
                             if (seatTxt != null) {
@@ -189,11 +196,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         } else {
                             // Leave Mic: সিট খালি করে ডিফল্ট অবস্থায় ফিরিয়ে আনা
                             if (seatImg != null) {
-                                seatImg.setImageResource(android.R.drawable.ic_menu_camera);
-                                seatImg.setPadding(8, 8, 8, 8);
+                                seatImg.setImageResource(android.R.drawable.ic_menu_my_calendar);
+                                seatImg.setPadding(12, 12, 12, 12);
                             }
                             if (seatTxt != null) {
-                                seatTxt.setText(seatNumber == 1 ? "Host" : "Seat " + seatNumber);
+                                seatTxt.setText(seatNumber == 1 ? "Host" : String.valueOf(seatNumber));
                             }
 
                             Toast.makeText(VoiceRoomActivity.this, "Left " + seatTitle, Toast.LENGTH_SHORT).show();
