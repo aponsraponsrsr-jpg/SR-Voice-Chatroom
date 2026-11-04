@@ -1,5 +1,7 @@
 package com.sr.voicechat;
 
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -18,15 +20,17 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private Button btnMicToggle, btnChatOption, btnGiftBox, btnGameBox;
     private boolean isMuted = false;
 
-    // স্ক্রিন চ্যাট লিস্টের জন্য ভ্যারিয়েবল
     private ListView chatListView;
     private ArrayList<String> chatMessages;
     private ArrayAdapter<String> chatAdapter;
+    private SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_voice_room);
+
+        prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
 
         // ১. পাওয়ার / এক্সিট বাটন
         btnPower = findViewById(R.id.btnPower);
@@ -60,7 +64,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         // ৩. ১০টি সিটে যেকোনো সিটে বসার এবং সিট পরিবর্তনের লজিক
         setupSeatClicks();
 
-        // ৪. নিচের অ্যাকশন বার বাটনগুলো (Mic, Chat, Gift, Game)
+        // ৪. নিচের অ্যাকশন বার বাটনগুলো
         btnMicToggle = findViewById(R.id.btnMicToggle);
         if (btnMicToggle != null) {
             btnMicToggle.setOnClickListener(v -> {
@@ -75,7 +79,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // চ্যাট বাটনে ক্লিক করলে এসএমএস লেখার ডায়ালগ ওপেন হবে
         btnChatOption = findViewById(R.id.btnChatOption);
         if (btnChatOption != null) {
             btnChatOption.setOnClickListener(v -> {
@@ -88,8 +91,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
                 builder.setPositiveButton("Send", (dialog, which) -> {
                     String message = input.getText().toString().trim();
+                    String userName = prefs.getString("USER_NAME", "User");
                     if (!message.isEmpty()) {
-                        chatMessages.add("👤 You: " + message);
+                        chatMessages.add("👤 " + userName + ": " + message);
                         chatAdapter.notifyDataSetChanged();
                         Toast.makeText(this, "Message sent!", Toast.LENGTH_SHORT).show();
                     }
@@ -128,7 +132,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // যেকোনো সিটে ট্যাপ করলে Take Mic, Switch Seat বা Leave Mic অপশন দেখাবে
+    // যেকোনো সিটে ট্যাপ করলে সিট অকুপাই এবং ইউজারের নাম/ছবি রেন্ডার করার লজিক
     private void setupSeatClicks() {
         int[] seatIds = {
             R.id.seat1, R.id.seat2, R.id.seat3, R.id.seat4, R.id.seat5,
@@ -146,14 +150,19 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
                     builder.setTitle("🎙️ " + seatTitle + " Options");
                     builder.setItems(seatOptions, (dialog, which) -> {
+                        String userName = prefs.getString("USER_NAME", "User");
                         if (which == 0) {
                             Toast.makeText(VoiceRoomActivity.this, "Joined " + seatTitle + " successfully!", Toast.LENGTH_SHORT).show();
-                            chatMessages.add("🎙️ System: User joined " + seatTitle);
+                            chatMessages.add("🎙️ System: " + userName + " joined " + seatTitle);
                             chatAdapter.notifyDataSetChanged();
                         } else if (which == 1) {
                             Toast.makeText(VoiceRoomActivity.this, "Switched to " + seatTitle, Toast.LENGTH_SHORT).show();
+                            chatMessages.add("🔄 System: " + userName + " switched to " + seatTitle);
+                            chatAdapter.notifyDataSetChanged();
                         } else {
                             Toast.makeText(VoiceRoomActivity.this, "Left " + seatTitle, Toast.LENGTH_SHORT).show();
+                            chatMessages.add("❌ System: " + userName + " left " + seatTitle);
+                            chatAdapter.notifyDataSetChanged();
                         }
                     });
                     builder.show();
