@@ -35,7 +35,6 @@ public class LoginActivity extends AppCompatActivity {
                 .build();
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        // Only one ID - sign_in_button - 100% exists now
         findViewById(R.id.sign_in_button).setOnClickListener(v -> signIn());
     }
 
@@ -64,11 +63,23 @@ public class LoginActivity extends AppCompatActivity {
             if (task.isSuccessful()) {
                 FirebaseUser user = mAuth.getCurrentUser();
                 SharedPreferences prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
+                
+                // ১. পার্মানেন্ট ৯+ ডিজিটের র্যান্ডম ইউনিক আইডি জেনারেশন (যদি আগে না থাকে)
                 if (!prefs.contains("MY_9_DIGIT_ID")) {
                     int randomId = 100000000 + (int)(Math.random() * 900000000);
                     prefs.edit().putString("MY_9_DIGIT_ID", String.valueOf(randomId)).apply();
                 }
-                startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+
+                // ২. চেক করা ইউজার কি প্রোফাইল সেটআপ করেছে কি না
+                boolean isProfileCompleted = prefs.getBoolean("PROFILE_COMPLETED", false);
+
+                if (!isProfileCompleted) {
+                    // নতুন ইউজার হলে প্রথমে EditProfileActivity-তে পাঠাবে
+                    startActivity(new Intent(LoginActivity.this, EditProfileActivity.class));
+                } else {
+                    // পুরোনো ইউজার হলে সরাসরি HomeActivity-তে পাঠাবে
+                    startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                }
                 finish();
             } else {
                 Toast.makeText(this, "Auth Failed", Toast.LENGTH_SHORT).show();
@@ -80,7 +91,14 @@ public class LoginActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         if (mAuth.getCurrentUser() != null) {
-            startActivity(new Intent(this, HomeActivity.class));
+            SharedPreferences prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
+            boolean isProfileCompleted = prefs.getBoolean("PROFILE_COMPLETED", false);
+
+            if (!isProfileCompleted) {
+                startActivity(new Intent(this, EditProfileActivity.class));
+            } else {
+                startActivity(new Intent(this, HomeActivity.class));
+            }
             finish();
         }
     }
