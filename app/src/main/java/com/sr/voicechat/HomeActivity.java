@@ -1,25 +1,30 @@
 package com.sr.voicechat;
 
-import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
-import android.view.View;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.Toast;
+import androidx.appcompat.app.AppCompatActivity;
 
 public class HomeActivity extends AppCompatActivity {
+
+    private Button btnCreateRoom, btnJoinRoom;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        // Open Voice Room when create button clicked
-        try {
-            View btn = findViewById(R.id.btnCreateRoom);
-            if (btn != null) {
-                btn.setOnClickListener(v -> {
-                    Intent i = new Intent(HomeActivity.this, VoiceRoomActivity.class);
-                    startActivity(i);
-                });
-            }
-        } catch (Exception e) {}
+        btnCreateRoom = findViewById(R.id.btnCreateRoom);
+        btnJoinRoom = findViewById(R.id.btnJoinRoom);
+
+        btnCreateRoom.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
+            startActivity(intent);
+        });
+
+        btnJoinRoom.setOnClickListener(v -> {
+            Toast.makeText(this, "Join Room Coming Soon! 🎙️", Toast.LENGTH_SHORT).show();
+        });
     }
 }
