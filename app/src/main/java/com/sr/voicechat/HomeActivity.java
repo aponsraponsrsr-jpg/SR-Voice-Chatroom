@@ -1,4 +1,4 @@
-package com.sr.voicechat;
+package com.sr.voice.chat;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,38 +13,40 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        // Search button - Top Right
-        View btnSearch = findViewById(R.id.btnSearch);
-        if(btnSearch != null){
-            btnSearch.setOnClickListener(v -> {
-                Toast.makeText(this, "SR Official Search - Coming Soon", Toast.LENGTH_SHORT).show();
-            });
+        // Safe check - if buttons exist, make them work
+        try {
+            View btnCreateRoom = findViewById(R.id.btnCreateRoom);
+            if (btnCreateRoom != null) {
+                btnCreateRoom.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        openVoiceRoom();
+                    }
+                });
+            }
+
+            // If you have any room click, open voice room
+            View anyRoom = findViewById(R.id.roomCard);
+            if (anyRoom != null) {
+                anyRoom.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        openVoiceRoom();
+                    }
+                });
+            }
+
+        } catch (Exception e) {
+            // No crash - just open home
         }
+    }
 
-        // 4 Rooms Click
-        View room1 = findViewById(R.id.room1);
-        View room2 = findViewById(R.id.room2);
-        View room3 = findViewById(R.id.room3);
-        View room4 = findViewById(R.id.room4);
-
-        View.OnClickListener roomClick = v -> {
+    private void openVoiceRoom() {
+        try {
             Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
             startActivity(intent);
-        };
-
-        if(room1 != null) room1.setOnClickListener(roomClick);
-        if(room2 != null) room2.setOnClickListener(roomClick);
-        if(room3 != null) room3.setOnClickListener(roomClick);
-        if(room4 != null) room4.setOnClickListener(roomClick);
-
-        // PLUS BUTTON - MIDDLE - ROOM OPEN
-        View btnPlus = findViewById(R.id.btnPlus);
-        if(btnPlus != null){
-            btnPlus.setOnClickListener(v -> {
-                Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
-                startActivity(intent);
-                Toast.makeText(this, "SR Official Room Opening...", Toast.LENGTH_SHORT).show();
-            });
+        } catch (Exception e) {
+            Toast.makeText(this, "Voice Room Opening Soon 💜", Toast.LENGTH_SHORT).show();
         }
     }
 }
