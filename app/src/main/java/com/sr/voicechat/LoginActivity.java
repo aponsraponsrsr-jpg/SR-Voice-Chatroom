@@ -3,6 +3,8 @@ package com.sr.voicechat;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -23,6 +25,7 @@ public class LoginActivity extends AppCompatActivity {
     private GoogleSignInClient mGoogleSignInClient;
     private FirebaseAuth mAuth;
     private ActivityResultLauncher<Intent> googleSignInLauncher;
+    private Button signInButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,10 +60,10 @@ public class LoginActivity extends AppCompatActivity {
                 }
         );
 
-        // Login Button Click Listener (assuming button id is btnGoogleLogin or similar, or if handled in xml, you can attach)
-        View googleLoginButton = findViewById(R.id.btnGoogleLogin);
-        if (googleLoginButton != null) {
-            googleLoginButton.setOnClickListener(v -> signInWithGoogle());
+        // Login Button Click Listener (matched with xml id: sign_in_button)
+        signInButton = findViewById(R.id.sign_in_button);
+        if (signInButton != null) {
+            signInButton.setOnClickListener(v -> signInWithGoogle());
         }
     }
 
