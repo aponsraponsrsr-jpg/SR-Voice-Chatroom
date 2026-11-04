@@ -3,86 +3,37 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#121212">
+    android:background="#0F0B1E"
+    android:gravity="center"
+    android:padding="24dp">
 
-    <!-- TOP -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="56dp" android:orientation="horizontal" android:background="#1A1A1A" android:gravity="center_vertical" android:paddingLeft="12dp" android:paddingRight="12dp">
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SR Voice Chat 💜" android:textColor="#FF69B4" android:textStyle="bold" android:textSize="18sp"/>
-        <TextView android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"/>
-        <TextView android:layout_width="36dp" android:layout_height="36dp" android:text="🔍" android:gravity="center" android:textSize="18sp"/>
-        <TextView android:layout_width="36dp" android:layout_height="36dp" android:text="🔔" android:gravity="center" android:textSize="18sp" android:layout_marginLeft="8dp"/>
-    </LinearLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="SR Voice Chatroom"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="40dp"/>
 
-    <!-- ROOMS -->
-    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="12dp">
+    <Button
+        android:id="@+id/btnCreateRoom"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Create Voice Room 💜"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#8A2BE2"
+        android:layout_marginBottom="16dp"/>
 
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔥 Trending Rooms" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="16sp" android:layout_marginBottom="12dp"/>
+    <Button
+        android:id="@+id/btnJoinRoom"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Join Room 🎙️"
+        android:textSize="16sp"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#2D1B4E"/>
 
-            <LinearLayout android:id="@+id/roomCard1" android:layout_width="match_parent" android:layout_height="80dp" android:orientation="horizontal" android:background="#1E1E1E" android:gravity="center_vertical" android:padding="12dp" android:layout_marginBottom="10dp">
-                <TextView android:layout_width="56dp" android:layout_height="56dp" android:text="💜" android:gravity="center" android:background="#6A0DAD" android:textSize="28sp"/>
-                <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginLeft="12dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SR Official Room 💜" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="14sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="10 Seats • Pink Party 🎉" android:textColor="#FF69B4" android:textSize="11sp" android:layout_marginTop="4dp"/>
-                </LinearLayout>
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔴 LIVE" android:textColor="#FF0000" android:textStyle="bold" android:textSize="10sp" android:background="#30FF0000" android:paddingLeft="8dp" android:paddingRight="8dp" android:paddingTop="4dp" android:paddingBottom="4dp"/>
-            </LinearLayout>
-
-            <LinearLayout android:id="@+id/roomCard2" android:layout_width="match_parent" android:layout_height="80dp" android:orientation="horizontal" android:background="#1E1E1E" android:gravity="center_vertical" android:padding="12dp" android:layout_marginBottom="10dp">
-                <TextView android:layout_width="56dp" android:layout_height="56dp" android:text="🌸" android:gravity="center" android:background="#FF69B4" android:textSize="28sp"/>
-                <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginLeft="12dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Pink Girls Voice 🎀" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="14sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="8 Seats • Beautiful Girls 💖" android:textColor="#FFB6C1" android:textSize="11sp" android:layout_marginTop="4dp"/>
-                </LinearLayout>
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🔴 LIVE" android:textColor="#FF0000" android:textStyle="bold" android:textSize="10sp"/>
-            </LinearLayout>
-
-            <LinearLayout android:id="@+id/roomCard3" android:layout_width="match_parent" android:layout_height="80dp" android:orientation="horizontal" android:background="#1E1E1E" android:gravity="center_vertical" android:padding="12dp" android:layout_marginBottom="10dp">
-                <TextView android:layout_width="56dp" android:layout_height="56dp" android:text="🎤" android:gravity="center" android:background="#8A2BE2" android:textSize="28sp"/>
-                <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginLeft="12dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Singing Room 🎶" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="14sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="10 Seats • Karaoke Night" android:textColor="#C850FF" android:textSize="11sp" android:layout_marginTop="4dp"/>
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout android:id="@+id/roomCard4" android:layout_width="match_parent" android:layout_height="80dp" android:orientation="horizontal" android:background="#1E1E1E" android:gravity="center_vertical" android:padding="12dp">
-                <TextView android:layout_width="56dp" android:layout_height="56dp" android:text="💎" android:gravity="center" android:background="#00CED1" android:textSize="28sp"/>
-                <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical" android:layout_marginLeft="12dp">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="VIP Rich Room 👑" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="14sp"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Gift Party • Diamonds 💎" android:textColor="#FFD700" android:textSize="11sp" android:layout_marginTop="4dp"/>
-                </LinearLayout>
-            </LinearLayout>
-
-        </LinearLayout>
-    </ScrollView>
-
-    <!-- BOTTOM - SMALL PLUS FIXED 42dp -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="60dp" android:orientation="horizontal" android:background="#1A1A1A" android:gravity="center_vertical">
-
-        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🏠" android:textSize="19sp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Home" android:textColor="#888888" android:textSize="9sp" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-
-        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💫" android:textSize="19sp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Moment" android:textColor="#888888" android:textSize="9sp" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-
-        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center">
-            <TextView android:id="@+id/btnPlus" android:layout_width="42dp" android:layout_height="42dp" android:text="+" android:textColor="#000000" android:textStyle="bold" android:textSize="24sp" android:gravity="center" android:background="#FFD700"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Create" android:textColor="#FFD700" android:textSize="8sp" android:textStyle="bold" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-
-        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📩" android:textSize="19sp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Inbox" android:textColor="#888888" android:textSize="9sp" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-
-        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👤" android:textSize="19sp"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Mine" android:textColor="#FFC107" android:textStyle="bold" android:textSize="9sp" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-
-    </LinearLayout>
 </LinearLayout>
