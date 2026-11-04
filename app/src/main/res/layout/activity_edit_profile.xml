@@ -4,36 +4,63 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="24dp"
-    android:gravity="center">
+    android:gravity="center"
+    android:background="#121212">
 
-    <ImageView
-        android:id="@+id/profileImage"
+    <!-- Profile Image with Circular Container -->
+    <FrameLayout
         android:layout_width="120dp"
         android:layout_height="120dp"
-        android:src="@android:mipmap/sym_def_app_icon" />
+        android:layout_gravity="center">
+
+        <ImageView
+            android:id="@+id/profileImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:background="@drawable/seat_circle_normal"
+            android:src="@android:drawable/ic_menu_camera"
+            android:padding="30dp"
+            android:tint="#FFFFFF" />
+    </FrameLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tap to change profile photo"
+        android:textColor="#AAAAAA"
+        android:textSize="12sp"
+        android:layout_marginTop="8dp"/>
 
     <EditText
         android:id="@+id/editName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="Your Name"
-        android:layout_marginTop="16dp"/>
+        android:textColor="#FFFFFF"
+        android:textColorHint="#777777"
+        android:backgroundTint="#FF4081"
+        android:layout_marginTop="20dp"/>
 
     <TextView
         android:id="@+id/textUserId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="ID: Loading..."
-        android:layout_marginTop="8dp"/>
+        android:textColor="#FFD700"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp"/>
 
     <RadioGroup
         android:id="@+id/genderGroup"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginTop="16dp">
-        <RadioButton android:id="@+id/radioMale" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Male"/>
-        <RadioButton android:id="@+id/radioFemale" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Female"/>
+        android:gravity="center"
+        android:layout_marginTop="20dp">
+        <RadioButton android:id="@+id/radioMale" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Male" android:textColor="#FFFFFF"/>
+        <RadioButton android:id="@+id/radioFemale" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Female" android:textColor="#FFFFFF" android:layout_marginStart="24dp"/>
     </RadioGroup>
 
     <Button
@@ -41,6 +68,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Save &amp; Continue"
-        android:layout_marginTop="24dp"/>
+        android:backgroundTint="#FF4081"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="32dp"/>
 
 </LinearLayout>
