@@ -17,10 +17,10 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // --- পুরো হোমপেজ এখন কোড দিয়েই বানানো, xml লাগবে না ---
+        // --- হোমপেজ - ১ ফাইলে সব, ব্যাকগ্রাউন্ড হালকা পিংক ---
         LinearLayout mainLayout = new LinearLayout(this);
         mainLayout.setOrientation(LinearLayout.VERTICAL);
-        mainLayout.setBackgroundColor(Color.parseColor("#0F0F1E"));
+        mainLayout.setBackgroundColor(Color.parseColor("#FFF0F5")); // হালকা পিংক / গোলাপি
         mainLayout.setLayoutParams(new LinearLayout.LayoutParams(-1, -1));
 
         // উপরের বার
@@ -32,17 +32,17 @@ public class MainActivity extends AppCompatActivity {
         topBar.setBackgroundColor(Color.parseColor("#E91E63"));
         mainLayout.addView(topBar);
 
-        // মাঝখানে Welcome - বড় জায়গা
+        // মাঝখানে
         TextView welcome = new TextView(this);
         welcome.setText("Welcome! Tap + to create room");
-        welcome.setTextColor(Color.parseColor("#AAAAAA"));
+        welcome.setTextColor(Color.parseColor("#880E4F"));
         welcome.setTextSize(18);
         welcome.setGravity(Gravity.CENTER);
         LinearLayout.LayoutParams welcomeParams = new LinearLayout.LayoutParams(-1, 0, 1);
         welcome.setLayoutParams(welcomeParams);
         mainLayout.addView(welcome);
 
-        // + বাটন - ডান দিকে
+        // + বাটন
         LinearLayout plusRow = new LinearLayout(this);
         plusRow.setGravity(Gravity.END);
         plusRow.setPadding(0, 0, 40, 20);
@@ -55,15 +55,15 @@ public class MainActivity extends AppCompatActivity {
         plusRow.addView(btnPlus);
         mainLayout.addView(plusRow);
 
-        // নিচের নেভিগেশন বার - ৪টা বাটন, এইটাই আসল জিনিস
+        // নিচের বার - ইমারজেন্সি ৪টা অপশন
         LinearLayout bottomBar = new LinearLayout(this);
         bottomBar.setOrientation(LinearLayout.HORIZONTAL);
-        bottomBar.setBackgroundColor(Color.parseColor("#1A1A2E"));
-        bottomBar.setPadding(0, 10, 0, 10);
+        bottomBar.setBackgroundColor(Color.parseColor("#FFFFFF")); // সাদা, পিংক ব্যাকগ্রাউন্ডের সাথে সুন্দর লাগবে
+        bottomBar.setPadding(0, 12, 0, 12);
 
         bottomBar.addView(makeNavButton("🏠\nHome", "Home"));
         bottomBar.addView(makeNavButton("✨\nMoment", "Moment"));
-        bottomBar.addView(makeNavButton("💬\nMessage", "Message - Chat List"));
+        bottomBar.addView(makeNavButton("💬\nSMS", "SMS - Chat List"));
         bottomBar.addView(makeNavButton("👤\nMe", "Me - My Profile"));
 
         mainLayout.addView(bottomBar);
@@ -74,9 +74,9 @@ public class MainActivity extends AppCompatActivity {
     private Button makeNavButton(String text, String toastMsg) {
         Button btn = new Button(this);
         btn.setText(text);
-        btn.setTextColor(Color.WHITE);
-        btn.setTextSize(12);
-        btn.setBackgroundColor(Color.parseColor("#1A1A2E"));
+        btn.setTextColor(Color.parseColor("#E91E63"));
+        btn.setTextSize(13);
+        btn.setBackgroundColor(Color.parseColor("#FFFFFF"));
         LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, -2, 1);
         btn.setLayoutParams(p);
         btn.setOnClickListener(v -> Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show());
@@ -88,12 +88,13 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(40, 40, 40, 40);
-        layout.setBackgroundColor(Color.WHITE);
+        layout.setBackgroundColor(Color.parseColor("#FFF0F5"));
 
         TextView title = new TextView(this);
         title.setText("Create Room");
         title.setTextSize(20);
         title.setGravity(Gravity.CENTER);
+        title.setTextColor(Color.parseColor("#E91E63"));
         layout.addView(title);
 
         EditText etName = new EditText(this);
