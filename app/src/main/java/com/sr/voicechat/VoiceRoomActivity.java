@@ -19,6 +19,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -42,6 +43,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private DatabaseReference databaseReference;
     private DatabaseReference userDatabaseRef;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,10 +51,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
         setContentView(R.layout.activity_voice_room);
 
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
+        mAuth = FirebaseAuth.getInstance();
 
         databaseReference = FirebaseDatabase.getInstance().getReference("rooms").child("room_01");
         userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
 
+        // জিমেইল এবং পার্মানেন্ট আইডি পারফেক্টলি সিঙ্ক করার ফাংশন
         checkAndSyncPermanentUser();
 
         btnPower = findViewById(R.id.btnPower);
@@ -153,36 +157,55 @@ public class VoiceRoomActivity extends AppCompatActivity {
     }
 
     private void checkAndSyncPermanentUser() {
-        String userEmail = prefs.getString("USER_EMAIL", "default_user@sr.com");
-        String safeEmailKey = userEmail.replace(".", "_").replace("@", "_");
+        if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getEmail() != null) {
+            String userEmail = mAuth.getCurrentUser().getEmail();
+            prefs.edit().putString("USER_EMAIL", userEmail).apply();
+            String safeEmailKey = userEmail.replace(".", "_").replace("@", "_");
 
-        userDatabaseRef.child(safeEmailKey).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                SharedPreferences.Editor editor = prefs.edit();
-                if (snapshot.exists()) {
-                    String savedId = snapshot.child("userId").getValue(String.class);
-                    String savedName = snapshot.child("userName").getValue(String.class);
-                    String savedImage = snapshot.child("userImage").getValue(String.class);
+            userDatabaseRef.child(safeEmailKey).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    SharedPreferences.Editor editor = prefs.edit();
+                    if (snapshot.exists()) {
+                        // ফায়ারবেস থেকে আপনার আসল পার্মানেন্ট আইডি ও ডেটা রিকভার করা
+                        String savedId = snapshot.child("userId").getValue(String.class);
+                        String savedName = snapshot.child("userName").getValue(String.class);
+                        String savedImage = snapshot.child("userImage").getValue(String.class);
 
-                    if (savedId != null) editor.putString("USER_ID", savedId);
-                    if (savedName != null) editor.putString("USER_NAME", savedName);
-                    if (savedImage != null) editor.putString("USER_IMAGE", savedImage);
-                    editor.apply();
-                } else {
-                    String currentId = prefs.getString("USER_ID", "884516806");
-                    String currentName = prefs.getString("USER_NAME", "User");
-                    String currentImage = prefs.getString("USER_IMAGE", "");
+                        if (savedId != null && !savedId.isEmpty()) {
+                            editor.putString("USER_ID", savedId);
+                            editor.putString("MY_9_DIGIT_ID", savedId);
+                        }
+                        if (savedName != null && !savedName.isEmpty()) {
+                            editor.putString("USER_NAME", savedName);
+                        }
+                        if (savedImage != null && !savedImage.isEmpty()) {
+                            editor.putString("USER_IMAGE", savedImage);
+                        }
+                        editor.apply();
+                    } else {
+                        // প্রথমবার হলে নতুন পার্মানেন্ট আইডি তৈরি করে ফায়ারবেসে চিরস্থায়ীভাবে সেভ করা
+                        String currentId = prefs.getString("MY_9_DIGIT_ID", "");
+                        if (currentId.isEmpty()) {
+                            currentId = String.valueOf((int)(Math.random() * 900000000) + 100000000);
+                        }
+                        String currentName = prefs.getString("USER_NAME", "User");
+                        String currentImage = prefs.getString("USER_IMAGE", "");
 
-                    userDatabaseRef.child(safeEmailKey).child("userId").setValue(currentId);
-                    userDatabaseRef.child(safeEmailKey).child("userName").setValue(currentName);
-                    userDatabaseRef.child(safeEmailKey).child("userImage").setValue(currentImage);
+                        editor.putString("USER_ID", currentId);
+                        editor.putString("MY_9_DIGIT_ID", currentId);
+                        editor.apply();
+
+                        userDatabaseRef.child(safeEmailKey).child("userId").setValue(currentId);
+                        userDatabaseRef.child(safeEmailKey).child("userName").setValue(currentName);
+                        userDatabaseRef.child(safeEmailKey).child("userImage").setValue(currentImage);
+                    }
                 }
-            }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
-        });
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {}
+            });
+        }
     }
 
     private void listenToFirebaseSeats() {
@@ -269,8 +292,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
                     builder.setTitle("🎙️ " + seatTitle + " Options");
                     builder.setItems(seatOptions, (dialog, which) -> {
-                        // SharedPreferences থেকে লেটেস্ট নাম ও ছবি ফেচ করা
-                        String userName = prefs.getString("USER_NAME", "Official");
+                        // সবসময় SharedPreferences থেকে লেটেস্ট নাম ও ছবি নেওয়া
+                        String userName = prefs.getString("USER_NAME", "User");
                         String userImageUriStr = prefs.getString("USER_IMAGE", "");
                         String seatKey = "seat_" + seatIndex;
 
@@ -283,10 +306,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                         InputStream inputStream = getContentResolver().openInputStream(uri);
                                         Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                                         if (bitmap != null) {
-                                            // ইমেজ অপ্টিমাইজেশন ও কম্প্রেশন (ফায়ারবেসের জন্য পারফেক্ট সাইজ ১০০x১০০ পিক্সেল)
-                                            Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 100, 100, true);
+                                            // ইমেজ রিসাইজ ও কম্প্রেশন (ফায়ারবেসের জন্য পারফেক্ট সাইজ)
+                                            Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 120, 120, true);
                                             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos);
+                                            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
                                             byte[] imageBytes = baos.toByteArray();
                                             imageBase64[0] = Base64.encodeToString(imageBytes, Base64.DEFAULT);
                                         }
