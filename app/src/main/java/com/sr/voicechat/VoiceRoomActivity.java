@@ -46,7 +46,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
 
-        // ফায়ারবেস রিয়েলটাইম ডেটাবেস ইনিশিয়ালাইজেশন ("rooms/room_01" এর ভেতরে সিটগুলো গ্লোবালি সেভ হবে)
+        // ফায়ারবেস রিয়েলটাইম ডেটাবেস ইনিশিয়ালাইজেশন
         databaseReference = FirebaseDatabase.getInstance().getReference("rooms").child("room_01");
 
         // ১. পাওয়ার / এক্সিট বাটন
@@ -71,14 +71,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
         chatListView = findViewById(R.id.chatListView);
         chatMessages = new ArrayList<>();
         chatMessages.add("🌟 System: SR Voice Chatroom এ সবাইকে স্বাগতম!");
-        chatMessages.add("💬 ইউজাররা এখন গ্লোবালি সিটে বসে কথা বলতে পারবেন।");
+        chatMessages.add("💬 গ্লোবাল সিট এবং প্রোফাইল সিঙ্ক্রোনাইজেশন সক্রিয় রয়েছে।");
 
         chatAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, chatMessages);
         if (chatListView != null) {
             chatListView.setAdapter(chatAdapter);
         }
 
-        // ৩. ১০টি সিটে বসার এবং ফায়ারবেসের সাথে রিয়েল-টাইম সিংক করার লজিক
+        // ৩. সিট ইন্টারঅ্যাকশন এবং রিয়েল-টাইম সিঙ্ক লজিক
         setupSeatInteractions();
         listenToFirebaseSeats();
 
@@ -150,7 +150,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // ফায়ারবেস থেকে রিয়েল-টাইমে সিটের ডেটা শো করার লজিক (গ্লোবাল সিঙ্ক্রোনাইজেশন)
+    // গ্লোবালি ফায়ারবেস থেকে সিটের ছবি ও নাম রিয়েল-টাইমে রেন্ডার করার লজিক
     private void listenToFirebaseSeats() {
         int[] seatImgIds = {
             R.id.seatImg1, R.id.seatImg2, R.id.seatImg3, R.id.seatImg4, R.id.seatImg5,
@@ -174,9 +174,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         String name = snapshot.child(seatKey).child("userName").getValue(String.class);
                         String image = snapshot.child(seatKey).child("userImage").getValue(String.class);
 
+                        // নাম সেট করা
                         if (seatTxt != null) {
                             seatTxt.setText(name != null ? name : (i == 0 ? "Host" : String.valueOf(i + 1)));
                         }
+
+                        // প্রোফাইল পিকচার গোল আকারে গ্লোবালি রেন্ডার করা
                         if (seatImg != null && image != null && !image.isEmpty()) {
                             try {
                                 Uri imageUri = Uri.parse(image);
@@ -208,12 +211,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                // কোনো এরর হলে টোস্ট মেসেজ
+                // কোনো এরর হ্যান্ডলিং প্রয়োজন হলে
             }
         });
     }
 
-    // সিটে ক্লিক করলে ইউজারের প্রোফাইল ছবি ও নাম ফায়ারবেসে সেভ করার লজিক
+    // সিটে ক্লিক করে নিজের নাম ও ছবি ফায়ারবেসে গ্লোবালি পাঠানোর লজিক
     private void setupSeatInteractions() {
         int[] seatCardIds = {
             R.id.seatCard1, R.id.seatCard2, R.id.seatCard3, R.id.seatCard4, R.id.seatCard5,
@@ -238,7 +241,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         String seatKey = "seat_" + seatIndex;
 
                         if (which == 0) {
-                            // Take Mic: ফায়ারবেসে ইউজারের ডেটা গ্লোবালি সেভ করা
+                            // Take Mic: ফায়ারবেসে নাম ও ছবি গ্লোবালি সেভ করা
                             databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
                             databaseReference.child("seats").child(seatKey).child("userImage").setValue(userImage);
 
@@ -246,7 +249,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             chatMessages.add("🎙️ System: " + userName + " took " + seatTitle);
                             chatAdapter.notifyDataSetChanged();
                         } else {
-                            // Leave Mic: ফায়ারবেস থেকে সিট খালি বা রিমুভ করা
+                            // Leave Mic: ফায়ারবেস থেকে সিট খালি করা
                             databaseReference.child("seats").child(seatKey).removeValue();
 
                             Toast.makeText(VoiceRoomActivity.this, "Left " + seatTitle, Toast.LENGTH_SHORT).show();
