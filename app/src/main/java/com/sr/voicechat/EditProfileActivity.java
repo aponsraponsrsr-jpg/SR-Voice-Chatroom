@@ -19,8 +19,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.SetOptions;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -34,7 +32,6 @@ public class EditProfileActivity extends AppCompatActivity {
     private TextView textUserId;
     private RadioGroup genderGroup;
     private Button btnSave;
-    private FirebaseFirestore db;
     private DatabaseReference rtdbRef;
     private FirebaseAuth mAuth;
     private SharedPreferences prefs;
@@ -45,7 +42,6 @@ public class EditProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
 
-        db = FirebaseFirestore.getInstance();
         rtdbRef = FirebaseDatabase.getInstance().getReference();
         mAuth = FirebaseAuth.getInstance();
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
@@ -56,11 +52,15 @@ public class EditProfileActivity extends AppCompatActivity {
         genderGroup = findViewById(R.id.genderGroup);
         btnSave = findViewById(R.id.btnSave);
 
-        // পার্মানেন্ট ইউনিক আইডি লোড করা
-        String uniqueId = prefs.getString("MY_9_DIGIT_ID", "884516806");
+        // পার্মানেন্ট ইউনিক আইডি লোড বা জেনারেট করা
+        String uniqueId = prefs.getString("MY_9_DIGIT_ID", "");
+        if (uniqueId.isEmpty()) {
+            uniqueId = String.valueOf((int)(Math.random() * 900000000) + 100000000);
+            prefs.edit().putString("MY_9_DIGIT_ID", uniqueId).apply();
+        }
         textUserId.setText("ID: " + uniqueId);
 
-        // আগের সেভ করা ছবি বা নাম থাকলে তা লোড করে দেখানো
+        // আগের সেভ করা ছবি লোড করা
         String savedImage = prefs.getString("USER_IMAGE", "");
         if (!savedImage.isEmpty()) {
             imageUriString = savedImage;
@@ -80,7 +80,6 @@ public class EditProfileActivity extends AppCompatActivity {
             }
         }
 
-        // লোকাল প্রিফারেন্স বা ফায়ারবেস অথ থেকে নাম সেট করা
         String savedName = prefs.getString("USER_NAME", "");
         if (!savedName.isEmpty()) {
             editName.setText(savedName);
@@ -88,7 +87,6 @@ public class EditProfileActivity extends AppCompatActivity {
             editName.setText(mAuth.getCurrentUser().getDisplayName());
         }
 
-        // প্রোফাইল ছবির ওপর ক্লিক করলে গ্যালারি ওপেন হবে
         profileImage.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             startActivityForResult(intent, PICK_IMAGE_REQUEST);
@@ -104,7 +102,6 @@ public class EditProfileActivity extends AppCompatActivity {
             int selectedGenderId = genderGroup.getCheckedRadioButtonId();
             String gender = (selectedGenderId == R.id.radioFemale) ? "Female" : "Male";
 
-            // ছবিটিকে Base64 String-এ কনভার্ট করা যাতে গ্লোবালি রিয়েলটাইম ডেটাবেসে পার্মানেন্টলি শো করে
             final String[] imageBase64 = {imageUriString};
             if (!imageUriString.isEmpty() && (imageUriString.startsWith("content://") || imageUriString.startsWith("file://"))) {
                 try {
@@ -112,9 +109,9 @@ public class EditProfileActivity extends AppCompatActivity {
                     InputStream inputStream = getContentResolver().openInputStream(uri);
                     Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                     if (bitmap != null) {
-                        Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 150, 150, true);
+                        Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 120, 120, true);
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 70, baos);
+                        resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
                         byte[] imageBytes = baos.toByteArray();
                         imageBase64[0] = Base64.encodeToString(imageBytes, Base64.DEFAULT);
                     }
@@ -123,7 +120,7 @@ public class EditProfileActivity extends AppCompatActivity {
                 }
             }
 
-            // ১. লোকাল SharedPreferences-এ পার্মানেন্টলি সেভ করা
+            // লোকাল প্রিফারেন্সে সেভ
             prefs.edit()
                     .putString("USER_NAME", newName)
                     .putString("USER_GENDER", gender)
@@ -131,29 +128,16 @@ public class EditProfileActivity extends AppCompatActivity {
                     .putBoolean("PROFILE_COMPLETED", true)
                     .apply();
 
-            // ২. ফায়ারবেস রিয়েলটাইম ডেটাবেস এবং ফায়ারস্টোরে পার্মানেন্ট সিঙ্ক্রোনাইজেশন
-            if (mAuth.getCurrentUser() != null) {
+            // ফায়ারবেস রিয়েলটাইম ডেটাবেসে পার্মানেন্ট সিঙ্ক
+            if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getEmail() != null) {
                 String email = mAuth.getCurrentUser().getEmail();
-                if (email != null) {
-                    String safeEmailKey = email.replace(".", "_").replace("@", "_");
-                    
-                    // রিয়েলটাইম ডেটাবেসে ইউজার নোড আপডেট
-                    Map<String, Object> rtdbMap = new HashMap<>();
-                    rtdbMap.put("userId", uniqueId);
-                    rtdbMap.put("userName", newName);
-                    rtdbMap.put("userImage", imageBase64[0]);
-                    rtdbRef.child("users").child(safeEmailKey).setValue(rtdbMap);
-                }
+                String safeEmailKey = email.replace(".", "_").replace("@", "_");
 
-                // ফায়ারস্টোরে আপডেট
-                Map<String, Object> update = new HashMap<>();
-                update.put("name", newName);
-                update.put("gender", gender);
-                update.put("uniqueId", uniqueId);
-                update.put("profileImage", imageBase64[0]);
-
-                db.collection("users").document(mAuth.getCurrentUser().getUid())
-                        .set(update, SetOptions.merge());
+                Map<String, Object> rtdbMap = new HashMap<>();
+                rtdbMap.put("userId", uniqueId);
+                rtdbMap.put("userName", newName);
+                rtdbMap.put("userImage", imageBase64[0]);
+                rtdbRef.child("users").child(safeEmailKey).setValue(rtdbMap);
             }
 
             Toast.makeText(this, "Profile Saved Successfully!", Toast.LENGTH_SHORT).show();
