@@ -40,7 +40,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private ArrayAdapter<String> chatAdapter;
     private SharedPreferences prefs;
 
-    // ফায়ারবেস ডেটাবেস রেফারেন্স
     private DatabaseReference databaseReference;
     private DatabaseReference userDatabaseRef;
 
@@ -51,14 +50,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
 
-        // ফায়ারবেস রিয়েলটাইম ডেটাবেস ইনিশিয়ালাইজেশন
         databaseReference = FirebaseDatabase.getInstance().getReference("rooms").child("room_01");
         userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
 
-        // পার্মানেন্ট আইডি ও জিমেইল সিঙ্ক্রোনাইজেশন চেক
         checkAndSyncPermanentUser();
 
-        // ১. পাওয়ার / এক্সিট বাটন
         btnPower = findViewById(R.id.btnPower);
         if (btnPower != null) {
             btnPower.setOnClickListener(v -> {
@@ -76,7 +72,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // ২. স্ক্রিন চ্যাট লিস্ট ইনিশিয়ালাইজেশন
         chatListView = findViewById(R.id.chatListView);
         chatMessages = new ArrayList<>();
         chatMessages.add("🌟 System: SR Voice Room-এ স্বাগতম!");
@@ -87,11 +82,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
             chatListView.setAdapter(chatAdapter);
         }
 
-        // ৩. সিট ইন্টারঅ্যাকশন এবং রিয়েল-টাইম সিঙ্ক লজিক
         setupSeatInteractions();
         listenToFirebaseSeats();
 
-        // ৪. নিচের অ্যাকশন বার বাটনগুলো
         btnMicToggle = findViewById(R.id.btnMicToggle);
         if (btnMicToggle != null) {
             btnMicToggle.setOnClickListener(v -> {
@@ -159,28 +152,24 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // জিমেইল বা ইউজার আইডি পার্মানেন্টলি চেক ও সিঙ্ক করার লজিক
     private void checkAndSyncPermanentUser() {
         String userEmail = prefs.getString("USER_EMAIL", "default_user@sr.com");
-        // জিমেইলের স্পেশাল ক্যারেক্টার রিমুভ করে ফায়ারবেস সেফ কি তৈরি করা
         String safeEmailKey = userEmail.replace(".", "_").replace("@", "_");
 
         userDatabaseRef.child(safeEmailKey).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                SharedPreferences.Editor editor = prefs.edit();
                 if (snapshot.exists()) {
-                    // যদি আগে থেকেই এই জিমেইলের ডেটা থাকে, তবে পার্মানেন্ট আইডি ও ডেটা লোড করবে
                     String savedId = snapshot.child("userId").getValue(String.class);
                     String savedName = snapshot.child("userName").getValue(String.class);
                     String savedImage = snapshot.child("userImage").getValue(String.class);
 
-                    SharedPreferences.Editor editor = prefs.edit();
                     if (savedId != null) editor.putString("USER_ID", savedId);
                     if (savedName != null) editor.putString("USER_NAME", savedName);
                     if (savedImage != null) editor.putString("USER_IMAGE", savedImage);
                     editor.apply();
                 } else {
-                    // প্রথমবার হলে নতুন পার্মানেন্ট আইডি জেনারেট করে সেভ করবে
                     String currentId = prefs.getString("USER_ID", "884516806");
                     String currentName = prefs.getString("USER_NAME", "User");
                     String currentImage = prefs.getString("USER_IMAGE", "");
@@ -196,7 +185,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // ফায়ারবেস থেকে গ্লোবালি সিটের ছবি ও নাম রেন্ডার করার লজিক
     private void listenToFirebaseSeats() {
         int[] seatImgIds = {
             R.id.seatImg1, R.id.seatImg2, R.id.seatImg3, R.id.seatImg4, R.id.seatImg5,
@@ -220,26 +208,31 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         String name = snapshot.child(seatKey).child("userName").getValue(String.class);
                         String imageBase64 = snapshot.child(seatKey).child("userImage").getValue(String.class);
 
-                        // নাম সেট করা
                         if (seatTxt != null) {
                             seatTxt.setText(name != null ? name : (i == 0 ? "Host" : String.valueOf(i + 1)));
                         }
 
-                        // Base64 ইমেজ ডিকোড করে গোল প্রোফাইল পিকচার গ্লোবালি শো করা
                         if (seatImg != null && imageBase64 != null && !imageBase64.isEmpty()) {
                             try {
                                 byte[] decodedString = Base64.decode(imageBase64, Base64.DEFAULT);
                                 Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                                seatImg.setImageBitmap(decodedByte);
-                                seatImg.setPadding(0, 0, 0, 0);
-                                seatImg.setImageTintList(null);
+                                if (decodedByte != null) {
+                                    seatImg.setImageBitmap(decodedByte);
+                                    seatImg.setPadding(0, 0, 0, 0);
+                                    seatImg.setImageTintList(null);
+                                }
                             } catch (Exception e) {
                                 seatImg.setImageResource(android.R.drawable.ic_menu_my_calendar);
                                 seatImg.setPadding(12, 12, 12, 12);
                             }
+                        } else {
+                            if (seatImg != null) {
+                                seatImg.setImageResource(android.R.drawable.ic_menu_my_calendar);
+                                seatImg.setPadding(12, 12, 12, 12);
+                                seatImg.setImageTintList(null);
+                            }
                         }
                     } else {
-                        // সিট খালি থাকলে ডিফল্ট অবস্থা
                         if (seatTxt != null) {
                             seatTxt.setText(i == 0 ? "Host" : String.valueOf(i + 1));
                         }
@@ -257,7 +250,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // সিটে ক্লিক করে নিজের নাম ও ছবি ফায়ারবেসে গ্লোবালি পাঠানোর লজিক
     private void setupSeatInteractions() {
         int[] seatCardIds = {
             R.id.seatCard1, R.id.seatCard2, R.id.seatCard3, R.id.seatCard4, R.id.seatCard5,
@@ -282,32 +274,32 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         String seatKey = "seat_" + seatIndex;
 
                         if (which == 0) {
-                            String imageBase64 = "";
+                            final String[] imageBase64 = {""};
                             if (!userImageUriStr.isEmpty() && !userImageUriStr.startsWith("/")) {
                                 try {
                                     Uri uri = Uri.parse(userImageUriStr);
                                     InputStream inputStream = getContentResolver().openInputStream(uri);
                                     Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                                    Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 150, 150, true);
-                                    
-                                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                    resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 70, baos);
-                                    byte[] imageBytes = baos.toByteArray();
-                                    imageBase64 = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+                                    if (bitmap != null) {
+                                        Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 120, 120, true);
+                                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                        resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
+                                        byte[] imageBytes = baos.toByteArray();
+                                        imageBase64[0] = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+                                    }
                                 } catch (Exception e) {
-                                    imageBase64 = "";
+                                    imageBase64[0] = "";
                                 }
                             }
 
-                            // ফায়ারবেসে পার্মানেন্টলি নাম ও ছবির ডেটা গ্লোবালি সেভ করা
+                            // ফায়ারবেসে পার্মানেন্ট ডেটা পাঠানো
                             databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
-                            databaseReference.child("seats").child(seatKey).child("userImage").setValue(imageBase64);
+                            databaseReference.child("seats").child(seatKey).child("userImage").setValue(imageBase64[0]);
 
                             Toast.makeText(VoiceRoomActivity.this, "Joined " + seatTitle + " successfully!", Toast.LENGTH_SHORT).show();
                             chatMessages.add("🎙️ System: " + userName + " took " + seatTitle);
                             chatAdapter.notifyDataSetChanged();
                         } else {
-                            // Leave Mic: ফায়ারবেস থেকে সিট খালি করা
                             databaseReference.child("seats").child(seatKey).removeValue();
 
                             Toast.makeText(VoiceRoomActivity.this, "Left " + seatTitle, Toast.LENGTH_SHORT).show();
