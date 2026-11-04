@@ -1,39 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#0F0B1E"
-    android:gravity="center"
-    android:padding="24dp">
+    android:background="#0E0A1E">
 
     <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🌟 SR Voice Chatroom"
+        android:textColor="#FFFFFF"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:padding="16dp"
+        android:background="#E91E63"/>
+
+    <TextView
+        android:layout_centerInParent="true"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="SR Voice Chatroom"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:textColor="#FFFFFF"
-        android:layout_marginBottom="40dp"/>
+        android:text="Welcome! Tap + to create room"
+        android:textColor="#AAAAAA"
+        android:textSize="14sp"/>
 
-    <Button
-        android:id="@+id/btnCreateRoom"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:text="Create Voice Room 💜"
-        android:textSize="18sp"
-        android:textStyle="bold"
+    <TextView
+        android:id="@+id/btnPlus"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="24dp"
+        android:layout_marginBottom="32dp"
+        android:text="+"
+        android:textSize="36sp"
         android:textColor="#FFFFFF"
-        android:backgroundTint="#8A2BE2"
-        android:layout_marginBottom="16dp"/>
+        android:background="@drawable/bg_plus_btn"
+        android:gravity="center"
+        android:textStyle="bold"/>
 
-    <Button
-        android:id="@+id/btnJoinRoom"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:text="Join Room 🎙️"
-        android:textSize="16sp"
-        android:textColor="#FFFFFF"
-        android:backgroundTint="#2D1B4E"/>
-
-</LinearLayout>
+</RelativeLayout>
