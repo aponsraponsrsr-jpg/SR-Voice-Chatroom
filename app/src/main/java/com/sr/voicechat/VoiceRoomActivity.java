@@ -75,7 +75,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         chatListView = findViewById(R.id.chatListView);
         chatMessages = new ArrayList<>();
         chatMessages.add("🌟 System: SR Voice Room-এ স্বাগতম!");
-        chatMessages.add("💬 পার্মানেন্ট গ্লোবাল আইডি ও সিট সিঙ্ক্রোনাইজেশন সক্রিয় রয়েছে।");
+        chatMessages.add("💬 গ্লোবাল পার্মানেন্ট আইডি ও সিট সিঙ্ক্রোনাইজেশন সক্রিয় রয়েছে।");
 
         chatAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, chatMessages);
         if (chatListView != null) {
@@ -209,7 +209,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         String imageBase64 = snapshot.child(seatKey).child("userImage").getValue(String.class);
 
                         if (seatTxt != null) {
-                            seatTxt.setText(name != null ? name : (i == 0 ? "Host" : String.valueOf(i + 1)));
+                            seatTxt.setText(name != null && !name.isEmpty() ? name : (i == 0 ? "Host" : String.valueOf(i + 1)));
                         }
 
                         if (seatImg != null && imageBase64 != null && !imageBase64.isEmpty()) {
@@ -269,7 +269,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
                     builder.setTitle("🎙️ " + seatTitle + " Options");
                     builder.setItems(seatOptions, (dialog, which) -> {
-                        String userName = prefs.getString("USER_NAME", "User");
+                        // SharedPreferences থেকে লেটেস্ট নাম ও ছবি ফেচ করা
+                        String userName = prefs.getString("USER_NAME", "Official");
                         String userImageUriStr = prefs.getString("USER_IMAGE", "");
                         String seatKey = "seat_" + seatIndex;
 
@@ -282,9 +283,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                         InputStream inputStream = getContentResolver().openInputStream(uri);
                                         Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                                         if (bitmap != null) {
-                                            Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 150, 150, true);
+                                            // ইমেজ অপ্টিমাইজেশন ও কম্প্রেশন (ফায়ারবেসের জন্য পারফেক্ট সাইজ ১০০x১০০ পিক্সেল)
+                                            Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 100, 100, true);
                                             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 70, baos);
+                                            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos);
                                             byte[] imageBytes = baos.toByteArray();
                                             imageBase64[0] = Base64.encodeToString(imageBytes, Base64.DEFAULT);
                                         }
@@ -296,6 +298,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 }
                             }
 
+                            // ফায়ারবেসে পার্মানেন্টলি সঠিক নাম ও কম্প্রেশন করা ছবি গ্লোবালি পাঠানো
                             databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
                             databaseReference.child("seats").child(seatKey).child("userImage").setValue(imageBase64[0]);
 
