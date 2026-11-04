@@ -12,8 +12,16 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 import java.io.File;
 import java.util.ArrayList;
 
@@ -28,12 +36,18 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private ArrayAdapter<String> chatAdapter;
     private SharedPreferences prefs;
 
+    // ফায়ারবেস ডেটাবেস রেফারেন্স
+    private DatabaseReference databaseReference;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_voice_room);
 
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
+
+        // ফায়ারবেস রিয়েলটাইম ডেটাবেস ইনিশিয়ালাইজেশন ("rooms/room_01" এর ভেতরে সিটগুলো গ্লোবালি সেভ হবে)
+        databaseReference = FirebaseDatabase.getInstance().getReference("rooms").child("room_01");
 
         // ১. পাওয়ার / এক্সিট বাটন
         btnPower = findViewById(R.id.btnPower);
@@ -57,15 +71,16 @@ public class VoiceRoomActivity extends AppCompatActivity {
         chatListView = findViewById(R.id.chatListView);
         chatMessages = new ArrayList<>();
         chatMessages.add("🌟 System: SR Voice Chatroom এ সবাইকে স্বাগতম!");
-        chatMessages.add("💬 ইউজাররা এখন সিটে বসে কথা বলতে পারবেন।");
+        chatMessages.add("💬 ইউজাররা এখন গ্লোবালি সিটে বসে কথা বলতে পারবেন।");
 
         chatAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, chatMessages);
         if (chatListView != null) {
             chatListView.setAdapter(chatAdapter);
         }
 
-        // ৩. ১০টি সিটে বসার এবং ছবি/নাম রেন্ডার করার লজিক
+        // ৩. ১০টি সিটে বসার এবং ফায়ারবেসের সাথে রিয়েল-টাইম সিংক করার লজিক
         setupSeatInteractions();
+        listenToFirebaseSeats();
 
         // ৪. নিচের অ্যাকশন বার বাটনগুলো
         btnMicToggle = findViewById(R.id.btnMicToggle);
@@ -135,13 +150,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // সিটে ক্লিক করলে ইউজারের প্রোফাইল ছবি ও নাম নিখুঁতভাবে রেন্ডার করার লজিক
-    private void setupSeatInteractions() {
-        int[] seatCardIds = {
-            R.id.seatCard1, R.id.seatCard2, R.id.seatCard3, R.id.seatCard4, R.id.seatCard5,
-            R.id.seatCard6, R.id.seatCard7, R.id.seatCard8, R.id.seatCard9, R.id.seatCard10
-        };
-
+    // ফায়ারবেস থেকে রিয়েল-টাইমে সিটের ডেটা শো করার লজিক (গ্লোবাল সিঙ্ক্রোনাইজেশন)
+    private void listenToFirebaseSeats() {
         int[] seatImgIds = {
             R.id.seatImg1, R.id.seatImg2, R.id.seatImg3, R.id.seatImg4, R.id.seatImg5,
             R.id.seatImg6, R.id.seatImg7, R.id.seatImg8, R.id.seatImg9, R.id.seatImg10
@@ -150,6 +160,64 @@ public class VoiceRoomActivity extends AppCompatActivity {
         int[] seatTxtIds = {
             R.id.seatTxt1, R.id.seatTxt2, R.id.seatTxt3, R.id.seatTxt4, R.id.seatTxt5,
             R.id.seatTxt6, R.id.seatTxt7, R.id.seatTxt8, R.id.seatTxt9, R.id.seatTxt10
+        };
+
+        databaseReference.child("seats").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (int i = 0; i < 10; i++) {
+                    ImageView seatImg = findViewById(seatImgIds[i]);
+                    TextView seatTxt = findViewById(seatTxtIds[i]);
+                    String seatKey = "seat_" + i;
+
+                    if (snapshot.hasChild(seatKey)) {
+                        String name = snapshot.child(seatKey).child("userName").getValue(String.class);
+                        String image = snapshot.child(seatKey).child("userImage").getValue(String.class);
+
+                        if (seatTxt != null) {
+                            seatTxt.setText(name != null ? name : (i == 0 ? "Host" : String.valueOf(i + 1)));
+                        }
+                        if (seatImg != null && image != null && !image.isEmpty()) {
+                            try {
+                                Uri imageUri = Uri.parse(image);
+                                if (image.startsWith("content://") || image.startsWith("file://")) {
+                                    seatImg.setImageURI(imageUri);
+                                } else {
+                                    seatImg.setImageURI(Uri.fromFile(new File(image)));
+                                }
+                                seatImg.setPadding(0, 0, 0, 0);
+                                seatImg.setImageTintList(null);
+                            } catch (Exception e) {
+                                seatImg.setImageResource(android.R.drawable.ic_menu_my_calendar);
+                                seatImg.setPadding(12, 12, 12, 12);
+                            }
+                        }
+                    } else {
+                        // সিট খালি থাকলে ডিফল্ট অবস্থা
+                        if (seatTxt != null) {
+                            seatTxt.setText(i == 0 ? "Host" : String.valueOf(i + 1));
+                        }
+                        if (seatImg != null) {
+                            seatImg.setImageResource(android.R.drawable.ic_menu_my_calendar);
+                            seatImg.setPadding(12, 12, 12, 12);
+                            seatImg.setImageTintList(null);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // কোনো এরর হলে টোস্ট মেসেজ
+            }
+        });
+    }
+
+    // সিটে ক্লিক করলে ইউজারের প্রোফাইল ছবি ও নাম ফায়ারবেসে সেভ করার লজিক
+    private void setupSeatInteractions() {
+        int[] seatCardIds = {
+            R.id.seatCard1, R.id.seatCard2, R.id.seatCard3, R.id.seatCard4, R.id.seatCard5,
+            R.id.seatCard6, R.id.seatCard7, R.id.seatCard8, R.id.seatCard9, R.id.seatCard10
         };
 
         for (int i = 0; i < seatCardIds.length; i++) {
@@ -167,48 +235,19 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     builder.setItems(seatOptions, (dialog, which) -> {
                         String userName = prefs.getString("USER_NAME", "User");
                         String userImage = prefs.getString("USER_IMAGE", "");
-                        ImageView seatImg = findViewById(seatImgIds[seatIndex]);
-                        TextView seatTxt = findViewById(seatTxtIds[seatIndex]);
+                        String seatKey = "seat_" + seatIndex;
 
                         if (which == 0) {
-                            // Take Mic: ইউজারের ছবি ও নাম সিটে সেট করা
-                            if (seatImg != null) {
-                                if (!userImage.isEmpty()) {
-                                    try {
-                                        Uri imageUri = Uri.parse(userImage);
-                                        if (userImage.startsWith("content://") || userImage.startsWith("file://")) {
-                                            seatImg.setImageURI(imageUri);
-                                        } else {
-                                            seatImg.setImageURI(Uri.fromFile(new File(userImage)));
-                                        }
-                                        seatImg.setPadding(0, 0, 0, 0);
-                                        seatImg.setImageTintList(null);
-                                    } catch (Exception e) {
-                                        seatImg.setImageResource(android.R.drawable.ic_menu_my_calendar);
-                                        seatImg.setPadding(12, 12, 12, 12);
-                                    }
-                                } else {
-                                    seatImg.setImageResource(android.R.drawable.ic_menu_my_calendar);
-                                    seatImg.setPadding(12, 12, 12, 12);
-                                }
-                            }
-                            if (seatTxt != null) {
-                                seatTxt.setText(userName);
-                            }
+                            // Take Mic: ফায়ারবেসে ইউজারের ডেটা গ্লোবালি সেভ করা
+                            databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
+                            databaseReference.child("seats").child(seatKey).child("userImage").setValue(userImage);
 
                             Toast.makeText(VoiceRoomActivity.this, "Joined " + seatTitle + " successfully!", Toast.LENGTH_SHORT).show();
                             chatMessages.add("🎙️ System: " + userName + " took " + seatTitle);
                             chatAdapter.notifyDataSetChanged();
                         } else {
-                            // Leave Mic: সিট খালি করে ডিফল্ট অবস্থায় ফিরিয়ে আনা
-                            if (seatImg != null) {
-                                seatImg.setImageResource(android.R.drawable.ic_menu_my_calendar);
-                                seatImg.setPadding(12, 12, 12, 12);
-                                seatImg.setImageTintList(null);
-                            }
-                            if (seatTxt != null) {
-                                seatTxt.setText(seatNumber == 1 ? "Host" : String.valueOf(seatNumber));
-                            }
+                            // Leave Mic: ফায়ারবেস থেকে সিট খালি বা রিমুভ করা
+                            databaseReference.child("seats").child(seatKey).removeValue();
 
                             Toast.makeText(VoiceRoomActivity.this, "Left " + seatTitle, Toast.LENGTH_SHORT).show();
                             chatMessages.add("❌ System: " + userName + " left " + seatTitle);
