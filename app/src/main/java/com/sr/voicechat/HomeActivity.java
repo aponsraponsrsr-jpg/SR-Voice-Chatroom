@@ -1,8 +1,10 @@
 package com.sr.voice.chat;
 
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.sr.voice.chatroom.R;
 
 public class HomeActivity extends AppCompatActivity {
 
@@ -12,12 +14,14 @@ public class HomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
 
         // Search button - top right corner
-        findViewById(R.id.btnSearch).setOnClickListener(v -> {
-            Toast.makeText(this, "Search: Room ID / User ID - Coming Soon", Toast.LENGTH_SHORT).show();
-        });
-
-        // Bottom Nav - Home, Moment, Inbox, Mine (Right to Left as you said)
-        // Home is selected by default (Gold color)
-        Toast.makeText(this, "SR OFFICIAL Home Loaded", Toast.LENGTH_SHORT).show();
+        View btnSearch = findViewById(R.id.btnSearch);
+        if (btnSearch != null) {
+            btnSearch.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(HomeActivity.this, "Search Coming Soon", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 }
