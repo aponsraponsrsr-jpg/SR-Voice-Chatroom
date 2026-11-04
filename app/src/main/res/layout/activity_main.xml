@@ -3,20 +3,41 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1A1A2E">
+    android:background="#0F0F1E">
 
+    <!-- উপরের বার -->
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentTop="true"
+        android:background="#E91E63"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🌟 SR Voice Chatroom"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- মাঝখানে Welcome লেখা -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:text="Welcome! Tap + to create room"
-        android:textColor="#FFFFFF"
+        android:text="Welcome to SR Chatroom"
+        android:textColor="#AAAAAA"
         android:textSize="18sp" />
 
+    <!-- + বাটন -->
     <Button
         android:id="@+id/btnCreateRoom"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
         android:layout_above="@id/bottomNav"
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="20dp"
@@ -26,14 +47,15 @@
         android:textColor="#FFFFFF"
         android:backgroundTint="#E91E63" />
 
+    <!-- নিচের নেভিগেশন বার - এইটাই মিসিং ছিলো -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNav"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="60dp"
         android:layout_alignParentBottom="true"
         android:background="#1A1A2E"
-        app:itemTextColor="#FFFFFF"
-        app:itemIconTint="#E91E63"
-        app:menu="@menu/bottom_nav_menu" />
+        app:menu="@menu/bottom_nav_menu"
+        app:itemIconTint="#FFFFFF"
+        app:itemTextColor="#FFFFFF" />
 
 </RelativeLayout>
