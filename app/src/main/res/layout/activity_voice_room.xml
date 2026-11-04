@@ -1,23 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@drawable/voice_room_bg">
+    android:background="#0E0A1E"
+    android:fitsSystemWindows="true">
 
-    <!-- Top Bar: Room Title, VIP Tag & Power Button -->
     <LinearLayout
+        android:id="@+id/topBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="12dp"
-        android:gravity="center_vertical"
-        android:background="#22000000">
+        android:background="#E91E63"
+        android:padding="12dp">
 
         <LinearLayout
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:layout_height="wrap_content"
             android:orientation="vertical">
 
             <TextView
@@ -25,241 +24,100 @@
                 android:layout_height="wrap_content"
                 android:text="🌟 SR Official Voice Room 🌟"
                 android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textSize="18sp"
+                android:textStyle="bold"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="ID: 777888 | 👑 VIP Room"
-                android:textColor="#FFD700"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/tvOnlineCount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Online: 125 | 🕌 Mosque Theme"
-                android:textColor="#00E5FF"
-                android:textSize="11sp"
-                android:layout_marginTop="2dp" />
+                android:textColor="#FFEB3B"
+                android:textSize="13sp"/>
 
         </LinearLayout>
 
-        <!-- Power / Exit Button -->
-        <ImageButton
+        <TextView
             android:id="@+id/btnPower"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_lock_power_off"
-            android:tint="#FF4081"
-            android:contentDescription="Power Button" />
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:text="⏻"
+            android:textColor="#FFFFFF"
+            android:background="#88000000"
+            android:textSize="28sp"
+            android:gravity="center"/>
     </LinearLayout>
 
-    <!-- Notice Bar -->
     <TextView
+        android:id="@+id/tvNotice"
+        android:layout_below="@id/topBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="📢 Notice: এসআর ভয়েস চ্যাটরুমে সবাইকে স্বাগতম! কেউ কাউকে অশ্লীল গালিগালাজ করবেন না।"
+        android:text="📢 Notice: এসআর ভয়েস চ্যাটরুমে সবাইকে স্বাগতম!"
         android:textColor="#FFEB3B"
-        android:textSize="12sp"
-        android:padding="8dp"
-        android:background="#44000000"
-        android:layout_margin="8dp"
-        android:maxLines="1"
-        android:ellipsize="end"/>
+        android:background="#1A1A1A"
+        android:padding="10dp"
+        android:textSize="13sp"
+        android:layout_margin="8dp"/>
 
-    <!-- 10 Voice Seats Grid Container (উপরে ৫টি, নিচে ৫টি মোট ১০টি গোল সিট) -->
-    <GridLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:columnCount="5"
-        android:padding="4dp"
-        android:alignmentMode="alignMargins"
-        android:columnOrderPreserved="false"
-        android:gravity="center">
-
-        <!-- Seat 1: Host (Active) -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_margin="3dp">
-            <View android:id="@+id/seat1" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_active"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Host" android:textColor="#00E676" android:textSize="10sp" android:textStyle="bold" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-
-        <!-- Seat 2 -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_margin="3dp">
-            <View android:id="@+id/seat2" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="2" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-
-        <!-- Seat 3 -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_margin="3dp">
-            <View android:id="@+id/seat3" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="3" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-
-        <!-- Seat 4 -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_margin="3dp">
-            <View android:id="@+id/seat4" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="4" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-
-        <!-- Seat 5 -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_margin="3dp">
-            <View android:id="@+id/seat5" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="5" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-
-        <!-- Seat 6 -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_margin="3dp">
-            <View android:id="@+id/seat6" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="6" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-
-        <!-- Seat 7 -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_margin="3dp">
-            <View android:id="@+id/seat7" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="7" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-
-        <!-- Seat 8 -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_margin="3dp">
-            <View android:id="@+id/seat8" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="8" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-
-        <!-- Seat 9 -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_margin="3dp">
-            <View android:id="@+id/seat9" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_normal"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="9" android:textColor="#FFFFFF" android:textSize="10sp" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-
-        <!-- Seat 10: Locked -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_columnWeight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:layout_margin="3dp">
-            <View android:id="@+id/seat10" android:layout_width="50dp" android:layout_height="50dp" android:background="@drawable/seat_circle_locked"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="10" android:textColor="#FF5252" android:textSize="10sp" android:layout_marginTop="2dp"/>
-        </LinearLayout>
-
-    </GridLayout>
-
-    <!-- Bottom Action Bar (চারটি প্রিমিয়াম বাটন: মাইক, চ্যাট, গিফট, গেম) -->
     <LinearLayout
+        android:id="@+id/seatsContainer"
+        android:layout_below="@id/tvNotice"
         android:layout_width="match_parent"
-        android:layout_height="65dp"
-        android:orientation="horizontal"
-        android:background="#22000000"
-        android:gravity="center"
-        android:paddingHorizontal="8dp">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp">
 
-        <Button
-            android:id="@+id/btnMicToggle"
-            android:layout_width="0dp"
-            android:layout_height="42dp"
-            android:layout_weight="1"
-            android:text="🎙️ Mic"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp"
-            android:backgroundTint="#00E676"
-            android:layout_marginHorizontal="4dp"
-            android:textStyle="bold"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:weightSum="5" android:gravity="center">
+            <FrameLayout android:id="@+id/seat1" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:padding="6dp">
+                <TextView android:layout_width="62dp" android:layout_height="62dp" android:layout_gravity="center" android:background="@drawable/bg_seat_host" />
+            </FrameLayout>
+            <FrameLayout android:id="@+id/seat2" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:padding="6dp">
+                <TextView android:layout_width="62dp" android:layout_height="62dp" android:layout_gravity="center" android:background="@drawable/bg_seat_normal" />
+            </FrameLayout>
+            <FrameLayout android:id="@+id/seat3" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:padding="6dp">
+                <TextView android:layout_width="62dp" android:layout_height="62dp" android:layout_gravity="center" android:background="@drawable/bg_seat_normal" />
+            </FrameLayout>
+            <FrameLayout android:id="@+id/seat4" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:padding="6dp">
+                <TextView android:layout_width="62dp" android:layout_height="62dp" android:layout_gravity="center" android:background="@drawable/bg_seat_normal" />
+            </FrameLayout>
+            <FrameLayout android:id="@+id/seat5" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:padding="6dp">
+                <TextView android:layout_width="62dp" android:layout_height="62dp" android:layout_gravity="center" android:background="@drawable/bg_seat_normal" />
+            </FrameLayout>
+        </LinearLayout>
 
-        <Button
-            android:id="@+id/btnChatOption"
-            android:layout_width="0dp"
-            android:layout_height="42dp"
-            android:layout_weight="1"
-            android:text="💬 Chat"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp"
-            android:backgroundTint="#333333"
-            android:layout_marginHorizontal="4dp"
-            android:textStyle="bold"/>
-
-        <Button
-            android:id="@+id/btnGiftBox"
-            android:layout_width="0dp"
-            android:layout_height="42dp"
-            android:layout_weight="1"
-            android:text="🎁 Gift"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp"
-            android:backgroundTint="#FFD700"
-            android:layout_marginHorizontal="4dp"
-            android:textStyle="bold"/>
-
-        <Button
-            android:id="@+id/btnGameBox"
-            android:layout_width="0dp"
-            android:layout_height="42dp"
-            android:layout_weight="1"
-            android:text="🎮 Game"
-            android:textColor="#FFFFFF"
-            android:textSize="12sp"
-            android:backgroundTint="#00E5FF"
-            android:layout_marginHorizontal="4dp"
-            android:textStyle="bold"/>
-
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:weightSum="5">
+            <FrameLayout android:id="@+id/seat6" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:padding="6dp">
+                <TextView android:layout_width="62dp" android:layout_height="62dp" android:layout_gravity="center" android:background="@drawable/bg_seat_normal" />
+            </FrameLayout>
+            <FrameLayout android:id="@+id/seat7" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:padding="6dp">
+                <TextView android:layout_width="62dp" android:layout_height="62dp" android:layout_gravity="center" android:background="@drawable/bg_seat_normal" />
+            </FrameLayout>
+            <FrameLayout android:id="@+id/seat8" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:padding="6dp">
+                <TextView android:layout_width="62dp" android:layout_height="62dp" android:layout_gravity="center" android:background="@drawable/bg_seat_normal" />
+            </FrameLayout>
+            <FrameLayout android:id="@+id/seat9" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:padding="6dp">
+                <TextView android:layout_width="62dp" android:layout_height="62dp" android:layout_gravity="center" android:background="@drawable/bg_seat_normal" />
+            </FrameLayout>
+            <FrameLayout android:id="@+id/seat10" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:padding="6dp">
+                <TextView android:layout_width="62dp" android:layout_height="62dp" android:layout_gravity="center" android:background="@drawable/bg_seat_empty" />
+            </FrameLayout>
+        </LinearLayout>
     </LinearLayout>
 
-</LinearLayout>
+    <LinearLayout
+        android:id="@+id/bottomBar"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:weightSum="4"
+        android:padding="10dp"
+        android:layout_marginBottom="16dp"
+        android:background="#1E0F3A">
+
+        <TextView android:id="@+id/btnMic" android:layout_width="0dp" android:layout_weight="1" android:layout_height="60dp" android:layout_margin="4dp" android:background="@drawable/bg_btn_mic" android:text="🎙️ Mic" android:textColor="#FFFFFF" android:gravity="center" android:textStyle="bold"/>
+        <TextView android:id="@+id/btnChat" android:layout_width="0dp" android:layout_weight="1" android:layout_height="60dp" android:layout_margin="4dp" android:background="@drawable/bg_btn_chat" android:text="💬 Chat" android:textColor="#FFFFFF" android:gravity="center"/>
+        <TextView android:id="@+id/btnGift" android:layout_width="0dp" android:layout_weight="1" android:layout_height="60dp" android:layout_margin="4dp" android:background="@drawable/bg_btn_gift" android:text="🎁 Gift" android:textColor="#000000" android:gravity="center" android:textStyle="bold"/>
+        <TextView android:id="@+id/btnGame" android:layout_width="0dp" android:layout_weight="1" android:layout_height="60dp" android:layout_margin="4dp" android:background="@drawable/bg_btn_game" android:text="🎮 Game" android:textColor="#000000" android:gravity="center" android:textStyle="bold"/>
+    </LinearLayout>
+</RelativeLayout>
