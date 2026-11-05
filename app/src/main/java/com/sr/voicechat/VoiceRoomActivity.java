@@ -279,7 +279,18 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         String seatKey = "seat_" + seatIndex;
 
                         if (which == 0) {
-                            final String[] imageBase64 = {"v"};
+                            // ইউজার ইতিমধ্যে অন্য কোনো সিটে থাকলে তা আগে রিমুভ করে দেওয়া
+                            for (int j = 0; j < 10; j++) {
+                                final int oldIndex = j;
+                                databaseReference.child("seats").child("seat_" + oldIndex).child("userName").get().addOnSuccessListener(snapshot -> {
+                                    String existingName = snapshot.getValue(String.class);
+                                    if (existingName != null && existingName.equals(userName)) {
+                                        databaseReference.child("seats").child("seat_" + oldIndex).removeValue();
+                                    }
+                                });
+                            }
+
+                            final String[] imageBase64 = {""};
                             if (!userImageUriStr.isEmpty()) {
                                 try {
                                     if (userImageUriStr.startsWith("content://") || userImageUriStr.startsWith("file://")) {
