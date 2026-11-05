@@ -3,11 +3,10 @@ package com.sr.voicechat;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -27,11 +26,10 @@ public class HomeActivity extends AppCompatActivity {
     private TextView btnPlus;
     private ImageView btnSearchRoom;
     private Button btnHomeTab, btnMomentTab, btnMeTab;
-    private ListView roomListView;
+    private GridView roomGridView;
 
-    private ArrayList<String> roomDisplayList;
-    private ArrayList<String> roomOwnerIdList;
-    private ArrayAdapter<String> roomAdapter;
+    private ArrayList<RoomModel> roomModelList;
+    private RoomGridAdapter roomGridAdapter;
 
     private DatabaseReference activeRoomsRef;
     private SharedPreferences prefs;
@@ -49,13 +47,12 @@ public class HomeActivity extends AppCompatActivity {
         btnHomeTab = findViewById(R.id.btnHomeTab);
         btnMomentTab = findViewById(R.id.btnMomentTab);
         btnMeTab = findViewById(R.id.btnMeTab);
-        roomListView = findViewById(R.id.roomListView);
+        roomGridView = findViewById(R.id.roomGridView);
 
-        roomDisplayList = new ArrayList<>();
-        roomOwnerIdList = new ArrayList<>();
-        roomAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, roomDisplayList);
-        if (roomListView != null) {
-            roomListView.setAdapter(roomAdapter);
+        roomModelList = new ArrayList<>();
+        roomGridAdapter = new RoomGridAdapter(this, roomModelList);
+        if (roomGridView != null) {
+            roomGridView.setAdapter(roomGridAdapter);
         }
 
         loadActiveRooms();
@@ -73,12 +70,12 @@ public class HomeActivity extends AppCompatActivity {
             btnSearchRoom.setOnClickListener(v -> showSearchRoomDialog());
         }
 
-        if (roomListView != null) {
-            roomListView.setOnItemClickListener((parent, view, position, id) -> {
-                if (position < roomOwnerIdList.size()) {
-                    String targetOwnerId = roomOwnerIdList.get(position);
+        if (roomGridView != null) {
+            roomGridView.setOnItemClickListener((parent, view, position, id) -> {
+                if (position < roomModelList.size()) {
+                    RoomModel selectedRoom = roomModelList.get(position);
                     Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
-                    intent.putExtra("ROOM_OWNER_ID", targetOwnerId);
+                    intent.putExtra("ROOM_OWNER_ID", selectedRoom.getRoomOwnerId());
                     startActivity(intent);
                 }
             });
@@ -99,24 +96,20 @@ public class HomeActivity extends AppCompatActivity {
         activeRoomsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                roomDisplayList.clear();
-                roomOwnerIdList.clear();
+                roomModelList.clear();
 
                 for (DataSnapshot child : snapshot.getChildren()) {
                     String ownerId = child.child("roomOwnerId").getValue(String.class);
                     String roomName = child.child("roomName").getValue(String.class);
                     String roomBio = child.child("roomBio").getValue(String.class);
+                    String roomImage = child.child("roomOwnerImage").getValue(String.class);
 
                     if (ownerId != null) {
-                        // হোম পেজে রুম কার্ডের ক্লিন ডিসপ্লে
-                        String displayName = "🏠 " + (roomName != null ? roomName : "SR Voice Room") + 
-                                             "\n📝 Bio: " + (roomBio != null ? roomBio : "Welcome to room!") + 
-                                             "\n🆔 Room ID: " + ownerId;
-                        roomDisplayList.add(displayName);
-                        roomOwnerIdList.add(ownerId);
+                        RoomModel room = new RoomModel(ownerId, roomName, roomBio, roomImage);
+                        roomModelList.add(room);
                     }
                 }
-                roomAdapter.notifyDataSetChanged();
+                roomGridAdapter.notifyDataSetChanged();
             }
 
             @Override
