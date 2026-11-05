@@ -426,7 +426,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             Toast.makeText(VoiceRoomActivity.this, "Joined " + seatTitle + " successfully!", Toast.LENGTH_SHORT).show();
                         } else {
                             databaseReference.child("seats").child(seatKey).removeValue();
-                            Toast.makeText(VoiceRunActivityHolder -> {}, Toast.LENGTH_SHORT).show(); // safety fix
                             Toast.makeText(VoiceRoomActivity.this, "Left " + seatTitle, Toast.LENGTH_SHORT).show();
                         }
                     });
