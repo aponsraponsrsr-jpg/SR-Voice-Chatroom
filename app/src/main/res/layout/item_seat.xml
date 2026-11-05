@@ -1,25 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="75dp"
-    android:layout_height="90dp"
+    android:layout_height="95dp"
     android:orientation="vertical"
-    android:gravity="center"
-    android:layout_margin="5dp">
+    android:gravity="center_horizontal"
+    android:background="@android:color/transparent">
 
-    <ImageView
-        android:id="@+id/imgSeatAvatar"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:background="@android:drawable/sym_def_app_icon"
-        android:padding="8dp" />
+    <!-- প্রিমিয়াম সার্কুলার সিট কন্টেইনার (গোল বর্ডার ও গ্লোয়িং লুক) -->
+    <FrameLayout
+        android:layout_width="65dp"
+        android:layout_height="65dp"
+        android:background="#1E1438"
+        android:padding="3dp"
+        android:elevation="4dp">
 
+        <!-- সিটের প্রোফাইল পিকচার (সার্কুলার) -->
+        <ImageView
+            android:id="@+id/seatImg"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/ic_menu_my_calendar"
+            android:background="#2E2355"
+            android:padding="12dp"
+            android:tint="#FFD700" />
+
+    </FrameLayout>
+
+    <!-- সিটে ইউজারের নাম বা সিট নম্বর -->
     <TextView
-        android:id="@+id/txtSeatName"
-        android:layout_width="wrap_content"
+        android:id="@+id/seatTxt"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Seat"
+        android:text="1"
         android:textColor="#FFFFFF"
         android:textSize="12sp"
-        android:layout_marginTop="4dp" />
+        android:textStyle="bold"
+        android:gravity="center"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:layout_marginTop="4dp"
+        android:shadowColor="#000000"
+        android:shadowDx="1"
+        android:shadowDy="1"
+        android:shadowRadius="2"/>
 
 </LinearLayout>
