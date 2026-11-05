@@ -7,14 +7,31 @@
     android:fitsSystemWindows="true"
     android:background="@drawable/voice_room_bg">
 
-    <!-- Top Bar: Room Title, Owner ID, Online Count & Power Button -->
+    <!-- Top Bar: Room Header Profile, Title, Bio & Controls -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="12dp"
+        android:padding="10dp"
         android:gravity="center_vertical"
         android:background="#22000000">
+
+        <!-- Header Profile Picture -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="2dp"
+            android:layout_marginEnd="8dp"
+            app:cardBackgroundColor="@android:color/transparent">
+            <ImageView
+                android:id="@+id/roomHeaderProfileImg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@android:drawable/ic_menu_my_calendar"
+                android:background="@drawable/bg_circle_pink"/>
+        </androidx.cardview.widget.CardView>
 
         <LinearLayout
             android:layout_width="0dp"
@@ -26,18 +43,22 @@
                 android:id="@+id/roomTitleText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🌟 SR Official Voice Room 🌟"
+                android:text="🌟 SR Official Voice Room"
                 android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"/>
 
             <TextView
                 android:id="@+id/roomInfoText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="👑 Members &amp; Admins Info"
+                android:text="ID: 777888 | 📝 Welcome to room!"
                 android:textColor="#FFD700"
-                android:textSize="12sp" />
+                android:textSize="11sp"
+                android:maxLines="1"
+                android:ellipsize="end"/>
         </LinearLayout>
 
         <!-- Online Member Count & Icon -->
@@ -46,12 +67,12 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginEnd="8dp">
+            android:layout_marginEnd="6dp">
 
             <ImageView
                 android:id="@+id/btnOnlineList"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
                 android:src="@android:drawable/ic_menu_myplaces"
                 android:tint="#00E676"
                 android:contentDescription="Online List"/>
@@ -62,16 +83,16 @@
                 android:layout_height="wrap_content"
                 android:text="1"
                 android:textColor="#00E676"
-                android:textSize="14sp"
+                android:textSize="13sp"
                 android:textStyle="bold"
-                android:layout_marginStart="4dp"/>
+                android:layout_marginStart="3dp"/>
         </LinearLayout>
 
         <!-- Power / Exit Button -->
         <ImageButton
             android:id="@+id/btnPower"
-            android:layout_width="38dp"
-            android:layout_height="38dp"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_lock_power_off"
             android:tint="#FF4081"
