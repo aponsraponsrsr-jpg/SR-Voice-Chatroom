@@ -78,7 +78,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         chatListView = findViewById(R.id.chatListView);
         chatMessages = new ArrayList<>();
         chatMessages.add("🌟 System: SR Voice Room-এ স্বাগতম!");
-        chatMessages.add("💬 রিয়েলটাইম ডেটাবেস ও পার্মানেন্ট আইডি সিঙ্ক সক্রিয় রয়েছে।");
+        chatMessages.add("💬 রিয়েলটাইম ডেটাবেস ও চ্যাট সিস্টেম সক্রিয় রয়েছে।");
 
         chatAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, chatMessages);
         if (chatListView != null) {
@@ -279,7 +279,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         String seatKey = "seat_" + seatIndex;
 
                         if (which == 0) {
-                            // ইউজার ইতিমধ্যে অন্য কোনো সিটে থাকলে তা আগে রিমুভ করে দেওয়া
                             for (int j = 0; j < 10; j++) {
                                 final int oldIndex = j;
                                 databaseReference.child("seats").child("seat_" + oldIndex).child("userName").get().addOnSuccessListener(snapshot -> {
@@ -316,14 +315,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             databaseReference.child("seats").child(seatKey).child("userImage").setValue(imageBase64[0]);
 
                             Toast.makeText(VoiceRoomActivity.this, "Joined " + seatTitle + " successfully!", Toast.LENGTH_SHORT).show();
-                            chatMessages.add("🎙️ System: " + userName + " took " + seatTitle);
-                            chatAdapter.notifyDataSetChanged();
                         } else {
                             databaseReference.child("seats").child(seatKey).removeValue();
-
                             Toast.makeText(VoiceRoomActivity.this, "Left " + seatTitle, Toast.LENGTH_SHORT).show();
-                            chatMessages.add("❌ System: " + userName + " left " + seatTitle);
-                            chatAdapter.notifyDataSetChanged();
                         }
                     });
                     builder.show();
