@@ -87,8 +87,7 @@
                     android:scaleType="centerCrop"
                     android:background="@drawable/bg_circle_pink"
                     android:src="@android:drawable/ic_menu_my_calendar"
-                    android:padding="10dp"
-                    android:tint="#FFFFFF"/>
+                    android:padding="10dp"/>
             </androidx.cardview.widget.CardView>
             <TextView android:id="@+id/seatTxt1" android:layout_width="65dp" android:layout_height="wrap_content" android:text="Host" android:textColor="#00E676" android:textSize="10sp" android:textStyle="bold" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
@@ -109,8 +108,7 @@
                     android:scaleType="centerCrop"
                     android:background="@drawable/bg_circle_pink"
                     android:src="@android:drawable/ic_menu_my_calendar"
-                    android:padding="10dp"
-                    android:tint="#FFFFFF"/>
+                    android:padding="10dp"/>
             </androidx.cardview.widget.CardView>
             <TextView android:id="@+id/seatTxt2" android:layout_width="65dp" android:layout_height="wrap_content" android:text="2" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
@@ -131,8 +129,7 @@
                     android:scaleType="centerCrop"
                     android:background="@drawable/bg_circle_pink"
                     android:src="@android:drawable/ic_menu_my_calendar"
-                    android:padding="10dp"
-                    android:tint="#FFFFFF"/>
+                    android:padding="10dp"/>
             </androidx.cardview.widget.CardView>
             <TextView android:id="@+id/seatTxt3" android:layout_width="65dp" android:layout_height="wrap_content" android:text="3" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
@@ -153,8 +150,7 @@
                     android:scaleType="centerCrop"
                     android:background="@drawable/bg_circle_pink"
                     android:src="@android:drawable/ic_menu_my_calendar"
-                    android:padding="10dp"
-                    android:tint="#FFFFFF"/>
+                    android:padding="10dp"/>
             </androidx.cardview.widget.CardView>
             <TextView android:id="@+id/seatTxt4" android:layout_width="65dp" android:layout_height="wrap_content" android:text="4" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
@@ -175,8 +171,7 @@
                     android:scaleType="centerCrop"
                     android:background="@drawable/bg_circle_pink"
                     android:src="@android:drawable/ic_menu_my_calendar"
-                    android:padding="10dp"
-                    android:tint="#FFFFFF"/>
+                    android:padding="10dp"/>
             </androidx.cardview.widget.CardView>
             <TextView android:id="@+id/seatTxt5" android:layout_width="65dp" android:layout_height="wrap_content" android:text="5" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
@@ -197,8 +192,7 @@
                     android:scaleType="centerCrop"
                     android:background="@drawable/bg_circle_pink"
                     android:src="@android:drawable/ic_menu_my_calendar"
-                    android:padding="10dp"
-                    android:tint="#FFFFFF"/>
+                    android:padding="10dp"/>
             </androidx.cardview.widget.CardView>
             <TextView android:id="@+id/seatTxt6" android:layout_width="65dp" android:layout_height="wrap_content" android:text="6" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
@@ -219,8 +213,7 @@
                     android:scaleType="centerCrop"
                     android:background="@drawable/bg_circle_pink"
                     android:src="@android:drawable/ic_menu_my_calendar"
-                    android:padding="10dp"
-                    android:tint="#FFFFFF"/>
+                    android:padding="10dp"/>
             </androidx.cardview.widget.CardView>
             <TextView android:id="@+id/seatTxt7" android:layout_width="65dp" android:layout_height="wrap_content" android:text="7" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
@@ -241,8 +234,7 @@
                     android:scaleType="centerCrop"
                     android:background="@drawable/bg_circle_pink"
                     android:src="@android:drawable/ic_menu_my_calendar"
-                    android:padding="10dp"
-                    android:tint="#FFFFFF"/>
+                    android:padding="10dp"/>
             </androidx.cardview.widget.CardView>
             <TextView android:id="@+id/seatTxt8" android:layout_width="65dp" android:layout_height="wrap_content" android:text="8" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
@@ -263,8 +255,7 @@
                     android:scaleType="centerCrop"
                     android:background="@drawable/bg_circle_pink"
                     android:src="@android:drawable/ic_menu_my_calendar"
-                    android:padding="10dp"
-                    android:tint="#FFFFFF"/>
+                    android:padding="10dp"/>
             </androidx.cardview.widget.CardView>
             <TextView android:id="@+id/seatTxt9" android:layout_width="65dp" android:layout_height="wrap_content" android:text="9" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
@@ -285,8 +276,7 @@
                     android:scaleType="centerCrop"
                     android:background="@drawable/bg_circle_pink"
                     android:src="@android:drawable/ic_menu_my_calendar"
-                    android:padding="10dp"
-                    android:tint="#FFFFFF"/>
+                    android:padding="10dp"/>
             </androidx.cardview.widget.CardView>
             <TextView android:id="@+id/seatTxt10" android:layout_width="65dp" android:layout_height="wrap_content" android:text="10" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
