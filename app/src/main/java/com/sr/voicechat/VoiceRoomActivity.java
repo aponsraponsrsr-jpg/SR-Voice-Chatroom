@@ -8,7 +8,11 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -163,31 +167,42 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
+        // ওয়াটসঅ্যাপ স্টাইল প্রিমিয়াম বটম চ্যাট পপআপ (কিবোর্ডের ঠিক উপরে থাকবে)
         btnChatOption = findViewById(R.id.btnChatOption);
         if (btnChatOption != null) {
             btnChatOption.setOnClickListener(v -> {
-                AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-                builder.setTitle("💬 Send Message to Room");
+                final Dialog chatDialog = new Dialog(VoiceRoomActivity.this, R.style.Theme_Design_BottomSheetDialog);
+                chatDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                chatDialog.setContentView(R.layout.dialog_bottom_chat);
 
-                final EditText input = new EditText(VoiceRoomActivity.this);
-                input.setHint("Type your message here...");
-                builder.setView(input);
+                Window window = chatDialog.getWindow();
+                if (window != null) {
+                    window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                    window.setGravity(Gravity.BOTTOM);
+                    window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+                }
 
-                builder.setPositiveButton("Send", (dialog, which) -> {
-                    String message = input.getText().toString().trim();
-                    String userName = prefs.getString("USER_NAME", "User");
-                    if (!message.isEmpty()) {
-                        String msgId = messagesRef.push().getKey();
-                        if (msgId != null) {
-                            java.util.Map<String, Object> msgMap = new java.util.HashMap<>();
-                            msgMap.put("senderName", userName);
-                            msgMap.put("message", message);
-                            messagesRef.child(msgId).setValue(msgMap);
+                EditText inputMsg = chatDialog.findViewById(R.id.editRoomMessage);
+                Button btnSendMsg = chatDialog.findViewById(R.id.btnSendRoomMessage);
+
+                if (btnSendMsg != null && inputMsg != null) {
+                    btnSendMsg.setOnClickListener(view -> {
+                        String message = inputMsg.getText().toString().trim();
+                        String userName = prefs.getString("USER_NAME", "User");
+                        if (!message.isEmpty()) {
+                            String msgId = messagesRef.push().getKey();
+                            if (msgId != null) {
+                                java.util.Map<String, Object> msgMap = new java.util.HashMap<>();
+                                msgMap.put("senderName", userName);
+                                msgMap.put("message", message);
+                                messagesRef.child(msgId).setValue(msgMap);
+                            }
+                            inputMsg.setText("");
+                            chatDialog.dismiss();
                         }
-                    }
-                });
-                builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
-                builder.show();
+                    });
+                }
+                chatDialog.show();
             });
         }
 
@@ -583,18 +598,31 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot seatSnap) {
                             String occupantName = seatSnap.child("userName").getValue(String.class);
+                            String occupantId = seatSnap.child("userId").getValue(String.class);
                             boolean isOccupied = occupantName != null && !occupantName.isEmpty();
 
                             CharSequence[] seatOptions;
+                            
+                            // ফিক্স: ওনার যখন নিজের সিটে ক্লিক করবে তখন তাকে কিক মারার অপশন দেওয়া যাবে না
+                            boolean isSelfSeat = currentUserId.equals(occupantId) || (i == 0 && currentUserId.equals(roomOwnerId));
+
                             if (currentUserId.equals(roomOwnerId)) {
                                 if (isOccupied) {
-                                    seatOptions = new CharSequence[]{"Remove from Mic (Kick)", "Mute Seat", "Cancel"};
+                                    if (isSelfSeat) {
+                                        seatOptions = new CharSequence[]{"Mute Seat", "Leave Mic", "Cancel"};
+                                    } else {
+                                        seatOptions = new CharSequence[]{"Remove from Mic (Kick)", "Mute Seat", "Cancel"};
+                                    }
                                 } else {
                                     seatOptions = new CharSequence[]{"Take Mic", "Cancel"};
                                 }
                             } else {
                                 if (isOccupied) {
-                                    seatOptions = new CharSequence[]{"View Profile", "Leave Mic"};
+                                    if (isSelfSeat) {
+                                        seatOptions = new CharSequence[]{"View Profile", "Leave Mic"};
+                                    } else {
+                                        seatOptions = new CharSequence[]{"View Profile"};
+                                    }
                                 } else {
                                     seatOptions = new CharSequence[]{"Take Mic", "Cancel"};
                                 }
@@ -608,11 +636,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
                                 if (currentUserId.equals(roomOwnerId)) {
                                     if (isOccupied) {
-                                        if (which == 0) { 
+                                        if (!isSelfSeat && which == 0) { 
                                             databaseReference.child("seats").child(seatKey).removeValue();
                                             Toast.makeText(VoiceRoomActivity.this, occupantName + " removed from seat!", Toast.LENGTH_SHORT).show();
-                                        } else if (which == 1) { 
+                                        } else if ((!isSelfSeat && which == 1) || (isSelfSeat && which == 0)) { 
                                             Toast.makeText(VoiceRoomActivity.this, "Seat muted by owner", Toast.LENGTH_SHORT).show();
+                                        } else if ((isSelfSeat && which == 1) || (!isSelfSeat && which == 1 && isSelfSeat)) {
+                                            databaseReference.child("seats").child(seatKey).removeValue();
+                                            Toast.makeText(VoiceRoomActivity.this, "Left seat", Toast.LENGTH_SHORT).show();
                                         }
                                     } else {
                                         if (which == 0) { 
@@ -622,7 +653,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 } else {
                                     if (which == 0 && !isOccupied) {
                                         takeSeat(seatIndex, seatKey, userName, userImageUriStr);
-                                    } else if (isOccupied && which == 1) {
+                                    } else if (isOccupied && isSelfSeat) {
                                         databaseReference.child("seats").child(seatKey).removeValue();
                                         Toast.makeText(VoiceRoomActivity.this, "Left seat", Toast.LENGTH_SHORT).show();
                                     }
@@ -677,6 +708,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
 
         databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
+        databaseReference.child("seats").child(seatKey).child("userId").setValue(currentUserId);
         databaseReference.child("seats").child(seatKey).child("userImage").setValue(imageBase64[0]);
         
         databaseReference.child("seats").child(seatKey).onDisconnect().removeValue();
@@ -688,12 +720,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
         databaseReference.child("online_users").child(currentUserId).removeValue();
         for (int i = 0; i < 10; i++) {
             final int index = i;
-            databaseReference.child("seats").child("seat_" + index).child("userName").addListenerForSingleValueEvent(new ValueEventListener() {
+            databaseReference.child("seats").child("seat_" + index).child("userId").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    String name = snapshot.getValue(String.class);
-                    String uName = prefs.getString("USER_NAME", "User");
-                    if (name != null && name.equals(uName)) {
+                    String uId = snapshot.getValue(String.class);
+                    if (uId != null && uId.equals(currentUserId)) {
                         databaseReference.child("seats").child("seat_" + index).removeValue();
                     }
                 }
