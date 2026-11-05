@@ -1,94 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212"
-    android:gravity="center"
     android:orientation="vertical"
-    android:padding="24dp">
-
-    <!-- Profile Image with Circular CardView Container -->
-    <androidx.cardview.widget.CardView
-        android:layout_width="120dp"
-        android:layout_height="120dp"
-        android:layout_gravity="center"
-        app:cardCornerRadius="60dp"
-        app:cardElevation="0dp"
-        android:backgroundTint="#222222"
-        android:layout_marginBottom="12dp">
-
-        <ImageView
-            android:id="@+id/profileImage"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:src="@android:drawable/ic_menu_camera" />
-    </androidx.cardview.widget.CardView>
+    android:background="#0E0A1E"
+    android:padding="24dp"
+    android:gravity="center_horizontal">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Tap to change profile photo"
-        android:textSize="14sp"
-        android:textColor="#AAAAAA"
-        android:layout_marginBottom="30dp"/>
+        android:text="✨ Complete Your Profile"
+        android:textColor="#FFD700"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"/>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Gender, Location and ID will be permanently locked!"
+        android:textColor="#AAAAAA"
+        android:textSize="12sp"
+        android:layout_marginBottom="30dp"
+        android:gravity="center"/>
+
+    <!-- প্রোফাইল পিকচার সিলেকশন -->
+    <ImageView
+        android:id="@+id/imgProfilePic"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:src="@android:drawable/ic_menu_camera"
+        android:background="#2E2355"
+        android:scaleType="centerCrop"
+        android:layout_marginBottom="20dp"
+        android:padding="20dp"/>
+
+    <!-- নাম ইনপুট -->
     <EditText
-        android:id="@+id/editName"
+        android:id="@+id/inputName"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:background="@drawable/edittext_background"
-        android:hint="Enter your name"
+        android:hint="Enter Your Name"
         android:textColor="#FFFFFF"
-        android:textColorHint="#777777"
+        android:textColorHint="#888888"
+        android:background="#1A1333"
         android:paddingHorizontal="16dp"
+        android:layout_marginBottom="16dp"
+        android:maxLines="1"/>
+
+    <!-- জেন্ডার সিলেকশন (Male / Female) -->
+    <Spinner
+        android:id="@+id/spinnerGender"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="#1A1333"
         android:layout_marginBottom="16dp"/>
 
-    <TextView
-        android:id="@+id/textUserId"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="ID: 123456789"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:textColor="#FF4081"
-        android:layout_marginBottom="24dp"/>
-
-    <RadioGroup
-        android:id="@+id/genderGroup"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginBottom="30dp">
-
-        <RadioButton
-            android:id="@+id/radioMale"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Male"
-            android:textColor="#FFFFFF"
-            android:buttonTint="#FF4081"
-            android:checked="true"
-            android:layout_marginRight="24dp"/>
-
-        <RadioButton
-            android:id="@+id/radioFemale"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Female"
-            android:textColor="#FFFFFF"
-            android:buttonTint="#FF4081"/>
-    </RadioGroup>
-
-    <Button
-        android:id="@+id/btnSave"
+    <!-- লোকেশন ইনপুট -->
+    <EditText
+        android:id="@+id/inputLocation"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="Save &amp; Continue"
+        android:layout_height="50dp"
+        android:hint="Enter Your Country / Location"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#888888"
+        android:background="#1A1333"
+        android:paddingHorizontal="16dp"
+        android:layout_marginBottom="30dp"
+        android:maxLines="1"/>
+
+    <!-- কনফার্ম ও সেভ বাটন -->
+    <Button
+        android:id="@+id/btnSaveProfile"
+        android:layout_width="match_parent"
+        android:layout_height="55dp"
+        android:text="Save &amp; Enter App"
+        android:textColor="#FFFFFF"
         android:textSize="16sp"
         android:textStyle="bold"
-        android:textColor="#FFFFFF"
-        android:backgroundTint="#FF4081"/>
+        android:backgroundTint="#E91E63"/>
 
 </LinearLayout>
