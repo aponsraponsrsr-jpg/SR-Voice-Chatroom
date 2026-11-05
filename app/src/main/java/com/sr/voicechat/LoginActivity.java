@@ -1,5 +1,6 @@
 package com.sr.voicechat;
 
+import android.accounts.AccountManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -9,12 +10,6 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -23,8 +18,7 @@ public class LoginActivity extends AppCompatActivity {
     private Button btnGoogleSignIn;
     private SharedPreferences prefs;
     private DatabaseReference usersRef;
-    private GoogleSignInClient mGoogleSignInClient;
-    private static final int RC_SIGN_IN = 9001;
+    private static final int RC_ACCOUNT_PICKER = 1000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,37 +37,30 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // Configure Google Sign In
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestEmail()
-                .build();
-
-        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
-
-        btnGoogleSignIn.setOnClickListener(v -> signInWithGoogle());
-    }
-
-    private void signInWithGoogle() {
-        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
+        // When user clicks "Sign in with Google", show phone's Google Account Picker
+        btnGoogleSignIn.setOnClickListener(v -> {
+            try {
+                Intent intent = AccountManager.newChooseAccountIntent(
+                        null, null, new String[]{"com.google"},
+                        null, null, null, null
+                );
+                startActivityForResult(intent, RC_ACCOUNT_PICKER);
+            } catch (Exception e) {
+                Toast.makeText(this, "Account picker error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == RC_SIGN_IN) {
-            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            try {
-                GoogleSignInAccount account = task.getResult(ApiException.class);
-                if (account != null) {
-                    String email = account.getEmail();
-                    if (email != null) {
-                        checkDeviceAndEmailSecurity(email.toLowerCase());
-                    }
-                }
-            } catch (ApiException e) {
-                Toast.makeText(this, "Google Sign-In failed: " + e.getStatusCode(), Toast.LENGTH_SHORT).show();
+        if (requestCode == RC_ACCOUNT_PICKER && resultCode == RESULT_OK && data != null) {
+            String email = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+            if (email != null && email.contains("@")) {
+                checkDeviceAndEmailSecurity(email.toLowerCase());
+            } else {
+                Toast.makeText(this, "Please select a valid Gmail account!", Toast.LENGTH_SHORT).show();
             }
         }
     }
