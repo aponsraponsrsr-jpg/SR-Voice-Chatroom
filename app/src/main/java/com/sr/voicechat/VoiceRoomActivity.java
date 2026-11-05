@@ -1,10 +1,12 @@
 package com.sr.voicechat;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -16,6 +18,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -50,6 +53,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private String roomOwnerId = "";
     private String currentUserId = "";
 
+    private static final int PICK_IMAGE_REQUEST = 101;
+    private EditText dialogInputName, dialogInputBio;
+    private DatabaseReference activeRoomsRef;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,6 +74,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         databaseReference = FirebaseDatabase.getInstance().getReference("rooms").child("room_" + roomOwnerId);
         roomMetaRef = databaseReference.child("meta");
+        activeRoomsRef = FirebaseDatabase.getInstance().getReference("active_rooms").child(roomOwnerId);
         userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
 
         checkAndSyncPermanentUser();
@@ -88,6 +96,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     if (which == 0) {
                         moveTaskToBack(true);
                     } else {
+                        // রুম থেকে বের হওয়ার সময় active_rooms থেকে রিমুভ করে দেওয়া
+                        if (currentUserId.equals(roomOwnerId)) {
+                            activeRoomsRef.removeValue();
+                        }
                         finish();
                     }
                 });
@@ -95,13 +107,21 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // রুম ওনার হলে টাইটেলে ক্লিক করে রুমের নাম ও বায়ো এডিট করতে পারবে
+        // রুম টাইটেলে বা হেഡারে ক্লিক করলে সেটিংস/এডিট ডায়ালগ আসবে
         if (roomTitleText != null) {
             roomTitleText.setOnClickListener(v -> {
                 if (currentUserId.equals(roomOwnerId)) {
                     showEditRoomDialog();
                 } else {
                     Toast.makeText(this, "Only Room Owner can edit room details!", Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+
+        if (roomHeaderProfileImg != null) {
+            roomHeaderProfileImg.setOnClickListener(v -> {
+                if (currentUserId.equals(roomOwnerId)) {
+                    showEditRoomDialog();
                 }
             });
         }
@@ -222,8 +242,23 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         }
                         editor.apply();
 
-                        roomMetaRef.child("roomOwnerName").setValue(savedName != null ? savedName : "Owner");
-                        roomMetaRef.child("roomOwnerImage").setValue(savedImage != null ? savedImage : "");
+                        // রুম ওনার হলে হোম পেজে প্রদর্শনের জন্য active_rooms এ ডেটা পুশ করা
+                        if (currentUserId.equals(roomOwnerId)) {
+                            roomMetaRef.child("roomOwnerId").setValue(roomOwnerId);
+                            roomMetaRef.child("roomOwnerName").setValue(savedName != null ? savedName : "Owner");
+                            
+                            roomMetaRef.child("roomName").addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot nameSnap) {
+                                    String rName = nameSnap.getValue(String.class);
+                                    if (rName == null || rName.isEmpty()) {
+                                        roomMetaRef.child("roomName").setValue("🌟 SR Voice Room");
+                                    }
+                                }
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError error) {}
+                            });
+                        }
                     }
                 }
 
@@ -267,6 +302,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         roomHeaderProfileImg.setImageResource(android.R.drawable.ic_menu_my_calendar);
                     }
                 }
+
+                // হোম পেজে রুম কার্ড দেখানোর জন্য active_rooms এ আপডেট সিঙ্ক রাখা
+                if (currentUserId.equals(roomOwnerId)) {
+                    activeRoomsRef.child("roomOwnerId").setValue(roomOwnerId);
+                    activeRoomsRef.child("roomName").setValue(roomName != null ? roomName : "🌟 SR Voice Room");
+                    activeRoomsRef.child("roomBio").setValue(roomBio != null ? roomBio : "Welcome to room!");
+                    activeRoomsRef.child("roomOwnerImage").setValue(ownerImage != null ? ownerImage : "");
+                }
             }
 
             @Override
@@ -276,25 +319,33 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void showEditRoomDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-        builder.setTitle("⚙️ Edit Room Details & Bio");
+        builder.setTitle("⚙️ Room Settings & Profile");
 
         LinearLayout layout = new LinearLayout(VoiceRoomActivity.this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(50, 20, 50, 20);
 
-        final EditText inputName = new EditText(VoiceRoomActivity.this);
-        inputName.setHint("Enter Room Name...");
-        layout.addView(inputName);
+        Button btnChangePic = new Button(VoiceRoomActivity.this);
+        btnChangePic.setText("🖼️ Change Room Profile Picture");
+        btnChangePic.setOnClickListener(v -> {
+            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            startActivityForResult(intent, PICK_IMAGE_REQUEST);
+        });
+        layout.addView(btnChangePic);
 
-        final EditText inputBio = new EditText(VoiceRoomActivity.this);
-        inputBio.setHint("Enter Room Bio (e.g. Welcome & enjoy music)...");
-        layout.addView(inputBio);
+        dialogInputName = new EditText(VoiceRoomActivity.this);
+        dialogInputName.setHint("Enter Room Name...");
+        layout.addView(dialogInputName);
+
+        dialogInputBio = new EditText(VoiceRoomActivity.this);
+        dialogInputBio.setHint("Enter Room Bio...");
+        layout.addView(dialogInputBio);
 
         builder.setView(layout);
 
         builder.setPositiveButton("Save", (dialog, which) -> {
-            String newName = inputName.getText().toString().trim();
-            String newBio = inputBio.getText().toString().trim();
+            String newName = dialogInputName.getText().toString().trim();
+            String newBio = dialogInputBio.getText().toString().trim();
 
             if (!newName.isEmpty()) {
                 roomMetaRef.child("roomName").setValue(newName);
@@ -302,10 +353,35 @@ public class VoiceRoomActivity extends AppCompatActivity {
             if (!newBio.isEmpty()) {
                 roomMetaRef.child("roomBio").setValue(newBio);
             }
-            Toast.makeText(this, "Room updated successfully!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Room settings updated successfully!", Toast.LENGTH_SHORT).show();
         });
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
         builder.show();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            Uri imageUri = data.getData();
+            try {
+                InputStream inputStream = getContentResolver().openInputStream(imageUri);
+                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                if (bitmap != null) {
+                    Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 150, 150, true);
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 70, baos);
+                    byte[] imageBytes = baos.toByteArray();
+                    String encodedImage = android.util.Base64.encodeToString(imageBytes, android.util.Base64.DEFAULT);
+
+                    roomMetaRef.child("roomOwnerImage").setValue(encodedImage);
+                    activeRoomsRef.child("roomOwnerImage").setValue(encodedImage);
+                    Toast.makeText(this, "Room Profile Picture Updated!", Toast.LENGTH_SHORT).show();
+                }
+            } catch (Exception e) {
+                Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void listenToOnlineMembers() {
