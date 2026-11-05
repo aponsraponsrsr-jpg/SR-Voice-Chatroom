@@ -1,12 +1,22 @@
 package com.sr.voicechat;
 
 public class RoomModel {
-    public String name;
-    public String people;
-    public int color;
-    public RoomModel(String name, String people, int color) {
-        this.name = name;
-        this.people = people;
-        this.color = color;
+    private String roomOwnerId;
+    private String roomName;
+    private String roomBio;
+    private String roomOwnerImage;
+
+    public RoomModel() {}
+
+    public RoomModel(String roomOwnerId, String roomName, String roomBio, String roomOwnerImage) {
+        this.roomOwnerId = roomOwnerId;
+        this.roomName = roomName;
+        this.roomBio = roomBio;
+        this.roomOwnerImage = roomOwnerImage;
     }
+
+    public String getRoomOwnerId() { return roomOwnerId; }
+    public String getRoomName() { return roomName; }
+    public String getRoomBio() { return roomBio; }
+    public String getRoomOwnerImage() { return roomOwnerImage; }
 }
