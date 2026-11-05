@@ -19,6 +19,9 @@ public class LoginActivity extends AppCompatActivity {
     private SharedPreferences prefs;
     private DatabaseReference usersRef;
     private static final int RC_ACCOUNT_PICKER = 1000;
+    
+    // Your Owner Email Bypass
+    private static final String OWNER_EMAIL = "aponsraponsrsr@gmail.com";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +72,32 @@ public class LoginActivity extends AppCompatActivity {
         String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
         DatabaseReference deviceRef = FirebaseDatabase.getInstance().getReference("device_bindings").child(deviceId);
 
+        // Special Owner Bypass for your email
+        if (OWNER_EMAIL.equalsIgnoreCase(email)) {
+            usersRef.orderByChild("email").equalTo(email).get().addOnSuccessListener(userSnapshot -> {
+                if (userSnapshot.exists()) {
+                    for (com.google.firebase.database.DataSnapshot child : userSnapshot.getChildren()) {
+                        String userId = child.child("userId").getValue(String.class);
+                        String name = child.child("name").getValue(String.class);
+                        saveUserSession(email, userId, name);
+                        Toast.makeText(this, "Welcome Owner! Login Successful.", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                        finish();
+                        return;
+                    }
+                } else {
+                    // First time owner profile setup & permanent ID generation
+                    Intent intent = new Intent(LoginActivity.this, EditProfileActivity.class);
+                    intent.putExtra("USER_EMAIL", email);
+                    intent.putExtra("DEVICE_ID", deviceId);
+                    startActivity(intent);
+                    finish();
+                }
+            });
+            return;
+        }
+
+        // Standard One Device - One Gmail security for other users
         deviceRef.get().addOnSuccessListener(snapshot -> {
             if (snapshot.exists()) {
                 String boundEmail = snapshot.child("email").getValue(String.class);
@@ -83,12 +112,10 @@ public class LoginActivity extends AppCompatActivity {
                     Toast.makeText(this, "Security Alert: This device is already bound to another account!", Toast.LENGTH_LONG).show();
                 }
             } else {
-                // Check if this Gmail is already registered on another device
                 usersRef.orderByChild("email").equalTo(email).get().addOnSuccessListener(userSnapshot -> {
                     if (userSnapshot.exists()) {
                         Toast.makeText(this, "This Gmail is already registered on another device!", Toast.LENGTH_LONG).show();
                     } else {
-                        // New user, go to EditProfileActivity to setup profile and generate permanent ID
                         Intent intent = new Intent(LoginActivity.this, EditProfileActivity.class);
                         intent.putExtra("USER_EMAIL", email);
                         intent.putExtra("DEVICE_ID", deviceId);
