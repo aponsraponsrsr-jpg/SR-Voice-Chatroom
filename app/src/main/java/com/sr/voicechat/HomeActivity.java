@@ -58,10 +58,8 @@ public class HomeActivity extends AppCompatActivity {
             roomListView.setAdapter(roomAdapter);
         }
 
-        // ফায়ারবেস থেকে লাইভ রুম লোড করা
         loadActiveRooms();
 
-        // প্লাস (+) বাটনে ক্লিক করলে নিজের রুমে এন্ট্রি হবে
         if (btnPlus != null) {
             btnPlus.setOnClickListener(v -> {
                 String myId = prefs.getString("MY_9_DIGIT_ID", "777888");
@@ -71,12 +69,10 @@ public class HomeActivity extends AppCompatActivity {
             });
         }
 
-        // সার্চ আইকনে ক্লিক করলে আইডি দিয়ে রুম সার্চ করার ডায়ালগ আসবে
         if (btnSearchRoom != null) {
             btnSearchRoom.setOnClickListener(v -> showSearchRoomDialog());
         }
 
-        // হোম পেজের রুম লিস্টের কোনো কার্ডে ক্লিক করলে সরাসরি সেই রুমে এন্ট্রি হবে
         if (roomListView != null) {
             roomListView.setOnItemClickListener((parent, view, position, id) -> {
                 if (position < roomOwnerIdList.size()) {
@@ -88,7 +84,6 @@ public class HomeActivity extends AppCompatActivity {
             });
         }
 
-        // 'Me' ট্যাবে ক্লিক করলে লকড ওয়ালেট ও প্রিমিয়াম অপশন শো করবে
         if (btnMeTab != null) {
             btnMeTab.setOnClickListener(v -> showMeProfileAndWalletDialog());
         }
@@ -113,9 +108,10 @@ public class HomeActivity extends AppCompatActivity {
                     String roomBio = child.child("roomBio").getValue(String.class);
 
                     if (ownerId != null) {
-                        String displayName = "🌟 " + (roomName != null ? roomName : "SR Voice Room") + 
-                                             "\n📝 Bio: " + (roomBio != null ? roomBio : "Welcome!") + 
-                                             " (Owner ID: " + ownerId + ")";
+                        // হোম পেজে রুম কার্ডের ক্লিন ডিসপ্লে
+                        String displayName = "🏠 " + (roomName != null ? roomName : "SR Voice Room") + 
+                                             "\n📝 Bio: " + (roomBio != null ? roomBio : "Welcome to room!") + 
+                                             "\n🆔 Room ID: " + ownerId;
                         roomDisplayList.add(displayName);
                         roomOwnerIdList.add(ownerId);
                     }
@@ -133,13 +129,12 @@ public class HomeActivity extends AppCompatActivity {
         builder.setTitle("🔍 Search Room by ID");
 
         final EditText input = new EditText(HomeActivity.this);
-        input.setHint("Enter 9-Digit Owner ID (e.g. 777888)...");
+        input.setHint("Enter 9-Digit Owner ID...");
         builder.setView(input);
 
         builder.setPositiveButton("Search", (dialog, which) -> {
             String searchId = input.getText().toString().trim();
             if (!searchId.isEmpty()) {
-                // ফায়ারবেসে চেক করা রুমটি আছে কি না
                 activeRoomsRef.child(searchId).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -147,7 +142,6 @@ public class HomeActivity extends AppCompatActivity {
                             String rName = snapshot.child("roomName").getValue(String.class);
                             String rBio = snapshot.child("roomBio").getValue(String.class);
 
-                            // স্ক্রিনের ওপর রুম কার্ড ভেসে উঠবে
                             AlertDialog.Builder roomPopup = new AlertDialog.Builder(HomeActivity.this);
                             roomPopup.setTitle("🌟 Room Found!");
                             roomPopup.setMessage("Room Name: " + rName + "\nBio: " + rBio + "\nOwner ID: " + searchId);
