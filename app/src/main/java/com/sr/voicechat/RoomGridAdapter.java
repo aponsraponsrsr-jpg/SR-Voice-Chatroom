@@ -50,8 +50,8 @@ public class RoomGridAdapter extends BaseAdapter {
 
         RoomModel room = roomList.get(position);
 
-        roomName.setText(room.getRoomName() != null ? room.getRoomName() : "SR Voice Room");
-        roomBio.setText(room.getRoomBio() != null ? room.getRoomBio() : "Welcome!");
+        roomName.setText(room.getRoomName() != null ? room.getRoomName() : "🌟 SR Voice Room");
+        roomBio.setText(room.getRoomBio() != null ? room.getRoomBio() : "Welcome to room!");
 
         String imgBase64 = room.getRoomOwnerImage();
         if (imgBase64 != null && !imgBase64.isEmpty()) {
@@ -60,6 +60,8 @@ public class RoomGridAdapter extends BaseAdapter {
                 Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                 if (decodedByte != null) {
                     roomImage.setImageBitmap(decodedByte);
+                    roomImage.setPadding(0, 0, 0, 0);
+                    roomImage.setImageTintList(null);
                 }
             } catch (Exception e) {
                 roomImage.setImageResource(android.R.drawable.ic_menu_my_calendar);
