@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:background="#0E0A1E">
 
-    <!-- Top Bar with Search Icon -->
+    <!-- Top Bar with Popular & Search Icon -->
     <LinearLayout
         android:id="@+id/topBarLayout"
         android:layout_width="match_parent"
@@ -19,7 +19,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="🌟 SR Voice Chatroom"
+            android:text="🔥 Popular"
             android:textColor="#FFFFFF"
             android:textSize="18sp"
             android:textStyle="bold"/>
@@ -30,38 +30,23 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:src="@android:drawable/ic_menu_search"
-            android:tint="#FFFFFF"
             android:contentDescription="Search Room"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:padding="4dp"/>
     </LinearLayout>
 
-    <!-- Center Content / Room Directory List -->
-    <LinearLayout
+    <!-- Grid View for Premium Room Cards -->
+    <GridView
+        android:id="@+id/roomGridView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/topBarLayout"
         android:layout_above="@id/bottomNavLayout"
-        android:orientation="vertical"
-        android:padding="8dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🔥 Live Active Rooms"
-            android:textColor="#FFD700"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="6dp"/>
-
-        <!-- Live Rooms List -->
-        <ListView
-            android:id="@+id/roomListView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:divider="@null"
-            android:dividerHeight="6dp"/>
-    </LinearLayout>
+        android:numColumns="2"
+        android:horizontalSpacing="4dp"
+        android:verticalSpacing="4dp"
+        android:padding="8dp"
+        android:stretchMode="columnWidth"/>
 
     <!-- Bottom Navigation Bar (Home, Moment, Plus, Me) -->
     <LinearLayout
