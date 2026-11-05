@@ -95,6 +95,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
+        // রুম ওনার হলে টাইটেলে ক্লিক করে রুমের নাম ও বায়ো এডিট করতে পারবে
         if (roomTitleText != null) {
             roomTitleText.setOnClickListener(v -> {
                 if (currentUserId.equals(roomOwnerId)) {
@@ -486,7 +487,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 });
                             }
 
-                            final String[] imageBase64 = {"v"};
+                            final String[] imageBase64 = {""};
                             if (!userImageUriStr.isEmpty()) {
                                 try {
                                     if (userImageUriStr.startsWith("content://") || userImageUriStr.startsWith("file://")) {
