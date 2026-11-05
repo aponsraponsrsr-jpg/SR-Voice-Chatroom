@@ -41,7 +41,7 @@ public class EditProfileActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_edit_profile); // সঠিক লেআউট ফাইল যুক্ত করা হলো
+        setContentView(R.layout.activity_edit_profile);
 
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
 
@@ -53,19 +53,16 @@ public class EditProfileActivity extends AppCompatActivity {
         inputLocation = findViewById(R.id.inputLocation);
         spinnerGender = findViewById(R.id.spinnerGender);
         btnSaveProfile = findViewById(R.id.btnSaveProfile);
-        btnLogOut = findViewById(R.id.btnLogOut); // লগআউট বাটন ইনিশিয়ালাইজ করা হলো
+        btnLogOut = findViewById(R.id.btnLogOut);
 
         String[] genders = {"Select Gender", "Male", "Female", "Other"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, genders);
         spinnerGender.setAdapter(adapter);
 
-        // যদি লেআউটে লগআউট বাটন থাকে তবে তার ক্লিক লজিক
+        // লগআউট বাটন ক্লিক লজিক
         if (btnLogOut != null) {
             btnLogOut.setOnClickListener(v -> {
-                // Clear session preferences
                 prefs.edit().clear().apply();
-
-                // Redirect to LoginActivity and clear task stack
                 Intent intent = new Intent(EditProfileActivity.this, LoginActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
@@ -73,6 +70,8 @@ public class EditProfileActivity extends AppCompatActivity {
                 Toast.makeText(this, "Logged out successfully!", Toast.LENGTH_SHORT).show();
             });
         }
+
+        imgProfilePSettings();
 
         imgProfilePic.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -131,6 +130,10 @@ public class EditProfileActivity extends AppCompatActivity {
                 });
             }).addOnFailureListener(e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
         });
+    }
+
+    private void imgProfilePSettings() {
+        // Placeholder helper method if needed
     }
 
     private String generatePermanentId() {
