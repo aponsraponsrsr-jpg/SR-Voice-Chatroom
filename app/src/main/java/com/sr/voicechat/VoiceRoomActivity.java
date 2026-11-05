@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Base64;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -34,6 +33,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private ImageButton btnPower;
     private Button btnMicToggle, btnChatOption, btnGiftBox, btnGameBox;
+    private TextView roomTitleText, roomInfoText, textOnlineCount;
+    private ImageView btnOnlineList;
     private boolean isMuted = false;
 
     private ListView chatListView;
@@ -44,6 +45,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private DatabaseReference databaseReference;
     private DatabaseReference userDatabaseRef;
     private FirebaseAuth mAuth;
+    private String roomOwnerId = "";
+    private String currentUserId = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,12 +56,30 @@ public class VoiceRoomActivity extends AppCompatActivity {
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
         mAuth = FirebaseAuth.getInstance();
 
-        databaseReference = FirebaseDatabase.getInstance().getReference("rooms").child("room_01");
+        currentUserId = prefs.getString("MY_9_DIGIT_ID", "777888");
+        
+        // ইনটেন্ট বা ডিফল্ট থেকে রুম ওনার আইডি নির্ধারণ (প্রতি ইউজারের নিজস্ব পার্মানেন্ট রুম)
+        roomOwnerId = getIntent().getStringExtra("ROOM_OWNER_ID");
+        if (roomOwnerId == null || roomOwnerId.isEmpty()) {
+            roomOwnerId = currentUserId; // ডিফল্টভাবে নিজের রুম
+        }
+
+        // ডাইনামিক রুম পাথ: প্রতিটি ওনারের জন্য আলাদা রুম
+        databaseReference = FirebaseDatabase.getInstance().getReference("rooms").child("room_" + roomOwnerId);
         userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
 
         checkAndSyncPermanentUser();
 
         btnPower = findViewById(R.id.btnPower);
+        roomTitleText = findViewById(R.id.roomTitleText);
+        roomInfoText = findViewById(R.id.roomInfoText);
+        textOnlineCount = findViewById(R.id.textOnlineCount);
+        btnOnlineList = findViewById(R.id.btnOnlineList);
+
+        if (roomTitleText != null) {
+            roomTitleText.setText("🌟 Room Owner ID: " + roomOwnerId + " 🌟");
+        }
+
         if (btnPower != null) {
             btnPower.setOnClickListener(v -> {
                 CharSequence[] options = {"Minimize", "Exit Room"};
@@ -75,10 +96,19 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
+        // হেডার ইনফোতে ক্লিক করলে মেম্বার ও অ্যাডমিন লিস্ট পপআপ
+        if (roomInfoText != null) {
+            roomInfoText.setOnClickListener(v -> showMembersAndAdminsDialog());
+        }
+
+        // অনলাইন কাউন্ট বা আইকনে ক্লিক করলে অনলাইন মেম্বার লিস্ট
+        if (btnOnlineList != null) {
+            btnOnlineList.setOnClickListener(v -> showOnlineMembersDialog());
+        }
+
         chatListView = findViewById(R.id.chatListView);
         chatMessages = new ArrayList<>();
         chatMessages.add("🌟 System: SR Voice Room-এ স্বাগতম!");
-        chatMessages.add("💬 রিয়েলটাইম ডেটাবেস ও চ্যাট সিস্টেম সক্রিয় রয়েছে।");
 
         chatAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, chatMessages);
         if (chatListView != null) {
@@ -87,6 +117,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         setupSeatInteractions();
         listenToFirebaseSeats();
+        listenToOnlineMembers();
 
         btnMicToggle = findViewById(R.id.btnMicToggle);
         if (btnMicToggle != null) {
@@ -173,6 +204,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         if (savedId != null && !savedId.isEmpty()) {
                             editor.putString("USER_ID", savedId);
                             editor.putString("MY_9_DIGIT_ID", savedId);
+                            currentUserId = savedId;
                         }
                         if (savedName != null && !savedName.isEmpty()) {
                             editor.putString("USER_NAME", savedName);
@@ -188,6 +220,82 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 public void onCancelled(@NonNull DatabaseError error) {}
             });
         }
+    }
+
+    private void listenToOnlineMembers() {
+        String currentUserName = prefs.getString("USER_NAME", "User");
+
+        databaseReference.child("online_users").child(currentUserId).setValue(currentUserName);
+        databaseReference.child("online_users").child(currentUserId).onDisconnect().removeValue();
+
+        databaseReference.child("online_users").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                long count = snapshot.getChildrenCount();
+                if (textOnlineCount != null) {
+                    textOnlineCount.setText(String.valueOf(count));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void showMembersAndAdminsDialog() {
+        databaseReference.child("online_users").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                ArrayList<String> memberList = new ArrayList<>();
+                memberList.add("👑 Room Owner ID: " + roomOwnerId);
+                memberList.add("🛡️ Admins: Managed by Owner");
+                memberList.add("--- Active Members ---");
+
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    String name = child.getValue(String.class);
+                    if (name != null) {
+                        memberList.add("👤 " + name);
+                    }
+                }
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
+                builder.setTitle("👥 Members & Admins List");
+                builder.setItems(memberList.toArray(new CharSequence[0]), null);
+                builder.setPositiveButton("Close", (dialog, which) -> dialog.dismiss());
+                builder.show();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void showOnlineMembersDialog() {
+        databaseReference.child("online_users").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                ArrayList<String> onlineList = new ArrayList<>();
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    String name = child.getValue(String.class);
+                    if (name != null) {
+                        onlineList.add("🟢 " + name);
+                    }
+                }
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
+                builder.setTitle("🌐 Online Users List");
+                if (onlineList.isEmpty()) {
+                    builder.setMessage("No active users found.");
+                } else {
+                    builder.setItems(onlineList.toArray(new CharSequence[0]), null);
+                }
+                builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
+                builder.show();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 
     private void listenToFirebaseSeats() {
@@ -214,12 +322,16 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         String imageBase64 = snapshot.child(seatKey).child("userImage").getValue(String.class);
 
                         if (seatTxt != null) {
-                            seatTxt.setText(name != null && !name.isEmpty() ? name : (i == 0 ? "Host" : String.valueOf(i + 1)));
+                            if (i == 0) {
+                                seatTxt.setText(name != null && !name.isEmpty() ? name + " (Owner)" : "Host (Owner)");
+                            } else {
+                                seatTxt.setText(name != null && !name.isEmpty() ? name : String.valueOf(i + 1));
+                            }
                         }
 
                         if (seatImg != null && imageBase64 != null && !imageBase64.isEmpty()) {
                             try {
-                                byte[] decodedString = Base64.decode(imageBase64, Base64.DEFAULT);
+                                byte[] decodedString = android.util.Base64.decode(imageBase64, android.util.Base64.DEFAULT);
                                 Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                                 if (decodedByte != null) {
                                     seatImg.setImageBitmap(decodedByte);
@@ -239,7 +351,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         }
                     } else {
                         if (seatTxt != null) {
-                            seatTxt.setText(i == 0 ? "Host" : String.valueOf(i + 1));
+                            seatTxt.setText(i == 0 ? "Host (Owner)" : String.valueOf(i + 1));
                         }
                         if (seatImg != null) {
                             seatImg.setImageResource(android.R.drawable.ic_menu_my_calendar);
@@ -268,7 +380,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
             if (seatContainer != null) {
                 seatContainer.setOnClickListener(v -> {
-                    String seatTitle = (seatNumber == 1) ? "Host Seat" : "Seat " + seatNumber;
+                    // ওনার কন্ট্রোল চেকিং: শুধু রুম ওনার হোস্ট সিট (Seat 1) বা অন্য সিট ম্যানেজ করতে পারবে
+                    String seatTitle = (seatNumber == 1) ? "Host Seat (Owner)" : "Seat " + seatNumber;
                     CharSequence[] seatOptions = {"Take Mic (" + seatTitle + ")", "Leave Mic"};
 
                     AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
