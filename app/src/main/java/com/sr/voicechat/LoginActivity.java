@@ -40,7 +40,7 @@ public class LoginActivity extends AppCompatActivity {
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
         userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
 
-        // যদি অলরেডি লগইন করা থাকে এবং পার্মানেন্ট আইডি থেকে থাকে, তবে সরাসরি হোম পেজে পাঠিয়ে দেব
+        // যদি অলরেডি লগইন করা থাকে এবং পার্মানেন্ট আইডি থাকে, তবে সরাসরি হোম পেজে পাঠিয়ে দেব
         boolean isLoggedIn = prefs.getBoolean("IS_LOGGED_IN", false);
         String savedPermanentId = prefs.getString("MY_9_DIGIT_ID", "");
         if (isLoggedIn && !savedPermanentId.isEmpty()) {
@@ -56,9 +56,10 @@ public class LoginActivity extends AppCompatActivity {
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        Button btnGoogleLogin = findViewById(R.id.btnGoogleLogin);
-        if (btnGoogleLogin != null) {
-            btnGoogleLogin.setOnClickListener(v -> signIn());
+        // XML ফাইলের সঠিক আইডি (btnGoogleSignIn) এখানে যুক্ত করা হয়েছে
+        Button btnGoogleSignIn = findViewById(R.id.btnGoogleSignIn);
+        if (btnGoogleSignIn != null) {
+            btnGoogleSignIn.setOnClickListener(v -> signIn());
         }
     }
 
@@ -96,7 +97,7 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
-    // অত্যন্ত গুরুত্বপূর্ণ: জিমেইল চেক করবে ডাটাবেসে অলরেডি রেজিস্টার্ড কি না
+    // জিমেইল চেক করে পুরাতন পার্মানেন্ট আইডি রিকভার করার লজিক
     private void checkExistingUserInDatabase(String email) {
         if (email == null) return;
         String safeEmailKey = email.replace(".", "_").replace("@", "_");
@@ -108,7 +109,7 @@ public class LoginActivity extends AppCompatActivity {
                 editor.putString("USER_EMAIL", email);
 
                 if (snapshot.exists()) {
-                    // পুরাতন ইউজার! ডাটাবেস থেকে তার পার্মানেন্ট আইডি ও নাম উদ্ধার করা হচ্ছে
+                    // পুরাতন ইউজার! ডাটাবেস থেকে পার্মানেন্ট আইডি উদ্ধার করা হচ্ছে
                     String existingId = snapshot.child("userId").getValue(String.class);
                     String existingName = snapshot.child("name").getValue(String.class);
                     String existingImage = snapshot.child("profileImage").getValue(String.class);
@@ -129,7 +130,7 @@ public class LoginActivity extends AppCompatActivity {
 
                     Toast.makeText(LoginActivity.this, "Welcome Back! ID: " + existingId, Toast.LENGTH_SHORT).show();
                     
-                    // সরাসরি হোম পেজে চলে যাবে, আর কখনোই এডিট প্রোফাইলে যাবে না!
+                    // সরাসরি হোম পেজে চলে যাবে, আর কখনোই এডিট প্রোফাইল পেজে যাবে না
                     Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
