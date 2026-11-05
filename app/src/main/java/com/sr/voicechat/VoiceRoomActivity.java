@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
-import android.util.Base64;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -44,6 +43,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private SharedPreferences prefs;
 
     private DatabaseReference databaseReference;
+    private DatabaseReference roomMetaRef;
     private DatabaseReference userDatabaseRef;
     private FirebaseAuth mAuth;
     private String roomOwnerId = "";
@@ -65,19 +65,17 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
 
         databaseReference = FirebaseDatabase.getInstance().getReference("rooms").child("room_" + roomOwnerId);
+        roomMetaRef = databaseReference.child("meta");
         userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
 
         checkAndSyncPermanentUser();
+        listenToRoomDetails();
 
         btnPower = findViewById(R.id.btnPower);
         roomTitleText = findViewById(R.id.roomTitleText);
         roomInfoText = findViewById(R.id.roomInfoText);
         textOnlineCount = findViewById(R.id.textOnlineCount);
         btnOnlineList = findViewById(R.id.btnOnlineList);
-
-        if (roomTitleText != null) {
-            roomTitleText.setText("🌟 Room Owner ID: " + roomOwnerId + " 🌟");
-        }
 
         if (btnPower != null) {
             btnPower.setOnClickListener(v -> {
@@ -92,6 +90,17 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     }
                 });
                 builder.show();
+            });
+        }
+
+        // রুম ওনার হলে হেডার বা টাইটেলে ক্লিক করে রুম এডিট করতে পারবে
+        if (roomTitleText != null) {
+            roomTitleText.setOnClickListener(v -> {
+                if (currentUserId.equals(roomOwnerId)) {
+                    showEditRoomDialog();
+                } else {
+                    Toast.makeText(this, "Only Room Owner can edit room details!", Toast.LENGTH_SHORT).show();
+                }
             });
         }
 
@@ -219,6 +228,46 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
+    private void listenToRoomDetails() {
+        roomMetaRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                String roomName = snapshot.child("roomName").getValue(String.class);
+                if (roomName != null && !roomName.isEmpty()) {
+                    if (roomTitleText != null) {
+                        roomTitleText.setText("🌟 " + roomName + " (Owner ID: " + roomOwnerId + ")");
+                    }
+                } else {
+                    if (roomTitleText != null) {
+                        roomTitleText.setText("🌟 SR Voice Room (Owner: " + roomOwnerId + ")");
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void showEditRoomDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
+        builder.setTitle("⚙️ Edit Room Details");
+
+        final EditText input = new EditText(VoiceRoomActivity.this);
+        input.setHint("Enter new room name...");
+        builder.setView(input);
+
+        builder.setPositiveButton("Save", (dialog, which) -> {
+            String newRoomName = input.getText().toString().trim();
+            if (!newRoomName.isEmpty()) {
+                roomMetaRef.child("roomName").setValue(newRoomName);
+                Toast.makeText(this, "Room name updated successfully!", Toast.LENGTH_SHORT).show();
+            }
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+        builder.show();
+    }
+
     private void listenToOnlineMembers() {
         String currentUserName = prefs.getString("USER_NAME", "User");
 
@@ -328,7 +377,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
                         if (seatImg != null && imageBase64 != null && !imageBase64.isEmpty()) {
                             try {
-                                byte[] decodedString = Base64.decode(imageBase64, Base64.DEFAULT);
+                                byte[] decodedString = android.util.Base64.decode(imageBase64, android.util.Base64.DEFAULT);
                                 Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                                 if (decodedByte != null) {
                                     seatImg.setImageBitmap(decodedByte);
@@ -410,7 +459,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                             ByteArrayOutputStream baos = new ByteArrayOutputStream();
                                             resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
                                             byte[] imageBytes = baos.toByteArray();
-                                            imageBase64[0] = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+                                            imageBase64[0] = android.util.Base64.encodeToString(imageBytes, android.util.Base64.DEFAULT);
                                         }
                                     } else {
                                         imageBase64[0] = userImageUriStr;
