@@ -1,116 +1,105 @@
 package com.sr.voicechat;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
-import android.view.View;
+import android.provider.Settings;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.auth.api.signin.GoogleSignInClient;
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
-import com.google.android.gms.common.api.ApiException;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.GoogleAuthProvider;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
+import java.util.Random;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private GoogleSignInClient mGoogleSignInClient;
-    private FirebaseAuth mAuth;
-    private ActivityResultLauncher<Intent> googleSignInLauncher;
-    private Button signInButton;
+    private EditText inputEmail;
+    private Button btnLogin;
+    private SharedPreferences prefs;
+    private DatabaseReference usersRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        mAuth = FirebaseAuth.getInstance();
+        prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
+        usersRef = FirebaseDatabase.getInstance().getReference("users");
 
-        // Configure Google Sign In
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build();
+        inputEmail = findViewById(R.id.inputEmail); // জিমেইল ইনপুট ফিল্ড (অথবা Google Sign-in বাটন)
+        btnLogin = findViewById(R.id.btnLogin);
 
-        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
-
-        // Activity Result Launcher for Google Sign In
-        googleSignInLauncher = registerForActivityResult(
-                new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                        Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
-                        try {
-                            GoogleSignInAccount account = task.getResult(ApiException.class);
-                            if (account != null) {
-                                firebaseAuthWithGoogle(account.getIdToken());
-                            }
-                        } catch (ApiException e) {
-                            Toast.makeText(this, "Google sign in failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                }
-        );
-
-        // Login Button Click Listener (matched with xml id: sign_in_button)
-        signInButton = findViewById(R.id.sign_in_button);
-        if (signInButton != null) {
-            signInButton.setOnClickListener(v -> signInWithGoogle());
+        // যদি ইউজার আগে থেকেই লগইন করা থাকে, তবে সরাসরি হোমপেজে পাঠিয়ে দিবে
+        boolean isLoggedIn = prefs.getBoolean("IS_LOGGED_IN", false);
+        if (isLoggedIn) {
+            startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+            finish();
+            return;
         }
-    }
 
-    private void signInWithGoogle() {
-        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        googleSignInLauncher.launch(signInIntent);
-    }
+        btnLogin.setOnClickListener(v -> {
+            String email = inputEmail.getText().toString().trim().toLowerCase();
+            if (email.isEmpty() || !email.contains("@")) {
+                Toast.makeText(this, "Please enter a valid Gmail address!", Toast.LENGTH_SHORT).show();
+                return;
+            }
 
-    private void firebaseAuthWithGoogle(String idToken) {
-        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-        mAuth.signInWithCredential(credential).addOnCompleteListener(this, task -> {
-            if (task.isSuccessful()) {
-                FirebaseUser user = mAuth.getCurrentUser();
-                SharedPreferences prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
-                
-                // --- পার্মানেন্ট ইউনিক আইডির লজিক ---
-                if (user != null) {
-                    String firebaseUid = user.getUid();
-                    String savedUniqueId = prefs.getString("UID_" + firebaseUid, "");
+            String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
 
-                    if (savedUniqueId.isEmpty()) {
-                        // প্রথমবার লগইন করলে নতুন ৯ ডিজিটের আইডি জেনারেট হবে এবং এই জিমেইল/ইউআইডি দিয়ে চিরতরে লক হয়ে যাবে
-                        int randomId = 100000000 + (int)(Math.random() * 900000000);
-                        savedUniqueId = String.valueOf(randomId);
-                        prefs.edit()
-                                .putString("UID_" + firebaseUid, savedUniqueId)
-                                .putString("MY_9_DIGIT_ID", savedUniqueId)
-                                .apply();
+            // চেক করা যাক এই ডিভাইসে ইতিমধ্যে অন্য কোনো অ্যাকাউন্ট বা জিমেইল রেজিস্টার্ড আছে কি না
+            DatabaseReference deviceRef = FirebaseDatabase.getInstance().getReference("device_bindings").child(deviceId);
+            deviceRef.get().addOnSuccessListener(snapshot -> {
+                if (snapshot.exists()) {
+                    // এই ডিভাইসে পূর্বে অ্যাকাউন্ট খোলা হয়েছে, ওই জিমেইলটি রিকভার করা হচ্ছে
+                    String boundEmail = snapshot.child("email").getValue(String.class);
+                    String boundId = snapshot.child("userId").getValue(String.class);
+
+                    if (boundEmail != null && boundEmail.equals(email)) {
+                        // পুরাতন ইউজার, সরাসরি হোমপেজে চলে যাবে
+                        saveUserSession(boundEmail, boundId, snapshot.child("name").getValue(String.class));
+                        Toast.makeText(this, "Welcome Back! Login Successful.", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                        finish();
                     } else {
-                        // পুরোনো ইউজার হলে আগের আইডিই ফিক্সড থাকবে, কখনোই বদলাবে না
-                        prefs.edit().putString("MY_9_DIGIT_ID", savedUniqueId).apply();
+                        // সিকিউরিটি অ্যালার্ট: এক ডিভাইসে একাধিক জিমেইল এলাউড নয়!
+                        Toast.makeText(this, "Security Alert: This device is already bound to another account (" + boundEmail + ")!", Toast.LENGTH_LONG).show();
                     }
-                }
-                // ----------------------------------------------------
-
-                // চেক করা ইউজার কি প্রোফাইল সেটআপ করেছে কি না
-                boolean isProfileCompleted = prefs.getBoolean("PROFILE_COMPLETED", false);
-
-                if (!isProfileCompleted) {
-                    startActivity(new Intent(LoginActivity.this, EditProfileActivity.class));
                 } else {
-                    startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                    // একদম নতুন ইউজার বা নতুন ডিভাইস
+                    checkEmailAlreadyExists(email, deviceId);
                 }
-                finish();
+            }).addOnFailureListener(e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        });
+    }
+
+    private void checkEmailAlreadyExists(String email, String deviceId) {
+        usersRef.orderByChild("email").equalTo(email).get().addOnSuccessListener(snapshot -> {
+            if (snapshot.exists()) {
+                // এই জিমেইল দিয়ে অন্য ডিভাইসে অ্যাকাউন্ট আছে কিনা চেক করা
+                Toast.makeText(this, "This Gmail is already registered on another device!", Toast.LENGTH_LONG).show();
             } else {
-                Toast.makeText(this, "Auth Failed", Toast.LENGTH_SHORT).show();
+                // একদম নতুন ইউজার! এখন তাকে প্রোফাইল সেটআপ পেজে পাঠানো হবে (যেখানে নাম, পিকচার, জেন্ডার ও লোকেশন সেট করবে)
+                Intent intent = new Intent(LoginActivity.this, ProfileSetupActivity.class);
+                intent.putExtra("USER_EMAIL", email);
+                intent.putExtra("DEVICE_ID", deviceId);
+                startActivity(intent);
+                finish();
             }
         });
+    }
+
+    private void saveUserSession(String email, String userId, String name) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putBoolean("IS_LOGGED_IN", true);
+        editor.setUserEmail("USER_EMAIL", email);
+        editor.putString("MY_9_DIGIT_ID", userId);
+        editor.putString("USER_NAME", name != null ? name : "User");
+        editor.apply();
     }
 }
