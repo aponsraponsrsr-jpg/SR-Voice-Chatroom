@@ -34,7 +34,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private ImageButton btnPower;
     private Button btnMicToggle, btnChatOption, btnGiftBox, btnGameBox;
     private TextView roomTitleText, roomInfoText, textOnlineCount;
-    private ImageView btnOnlineList;
+    private ImageView btnOnlineList, roomHeaderProfileImg;
     private boolean isMuted = false;
 
     private ListView chatListView;
@@ -76,6 +76,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         roomInfoText = findViewById(R.id.roomInfoText);
         textOnlineCount = findViewById(R.id.textOnlineCount);
         btnOnlineList = findViewById(R.id.btnOnlineList);
+        roomHeaderProfileImg = findViewById(R.id.roomHeaderProfileImg);
 
         if (btnPower != null) {
             btnPower.setOnClickListener(v -> {
@@ -93,7 +94,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // রুম ওনার হলে হেডার বা টাইটেলে ক্লিক করে রুম এডিট করতে পারবে
+        // রুম ওনার হলে টাইটেলে ক্লিক করে রুমের নাম ও বায়ো এডিট করতে পারবে
         if (roomTitleText != null) {
             roomTitleText.setOnClickListener(v -> {
                 if (currentUserId.equals(roomOwnerId)) {
@@ -219,6 +220,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             editor.putString("USER_IMAGE", savedImage);
                         }
                         editor.apply();
+
+                        // নিজের রুম মেটাতে ওনারের ডিফল্ট ছবি এবং নাম সিঙ্ক রাখা
+                        roomMetaRef.child("roomOwnerName").setValue(savedName != null ? savedName : "Owner");
+                        roomMetaRef.child("roomOwnerImage").setValue(savedImage != null ? savedImage : "");
                     }
                 }
 
@@ -233,13 +238,34 @@ public class VoiceRoomActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 String roomName = snapshot.child("roomName").getValue(String.class);
+                String roomBio = snapshot.child("roomBio").getValue(String.class);
+                String ownerImage = snapshot.child("roomOwnerImage").getValue(String.class);
+
                 if (roomName != null && !roomName.isEmpty()) {
                     if (roomTitleText != null) {
-                        roomTitleText.setText("🌟 " + roomName + " (Owner ID: " + roomOwnerId + ")");
+                        roomTitleText.setText("🌟 " + roomName);
                     }
                 } else {
                     if (roomTitleText != null) {
-                        roomTitleText.setText("🌟 SR Voice Room (Owner: " + roomOwnerId + ")");
+                        roomTitleText.setText("🌟 SR Voice Room");
+                    }
+                }
+
+                if (roomInfoText != null) {
+                    String bioText = (roomBio != null && !roomBio.isEmpty()) ? roomBio : "Welcome to my voice room!";
+                    roomInfoText.setText("ID: " + roomOwnerId + " | 📝 " + bioText);
+                }
+
+                // হেডারে রুম/ওনারের প্রোফাইল পিকচার সেট করা
+                if (roomHeaderProfileImg != null && ownerImage != null && !ownerImage.isEmpty()) {
+                    try {
+                        byte[] decodedString = android.util.Base64.decode(ownerImage, android.util.Base64.DEFAULT);
+                        Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                        if (decodedByte != null) {
+                            roomHeaderProfileImg.setImageBitmap(decodedByte);
+                        }
+                    } catch (Exception e) {
+                        roomHeaderProfileImg.setImageResource(android.R.drawable.ic_menu_my_calendar);
                     }
                 }
             }
@@ -251,18 +277,34 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void showEditRoomDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-        builder.setTitle("⚙️ Edit Room Details");
+        builder.setTitle("⚙️ Edit Room Details & Bio");
 
-        final EditText input = new EditText(VoiceRoomActivity.this);
-        input.setHint("Enter new room name...");
-        builder.setView(input);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_room, null);
+        final EditText inputName = new EditText(VoiceRoomActivity.this);
+        inputName.setHint("Enter Room Name...");
+        
+        final EditText inputBio = new EditText(VoiceRoomActivity.this);
+        inputBio.setHint("Enter Room Bio (e.g. Welcome & enjoy music)...");
+
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(VoiceRoomActivity.this);
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        layout.setPadding(40, 20, 40, 20);
+        layout.addView(inputName);
+        layout.addView(inputBio);
+
+        builder.setView(layout);
 
         builder.setPositiveButton("Save", (dialog, which) -> {
-            String newRoomName = input.getText().toString().trim();
-            if (!newRoomName.isEmpty()) {
-                roomMetaRef.child("roomName").setValue(newRoomName);
-                Toast.makeText(this, "Room name updated successfully!", Toast.LENGTH_SHORT).show();
+            String newName = inputName.getText().toString().trim();
+            String newBio = inputBio.getText().toString().trim();
+
+            if (!newName.isEmpty()) {
+                roomMetaRef.child("roomName").setValue(newName);
             }
+            if (!newBio.isEmpty()) {
+                roomMetaRef.child("roomBio").setValue(newBio);
+            }
+            Toast.makeText(this, "Room updated successfully!", Toast.LENGTH_SHORT).show();
         });
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
         builder.show();
