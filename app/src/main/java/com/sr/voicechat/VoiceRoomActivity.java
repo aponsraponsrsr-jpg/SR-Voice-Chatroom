@@ -167,7 +167,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // ওয়াটসঅ্যাপ স্টাইল প্রিমিয়াম বটম চ্যাট পপআপ (কিবোর্ডের ঠিক উপরে থাকবে)
+        // WhatsApp Style Bottom Chat Popup (কিবোর্ডের ঠিক উপরে ওপেন হবে)
         btnChatOption = findViewById(R.id.btnChatOption);
         if (btnChatOption != null) {
             btnChatOption.setOnClickListener(v -> {
@@ -598,18 +598,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot seatSnap) {
                             String occupantName = seatSnap.child("userName").getValue(String.class);
-                            String occupantId = seatSnap.child("userId").getValue(String.class);
                             boolean isOccupied = occupantName != null && !occupantName.isEmpty();
 
                             CharSequence[] seatOptions;
-                            
-                            // ফিক্স: ওনার যখন নিজের সিটে ক্লিক করবে তখন তাকে কিক মারার অপশন দেওয়া যাবে না
-                            boolean isSelfSeat = currentUserId.equals(occupantId) || (i == 0 && currentUserId.equals(roomOwnerId));
-
                             if (currentUserId.equals(roomOwnerId)) {
                                 if (isOccupied) {
-                                    if (isSelfSeat) {
-                                        seatOptions = new CharSequence[]{"Mute Seat", "Leave Mic", "Cancel"};
+                                    if (seatIndex == 0) {
+                                        seatOptions = new CharSequence[]{"Mute Seat", "Cancel"};
                                     } else {
                                         seatOptions = new CharSequence[]{"Remove from Mic (Kick)", "Mute Seat", "Cancel"};
                                     }
@@ -618,11 +613,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 }
                             } else {
                                 if (isOccupied) {
-                                    if (isSelfSeat) {
-                                        seatOptions = new CharSequence[]{"View Profile", "Leave Mic"};
-                                    } else {
-                                        seatOptions = new CharSequence[]{"View Profile"};
-                                    }
+                                    seatOptions = new CharSequence[]{"View Profile", "Leave Mic"};
                                 } else {
                                     seatOptions = new CharSequence[]{"Take Mic", "Cancel"};
                                 }
@@ -636,14 +627,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
                                 if (currentUserId.equals(roomOwnerId)) {
                                     if (isOccupied) {
-                                        if (!isSelfSeat && which == 0) { 
+                                        if (seatIndex > 0 && which == 0) { 
                                             databaseReference.child("seats").child(seatKey).removeValue();
                                             Toast.makeText(VoiceRoomActivity.this, occupantName + " removed from seat!", Toast.LENGTH_SHORT).show();
-                                        } else if ((!isSelfSeat && which == 1) || (isSelfSeat && which == 0)) { 
-                                            Toast.makeText(VoiceRoomActivity.this, "Seat muted by owner", Toast.LENGTH_SHORT).show();
-                                        } else if ((isSelfSeat && which == 1) || (!isSelfSeat && which == 1 && isSelfSeat)) {
-                                            databaseReference.child("seats").child(seatKey).removeValue();
-                                            Toast.makeText(VoiceRoomActivity.this, "Left seat", Toast.LENGTH_SHORT).show();
+                                        } else { 
+                                            Toast.makeText(VoiceRoomActivity.this, "Seat action executed", Toast.LENGTH_SHORT).show();
                                         }
                                     } else {
                                         if (which == 0) { 
@@ -653,7 +641,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 } else {
                                     if (which == 0 && !isOccupied) {
                                         takeSeat(seatIndex, seatKey, userName, userImageUriStr);
-                                    } else if (isOccupied && isSelfSeat) {
+                                    } else if (isOccupied && which == 1) {
                                         databaseReference.child("seats").child(seatKey).removeValue();
                                         Toast.makeText(VoiceRoomActivity.this, "Left seat", Toast.LENGTH_SHORT).show();
                                     }
@@ -708,7 +696,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
 
         databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
-        databaseReference.child("seats").child(seatKey).child("userId").setValue(currentUserId);
         databaseReference.child("seats").child(seatKey).child("userImage").setValue(imageBase64[0]);
         
         databaseReference.child("seats").child(seatKey).onDisconnect().removeValue();
@@ -720,11 +707,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
         databaseReference.child("online_users").child(currentUserId).removeValue();
         for (int i = 0; i < 10; i++) {
             final int index = i;
-            databaseReference.child("seats").child("seat_" + index).child("userId").addListenerForSingleValueEvent(new ValueEventListener() {
+            databaseReference.child("seats").child("seat_" + index).child("userName").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    String uId = snapshot.getValue(String.class);
-                    if (uId != null && uId.equals(currentUserId)) {
+                    String name = snapshot.getValue(String.class);
+                    String uName = prefs.getString("USER_NAME", "User");
+                    if (name != null && name.equals(uName)) {
                         databaseReference.child("seats").child("seat_" + index).removeValue();
                     }
                 }
