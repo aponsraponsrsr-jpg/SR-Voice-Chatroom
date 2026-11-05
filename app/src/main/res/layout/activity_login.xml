@@ -18,18 +18,6 @@
         android:textColor="#FFFFFF"
         android:layout_marginBottom="20dp"/>
 
-    <EditText
-        android:id="@+id/inputEmail"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:hint="Enter your Gmail address"
-        android:inputType="textEmailAddress"
-        android:padding="16dp"
-        android:background="#F0F0F0"
-        android:textColor="#000000"
-        android:textColorHint="#888888"
-        android:layout_marginBottom="16dp"/>
-
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -48,11 +36,12 @@
         android:layout_marginBottom="40dp"/>
 
     <Button
-        android:id="@+id/btnLogin"
+        android:id="@+id/btnGoogleSignIn"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:text="Sign in"
+        android:text="Sign in with Google"
         android:textSize="16sp"
-        android:textColor="#000000"/>
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#DB4437"/>
 
 </LinearLayout>
