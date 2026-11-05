@@ -72,7 +72,8 @@ public class LoginActivity extends AppCompatActivity {
             if (snapshot.exists()) {
                 Toast.makeText(this, "This Gmail is already registered on another device!", Toast.LENGTH_LONG).show();
             } else {
-                Intent intent = new Intent(LoginActivity.this, EditProfileActivity.java);
+                // এখানে .class দেওয়া হয়েছে (.java নয়)
+                Intent intent = new Intent(LoginActivity.this, EditProfileActivity.class);
                 intent.putExtra("USER_EMAIL", email);
                 intent.putExtra("DEVICE_ID", deviceId);
                 startActivity(intent);
@@ -84,7 +85,7 @@ public class LoginActivity extends AppCompatActivity {
     private void saveUserSession(String email, String userId, String name) {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putBoolean("IS_LOGGED_IN", true);
-        editor.putString("USER_EMAIL", email); // এখানে কারেক্ট করা হয়েছে
+        editor.putString("USER_EMAIL", email);
         editor.putString("MY_9_DIGIT_ID", userId);
         editor.putString("USER_NAME", name != null ? name : "User");
         editor.apply();
