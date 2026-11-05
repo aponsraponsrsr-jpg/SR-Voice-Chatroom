@@ -28,6 +28,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.database.ChildEventListener;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -49,6 +50,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private DatabaseReference databaseReference;
     private DatabaseReference roomMetaRef;
     private DatabaseReference userDatabaseRef;
+    private DatabaseReference messagesRef;
     private FirebaseAuth mAuth;
     private String roomOwnerId = "";
     private String currentUserId = "";
@@ -78,6 +80,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         databaseReference = FirebaseDatabase.getInstance().getReference("rooms").child("room_" + roomOwnerId);
         roomMetaRef = databaseReference.child("meta");
+        messagesRef = databaseReference.child("messages");
         activeRoomsRef = FirebaseDatabase.getInstance().getReference("active_rooms").child(roomOwnerId);
         userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
 
@@ -100,7 +103,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     if (which == 0) {
                         moveTaskToBack(true);
                     } else {
-                        finish();
+                        leaveRoomAndFinish();
                     }
                 });
                 builder.show();
@@ -135,8 +138,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         chatListView = findViewById(R.id.chatListView);
         chatMessages = new ArrayList<>();
-        chatMessages.add("🌟 System: SR Voice Room-এ স্বাগতম!");
-
         chatAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, chatMessages);
         if (chatListView != null) {
             chatListView.setAdapter(chatAdapter);
@@ -145,6 +146,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         setupSeatInteractions();
         listenToFirebaseSeats();
         listenToOnlineMembers();
+        listenToRealtimeChatMessages(); // Realtime chat sync listener
 
         btnMicToggle = findViewById(R.id.btnMicToggle);
         if (btnMicToggle != null) {
@@ -174,9 +176,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     String message = input.getText().toString().trim();
                     String userName = prefs.getString("USER_NAME", "User");
                     if (!message.isEmpty()) {
-                        chatMessages.add("👤 " + userName + ": " + message);
-                        chatAdapter.notifyDataSetChanged();
-                        Toast.makeText(this, "Message sent!", Toast.LENGTH_SHORT).show();
+                        // Push message to Firebase for Real-time sync across all room users
+                        String msgId = messagesRef.push().getKey();
+                        if (msgId != null) {
+                            java.util.Map<String, Object> msgMap = new java.util.HashMap<>();
+                            msgMap.put("senderName", userName);
+                            msgMap.put("message", message);
+                            messagesRef.child(msgId).setValue(msgMap);
+                        }
                     }
                 });
                 builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
@@ -189,10 +196,19 @@ public class VoiceRoomActivity extends AppCompatActivity {
             btnGiftBox.setOnClickListener(v -> {
                 CharSequence[] gifts = {"🌹 Rose (10 Coins)", "👑 Crown (500 Coins)", "💎 Diamond (1000 Coins)"};
                 AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-                builder.setTitle("🎁 Send Gift");
+                builder.setTitle("🎁 Premium Gift Center");
                 builder.setItems(gifts, (dialog, which) -> {
-                    chatMessages.add("🎁 Gift Sent: " + gifts[which]);
-                    chatAdapter.notifyDataSetChanged();
+                    String giftName = gifts[which].toString();
+                    String userName = prefs.getString("USER_NAME", "User");
+                    
+                    // Broadcast gift message in real-time chat
+                    String msgId = messagesRef.push().getKey();
+                    if (msgId != null) {
+                        java.util.Map<String, Object> msgMap = new java.util.HashMap<>();
+                        msgMap.put("senderName", "🎁 " + userName);
+                        msgMap.put("message", "sent a gorgeous gift: " + giftName);
+                        messagesRef.child(msgId).setValue(msgMap);
+                    }
                     Toast.makeText(this, "Successfully Sent Gift!", Toast.LENGTH_SHORT).show();
                 });
                 builder.show();
@@ -206,11 +222,36 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
                 builder.setTitle("🎮 Voice Room Games");
                 builder.setItems(games, (dialog, which) -> {
-                    Toast.makeText(this, "Starting " + games[games.length > 0 ? which : 0] + "...", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Starting " + games[which] + "...", Toast.LENGTH_SHORT).show();
                 });
                 builder.show();
             });
         }
+    }
+
+    private void listenToRealtimeChatMessages() {
+        messagesRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                String senderName = snapshot.child("senderName").getValue(String.class);
+                String message = snapshot.child("message").getValue(String.class);
+                if (senderName != null && message != null) {
+                    String fullMsg = senderName + ": " + message;
+                    if (!chatMessages.contains(fullMsg)) {
+                        chatMessages.add(fullMsg);
+                        chatAdapter.notifyDataSetChanged();
+                        if (chatListView != null) {
+                            chatListView.setSelection(chatMessages.size() - 1);
+                        }
+                    }
+                }
+            }
+
+            @Override public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
+            @Override public void onChildRemoved(@NonNull DataSnapshot snapshot) {}
+            @Override public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 
     private void checkAndSyncPermanentUser() {
@@ -556,7 +597,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 if (isOccupied) {
                                     seatOptions = new CharSequence[]{"View Profile", "Leave Mic"};
                                 } else {
-                                    seatOptions = new CharSequence[]{"Take Mic", "Leave Mic"};
+                                    seatOptions = new CharSequence[]{"Take Mic", "Cancel"};
                                 }
                             }
 
@@ -582,7 +623,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 } else {
                                     if (which == 0 && !isOccupied) {
                                         takeSeat(seatIndex, seatKey, userName, userImageUriStr);
-                                    } else if (which == 1 || (isOccupied && which == 1)) {
+                                    } else if (isOccupied && which == 1) {
                                         databaseReference.child("seats").child(seatKey).removeValue();
                                         Toast.makeText(VoiceRoomActivity.this, "Left seat", Toast.LENGTH_SHORT).show();
                                     }
@@ -614,7 +655,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        final String[] imageBase64 = {"v"};
+        final String[] imageBase64 = {""};
         if (!userImageUriStr.isEmpty()) {
             try {
                 if (userImageUriStr.startsWith("content://") || userImageUriStr.startsWith("file://")) {
@@ -638,6 +679,30 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
         databaseReference.child("seats").child(seatKey).child("userImage").setValue(imageBase64[0]);
+        
+        // Ghost seat auto-cleanup on disconnect
+        databaseReference.child("seats").child(seatKey).onDisconnect().removeValue();
+        
         Toast.makeText(VoiceRoomActivity.this, "Joined seat successfully!", Toast.LENGTH_SHORT).show();
+    }
+
+    private void leaveRoomAndFinish() {
+        // Clean up online presence and seats on exit
+        databaseReference.child("online_users").child(currentUserId).removeValue();
+        for (int i = 0; i < 10; i++) {
+            final int index = i;
+            databaseReference.child("seats").child("seat_" + index).child("userName").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    String name = snapshot.getValue(String.class);
+                    String uName = prefs.getString("USER_NAME", "User");
+                    if (name != null && name.equals(uName)) {
+                        databaseReference.child("seats").child("seat_" + index).removeValue();
+                    }
+                }
+                @Override public void onCancelled(@NonNull DatabaseError error) {}
+            });
+        }
+        finish();
     }
 }
