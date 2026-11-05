@@ -5,19 +5,26 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private EditText inputEmail;
-    private Button btnLogin;
+    private Button btnGoogleSignIn;
     private SharedPreferences prefs;
     private DatabaseReference usersRef;
+    private GoogleSignInClient mGoogleSignInClient;
+    private static final int RC_SIGN_IN = 9001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,8 +34,7 @@ public class LoginActivity extends AppCompatActivity {
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
         usersRef = FirebaseDatabase.getInstance().getReference("users");
 
-        inputEmail = findViewById(R.id.inputEmail);
-        btnLogin = findViewById(R.id.btnLogin);
+        btnGoogleSignIn = findViewById(R.id.btnGoogleSignIn);
 
         boolean isLoggedIn = prefs.getBoolean("IS_LOGGED_IN", false);
         if (isLoggedIn) {
@@ -37,49 +43,74 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        btnLogin.setOnClickListener(v -> {
-            String email = inputEmail.getText().toString().trim().toLowerCase();
-            if (email.isEmpty() || !email.contains("@")) {
-                Toast.makeText(this, "Please enter a valid Gmail address!", Toast.LENGTH_SHORT).show();
-                return;
-            }
+        // Configure Google Sign In
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestEmail()
+                .build();
 
-            String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-            DatabaseReference deviceRef = FirebaseDatabase.getInstance().getReference("device_bindings").child(deviceId);
-            deviceRef.get().addOnSuccessListener(snapshot -> {
-                if (snapshot.exists()) {
-                    String boundEmail = snapshot.child("email").getValue(String.class);
-                    String boundId = snapshot.child("userId").getValue(String.class);
-
-                    if (boundEmail != null && boundEmail.equals(email)) {
-                        saveUserSession(boundEmail, boundId, snapshot.child("name").getValue(String.class));
-                        Toast.makeText(this, "Welcome Back! Login Successful.", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(LoginActivity.this, HomeActivity.class));
-                        finish();
-                    } else {
-                        Toast.makeText(this, "Security Alert: This device is already bound to another account (" + boundEmail + ")!", Toast.LENGTH_LONG).show();
-                    }
-                } else {
-                    checkEmailAlreadyExists(email, deviceId);
-                }
-            }).addOnFailureListener(e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-        });
+        btnGoogleSignIn.setOnClickListener(v -> signInWithGoogle());
     }
 
-    private void checkEmailAlreadyExists(String email, String deviceId) {
-        usersRef.orderByChild("email").equalTo(email).get().addOnSuccessListener(snapshot -> {
-            if (snapshot.exists()) {
-                Toast.makeText(this, "This Gmail is already registered on another device!", Toast.LENGTH_LONG).show();
-            } else {
-                // এখানে .class দেওয়া হয়েছে (.java নয়)
-                Intent intent = new Intent(LoginActivity.this, EditProfileActivity.class);
-                intent.putExtra("USER_EMAIL", email);
-                intent.putExtra("DEVICE_ID", deviceId);
-                startActivity(intent);
-                finish();
+    private void signInWithGoogle() {
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == RC_SIGN_IN) {
+            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
+            try {
+                GoogleSignInAccount account = task.getResult(ApiException.class);
+                if (account != null) {
+                    String email = account.getEmail();
+                    if (email != null) {
+                        checkDeviceAndEmailSecurity(email.toLowerCase());
+                    }
+                }
+            } catch (ApiException e) {
+                Toast.makeText(this, "Google Sign-In failed: " + e.getStatusCode(), Toast.LENGTH_SHORT).show();
             }
-        });
+        }
+    }
+
+    private void checkDeviceAndEmailSecurity(String email) {
+        String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+        DatabaseReference deviceRef = FirebaseDatabase.getInstance().getReference("device_bindings").child(deviceId);
+
+        deviceRef.get().addOnSuccessListener(snapshot -> {
+            if (snapshot.exists()) {
+                String boundEmail = snapshot.child("email").getValue(String.class);
+                String boundId = snapshot.child("userId").getValue(String.class);
+
+                if (boundEmail != null && boundEmail.equals(email)) {
+                    saveUserSession(boundEmail, boundId, snapshot.child("name").getValue(String.class));
+                    Toast.makeText(this, "Welcome Back! Login Successful.", Toast.LENGTH_SHORT).show();
+                    startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+                    finish();
+                } else {
+                    Toast.makeText(this, "Security Alert: This device is already bound to another account!", Toast.LENGTH_LONG).show();
+                }
+            } else {
+                // Check if this Gmail is already registered on another device
+                usersRef.orderByChild("email").equalTo(email).get().addOnSuccessListener(userSnapshot -> {
+                    if (userSnapshot.exists()) {
+                        Toast.makeText(this, "This Gmail is already registered on another device!", Toast.LENGTH_LONG).show();
+                    } else {
+                        // New user, go to EditProfileActivity to setup profile and generate permanent ID
+                        Intent intent = new Intent(LoginActivity.this, EditProfileActivity.class);
+                        intent.putExtra("USER_EMAIL", email);
+                        intent.putExtra("DEVICE_ID", deviceId);
+                        startActivity(intent);
+                        finish();
+                    }
+                });
+            }
+        }).addOnFailureListener(e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
     }
 
     private void saveUserSession(String email, String userId, String name) {
