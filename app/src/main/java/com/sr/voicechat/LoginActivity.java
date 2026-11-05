@@ -10,6 +10,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -17,10 +18,9 @@ public class LoginActivity extends AppCompatActivity {
 
     private Button btnGoogleSignIn;
     private SharedPreferences prefs;
-    private DatabaseReference usersRef;
+    private DatabaseReference usersRef, deviceRef;
     private static final int RC_ACCOUNT_PICKER = 1000;
     
-    // Your Owner Email Bypass
     private static final String OWNER_EMAIL = "aponsraponsrsr@gmail.com";
 
     @Override
@@ -40,7 +40,6 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // When user clicks "Sign in with Google", show phone's Google Account Picker
         btnGoogleSignIn.setOnClickListener(v -> {
             try {
                 Intent intent = AccountManager.newChooseAccountIntent(
@@ -61,32 +60,29 @@ public class LoginActivity extends AppCompatActivity {
         if (requestCode == RC_ACCOUNT_PICKER && resultCode == RESULT_OK && data != null) {
             String email = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
             if (email != null && email.contains("@")) {
-                checkDeviceAndEmailSecurity(email.toLowerCase());
+                handleLoginProcess(email.toLowerCase());
             } else {
                 Toast.makeText(this, "Please select a valid Gmail account!", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
-    private void checkDeviceAndEmailSecurity(String email) {
+    private void handleLoginProcess(String email) {
         String deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-        DatabaseReference deviceRef = FirebaseDatabase.getInstance().getReference("device_bindings").child(deviceId);
+        DatabaseReference currentDeviceRef = FirebaseDatabase.getInstance().getReference("device_bindings").child(deviceId);
 
-        // Special Owner Bypass for your email
+        // Owner Bypass: Always allow owner email
         if (OWNER_EMAIL.equalsIgnoreCase(email)) {
-            usersRef.orderByChild("email").equalTo(email).get().addOnSuccessListener(userSnapshot -> {
-                if (userSnapshot.exists()) {
-                    for (com.google.firebase.database.DataSnapshot child : userSnapshot.getChildren()) {
-                        String userId = child.child("userId").getValue(String.class);
-                        String name = child.child("name").getValue(String.class);
-                        saveUserSession(email, userId, name);
-                        Toast.makeText(this, "Welcome Owner! Login Successful.", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(LoginActivity.this, HomeActivity.class));
-                        finish();
+            usersRef.orderByChild("email").equalTo(email).get().addOnCompleteListener(task -> {
+                if (task.isSuccessful() && task.getResult().exists()) {
+                    for (DataSnapshot snapshot : task.getResult().getChildren()) {
+                        String userId = snapshot.child("userId").getValue(String.class);
+                        String name = snapshot.child("name").getValue(String.class);
+                        saveSessionAndProceed(email, userId, name != null ? name : "SR Owner");
                         return;
                     }
                 } else {
-                    // First time owner profile setup & permanent ID generation
+                    // First time owner setup
                     Intent intent = new Intent(LoginActivity.this, EditProfileActivity.class);
                     intent.putExtra("USER_EMAIL", email);
                     intent.putExtra("DEVICE_ID", deviceId);
@@ -97,42 +93,50 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // Standard One Device - One Gmail security for other users
-        deviceRef.get().addOnSuccessListener(snapshot -> {
-            if (snapshot.exists()) {
-                String boundEmail = snapshot.child("email").getValue(String.class);
-                String boundId = snapshot.child("userId").getValue(String.class);
+        // For other users: Check device binding first
+        currentDeviceRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DataSnapshot snapshot = task.getResult();
+                if (snapshot.exists()) {
+                    String boundEmail = snapshot.child("email").getValue(String.class);
+                    String boundId = snapshot.child("userId").getValue(String.class);
 
-                if (boundEmail != null && boundEmail.equals(email)) {
-                    saveUserSession(boundEmail, boundId, snapshot.child("name").getValue(String.class));
-                    Toast.makeText(this, "Welcome Back! Login Successful.", Toast.LENGTH_SHORT).show();
-                    startActivity(new Intent(LoginActivity.this, HomeActivity.class));
-                    finish();
+                    if (boundEmail != null && boundEmail.equals(email)) {
+                        saveSessionAndProceed(boundEmail, boundId, snapshot.child("name").getValue(String.class));
+                    } else {
+                        Toast.makeText(this, "Security Alert: This device is bound to another email!", Toast.LENGTH_LONG).show();
+                    }
                 } else {
-                    Toast.makeText(this, "Security Alert: This device is already bound to another account!", Toast.LENGTH_LONG).show();
+                    // Check if email already used on another device
+                    usersRef.orderByChild("email").equalTo(email).get().addOnCompleteListener(userTask -> {
+                        if (userTask.isSuccessful() && userTask.getResult().exists()) {
+                            Toast.makeText(this, "This Gmail is already registered on another device!", Toast.LENGTH_LONG).show();
+                        } else {
+                            // New user registration
+                            Intent intent = new Intent(LoginActivity.this, EditProfileActivity.class);
+                            intent.putExtra("USER_EMAIL", email);
+                            intent.putExtra("DEVICE_ID", deviceId);
+                            startActivity(intent);
+                            finish();
+                        }
+                    });
                 }
             } else {
-                usersRef.orderByChild("email").equalTo(email).get().addOnSuccessListener(userSnapshot -> {
-                    if (userSnapshot.exists()) {
-                        Toast.makeText(this, "This Gmail is already registered on another device!", Toast.LENGTH_LONG).show();
-                    } else {
-                        Intent intent = new Intent(LoginActivity.this, EditProfileActivity.class);
-                        intent.putExtra("USER_EMAIL", email);
-                        intent.putExtra("DEVICE_ID", deviceId);
-                        startActivity(intent);
-                        finish();
-                    }
-                });
+                Toast.makeText(this, "Connection error. Please try again.", Toast.LENGTH_SHORT).show();
             }
-        }).addOnFailureListener(e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
+        });
     }
 
-    private void saveUserSession(String email, String userId, String name) {
+    private void saveSessionAndProceed(String email, String userId, String name) {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putBoolean("IS_LOGGED_IN", true);
         editor.putString("USER_EMAIL", email);
         editor.putString("MY_9_DIGIT_ID", userId);
-        editor.putString("USER_NAME", name != null ? name : "User");
+        editor.putString("USER_NAME", name);
         editor.apply();
+
+        Toast.makeText(this, "Login Successful!", Toast.LENGTH_SHORT).show();
+        startActivity(new Intent(LoginActivity.this, HomeActivity.class));
+        finish();
     }
 }
