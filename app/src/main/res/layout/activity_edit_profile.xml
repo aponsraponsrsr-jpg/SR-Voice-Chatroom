@@ -67,7 +67,7 @@
         android:textColorHint="#888888"
         android:background="#1A1333"
         android:paddingHorizontal="16dp"
-        android:layout_marginBottom="30dp"
+        android:layout_marginBottom="20dp"
         android:maxLines="1"/>
 
     <!-- কনফার্ম ও সেভ বাটন -->
@@ -79,6 +79,17 @@
         android:textColor="#FFFFFF"
         android:textSize="16sp"
         android:textStyle="bold"
-        android:backgroundTint="#E91E63"/>
+        android:backgroundTint="#E91E63"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- লগআউট / সুইচ অ্যাকাউন্ট বাটন -->
+    <Button
+        android:id="@+id/btnLogOut"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Logout / Switch Account"
+        android:textColor="#DDDDDD"
+        android:textSize="14sp"
+        android:backgroundTint="#2E2355"/>
 
 </LinearLayout>
