@@ -279,7 +279,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         String seatKey = "seat_" + seatIndex;
 
                         if (which == 0) {
-                            final String[] imageBase64 = {""};
+                            final String[] imageBase64 = {"v"};
                             if (!userImageUriStr.isEmpty()) {
                                 try {
                                     if (userImageUriStr.startsWith("content://") || userImageUriStr.startsWith("file://")) {
