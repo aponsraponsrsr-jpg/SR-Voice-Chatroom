@@ -30,7 +30,7 @@ public class EditProfileActivity extends AppCompatActivity {
     private ImageView imgProfilePic;
     private EditText inputName, inputLocation;
     private Spinner spinnerGender;
-    private Button btnSaveProfile;
+    private Button btnSaveProfile, btnLogOut;
 
     private String userEmail, deviceId;
     private String encodedImage = "";
@@ -53,10 +53,26 @@ public class EditProfileActivity extends AppCompatActivity {
         inputLocation = findViewById(R.id.inputLocation);
         spinnerGender = findViewById(R.id.spinnerGender);
         btnSaveProfile = findViewById(R.id.btnSaveProfile);
+        btnLogOut = findViewById(R.id.btnLogOut); // লগআউট বাটন ইনিশিয়ালাইজ করা হলো
 
         String[] genders = {"Select Gender", "Male", "Female", "Other"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, genders);
         spinnerGender.setAdapter(adapter);
+
+        // যদি লেআউটে লগআউট বাটন থাকে তবে তার ক্লিক লজিক
+        if (btnLogOut != null) {
+            btnLogOut.setOnClickListener(v -> {
+                // Clear session preferences
+                prefs.edit().clear().apply();
+
+                // Redirect to LoginActivity and clear task stack
+                Intent intent = new Intent(EditProfileActivity.this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish();
+                Toast.makeText(this, "Logged out successfully!", Toast.LENGTH_SHORT).show();
+            });
+        }
 
         imgProfilePic.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
