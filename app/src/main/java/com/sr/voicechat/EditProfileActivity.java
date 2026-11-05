@@ -53,12 +53,13 @@ public class EditProfileActivity extends AppCompatActivity {
         btnSave = findViewById(R.id.btnSave);
 
         // পার্মানেন্ট ইউনিক আইডি লোড বা জেনারেট করা
-        String uniqueId = prefs.getString("MY_9_DIGIT_ID", "");
-        if (uniqueId.isEmpty()) {
-            uniqueId = String.valueOf((int)(Math.random() * 900000000) + 100000000);
-            prefs.edit().putString("MY_9_DIGIT_ID", uniqueId).apply();
+        String tempId = prefs.getString("MY_9_DIGIT_ID", "");
+        if (tempId.isEmpty()) {
+            tempId = String.valueOf((int)(Math.random() * 900000000) + 100000000);
+            prefs.edit().putString("MY_9_DIGIT_ID", tempId).apply();
         }
-        textUserId.setText("ID: " + uniqueId);
+        textUserId.setText("ID: " + tempId);
+        final String finalUniqueId = tempId;
 
         // আগের সেভ করা ছবি লোড করা
         String savedImage = prefs.getString("USER_IMAGE", "");
@@ -134,7 +135,7 @@ public class EditProfileActivity extends AppCompatActivity {
                 String safeEmailKey = email.replace(".", "_").replace("@", "_");
 
                 Map<String, Object> rtdbMap = new HashMap<>();
-                rtdbMap.put("userId", uniqueId);
+                rtdbMap.put("userId", finalUniqueId);
                 rtdbMap.put("userName", newName);
                 rtdbMap.put("userImage", processedImageBase64);
                 rtdbRef.child("users").child(safeEmailKey).setValue(rtdbMap);
