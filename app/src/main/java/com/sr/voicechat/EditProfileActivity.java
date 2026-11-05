@@ -25,7 +25,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Random;
 
-public class ProfileSetupActivity extends AppCompatActivity {
+public class EditProfileActivity extends AppCompatActivity {
 
     private ImageView imgProfilePic;
     private EditText inputName, inputLocation;
@@ -41,7 +41,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_profile_setup);
+        setContentView(R.layout.activity_edit_profile); // সঠিক লেআউট ফাইল যুক্ত করা হলো
 
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
 
@@ -54,12 +54,10 @@ public class ProfileSetupActivity extends AppCompatActivity {
         spinnerGender = findViewById(R.id.spinnerGender);
         btnSaveProfile = findViewById(R.id.btnSaveProfile);
 
-        // জেন্ডার ড্রপডাউন সেটআপ
         String[] genders = {"Select Gender", "Male", "Female", "Other"};
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, genders);
         spinnerGender.setAdapter(adapter);
 
-        // গ্যালারি থেকে ছবি সিলেক্ট করার অপশন
         imgProfilePic.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             startActivityForResult(intent, PICK_IMAGE_REQUEST);
@@ -83,10 +81,8 @@ public class ProfileSetupActivity extends AppCompatActivity {
                 return;
             }
 
-            // ইউনিক ৯ বা ১০ ডিজিটের পার্মানেন্ট আইডি জেনারেশন
             String permanentId = generatePermanentId();
 
-            // ফায়ারবেসে সেভ করার ডাটা প্রস্তুত করা
             DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(permanentId);
             DatabaseReference deviceBindingRef = FirebaseDatabase.getInstance().getReference("device_bindings").child(deviceId);
 
@@ -104,10 +100,8 @@ public class ProfileSetupActivity extends AppCompatActivity {
             bindingData.put("email", userEmail);
             bindingData.put("name", name);
 
-            // ফায়ারবেসে সেভ করা
             userRef.setValue(userData).addOnSuccessListener(aVoid -> {
                 deviceBindingRef.setValue(bindingData).addOnSuccessListener(aVoid2 -> {
-                    // লোকাল SharedPreferences এ সেশন সেভ করা
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putBoolean("IS_LOGGED_IN", true);
                     editor.putString("USER_EMAIL", userEmail);
@@ -116,7 +110,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
                     editor.apply();
 
                     Toast.makeText(this, "Profile Setup Successful! ID: " + permanentId, Toast.LENGTH_LONG).show();
-                    startActivity(new Intent(ProfileSetupActivity.this, HomeActivity.class));
+                    startActivity(new Intent(EditProfileActivity.this, HomeActivity.class));
                     finish();
                 });
             }).addOnFailureListener(e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
@@ -125,7 +119,7 @@ public class ProfileSetupActivity extends AppCompatActivity {
 
     private String generatePermanentId() {
         Random random = new Random();
-        int id = 100000000 + random.nextInt(900000000); // ৯ ডিজিটের র‍্যান্ডম আইডি
+        int id = 100000000 + random.nextInt(900000000);
         return String.valueOf(id);
     }
 
@@ -139,7 +133,6 @@ public class ProfileSetupActivity extends AppCompatActivity {
                 Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                 imgProfilePic.setImageBitmap(bitmap);
 
-                // বিটম্যাপকে Base64 স্ট্রিংয়ে রূপান্তর করা যাতে ফায়ারবেসে সহজে রাখা যায়
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos);
                 byte[] imageBytes = baos.toByteArray();
