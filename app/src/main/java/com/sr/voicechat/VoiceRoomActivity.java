@@ -65,7 +65,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
         mAuth = FirebaseAuth.getInstance();
 
-        // লোকাল বা পার্মানেন্ট আইডি রিড করা
         currentUserId = prefs.getString("MY_9_DIGIT_ID", "");
         if (currentUserId.isEmpty()) {
             currentUserId = String.valueOf((int)(Math.random() * 900000000) + 100000000);
@@ -229,7 +228,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         String savedName = snapshot.child("userName").getValue(String.class);
                         String savedImage = snapshot.child("userImage").getValue(String.class);
 
-                        // পার্মানেন্ট আইডি লক রাখা যাতে কখনো চেঞ্জ না হয়
                         String existingLocalId = prefs.getString("MY_9_DIGIT_ID", "");
                         if (existingLocalId != null && !existingLocalId.isEmpty()) {
                             currentUserId = existingLocalId;
@@ -256,7 +254,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             roomMetaRef.child("roomOwnerName").setValue(savedName != null ? savedName : "Owner");
                         }
                     } else {
-                        // নতুন ইউজার হলে ফায়ারবেসে পার্মানেন্ট আইডি সেভ করে দেওয়া
                         userDatabaseRef.child(safeEmailKey).child("userId").setValue(currentUserId);
                         userDatabaseRef.child(safeEmailKey).child("userName").setValue(prefs.getString("USER_NAME", "User"));
                     }
@@ -542,14 +539,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
             if (seatContainer != null) {
                 seatContainer.setOnClickListener(v -> {
                     String seatKey = "seat_" + seatIndex;
-                    databaseReference.child("seats").child(seatKey).get().addListenerForSingleValueEvent(new ValueEventListener() {
+                    databaseReference.child("seats").child(seatKey).addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot seatSnap) {
                             String occupantName = seatSnap.child("userName").getValue(String.class);
                             boolean isOccupied = occupantName != null && !occupantName.isEmpty();
 
                             CharSequence[] seatOptions;
-                            // ওনার হলে কিক বা মিউট অপশন পাবে, সাধারণ ইউজার হলে টেক মাইক পাবে
                             if (currentUserId.equals(roomOwnerId)) {
                                 if (isOccupied) {
                                     seatOptions = new CharSequence[]{"Remove from Mic (Kick)", "Mute Seat", "Cancel"};
@@ -572,14 +568,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
                                 if (currentUserId.equals(roomOwnerId)) {
                                     if (isOccupied) {
-                                        if (which == 0) { // Kick / Remove from Mic
+                                        if (which == 0) { 
                                             databaseReference.child("seats").child(seatKey).removeValue();
                                             Toast.makeText(VoiceRoomActivity.this, occupantName + " removed from seat!", Toast.LENGTH_SHORT).show();
-                                        } else if (which == 1) { // Mute
+                                        } else if (which == 1) { 
                                             Toast.makeText(VoiceRoomActivity.this, "Seat muted by owner", Toast.LENGTH_SHORT).show();
                                         }
                                     } else {
-                                        if (which == 0) { // Take Mic
+                                        if (which == 0) { 
                                             takeSeat(seatIndex, seatKey, userName, userImageUriStr);
                                         }
                                     }
@@ -605,15 +601,20 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private void takeSeat(int seatIndex, String seatKey, String userName, String userImageUriStr) {
         for (int j = 0; j < 10; j++) {
             final int oldIndex = j;
-            databaseReference.child("seats").child("seat_" + oldIndex).child("userName").get().addOnSuccessListener(snapshot -> {
-                String existingName = snapshot.getValue(String.class);
-                if (existingName != null && existingName.equals(userName)) {
-                    databaseReference.child("seats").child("seat_" + oldIndex).removeValue();
+            databaseReference.child("seats").child("seat_" + oldIndex).child("userName").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    String existingName = snapshot.getValue(String.class);
+                    if (existingName != null && existingName.equals(userName)) {
+                        databaseReference.child("seats").child("seat_" + oldIndex).removeValue();
+                    }
                 }
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {}
             });
         }
 
-        final String[] imageBase64 = {""};
+        final String[] imageBase64 = {"v"};
         if (!userImageUriStr.isEmpty()) {
             try {
                 if (userImageUriStr.startsWith("content://") || userImageUriStr.startsWith("file://")) {
