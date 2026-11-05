@@ -102,7 +102,7 @@ public class EditProfileActivity extends AppCompatActivity {
             int selectedGenderId = genderGroup.getCheckedRadioButtonId();
             String gender = (selectedGenderId == R.id.radioFemale) ? "Female" : "Male";
 
-            final String[] imageBase64 = {imageUriString};
+            String processedImageBase64 = imageUriString;
             if (!imageUriString.isEmpty() && (imageUriString.startsWith("content://") || imageUriString.startsWith("file://"))) {
                 try {
                     Uri uri = Uri.parse(imageUriString);
@@ -113,7 +113,7 @@ public class EditProfileActivity extends AppCompatActivity {
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
                         resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
                         byte[] imageBytes = baos.toByteArray();
-                        imageBase64[0] = Base64.encodeToString(imageBytes, Base64.DEFAULT);
+                        processedImageBase64 = Base64.encodeToString(imageBytes, Base64.DEFAULT);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -124,7 +124,7 @@ public class EditProfileActivity extends AppCompatActivity {
             prefs.edit()
                     .putString("USER_NAME", newName)
                     .putString("USER_GENDER", gender)
-                    .putString("USER_IMAGE", imageBase64[0])
+                    .putString("USER_IMAGE", processedImageBase64)
                     .putBoolean("PROFILE_COMPLETED", true)
                     .apply();
 
@@ -136,7 +136,7 @@ public class EditProfileActivity extends AppCompatActivity {
                 Map<String, Object> rtdbMap = new HashMap<>();
                 rtdbMap.put("userId", uniqueId);
                 rtdbMap.put("userName", newName);
-                rtdbMap.put("userImage", imageBase64[0]);
+                rtdbMap.put("userImage", processedImageBase64);
                 rtdbRef.child("users").child(safeEmailKey).setValue(rtdbMap);
             }
 
