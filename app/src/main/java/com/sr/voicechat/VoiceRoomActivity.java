@@ -1,5 +1,6 @@
 package com.sr.voicechat;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -146,7 +147,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         setupSeatInteractions();
         listenToFirebaseSeats();
         listenToOnlineMembers();
-        listenToRealtimeChatMessages(); // Realtime chat sync listener
+        listenToRealtimeChatMessages();
 
         btnMicToggle = findViewById(R.id.btnMicToggle);
         if (btnMicToggle != null) {
@@ -176,7 +177,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     String message = input.getText().toString().trim();
                     String userName = prefs.getString("USER_NAME", "User");
                     if (!message.isEmpty()) {
-                        // Push message to Firebase for Real-time sync across all room users
                         String msgId = messagesRef.push().getKey();
                         if (msgId != null) {
                             java.util.Map<String, Object> msgMap = new java.util.HashMap<>();
@@ -201,7 +201,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     String giftName = gifts[which].toString();
                     String userName = prefs.getString("USER_NAME", "User");
                     
-                    // Broadcast gift message in real-time chat
                     String msgId = messagesRef.push().getKey();
                     if (msgId != null) {
                         java.util.Map<String, Object> msgMap = new java.util.HashMap<>();
@@ -680,14 +679,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
         databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
         databaseReference.child("seats").child(seatKey).child("userImage").setValue(imageBase64[0]);
         
-        // Ghost seat auto-cleanup on disconnect
         databaseReference.child("seats").child(seatKey).onDisconnect().removeValue();
         
         Toast.makeText(VoiceRoomActivity.this, "Joined seat successfully!", Toast.LENGTH_SHORT).show();
     }
 
     private void leaveRoomAndFinish() {
-        // Clean up online presence and seats on exit
         databaseReference.child("online_users").child(currentUserId).removeValue();
         for (int i = 0; i < 10; i++) {
             final int index = i;
