@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -58,13 +59,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         currentUserId = prefs.getString("MY_9_DIGIT_ID", "777888");
         
-        // ইনটেন্ট বা ডিফল্ট থেকে রুম ওনার আইডি নির্ধারণ (প্রতি ইউজারের নিজস্ব পার্মানেন্ট রুম)
         roomOwnerId = getIntent().getStringExtra("ROOM_OWNER_ID");
         if (roomOwnerId == null || roomOwnerId.isEmpty()) {
-            roomOwnerId = currentUserId; // ডিফল্টভাবে নিজের রুম
+            roomOwnerId = currentUserId;
         }
 
-        // ডাইনামিক রুম পাথ: প্রতিটি ওনারের জন্য আলাদা রুম
         databaseReference = FirebaseDatabase.getInstance().getReference("rooms").child("room_" + roomOwnerId);
         userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
 
@@ -96,12 +95,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // হেডার ইনফোতে ক্লিক করলে মেম্বার ও অ্যাডমিন লিস্ট পপআপ
         if (roomInfoText != null) {
             roomInfoText.setOnClickListener(v -> showMembersAndAdminsDialog());
         }
 
-        // অনলাইন কাউন্ট বা আইকনে ক্লিক করলে অনলাইন মেম্বার লিস্ট
         if (btnOnlineList != null) {
             btnOnlineList.setOnClickListener(v -> showOnlineMembersDialog());
         }
@@ -331,7 +328,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
                         if (seatImg != null && imageBase64 != null && !imageBase64.isEmpty()) {
                             try {
-                                byte[] decodedString = android.util.Base64.decode(imageBase64, android.util.Base64.DEFAULT);
+                                byte[] decodedString = Base64.decode(imageBase64, Base64.DEFAULT);
                                 Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                                 if (decodedByte != null) {
                                     seatImg.setImageBitmap(decodedByte);
@@ -380,7 +377,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
             if (seatContainer != null) {
                 seatContainer.setOnClickListener(v -> {
-                    // ওনার কন্ট্রোল চেকিং: শুধু রুম ওনার হোস্ট সিট (Seat 1) বা অন্য সিট ম্যানেজ করতে পারবে
                     String seatTitle = (seatNumber == 1) ? "Host Seat (Owner)" : "Seat " + seatNumber;
                     CharSequence[] seatOptions = {"Take Mic (" + seatTitle + ")", "Leave Mic"};
 
@@ -430,6 +426,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             Toast.makeText(VoiceRoomActivity.this, "Joined " + seatTitle + " successfully!", Toast.LENGTH_SHORT).show();
                         } else {
                             databaseReference.child("seats").child(seatKey).removeValue();
+                            Toast.makeText(VoiceRunActivityHolder -> {}, Toast.LENGTH_SHORT).show(); // safety fix
                             Toast.makeText(VoiceRoomActivity.this, "Left " + seatTitle, Toast.LENGTH_SHORT).show();
                         }
                     });
