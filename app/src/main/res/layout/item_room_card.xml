@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="210dp"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="6dp"
+    app:cardBackgroundColor="#1A1333">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- রুমের চারকোনা ব্যানার বা প্রোফাইল পিকচার -->
+        <ImageView
+            android:id="@+id/cardRoomImage"
+            android:layout_width="match_parent"
+            android:layout_height="130dp"
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/ic_menu_my_calendar"
+            android:background="#2E2355"/>
+
+        <!-- লাইভ ব্যাজ -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="● LIVE"
+            android:textColor="#FF3B30"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:background="#88000000"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="3dp"
+            android:layout_margin="8dp"/>
+
+        <!-- রুমের নাম -->
+        <TextView
+            android:id="@+id/cardRoomName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cardRoomImage"
+            android:text="Room Name"
+            android:textColor="#FFD700"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:paddingHorizontal="10dp"
+            android:paddingTop="8dp"/>
+
+        <!-- রুমের বায়ো -->
+        <TextView
+            android:id="@+id/cardRoomBio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cardRoomName"
+            android:text="Welcome to room bio..."
+            android:textColor="#AAAAAA"
+            android:textSize="11sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            android:paddingHorizontal="10dp"
+            android:paddingBottom="8dp"/>
+
+    </RelativeLayout>
+</androidx.cardview.widget.CardView>

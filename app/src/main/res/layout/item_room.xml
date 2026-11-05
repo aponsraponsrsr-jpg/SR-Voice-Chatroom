@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="90dp" android:layout_margin="6dp" android:orientation="vertical" android:padding="12dp" android:id="@+id/cardBg" android:background="#FF2E7E">
-    <TextView android:id="@+id/tvRoomName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Bangla Adda" android:textColor="#FFFFFF" android:textSize="18sp" android:textStyle="bold"/>
-    <TextView android:id="@+id/tvRoomPeople" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="125 people" android:textColor="#FFFFFF" android:textSize="13sp"/>
-</LinearLayout>
