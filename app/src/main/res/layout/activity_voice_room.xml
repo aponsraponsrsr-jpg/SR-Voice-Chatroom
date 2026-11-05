@@ -7,7 +7,7 @@
     android:fitsSystemWindows="true"
     android:background="@drawable/voice_room_bg">
 
-    <!-- Top Bar: Room Title, VIP Tag & Power Button -->
+    <!-- Top Bar: Room Title, Owner ID, Online Count & Power Button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -23,6 +23,7 @@
             android:orientation="vertical">
 
             <TextView
+                android:id="@+id/roomTitleText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="🌟 SR Official Voice Room 🌟"
@@ -31,11 +32,39 @@
                 android:textStyle="bold" />
 
             <TextView
+                android:id="@+id/roomInfoText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="ID: 777888 | 👑 VIP Room"
+                android:text="👑 Members & Admins Info"
                 android:textColor="#FFD700"
                 android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- Online Member Count & Icon -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginEnd="8dp">
+
+            <ImageView
+                android:id="@+id/btnOnlineList"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@android:drawable/ic_menu_myplaces"
+                android:tint="#00E676"
+                android:contentDescription="Online List"/>
+
+            <TextView
+                android:id="@+id/textOnlineCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1"
+                android:textColor="#00E676"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginStart="4dp"/>
         </LinearLayout>
 
         <!-- Power / Exit Button -->
@@ -72,7 +101,7 @@
         android:columnOrderPreserved="false"
         android:gravity="center">
 
-        <!-- Seat 1: Host -->
+        <!-- Seat 1: Host / Owner -->
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
             <androidx.cardview.widget.CardView
                 android:id="@+id/seatCard1"
@@ -90,7 +119,7 @@
                     android:src="@android:drawable/ic_menu_my_calendar"
                     android:padding="10dp"/>
             </androidx.cardview.widget.CardView>
-            <TextView android:id="@+id/seatTxt1" android:layout_width="60dp" android:layout_height="wrap_content" android:text="Host" android:textColor="#00E676" android:textSize="10sp" android:textStyle="bold" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatTxt1" android:layout_width="60dp" android:layout_height="wrap_content" android:text="Host (Owner)" android:textColor="#00E676" android:textSize="9sp" android:textStyle="bold" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
 
         <!-- Seat 2 -->
@@ -296,7 +325,7 @@
         android:paddingHorizontal="8dp"
         android:paddingTop="8dp"/>
 
-    <!-- Bottom Action Bar (Fixed & Properly Spaced) -->
+    <!-- Bottom Action Bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="60dp"
