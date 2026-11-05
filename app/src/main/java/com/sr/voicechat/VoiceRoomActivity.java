@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -94,7 +95,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // রুম ওনার হলে টাইটেলে ক্লিক করে রুমের নাম ও বায়ো এডিট করতে পারবে
         if (roomTitleText != null) {
             roomTitleText.setOnClickListener(v -> {
                 if (currentUserId.equals(roomOwnerId)) {
@@ -221,7 +221,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         }
                         editor.apply();
 
-                        // নিজের রুম মেটাতে ওনারের ডিফল্ট ছবি এবং নাম সিঙ্ক রাখা
                         roomMetaRef.child("roomOwnerName").setValue(savedName != null ? savedName : "Owner");
                         roomMetaRef.child("roomOwnerImage").setValue(savedImage != null ? savedImage : "");
                     }
@@ -256,7 +255,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     roomInfoText.setText("ID: " + roomOwnerId + " | 📝 " + bioText);
                 }
 
-                // হেডারে রুম/ওনারের প্রোফাইল পিকচার সেট করা
                 if (roomHeaderProfileImg != null && ownerImage != null && !ownerImage.isEmpty()) {
                     try {
                         byte[] decodedString = android.util.Base64.decode(ownerImage, android.util.Base64.DEFAULT);
@@ -279,17 +277,16 @@ public class VoiceRoomActivity extends AppCompatActivity {
         AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
         builder.setTitle("⚙️ Edit Room Details & Bio");
 
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_edit_room, null);
+        LinearLayout layout = new LinearLayout(VoiceRoomActivity.this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 20, 50, 20);
+
         final EditText inputName = new EditText(VoiceRoomActivity.this);
         inputName.setHint("Enter Room Name...");
-        
+        layout.addView(inputName);
+
         final EditText inputBio = new EditText(VoiceRoomActivity.this);
         inputBio.setHint("Enter Room Bio (e.g. Welcome & enjoy music)...");
-
-        android.widget.LinearLayout layout = new android.widget.LinearLayout(VoiceRoomActivity.this);
-        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
-        layout.setPadding(40, 20, 40, 20);
-        layout.addView(inputName);
         layout.addView(inputBio);
 
         builder.setView(layout);
@@ -489,7 +486,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 });
                             }
 
-                            final String[] imageBase64 = {""};
+                            final String[] imageBase64 = {"v"};
                             if (!userImageUriStr.isEmpty()) {
                                 try {
                                     if (userImageUriStr.startsWith("content://") || userImageUriStr.startsWith("file://")) {
