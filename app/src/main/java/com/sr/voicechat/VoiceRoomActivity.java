@@ -65,7 +65,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
         mAuth = FirebaseAuth.getInstance();
 
-        currentUserId = prefs.getString("MY_9_DIGIT_ID", "777888");
+        // লোকাল বা পার্মানেন্ট আইডি রিড করা
+        currentUserId = prefs.getString("MY_9_DIGIT_ID", "");
+        if (currentUserId.isEmpty()) {
+            currentUserId = String.valueOf((int)(Math.random() * 900000000) + 100000000);
+            prefs.edit().putString("MY_9_DIGIT_ID", currentUserId).apply();
+        }
         
         roomOwnerId = getIntent().getStringExtra("ROOM_OWNER_ID");
         if (roomOwnerId == null || roomOwnerId.isEmpty()) {
@@ -96,10 +101,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     if (which == 0) {
                         moveTaskToBack(true);
                     } else {
-                        // রুম থেকে বের হওয়ার সময় active_rooms থেকে রিমুভ করে দেওয়া
-                        if (currentUserId.equals(roomOwnerId)) {
-                            activeRoomsRef.removeValue();
-                        }
                         finish();
                     }
                 });
@@ -107,7 +108,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // রুম টাইটেলে বা হেഡারে ক্লিক করলে সেটিংস/এডিট ডায়ালগ আসবে
         if (roomTitleText != null) {
             roomTitleText.setOnClickListener(v -> {
                 if (currentUserId.equals(roomOwnerId)) {
@@ -229,11 +229,20 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         String savedName = snapshot.child("userName").getValue(String.class);
                         String savedImage = snapshot.child("userImage").getValue(String.class);
 
-                        if (savedId != null && !savedId.isEmpty()) {
+                        // পার্মানেন্ট আইডি লক রাখা যাতে কখনো চেঞ্জ না হয়
+                        String existingLocalId = prefs.getString("MY_9_DIGIT_ID", "");
+                        if (existingLocalId != null && !existingLocalId.isEmpty()) {
+                            currentUserId = existingLocalId;
+                        } else if (savedId != null && !savedId.isEmpty()) {
                             editor.putString("USER_ID", savedId);
                             editor.putString("MY_9_DIGIT_ID", savedId);
                             currentUserId = savedId;
+                        } else {
+                            editor.putString("USER_ID", currentUserId);
+                            editor.putString("MY_9_DIGIT_ID", currentUserId);
+                            userDatabaseRef.child(safeEmailKey).child("userId").setValue(currentUserId);
                         }
+
                         if (savedName != null && !savedName.isEmpty()) {
                             editor.putString("USER_NAME", savedName);
                         }
@@ -242,23 +251,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         }
                         editor.apply();
 
-                        // রুম ওনার হলে হোম পেজে প্রদর্শনের জন্য active_rooms এ ডেটা পুশ করা
                         if (currentUserId.equals(roomOwnerId)) {
                             roomMetaRef.child("roomOwnerId").setValue(roomOwnerId);
                             roomMetaRef.child("roomOwnerName").setValue(savedName != null ? savedName : "Owner");
-                            
-                            roomMetaRef.child("roomName").addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot nameSnap) {
-                                    String rName = nameSnap.getValue(String.class);
-                                    if (rName == null || rName.isEmpty()) {
-                                        roomMetaRef.child("roomName").setValue("🌟 SR Voice Room");
-                                    }
-                                }
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError error) {}
-                            });
                         }
+                    } else {
+                        // নতুন ইউজার হলে ফায়ারবেসে পার্মানেন্ট আইডি সেভ করে দেওয়া
+                        userDatabaseRef.child(safeEmailKey).child("userId").setValue(currentUserId);
+                        userDatabaseRef.child(safeEmailKey).child("userName").setValue(prefs.getString("USER_NAME", "User"));
                     }
                 }
 
@@ -303,7 +303,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     }
                 }
 
-                // হোম পেজে রুম কার্ড দেখানোর জন্য active_rooms এ আপডেট সিঙ্ক রাখা
                 if (currentUserId.equals(roomOwnerId)) {
                     activeRoomsRef.child("roomOwnerId").setValue(roomOwnerId);
                     activeRoomsRef.child("roomName").setValue(roomName != null ? roomName : "🌟 SR Voice Room");
@@ -542,61 +541,102 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
             if (seatContainer != null) {
                 seatContainer.setOnClickListener(v -> {
-                    String seatTitle = (seatNumber == 1) ? "Host Seat (Owner)" : "Seat " + seatNumber;
-                    CharSequence[] seatOptions = {"Take Mic (" + seatTitle + ")", "Leave Mic"};
+                    String seatKey = "seat_" + seatIndex;
+                    databaseReference.child("seats").child(seatKey).get().addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot seatSnap) {
+                            String occupantName = seatSnap.child("userName").getValue(String.class);
+                            boolean isOccupied = occupantName != null && !occupantName.isEmpty();
 
-                    AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-                    builder.setTitle("🎙️ " + seatTitle + " Options");
-                    builder.setItems(seatOptions, (dialog, which) -> {
-                        String userName = prefs.getString("USER_NAME", "User");
-                        String userImageUriStr = prefs.getString("USER_IMAGE", "");
-                        String seatKey = "seat_" + seatIndex;
-
-                        if (which == 0) {
-                            for (int j = 0; j < 10; j++) {
-                                final int oldIndex = j;
-                                databaseReference.child("seats").child("seat_" + oldIndex).child("userName").get().addOnSuccessListener(snapshot -> {
-                                    String existingName = snapshot.getValue(String.class);
-                                    if (existingName != null && existingName.equals(userName)) {
-                                        databaseReference.child("seats").child("seat_" + oldIndex).removeValue();
-                                    }
-                                });
-                            }
-
-                            final String[] imageBase64 = {""};
-                            if (!userImageUriStr.isEmpty()) {
-                                try {
-                                    if (userImageUriStr.startsWith("content://") || userImageUriStr.startsWith("file://")) {
-                                        Uri uri = Uri.parse(userImageUriStr);
-                                        InputStream inputStream = getContentResolver().openInputStream(uri);
-                                        Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                                        if (bitmap != null) {
-                                            Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 120, 120, true);
-                                            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                                            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
-                                            byte[] imageBytes = baos.toByteArray();
-                                            imageBase64[0] = android.util.Base64.encodeToString(imageBytes, android.util.Base64.DEFAULT);
-                                        }
-                                    } else {
-                                        imageBase64[0] = userImageUriStr;
-                                    }
-                                } catch (Exception e) {
-                                    imageBase64[0] = "";
+                            CharSequence[] seatOptions;
+                            // ওনার হলে কিক বা মিউট অপশন পাবে, সাধারণ ইউজার হলে টেক মাইক পাবে
+                            if (currentUserId.equals(roomOwnerId)) {
+                                if (isOccupied) {
+                                    seatOptions = new CharSequence[]{"Remove from Mic (Kick)", "Mute Seat", "Cancel"};
+                                } else {
+                                    seatOptions = new CharSequence[]{"Take Mic", "Cancel"};
+                                }
+                            } else {
+                                if (isOccupied) {
+                                    seatOptions = new CharSequence[]{"View Profile", "Leave Mic"};
+                                } else {
+                                    seatOptions = new CharSequence[]{"Take Mic", "Leave Mic"};
                                 }
                             }
 
-                            databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
-                            databaseReference.child("seats").child(seatKey).child("userImage").setValue(imageBase64[0]);
+                            AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
+                            builder.setTitle("🎙️ Seat " + seatNumber + (isOccupied ? " (" + occupantName + ")" : " (Empty)"));
+                            builder.setItems(seatOptions, (dialog, which) -> {
+                                String userName = prefs.getString("USER_NAME", "User");
+                                String userImageUriStr = prefs.getString("USER_IMAGE", "");
 
-                            Toast.makeText(VoiceRoomActivity.this, "Joined " + seatTitle + " successfully!", Toast.LENGTH_SHORT).show();
-                        } else {
-                            databaseReference.child("seats").child(seatKey).removeValue();
-                            Toast.makeText(VoiceRoomActivity.this, "Left " + seatTitle, Toast.LENGTH_SHORT).show();
+                                if (currentUserId.equals(roomOwnerId)) {
+                                    if (isOccupied) {
+                                        if (which == 0) { // Kick / Remove from Mic
+                                            databaseReference.child("seats").child(seatKey).removeValue();
+                                            Toast.makeText(VoiceRoomActivity.this, occupantName + " removed from seat!", Toast.LENGTH_SHORT).show();
+                                        } else if (which == 1) { // Mute
+                                            Toast.makeText(VoiceRoomActivity.this, "Seat muted by owner", Toast.LENGTH_SHORT).show();
+                                        }
+                                    } else {
+                                        if (which == 0) { // Take Mic
+                                            takeSeat(seatIndex, seatKey, userName, userImageUriStr);
+                                        }
+                                    }
+                                } else {
+                                    if (which == 0 && !isOccupied) {
+                                        takeSeat(seatIndex, seatKey, userName, userImageUriStr);
+                                    } else if (which == 1 || (isOccupied && which == 1)) {
+                                        databaseReference.child("seats").child(seatKey).removeValue();
+                                        Toast.makeText(VoiceRoomActivity.this, "Left seat", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
+                            builder.show();
                         }
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {}
                     });
-                    builder.show();
                 });
             }
         }
+    }
+
+    private void takeSeat(int seatIndex, String seatKey, String userName, String userImageUriStr) {
+        for (int j = 0; j < 10; j++) {
+            final int oldIndex = j;
+            databaseReference.child("seats").child("seat_" + oldIndex).child("userName").get().addOnSuccessListener(snapshot -> {
+                String existingName = snapshot.getValue(String.class);
+                if (existingName != null && existingName.equals(userName)) {
+                    databaseReference.child("seats").child("seat_" + oldIndex).removeValue();
+                }
+            });
+        }
+
+        final String[] imageBase64 = {""};
+        if (!userImageUriStr.isEmpty()) {
+            try {
+                if (userImageUriStr.startsWith("content://") || userImageUriStr.startsWith("file://")) {
+                    Uri uri = Uri.parse(userImageUriStr);
+                    InputStream inputStream = getContentResolver().openInputStream(uri);
+                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                    if (bitmap != null) {
+                        Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 120, 120, true);
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
+                        byte[] imageBytes = baos.toByteArray();
+                        imageBase64[0] = android.util.Base64.encodeToString(imageBytes, android.util.Base64.DEFAULT);
+                    }
+                } else {
+                    imageBase64[0] = userImageUriStr;
+                }
+            } catch (Exception e) {
+                imageBase64[0] = "";
+            }
+        }
+
+        databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
+        databaseReference.child("seats").child(seatKey).child("userImage").setValue(imageBase64[0]);
+        Toast.makeText(VoiceRoomActivity.this, "Joined seat successfully!", Toast.LENGTH_SHORT).show();
     }
 }
