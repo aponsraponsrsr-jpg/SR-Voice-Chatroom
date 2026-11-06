@@ -1,95 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="#0E0A1E"
-    android:padding="24dp"
-    android:gravity="center_horizontal">
+    android:fillViewport="true">
 
-    <TextView
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="✨ Complete Your Profile"
-        android:textColor="#FFD700"
-        android:textSize="22sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="8dp"/>
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:gravity="center_horizontal">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Gender, Location and ID will be permanently locked!"
-        android:textColor="#AAAAAA"
-        android:textSize="12sp"
-        android:layout_marginBottom="30dp"
-        android:gravity="center"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✨ Complete Your Profile"
+            android:textColor="#FFD700"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
 
-    <!-- প্রোফাইল পিকচার সিলেকশন -->
-    <ImageView
-        android:id="@+id/imgProfilePic"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:src="@android:drawable/ic_menu_camera"
-        android:background="#2E2355"
-        android:scaleType="centerCrop"
-        android:layout_marginBottom="20dp"
-        android:padding="20dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Gender, Country and ID will be permanently locked!"
+            android:textColor="#AAAAAA"
+            android:textSize="12sp"
+            android:layout_marginBottom="24dp"
+            android:gravity="center"/>
 
-    <!-- নাম ইনপুট -->
-    <EditText
-        android:id="@+id/inputName"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:hint="Enter Your Name"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#888888"
-        android:background="#1A1333"
-        android:paddingHorizontal="16dp"
-        android:layout_marginBottom="16dp"
-        android:maxLines="1"/>
+        <!-- প্রোফাইল পিকচার সিলেকশন -->
+        <ImageView
+            android:id="@+id/imgProfilePic"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:src="@android:drawable/ic_menu_camera"
+            android:background="#2E2355"
+            android:scaleType="centerCrop"
+            android:layout_marginBottom="20dp"
+            android:padding="20dp"/>
 
-    <!-- জেন্ডার সিলেকশন (Male / Female) -->
-    <Spinner
-        android:id="@+id/spinnerGender"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:background="#1A1333"
-        android:layout_marginBottom="16dp"/>
+        <!-- নাম ইনপুট -->
+        <EditText
+            android:id="@+id/inputName"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:hint="Enter Your Name"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#888888"
+            android:background="#1A1333"
+            android:paddingHorizontal="16dp"
+            android:layout_marginBottom="16dp"
+            android:maxLines="1"/>
 
-    <!-- লোকেশন ইনপুট -->
-    <EditText
-        android:id="@+id/inputLocation"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:hint="Enter Your Country / Location"
-        android:textColor="#FFFFFF"
-        android:textColorHint="#888888"
-        android:background="#1A1333"
-        android:paddingHorizontal="16dp"
-        android:layout_marginBottom="20dp"
-        android:maxLines="1"/>
+        <!-- জেন্ডার সিলেকশন -->
+        <Spinner
+            android:id="@+id/spinnerGender"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="#1A1333"
+            android:layout_marginBottom="16dp"/>
 
-    <!-- কনফার্ম ও সেভ বাটন -->
-    <Button
-        android:id="@+id/btnSaveProfile"
-        android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:text="Save &amp; Enter App"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:backgroundTint="#E91E63"
-        android:layout_marginBottom="12dp"/>
+        <!-- কান্ট্রি বা দেশ সিলেকশন (ফ্ল্যাগসহ স্পিনার) -->
+        <Spinner
+            android:id="@+id/spinnerCountry"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:background="#1A1333"
+            android:layout_marginBottom="24dp"/>
 
-    <!-- লগআউট / সুইচ অ্যাকাউন্ট বাটন -->
-    <Button
-        android:id="@+id/btnLogOut"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:text="Logout / Switch Account"
-        android:textColor="#DDDDDD"
-        android:textSize="14sp"
-        android:backgroundTint="#2E2355"/>
+        <!-- কনফার্ম ও সেভ বাটন -->
+        <Button
+            android:id="@+id/btnSaveProfile"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:text="Save &amp; Enter App"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:backgroundTint="#E91E63"
+            android:layout_marginBottom="12dp"/>
 
-</LinearLayout>
+        <!-- লগআউট / সুইচ অ্যাকাউন্ট বাটন -->
+        <Button
+            android:id="@+id/btnLogOut"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="Logout / Switch Account"
+            android:textColor="#DDDDDD"
+            android:textSize="14sp"
+            android:backgroundTint="#2E2355"/>
+
+    </LinearLayout>
+</ScrollView>
