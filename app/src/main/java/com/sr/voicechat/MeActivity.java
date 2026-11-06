@@ -8,43 +8,40 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.util.Base64;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.drawable.RoundedBitmapDrawable;
+import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 
 public class MeActivity extends AppCompatActivity {
 
-    private TextView textUserNameMe, textPermanentIdMe, btnCopyId;
-    private ImageView imgProfileMe;
-    private Button btnEditProfile;
+    private ImageView imgMeProfile, btnCopyId;
+    private TextView textMeName, textMeId;
+    private Button btnEditProfile, btnVipStatus, btnWalletRecharge;
     private SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        try {
-            setContentView(R.layout.activity_me);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Layout Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
+        setContentView(R.layout.activity_me);
 
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
 
-        textUserNameMe = findViewById(R.id.textUserNameMe);
-        textPermanentIdMe = findViewById(R.id.textPermanentIdMe);
-        btnCopyId = findViewById(R.id.btnCopyId);
-        imgProfileMe = findViewById(R.id.imgProfileMe);
+        imgMeProfile = findViewById(R.id.imgMeProfile);
+        textMeName = findViewById(R.id.textMeName);
+        textMeId = findViewById(R.id.textMeId);
         btnEditProfile = findViewById(R.id.btnEditProfile);
+        btnCopyId = findViewById(R.id.btnCopyId);
+        btnVipStatus = findViewById(R.id.btnVipStatus);
+        btnWalletRecharge = findViewById(R.id.btnWalletRecharge);
 
-        loadUserProfileData();
+        loadUserData();
 
+        // Edit Profile Click
         if (btnEditProfile != null) {
             btnEditProfile.setOnClickListener(v -> {
                 Intent intent = new Intent(MeActivity.this, EditProfileActivity.class);
@@ -52,17 +49,36 @@ public class MeActivity extends AppCompatActivity {
             });
         }
 
+        // Copy ID Click
         if (btnCopyId != null) {
             btnCopyId.setOnClickListener(v -> {
-                if (textPermanentIdMe != null) {
-                    String idText = textPermanentIdMe.getText().toString().replace("ID: ", "").trim();
-                    ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                    if (clipboard != null) {
-                        ClipData clip = ClipData.newPlainText("User ID", idText);
-                        clipboard.setPrimaryClip(clip);
-                        Toast.makeText(this, "ID Copied: " + idText, Toast.LENGTH_SHORT).show();
-                    }
-                }
+                String userIdText = textMeId.getText().toString().replace("ID: ", "").trim();
+                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("User ID", userIdText);
+                clipboard.setPrimaryClip(clip);
+                Toast.makeText(this, "ID Copied to Clipboard!", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        // VIP Status Click -> Coming Soon Dialog
+        if (btnVipStatus != null) {
+            btnVipStatus.setOnClickListener(v -> {
+                new AlertDialog.Builder(MeActivity.this)
+                    .setTitle("👑 VIP Status")
+                    .setMessage("Coming Soon")
+                    .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                    .show();
+            });
+        }
+
+        // Wallet & Recharge Click -> Coming Soon Dialog[span_1](start_span)[span_1](end_span)
+        if (btnWalletRecharge != null) {
+            btnWalletRecharge.setOnClickListener(v -> {
+                new AlertDialog.Builder(MeActivity.this)
+                    .setTitle("💰 Wallet & Recharge")
+                    .setMessage("Coming Soon")[span_2](start_span)[span_2](end_span)
+                    .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                    .show();
             });
         }
     }
@@ -70,32 +86,32 @@ public class MeActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadUserProfileData();
+        loadUserData();
     }
 
-    private void loadUserProfileData() {
-        if (prefs == null) return;
-        
-        String savedName = prefs.getString("USER_NAME", "SR Apon");
-        String savedId = prefs.getString("MY_9_DIGIT_ID", "480384559");
-        String savedImage = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
+    private void loadUserData() {
+        String name = prefs.getString("USER_NAME", "Sr-Apon");
+        String userId = prefs.getString("MY_9_DIGIT_ID", "493859069");
+        String encodedImage = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
 
-        if (textUserNameMe != null) {
-            textUserNameMe.setText(savedName);
+        if (textMeName != null) {
+            textMeName.setText(name);
         }
-        if (textPermanentIdMe != null) {
-            textPermanentIdMe.setText("ID: " + savedId);
+        if (textMeId != null) {
+            textMeId.setText("ID: " + userId);
         }
 
-        if (imgProfileMe != null && savedImage != null && !savedImage.isEmpty()) {
+        if (imgMeProfile != null && !encodedImage.isEmpty()) {
             try {
-                byte[] decodedString = Base64.decode(savedImage, Base64.DEFAULT);
-                Bitmap decodedBitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                if (decodedBitmap != null) {
-                    imgProfileMe.setImageBitmap(decodedBitmap);
+                byte[] decodedString = android.util.Base64.decode(encodedImage, android.util.Base64.DEFAULT);
+                Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                if (decodedByte != null) {
+                    RoundedBitmapDrawable circularBitmapDrawable = RoundedBitmapDrawableFactory.create(getResources(), decodedByte);
+                    circularBitmapDrawable.setCircular(true);
+                    imgMeProfile.setImageDrawable(circularBitmapDrawable);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                imgMeProfile.setImageResource(android.R.drawable.ic_menu_my_calendar);
             }
         }
     }
