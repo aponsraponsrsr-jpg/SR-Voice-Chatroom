@@ -27,6 +27,8 @@ public class MeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_me);
 
+        prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
+
         textUserNameMe = findViewById(R.id.textUserNameMe);
         textPermanentIdMe = findViewById(R.id.textPermanentIdMe);
         btnCopyId = findViewById(R.id.btnCopyId);
@@ -38,10 +40,8 @@ public class MeActivity extends AppCompatActivity {
         btnStore = findViewById(R.id.btnStore);
         btnLevel = findViewById(R.id.btnLevel);
 
-        prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
         loadUserProfileData();
 
-        // এডিট প্রোফাইল বাটন সচল
         if (btnEditProfile != null) {
             btnEditProfile.setOnClickListener(v -> {
                 Intent intent = new Intent(MeActivity.this, EditProfileActivity.class);
@@ -49,18 +49,20 @@ public class MeActivity extends AppCompatActivity {
             });
         }
 
-        // আইডি কপি করার ফিচার
         if (btnCopyId != null) {
             btnCopyId.setOnClickListener(v -> {
-                String idText = textPermanentIdMe.getText().toString().replace("ID: ", "").trim();
-                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText("User ID", idText);
-                clipboard.setPrimaryClip(clip);
-                Toast.makeText(this, "ID Copied: " + idText, Toast.LENGTH_SHORT).show();
+                if (textPermanentIdMe != null) {
+                    String idText = textPermanentIdMe.getText().toString().replace("ID: ", "").trim();
+                    ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                    if (clipboard != null) {
+                        ClipData clip = ClipData.newPlainText("User ID", idText);
+                        clipboard.setPrimaryClip(clip);
+                        Toast.makeText(this, "ID Copied: " + idText, Toast.LENGTH_SHORT).show();
+                    }
+                }
             });
         }
 
-        // কামিং সুন লকড বাটনগুলোর অ্যাকশন (যেগুলো প্লে স্টোর লঞ্চের আগে লক থাকবে)
         if (btnVipPrivilege != null) {
             btnVipPrivilege.setOnClickListener(v -> Toast.makeText(this, "SR Voice - VIP Privilege Coming Soon!", Toast.LENGTH_SHORT).show());
         }
@@ -78,10 +80,12 @@ public class MeActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        loadUserProfileData(); // পেজে ব্যাক করলে রিয়েল-টাইমে ডাটা রিফ্রেশ হবে
+        loadUserProfileData();
     }
 
     private void loadUserProfileData() {
+        if (prefs == null) return;
+        
         String savedName = prefs.getString("USER_NAME", "SR Apon");
         String savedId = prefs.getString("MY_9_DIGIT_ID", "480384559");
         String savedImage = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
@@ -93,7 +97,6 @@ public class MeActivity extends AppCompatActivity {
             textPermanentIdMe.setText("ID: " + savedId);
         }
 
-        // প্রোফাইল ছবি লোড করার লজিক
         if (imgProfileMe != null && savedImage != null && !savedImage.isEmpty()) {
             try {
                 byte[] decodedString = Base64.decode(savedImage, Base64.DEFAULT);
