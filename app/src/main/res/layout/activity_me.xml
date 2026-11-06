@@ -2,95 +2,252 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#121212"
-    android:gravity="center_horizontal"
+    android:background="@drawable/bg_profile_gradient"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="16dp">
 
-    <!-- Profile Picture Placeholder -->
-    <ImageView
-        android:id="@+id/imgProfileMe"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_marginTop="40dp"
-        android:background="#2A2A2A"
-        android:scaleType="centerCrop" />
-
-    <!-- Edit Profile Button / Text -->
-    <TextView
-        android:id="@+id/btnEditProfile"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="✏️ Edit Profile"
-        android:textColor="#E5C158"
-        android:textSize="14sp"
-        android:clickable="true"
-        android:focusable="true"
-        android:background="?attr/selectableItemBackground"
-        android:padding="4dp" />
-
-    <!-- User Name -->
-    <TextView
-        android:id="@+id/tvProfileName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:text="Sr voice"
-        android:textColor="#E5C158"
-        android:textSize="22sp"
-        android:textStyle="bold" />
-
-    <!-- User ID -->
-    <TextView
-        android:id="@+id/tvProfileId"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="ID: 6533632"
-        android:textColor="#AAAAAA"
-        android:textSize="14sp" />
-
-    <!-- Gender -->
-    <TextView
-        android:id="@+id/tvProfileGender"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="Gender: Male"
-        android:textColor="#AAAAAA"
-        android:textSize="14sp" />
-
-    <!-- Wallet Option -->
-    <TextView
-        android:id="@+id/tvWalletCoins"
+    <!-- Top Header -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginTop="30dp"
-        android:background="#1E1E1E"
+        android:layout_height="wrap_content"
         android:gravity="center_vertical"
-        android:paddingHorizontal="16dp"
-        android:text="🪙 Coins: 1,000"
-        android:textColor="#E5C158"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:clickable="true"
-        android:focusable="true" />
+        android:orientation="horizontal"
+        android:paddingBottom="12dp">
 
-    <!-- VIP Status Option -->
-    <TextView
-        android:id="@+id/tvVipStatus"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✨ SR Voice Profile"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Profile Header Card -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="wrap_content"
+        android:background="#22FFFFFF"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:elevation="4dp">
+
+        <!-- Circular Profile Image with Edit Pencil Icon -->
+        <RelativeLayout
+            android:layout_width="85dp"
+            android:layout_height="85dp">
+
+            <ImageView
+                android:id="@+id/imgProfileMe"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@android:drawable/ic_menu_my_calendar" />
+
+            <ImageView
+                android:id="@+id/btnEditProfileIcon"
+                android:layout_width="26dp"
+                android:layout_height="26dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentBottom="true"
+                android:background="#E91E63"
+                android:padding="5dp"
+                android:src="@android:drawable/ic_menu_edit"
+                android:tint="#FFFFFF" />
+        </RelativeLayout>
+
+        <!-- User Name -->
+        <TextView
+            android:id="@+id/textUserNameMe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Muktadul Rahaman"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- Permanent ID -->
+        <TextView
+            android:id="@+id/textPermanentIdMe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="ID: 480384559"
+            android:textColor="#FFD700"
+            android:textSize="14sp" />
+
+        <!-- Following, Fans, Visitors -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <TextView android:text="120" android:textColor="#FFFFFF" android:textSize="15sp" android:textStyle="bold"/>
+                <TextView android:text="Following" android:textColor="#DDDDDD" android:textSize="11sp"/>
+            </LinearLayout>
+
+            <View android:layout_width="1dp" android:layout_height="20dp" android:background="#44FFFFFF"/>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <TextView android:text="85" android:textColor="#FFFFFF" android:textSize="15sp" android:textStyle="bold"/>
+                <TextView android:text="Fans" android:textColor="#DDDDDD" android:textSize="11sp"/>
+            </LinearLayout>
+
+            <View android:layout_width="1dp" android:layout_height="20dp" android:background="#44FFFFFF"/>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+                <TextView android:text="340" android:textColor="#FFFFFF" android:textSize="15sp" android:textStyle="bold"/>
+                <TextView android:text="Visitors" android:textColor="#DDDDDD" android:textSize="11sp"/>
+            </LinearLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Scrollable Premium Menu Options -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:layout_marginTop="12dp"
-        android:background="#1E1E1E"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="16dp"
-        android:text="👑 VIP: Not Active"
-        android:textColor="#E5C158"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:clickable="true"
-        android:focusable="true" />
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="20dp">
+
+            <!-- VIP Center -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="#1AFFFFFF"
+                android:drawableStart="@android:drawable/star_on"
+                android:drawablePadding="12dp"
+                android:gravity="center_vertical"
+                android:padding="14dp"
+                android:text="👑 VIP Center (Coming Soon)"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
+
+            <!-- Wallet & Coins -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="#1AFFFFFF"
+                android:drawableStart="@android:drawable/ic_menu_agenda"
+                android:drawablePadding="12dp"
+                android:gravity="center_vertical"
+                android:padding="14dp"
+                android:text="💎 Wallet & Coins (Recharge)"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
+
+            <!-- Store & Dress -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="#1AFFFFFF"
+                android:drawableStart="@android:drawable/ic_menu_gallery"
+                android:drawablePadding="12dp"
+                android:gravity="center_vertical"
+                android:padding="14dp"
+                android:text="🛍️ Store & Dress Frames"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
+
+            <!-- Level & Tasks -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="#1AFFFFFF"
+                android:drawableStart="@android:drawable/ic_menu_sort_by_size"
+                android:drawablePadding="12dp"
+                android:gravity="center_vertical"
+                android:padding="14dp"
+                android:text="⭐ Level & Daily Tasks"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
+
+            <!-- My Family -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="#1AFFFFFF"
+                android:drawableStart="@android:drawable/ic_menu_myplaces"
+                android:drawablePadding="12dp"
+                android:gravity="center_vertical"
+                android:padding="14dp"
+                android:text="🛡️ My Family"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
+
+            <!-- Medal & Badges -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="#1AFFFFFF"
+                android:drawableStart="@android:drawable/ic_menu_award"
+                android:drawablePadding="12dp"
+                android:gravity="center_vertical"
+                android:padding="14dp"
+                android:text="🏅 Medal & Badges"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
+
+            <!-- Host Center -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:background="#1AFFFFFF"
+                android:drawableStart="@android:drawable/ic_menu_call"
+                android:drawablePadding="12dp"
+                android:gravity="center_vertical"
+                android:padding="14dp"
+                android:text="🎙️ Host Center & Agency"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
+
+            <!-- Account Settings -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#1AFFFFFF"
+                android:drawableStart="@android:drawable/ic_menu_manage"
+                android:drawablePadding="12dp"
+                android:gravity="center_vertical"
+                android:padding="14dp"
+                android:text="⚙️ Account Settings"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp" />
+
+        </LinearLayout>
+    </ScrollView>
 
 </LinearLayout>
