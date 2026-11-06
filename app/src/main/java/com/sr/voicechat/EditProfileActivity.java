@@ -17,8 +17,11 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -89,43 +92,64 @@ public class EditProfileActivity extends AppCompatActivity {
             prefs.edit().putString("MY_9_DIGIT_ID", permanentId).apply();
         }
 
-        // যদি আগে থেকেই নাম সেভ করা থাকে তা বক্সে লোড করা
-        String existingName = prefs.getString("USER_NAME", "");
-        if (existingName != null && !existingName.isEmpty() && inputName != null) {
-            inputName.setText(existingName);
-        }
+        // ফায়ারবেস থেকে রিয়েল-টাইম ডাটা লোড করার লজিক (যাতে সবসময় লেটেস্ট নাম ও ছবি আসে)
+        DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(permanentId);
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String dbName = snapshot.child("name").getValue(String.class);
+                    String dbGender = snapshot.child("gender").getValue(String.class);
+                    String dbCountry = snapshot.child("location").getValue(String.class);
+                    String dbImage = snapshot.child("profileImage").getValue(String.class);
 
-        // আগের সেভ করা জেন্ডার ও কান্ট্রি স্পিনারে সিলেক্ট করে রাখার লজিক
-        String existingGender = prefs.getString("USER_GENDER", "");
-        for (int i = 0; i < genders.length; i++) {
-            if (genders[i].equals(existingGender)) {
-                spinnerGender.setSelection(i);
-                break;
-            }
-        }
+                    if (dbName != null && inputName != null) {
+                        inputName.setText(dbName);
+                        prefs.edit().putString("USER_NAME", dbName).apply();
+                    }
 
-        String existingCountry = prefs.getString("USER_COUNTRY", "");
-        for (int i = 0; i < countries.length; i++) {
-            if (countries[i].equals(existingCountry)) {
-                spinnerCountry.setSelection(i);
-                break;
-            }
-        }
+                    if (dbGender != null) {
+                        for (int i = 0; i < genders.length; i++) {
+                            if (genders[i].equals(dbGender)) {
+                                spinnerGender.setSelection(i);
+                                break;
+                            }
+                        }
+                    }
 
-        // আগের সেভ করা ছবি (যদি থাকে) লোড করা
-        String savedImageBase64 = prefs.getString("USER_PROFILE_IMAGE", "");
-        if (savedImageBase64 != null && !savedImageBase64.isEmpty()) {
-            try {
-                byte[] decodedString = Base64.decode(savedImageBase64, Base64.DEFAULT);
-                Bitmap decodedBitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                if (decodedBitmap != null) {
-                    imgProfilePic.setImageBitmap(decodedBitmap);
-                    encodedImage = savedImageBase64;
+                    if (dbCountry != null) {
+                        for (int i = 0; i < countries.length; i++) {
+                            if (countries[i].equals(dbCountry)) {
+                                spinnerCountry.setSelection(i);
+                                break;
+                            }
+                        }
+                    }
+
+                    if (dbImage != null && !dbImage.isEmpty()) {
+                        encodedImage = dbImage;
+                        try {
+                            byte[] decodedString = Base64.decode(dbImage, Base64.DEFAULT);
+                            Bitmap decodedBitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                            if (decodedBitmap != null) {
+                                imgProfilePic.setImageBitmap(decodedBitmap);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                } else {
+                    // যদি ফায়ারবেসে ডাটা না থাকে তবে লোকাল প্রিফারেন্স থেকে দেখাবে
+                    String existingName = prefs.getString("USER_NAME", "");
+                    if (existingName != null && !existingName.isEmpty() && inputName != null) {
+                        inputName.setText(existingName);
+                    }
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
-        }
+
+            @Override
+            public void onCancelled(DatabaseError error) {}
+        });
 
         // লগআউট বাটন
         if (btnLogOut != null) {
@@ -164,7 +188,6 @@ public class EditProfileActivity extends AppCompatActivity {
                 return;
             }
 
-            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(permanentId);
             DatabaseReference deviceBindingRef = FirebaseDatabase.getInstance().getReference("device_bindings");
 
             HashMap<String, Object> userData = new HashMap<>();
@@ -181,13 +204,13 @@ public class EditProfileActivity extends AppCompatActivity {
             bindingData.put("email", userEmail);
             bindingData.put("name", name);
 
-            // ফায়ারবেসে ডেটা আপডেট ও পার্মানেন্টলি সেভ করা
+            // ফায়ারবেসে পার্মানেন্টলি নতুন ডাটা সেভ ও ওভাররাইট করা
             userRef.setValue(userData).addOnSuccessListener(aVoid -> {
                 if (deviceId != null && !deviceId.isEmpty()) {
                     deviceBindingRef.child(deviceId).setValue(bindingData);
                 }
 
-                // লোকাল শেয়ার্ড প্রিফারেন্সে সাথে সাথে আপডেট করা যাতে পরবর্তীতে আর লস না হয়
+                // লোকাল শেয়ার্ড প্রিফারেন্সে আপডেট করা
                 SharedPreferences.Editor editor = prefs.edit();
                 editor.putBoolean("IS_LOGGED_IN", true);
                 editor.putString("USER_EMAIL", userEmail);
