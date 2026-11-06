@@ -17,7 +17,6 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -39,7 +38,6 @@ public class EditProfileActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 1;
 
-    // দেশের তালিকা ফ্ল্যাগসহ
     private final String[] countries = {
         "Select Country", 
         "🇧🇩 Bangladesh", 
@@ -53,6 +51,8 @@ public class EditProfileActivity extends AppCompatActivity {
         "🇮🇳 India", 
         "🌍 Other Country"
     };
+
+    private final String[] genders = {"Select Gender", "Male", "Female", "Other"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,29 +75,59 @@ public class EditProfileActivity extends AppCompatActivity {
         btnSaveProfile = findViewById(R.id.btnSaveProfile);
         btnLogOut = findViewById(R.id.btnLogOut);
 
-        // জেন্ডার অ্যাডাপ্টার
-        String[] genders = {"Select Gender", "Male", "Female", "Other"};
+        // অ্যাডাপ্টার সেটআপ
         ArrayAdapter<String> genderAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, genders);
         spinnerGender.setAdapter(genderAdapter);
 
-        // কান্ট্রি অ্যাডাপ্টার (ফ্ল্যাগসহ)
         ArrayAdapter<String> countryAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, countries);
         spinnerCountry.setAdapter(countryAdapter);
 
-        // পার্মানেন্ট আইডি চেক করা (আগে থেকে থাকলে সেটাই রাখবে, না থাকলে নতুন তৈরি করে চিরতরে সেভ করে নেবে)
+        // পার্মানেন্ট আইডি ম্যানেজমেন্ট
         permanentId = prefs.getString("MY_9_DIGIT_ID", "");
         if (permanentId == null || permanentId.isEmpty()) {
             permanentId = generatePermanentId();
             prefs.edit().putString("MY_9_DIGIT_ID", permanentId).apply();
         }
 
-        // যদি আগে থেকেই নাম বা ডাটা সেভ থাকে তা বক্সে দেখানোর জন্য
+        // যদি আগে থেকেই নাম সেভ করা থাকে তা বক্সে লোড করা
         String existingName = prefs.getString("USER_NAME", "");
-        if (!existingName.isEmpty() && inputName != null) {
+        if (existingName != null && !existingName.isEmpty() && inputName != null) {
             inputName.setText(existingName);
         }
 
-        // লগআউট বাটন ক্লিক লজিক
+        // আগের সেভ করা জেন্ডার ও কান্ট্রি স্পিনারে সিলেক্ট করে রাখার লজিক
+        String existingGender = prefs.getString("USER_GENDER", "");
+        for (int i = 0; i < genders.length; i++) {
+            if (genders[i].equals(existingGender)) {
+                spinnerGender.setSelection(i);
+                break;
+            }
+        }
+
+        String existingCountry = prefs.getString("USER_COUNTRY", "");
+        for (int i = 0; i < countries.length; i++) {
+            if (countries[i].equals(existingCountry)) {
+                spinnerCountry.setSelection(i);
+                break;
+            }
+        }
+
+        // আগের সেভ করা ছবি (যদি থাকে) লোড করা
+        String savedImageBase64 = prefs.getString("USER_PROFILE_IMAGE", "");
+        if (savedImageBase64 != null && !savedImageBase64.isEmpty()) {
+            try {
+                byte[] decodedString = Base64.decode(savedImageBase64, Base64.DEFAULT);
+                Bitmap decodedBitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                if (decodedBitmap != null) {
+                    imgProfilePic.setImageBitmap(decodedBitmap);
+                    encodedImage = savedImageBase64;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // লগআউট বাটন
         if (btnLogOut != null) {
             btnLogOut.setOnClickListener(v -> {
                 prefs.edit().clear().apply();
@@ -109,11 +139,13 @@ public class EditProfileActivity extends AppCompatActivity {
             });
         }
 
+        // গ্যালারি থেকে ছবি সিলেক্ট করা
         imgProfilePic.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             startActivityForResult(intent, PICK_IMAGE_REQUEST);
         });
 
+        // সেভ প্রোফাইল বাটন ক্লিক
         btnSaveProfile.setOnClickListener(v -> {
             String name = inputName.getText().toString().trim();
             String gender = spinnerGender.getSelectedItem().toString();
@@ -149,12 +181,13 @@ public class EditProfileActivity extends AppCompatActivity {
             bindingData.put("email", userEmail);
             bindingData.put("name", name);
 
-            // ফায়ারবেসে পার্মানেন্টলি ডাটা সেভ করা
+            // ফায়ারবেসে ডেটা আপডেট ও পার্মানেন্টলি সেভ করা
             userRef.setValue(userData).addOnSuccessListener(aVoid -> {
                 if (deviceId != null && !deviceId.isEmpty()) {
                     deviceBindingRef.child(deviceId).setValue(bindingData);
                 }
 
+                // লোকাল শেয়ার্ড প্রিফারেন্সে সাথে সাথে আপডেট করা যাতে পরবর্তীতে আর লস না হয়
                 SharedPreferences.Editor editor = prefs.edit();
                 editor.putBoolean("IS_LOGGED_IN", true);
                 editor.putString("USER_EMAIL", userEmail);
@@ -162,9 +195,12 @@ public class EditProfileActivity extends AppCompatActivity {
                 editor.putString("USER_NAME", name);
                 editor.putString("USER_COUNTRY", country);
                 editor.putString("USER_GENDER", gender);
+                if (!encodedImage.isEmpty()) {
+                    editor.putString("USER_PROFILE_IMAGE", encodedImage);
+                }
                 editor.apply();
 
-                Toast.makeText(this, "Profile Saved Successfully! ID: " + permanentId, Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Profile Updated Successfully! ID: " + permanentId, Toast.LENGTH_LONG).show();
                 startActivity(new Intent(EditProfileActivity.this, HomeActivity.class));
                 finish();
             }).addOnFailureListener(e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
