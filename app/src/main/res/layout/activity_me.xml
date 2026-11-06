@@ -1,161 +1,154 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_profile_gradient"
-    android:fillViewport="true">
+    android:orientation="vertical"
+    android:background="@drawable/gradient_background"
+    android:padding="20dp"
+    android:gravity="center_horizontal">
 
+    <!-- Top Edit Profile Button -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp"
-        android:gravity="center_horizontal">
+        android:gravity="end"
+        android:layout_marginBottom="10dp">
 
-        <!-- Top Header Edit Profile Button -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="end"
-            android:layout_marginBottom="16dp">
-
-            <Button
-                android:id="@+id/btnEditProfile"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:text="✏️ Edit Profile"
-                android:textSize="12sp"
-                android:textColor="#FFFFFF"
-                android:backgroundTint="#44FFFFFF"
-                android:elevation="2dp"/>
-        </LinearLayout>
-
-        <!-- Profile Picture -->
-        <ImageView
-            android:id="@+id/imgProfileMe"
-            android:layout_width="96dp"
-            android:layout_height="96dp"
-            android:src="@android:drawable/ic_menu_camera"
-            android:background="#44FFFFFF"
-            android:scaleType="centerCrop"
-            android:layout_marginBottom="12dp"
-            android:elevation="4dp"/>
-
-        <!-- User Name -->
-        <TextView
-            android:id="@+id/textUserNameMe"
+        <Button
+            android:id="@+id/btnEditProfile"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="SR Apon"
+            android:layout_height="38dp"
+            android:text="✏️ Edit Profile"
             android:textColor="#FFFFFF"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="6dp"/>
+            android:textSize="14sp"
+            android:backgroundTint="#8A2BE2"
+            android:paddingHorizontal="16dp" />
+    </LinearLayout>
 
-        <!-- Permanent ID & Copy Option -->
-        <LinearLayout
+    <!-- Profile Image -->
+    <ImageView
+        android:id="@+id/imgMeProfile"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:scaleType="centerCrop"
+        android:src="@android:drawable/ic_menu_my_calendar"
+        android:layout_marginTop="10dp" />
+
+    <!-- User Name -->
+    <TextView
+        android:id="@+id/textMeName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sr-Apon"
+        android:textColor="#FFFFFF"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:layout_marginTop="12dp" />
+
+    <!-- User ID with Copy Option -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="#33000000"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp"
+        android:layout_marginTop="8dp">
+
+        <TextView
+            android:id="@+id/textMeId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="#33000000"
-            android:paddingHorizontal="14dp"
-            android:paddingVertical="6dp"
-            android:layout_marginBottom="24dp">
+            android:text="ID: 493859069"
+            android:textColor="#FFD700"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/textPermanentIdMe"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="ID: 480384559"
-                android:textColor="#FFD700"
-                android:textSize="14sp"
-                android:textStyle="bold"/>
+        <ImageView
+            android:id="@+id/btnCopyId"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@android:drawable/ic_menu_agenda"
+            android:layout_marginStart="8dp"
+            android:tint="#FFD700" />
+    </LinearLayout>
 
-            <TextView
-                android:id="@+id/btnCopyId"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text=" 📋"
-                android:textSize="14sp"
-                android:clickable="true"
-                android:focusable="true"/>
-        </LinearLayout>
+    <!-- Followers, Fans, Visitors Card -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#22FFFFFF"
+        android:padding="15dp"
+        android:layout_marginTop="20dp"
+        android:gravity="center">
 
-        <!-- Followers / Fans / Visitors Counter -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="3"
-            android:background="#22FFFFFF"
-            android:padding="16dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
             android:gravity="center">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
-                <TextView 
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0" 
-                    android:textColor="#FFFFFF" 
-                    android:textSize="18sp" 
-                    android:textStyle="bold"/>
-                <TextView 
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Followers" 
-                    android:textColor="#DDDDDD" 
-                    android:textSize="12sp"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
-                <TextView 
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0" 
-                    android:textColor="#FFFFFF" 
-                    android:textSize="18sp" 
-                    android:textStyle="bold"/>
-                <TextView 
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Fans" 
-                    android:textColor="#DDDDDD" 
-                    android:textSize="12sp"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
-                <TextView 
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="1" 
-                    android:textColor="#FFFFFF" 
-                    android:textSize="18sp" 
-                    android:textStyle="bold"/>
-                <TextView 
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Visitors" 
-                    android:textColor="#DDDDDD" 
-                    android:textSize="12sp"/>
-            </LinearLayout>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="16sp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Followers" android:textColor="#DDDDDD" android:textSize="12sp"/>
         </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="16sp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Fans" android:textColor="#DDDDDD" android:textSize="12sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1" android:textColor="#FFFFFF" android:textStyle="bold" android:textSize="16sp"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Visitors" android:textColor="#DDDDDD" android:textSize="12sp"/>
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- VIP & Wallet (Recharge) Grid Buttons (Locked / Uncommon Premium Colors) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="15dp"
+        android:weightSum="2">
+
+        <!-- Left: VIP Status Button (Uncommon Deep Purple-Gold Theme) -->
+        <Button
+            android:id="@+id/btnVipStatus"
+            android:layout_width="0dp"
+            android:layout_height="55dp"
+            android:layout_weight="1"
+            android:text="👑 VIP Status\n(Locked)"
+            android:textColor="#FFD700"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:backgroundTint="#4A0E4E"
+            android:layout_marginEnd="6dp" />
+
+        <!-- Right: Wallet / Recharge Button (Uncommon Teal-Cyan Theme) -->
+        <Button
+            android:id="@+id/btnWalletRecharge"
+            android:layout_width="0dp"
+            android:layout_height="55dp"
+            android:layout_weight="1"
+            android:text="💰 Wallet / Recharge\n(Locked)"
+            android:textColor="#00FFFF"
+            android:textStyle="bold"
+            android:textSize="12sp"
+            android:backgroundTint="#004D40"
+            android:layout_marginStart="6dp" />
 
     </LinearLayout>
-</ScrollView>
+
+</LinearLayout>
