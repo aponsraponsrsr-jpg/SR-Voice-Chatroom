@@ -25,7 +25,15 @@ public class MeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_me);
+        
+        try {
+            setContentView(R.layout.activity_me);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Layout Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
 
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
 
