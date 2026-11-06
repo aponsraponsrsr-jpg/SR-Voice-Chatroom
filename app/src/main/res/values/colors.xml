@@ -3,4 +3,11 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="pink_primary">#FF4081</color>
+
+    <!-- Premium Gift Panel Colors -->
+    <color name="gift_panel_bg">#1E1B2E</color>
+    <color name="gift_card_bg">#2A2640</color>
+    <color name="gift_tab_selected">#FF007A</color>
+    <color name="gift_tab_unselected">#A09CB0</color>
+    <color name="coin_gold">#FFD700</color>
 </resources>
