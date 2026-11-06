@@ -30,12 +30,12 @@ import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.database.ChildEventListener;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -91,7 +91,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         activeRoomsRef = FirebaseDatabase.getInstance().getReference("active_rooms").child(roomOwnerId);
         userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
 
-        checkAndSyncPermanentUser();
+        // লেটেস্ট প্রোফাইল ও নাম সিঙ্ক করার ফাংশন কল
+        syncLatestUserProfile();
         listenToRoomDetails();
 
         btnPower = findViewById(R.id.btnPower);
@@ -244,6 +245,34 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
+    // ফায়ারবেস থেকে ইউজারের লেটেস্ট নাম ও ছবি পার্মানেন্টলি সিঙ্ক করার ফাংশন
+    private void syncLatestUserProfile() {
+        if (!currentUserId.isEmpty()) {
+            userDatabaseRef.child(currentUserId).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        String dbName = snapshot.child("name").getValue(String.class);
+                        String dbImage = snapshot.child("profileImage").getValue(String.class);
+
+                        SharedPreferences.Editor editor = prefs.edit();
+                        if (dbName != null && !dbName.isEmpty()) {
+                            editor.putString("USER_NAME", dbName);
+                        }
+                        if (dbImage != null) {
+                            editor.putString("USER_IMAGE", dbImage);
+                            editor.putString("USER_PROFILE_IMAGE", dbImage);
+                        }
+                        editor.apply();
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {}
+            });
+        }
+    }
+
     private void listenToRealtimeChatMessages() {
         messagesRef.addChildEventListener(new ChildEventListener() {
             @Override
@@ -267,58 +296,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             @Override public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
-    }
-
-    private void checkAndSyncPermanentUser() {
-        if (mAuth.getCurrentUser() != null && mAuth.getCurrentUser().getEmail() != null) {
-            String userEmail = mAuth.getCurrentUser().getEmail();
-            prefs.edit().putString("USER_EMAIL", userEmail).apply();
-            String safeEmailKey = userEmail.replace(".", "_").replace("@", "_");
-
-            userDatabaseRef.child(safeEmailKey).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    SharedPreferences.Editor editor = prefs.edit();
-                    if (snapshot.exists()) {
-                        String savedId = snapshot.child("userId").getValue(String.class);
-                        String savedName = snapshot.child("userName").getValue(String.class);
-                        String savedImage = snapshot.child("userImage").getValue(String.class);
-
-                        String existingLocalId = prefs.getString("MY_9_DIGIT_ID", "");
-                        if (existingLocalId != null && !existingLocalId.isEmpty()) {
-                            currentUserId = existingLocalId;
-                        } else if (savedId != null && !savedId.isEmpty()) {
-                            editor.putString("USER_ID", savedId);
-                            editor.putString("MY_9_DIGIT_ID", savedId);
-                            currentUserId = savedId;
-                        } else {
-                            editor.putString("USER_ID", currentUserId);
-                            editor.putString("MY_9_DIGIT_ID", currentUserId);
-                            userDatabaseRef.child(safeEmailKey).child("userId").setValue(currentUserId);
-                        }
-
-                        if (savedName != null && !savedName.isEmpty()) {
-                            editor.putString("USER_NAME", savedName);
-                        }
-                        if (savedImage != null) {
-                            editor.putString("USER_IMAGE", savedImage);
-                        }
-                        editor.apply();
-
-                        if (currentUserId.equals(roomOwnerId)) {
-                            roomMetaRef.child("roomOwnerId").setValue(roomOwnerId);
-                            roomMetaRef.child("roomOwnerName").setValue(savedName != null ? savedName : "Owner");
-                        }
-                    } else {
-                        userDatabaseRef.child(safeEmailKey).child("userId").setValue(currentUserId);
-                        userDatabaseRef.child(safeEmailKey).child("userName").setValue(prefs.getString("USER_NAME", "User"));
-                    }
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {}
-            });
-        }
     }
 
     private void listenToRoomDetails() {
@@ -679,8 +656,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        final String[] imageBase64 = {""};
-        if (!userImageUriStr.isEmpty()) {
+        final String[] imageBase64 = {"v"};
+        imageBase64[0] = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
+        
+        if (userImageUriStr != null && !userImageUriStr.isEmpty() && !userImageUriStr.startsWith("/")) {
             try {
                 if (userImageUriStr.startsWith("content://") || userImageUriStr.startsWith("file://")) {
                     Uri uri = Uri.parse(userImageUriStr);
@@ -693,11 +672,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         byte[] imageBytes = baos.toByteArray();
                         imageBase64[0] = android.util.Base64.encodeToString(imageBytes, android.util.Base64.DEFAULT);
                     }
-                } else {
-                    imageBase64[0] = userImageUriStr;
                 }
             } catch (Exception e) {
-                imageBase64[0] = "";
+                // keep base64 from prefs
             }
         }
 
