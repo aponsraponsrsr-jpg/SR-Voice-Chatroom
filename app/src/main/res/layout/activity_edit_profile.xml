@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#0E0A1E"
+    android:background="@drawable/bg_profile_gradient"
     android:fillViewport="true">
 
     <LinearLayout
@@ -12,77 +12,141 @@
         android:padding="24dp"
         android:gravity="center_horizontal">
 
+        <!-- Top Header Banner -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="✨ Complete Your Profile"
-            android:textColor="#FFD700"
-            android:textSize="22sp"
+            android:text="✨ SR Voice VIP Profile"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
             android:textStyle="bold"
-            android:layout_marginBottom="8dp"/>
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="6dp"
+            android:shadowColor="#88000000"
+            android:shadowDx="2"
+            android:shadowDy="2"
+            android:shadowRadius="4"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Gender, Country and ID will be permanently locked!"
-            android:textColor="#AAAAAA"
+            android:text="Permanent ID, Country &amp; Gender are securely locked"
+            android:textColor="#FFD700"
             android:textSize="12sp"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="28dp"
             android:gravity="center"/>
 
-        <!-- প্রোফাইল পিকচার সিলেকশন -->
-        <ImageView
-            android:id="@+id/imgProfilePic"
-            android:layout_width="90dp"
-            android:layout_height="90dp"
-            android:src="@android:drawable/ic_menu_camera"
-            android:background="#2E2355"
-            android:scaleType="centerCrop"
-            android:layout_marginBottom="20dp"
-            android:padding="20dp"/>
+        <!-- Premium Circular Profile Image Card -->
+        <RelativeLayout
+            android:layout_width="105dp"
+            android:layout_height="105dp"
+            android:layout_marginBottom="24dp">
 
-        <!-- নাম ইনপুট -->
-        <EditText
-            android:id="@+id/inputName"
+            <ImageView
+                android:id="@+id/imgProfilePic"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@android:drawable/ic_menu_camera"
+                android:background="#33FFFFFF"
+                android:scaleType="centerCrop"
+                android:padding="22dp"
+                android:elevation="6dp"/>
+        </RelativeLayout>
+
+        <!-- Name Input Container -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:hint="Enter Your Name"
-            android:textColor="#FFFFFF"
-            android:textColorHint="#888888"
-            android:background="#1A1333"
+            android:layout_height="54dp"
+            android:background="#22FFFFFF"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
             android:paddingHorizontal="16dp"
             android:layout_marginBottom="16dp"
-            android:maxLines="1"/>
+            android:elevation="2dp">
 
-        <!-- জেন্ডার সিলেকশন -->
-        <Spinner
-            android:id="@+id/spinnerGender"
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@android:drawable/ic_menu_edit"
+                android:tint="#FFFFFF"
+                android:layout_marginEnd="12dp"/>
+
+            <EditText
+                android:id="@+id/inputName"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:hint="Enter Your Nickname"
+                android:textColor="#FFFFFF"
+                android:textColorHint="#CCDDDDDD"
+                android:background="@android:color/transparent"
+                android:textSize="16sp"
+                android:maxLines="1"/>
+        </LinearLayout>
+
+        <!-- Gender Selection Spinner -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:background="#1A1333"
-            android:layout_marginBottom="16dp"/>
+            android:layout_height="54dp"
+            android:background="#22FFFFFF"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="16dp"
+            android:layout_marginBottom="16dp"
+            android:elevation="2dp">
 
-        <!-- কান্ট্রি বা দেশ সিলেকশন (ফ্ল্যাগসহ স্পিনার) -->
-        <Spinner
-            android:id="@+id/spinnerCountry"
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@android:drawable/ic_menu_info_details"
+                android:tint="#FFFFFF"
+                android:layout_marginEnd="12dp"/>
+
+            <Spinner
+                android:id="@+id/spinnerGender"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"/>
+        </LinearLayout>
+
+        <!-- Country Selection Spinner -->
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:background="#1A1333"
-            android:layout_marginBottom="24dp"/>
+            android:layout_height="54dp"
+            android:background="#22FFFFFF"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="16dp"
+            android:layout_marginBottom="28dp"
+            android:elevation="2dp">
 
-        <!-- কনফার্ম ও সেভ বাটন -->
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@android:drawable/ic_menu_myplaces"
+                android:tint="#FFFFFF"
+                android:layout_marginEnd="12dp"/>
+
+            <Spinner
+                android:id="@+id/spinnerCountry"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@android:color/transparent"/>
+        </LinearLayout>
+
+        <!-- Premium Save Button -->
         <Button
             android:id="@+id/btnSaveProfile"
             android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:text="Save &amp; Enter App"
+            android:layout_height="56dp"
+            android:text="✨ Save &amp; Enter SR Voice"
             android:textColor="#FFFFFF"
             android:textSize="16sp"
             android:textStyle="bold"
             android:backgroundTint="#E91E63"
-            android:layout_marginBottom="12dp"/>
+            android:layout_marginBottom="14dp"
+            android:elevation="4dp"/>
 
-        <!-- লগআউট / সুইচ অ্যাকাউন্ট বাটন -->
+        <!-- Logout / Switch Button -->
         <Button
             android:id="@+id/btnLogOut"
             android:layout_width="match_parent"
@@ -90,7 +154,7 @@
             android:text="Logout / Switch Account"
             android:textColor="#DDDDDD"
             android:textSize="14sp"
-            android:backgroundTint="#2E2355"/>
+            android:backgroundTint="#33000000"/>
 
     </LinearLayout>
 </ScrollView>
