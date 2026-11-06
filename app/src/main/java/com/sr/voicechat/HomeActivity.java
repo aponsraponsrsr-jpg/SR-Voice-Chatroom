@@ -81,8 +81,12 @@ public class HomeActivity extends AppCompatActivity {
             });
         }
 
+        // সরাসরি প্রিমিয়াম MeActivity ওপেন করার লজিক
         if (btnMeTab != null) {
-            btnMeTab.setOnClickListener(v -> showMeProfileAndWalletDialog());
+            btnMeTab.setOnClickListener(v -> {
+                Intent intent = new Intent(HomeActivity.this, MeActivity.class);
+                startActivity(intent);
+            });
         }
 
         if (btnMomentTab != null) {
@@ -156,30 +160,6 @@ public class HomeActivity extends AppCompatActivity {
             }
         });
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
-        builder.show();
-    }
-
-    private void showMeProfileAndWalletDialog() {
-        String myName = prefs.getString("USER_NAME", "User");
-        String myId = prefs.getString("MY_9_DIGIT_ID", "777888");
-
-        CharSequence[] options = {
-            "👤 Profile Name: " + myName,
-            "🆔 My Unique ID: " + myId,
-            "🔒 Locked Wallet (Coins: 0)",
-            "💎 VIP & SVIP Status (Locked)"
-        };
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
-        builder.setTitle("👤 My Profile & Wallet");
-        builder.setItems(options, (dialog, which) -> {
-            if (which == 2) {
-                Toast.makeText(this, "Locked Wallet: Recharge feature coming soon!", Toast.LENGTH_SHORT).show();
-            } else if (which == 3) {
-                Toast.makeText(this, "VIP Feature is currently locked.", Toast.LENGTH_SHORT).show();
-            }
-        });
-        builder.setPositiveButton("Close", (dialog, which) -> dialog.dismiss());
         builder.show();
     }
 }
