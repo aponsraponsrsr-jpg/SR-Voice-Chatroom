@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -234,7 +236,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // Handle system back button press to instantly clear seat and status
     @Override
     public void onBackPressed() {
         leaveRoomAndFinish();
@@ -647,7 +648,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
                             List<String> optionsList = new ArrayList<>();
                             if (isOccupied) {
-                                optionsList.add("👤 View Profile");
+                                optionsList.add("👤 View Profile"); // Global Profile View for everyone
                                 if (currentUserId.equals(roomOwnerId)) {
                                     if (seatIndex > 0) optionsList.add("🚫 Remove from Mic (Kick)");
                                     optionsList.add("🔇 Mute Seat");
@@ -689,13 +690,21 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
+    // 🌟 Premium Dark-Gradient Global User Profile Card Popup
     private void showUserProfileCard(String userName, int seatIndex, DataSnapshot seatSnap) {
         BottomSheetDialog profileDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(40, 50, 40, 50);
-        layout.setBackgroundColor(getResources().getColor(android.R.color.white));
+        layout.setPadding(50, 60, 50, 60);
+        
+        // Premium Dark Gradient Background
+        GradientDrawable gradientDrawable = new GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            new int[]{Color.parseColor("#2A1B4E"), Color.parseColor("#120A2A")}
+        );
+        gradientDrawable.setCornerRadii(new float[]{40, 40, 40, 40, 0, 0, 0, 0});
+        layout.setBackground(gradientDrawable);
         
         ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, 
@@ -708,52 +717,60 @@ public class VoiceRoomActivity extends AppCompatActivity {
             occupantId = currentUserId;
         }
 
+        // VIP Verified Badge
         TextView txtBadge = new TextView(this);
-        txtBadge.setText("👑 SR Verified VIP Profile");
-        txtBadge.setTextColor(getResources().getColor(android.R.color.holo_orange_dark));
-        txtBadge.setTextSize(14);
+        txtBadge.setText("👑 SR VIP VERIFIED PROFILE");
+        txtBadge.setTextColor(Color.parseColor("#FFD700"));
+        txtBadge.setTextSize(13);
+        txtBadge.setTypeface(null, android.graphics.Typeface.BOLD);
         txtBadge.setGravity(Gravity.CENTER);
         layout.addView(txtBadge);
 
+        // User Name
         TextView txtName = new TextView(this);
         txtName.setText(userName != null ? userName : "User");
-        txtName.setTextSize(22);
+        txtName.setTextSize(24);
         txtName.setTypeface(null, android.graphics.Typeface.BOLD);
-        txtName.setTextColor(getResources().getColor(android.R.color.black));
+        txtName.setTextColor(Color.parseColor("#FFFFFF"));
         txtName.setGravity(Gravity.CENTER);
-        txtName.setPadding(0, 10, 0, 5);
+        txtName.setPadding(0, 15, 0, 8);
         layout.addView(txtName);
 
+        // Unique ID & Seat Position Info
         TextView txtIdInfo = new TextView(this);
-        txtIdInfo.setText("ID: " + occupantId + " | Seat: #" + (seatIndex == 0 ? "Host" : (seatIndex + 1)));
-        txtIdInfo.setTextColor(getResources().getColor(android.R.color.darker_gray));
+        txtIdInfo.setText("ID: " + occupantId + "  |  Seat: #" + (seatIndex == 0 ? "Host" : (seatIndex + 1)));
+        txtIdInfo.setTextColor(Color.parseColor("#00E676"));
         txtIdInfo.setTextSize(14);
+        txtIdInfo.setTypeface(null, android.graphics.Typeface.BOLD);
         txtIdInfo.setGravity(Gravity.CENTER);
         layout.addView(txtIdInfo);
 
+        // Fans & Followers Layout
         LinearLayout statsLayout = new LinearLayout(this);
         statsLayout.setOrientation(LinearLayout.HORIZONTAL);
         statsLayout.setGravity(Gravity.CENTER);
-        statsLayout.setPadding(0, 20, 0, 30);
+        statsLayout.setPadding(0, 25, 0, 35);
 
         TextView txtFans = new TextView(this);
-        txtFans.setText("👥 Fans: 1.2K");
-        txtFans.setPadding(20, 10, 20, 10);
-        txtFans.setTextColor(getResources().getColor(android.R.color.black));
+        txtFans.setText("👥 Fans: 1.5K");
+        txtFans.setPadding(25, 12, 25, 12);
+        txtFans.setTextColor(Color.parseColor("#FFFFFF"));
         statsLayout.addView(txtFans);
 
         TextView txtFollowers = new TextView(this);
-        txtFollowers.setText("❤️ Following: 340");
-        txtFollowers.setPadding(20, 10, 20, 10);
-        txtFollowers.setTextColor(getResources().getColor(android.R.color.black));
+        txtFollowers.setText("❤️ Following: 420");
+        txtFollowers.setPadding(25, 12, 25, 12);
+        txtFollowers.setTextColor(Color.parseColor("#FFFFFF"));
         statsLayout.addView(txtFollowers);
 
         layout.addView(statsLayout);
 
+        // Universal Gifting Button for Everyone
         Button btnSendDirectGift = new Button(this);
         btnSendDirectGift.setText("🎁 Send Gift to " + (userName != null ? userName : "User"));
-        btnSendDirectGift.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark));
-        btnSendDirectGift.setTextColor(getResources().getColor(android.R.color.white));
+        btnSendDirectGift.setBackgroundColor(Color.parseColor("#FF4081"));
+        btnSendDirectGift.setTextColor(Color.parseColor("#FFFFFF"));
+        btnSendDirectGift.setTypeface(null, android.graphics.Typeface.BOLD);
         btnSendDirectGift.setOnClickListener(v -> {
             profileDialog.dismiss();
             showGiftPanel();
@@ -768,7 +785,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         final String userName = prefs.getString("USER_NAME", "User");
         final String userImageUriStr = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
 
-        // Clear user from any previous seat in this room first
         for (int j = 0; j < 10; j++) {
             final int oldIndex = j;
             databaseReference.child("seats").child("seat_" + oldIndex).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -816,7 +832,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private void leaveRoomAndFinish() {
         databaseReference.child("online_users").child(currentUserId).removeValue();
         
-        // Instantly remove user from any seat in this room upon exit or leave
         for (int i = 0; i < 10; i++) {
             final int index = i;
             databaseReference.child("seats").child("seat_" + index).addListenerForSingleValueEvent(new ValueEventListener() {
