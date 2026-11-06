@@ -14,6 +14,10 @@ import android.widget.ImageView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
@@ -75,9 +79,17 @@ public class EditProfileActivity extends AppCompatActivity {
             if (!encodedImage.isEmpty()) {
                 editor.putString("USER_PROFILE_IMAGE", encodedImage);
             }
-            
-            // Using commit() to instantly save data before closing activity
             boolean isSaved = editor.commit();
+
+            // Also update user's global Firebase profile node so rooms can sync instantly
+            String currentUserId = prefs.getString("MY_9_DIGIT_ID", "");
+            if (!currentUserId.isEmpty()) {
+                DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(currentUserId);
+                userRef.child("name").setValue(newName);
+                if (!encodedImage.isEmpty()) {
+                    userRef.child("profileImage").setValue(encodedImage);
+                }
+            }
 
             if (isSaved) {
                 Toast.makeText(this, "Profile Updated Successfully!", Toast.LENGTH_SHORT).show();
@@ -97,11 +109,9 @@ public class EditProfileActivity extends AppCompatActivity {
                 InputStream inputStream = getContentResolver().openInputStream(imageUri);
                 Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                 
-                // Resize bitmap to avoid memory overflow
                 Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 300, 300, true);
                 imgEditProfilePic.setImageBitmap(resizedBitmap);
 
-                // Convert Bitmap to Base64 String
                 ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                 resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayOutputStream);
                 byte[] byteArray = byteArrayOutputStream.toByteArray();
