@@ -215,7 +215,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // Updated Gift Box Click to open WhatsApp style Bottom Sheet Gift Panel
         btnGiftBox = findViewById(R.id.btnGiftBox);
         if (btnGiftBox != null) {
             btnGiftBox.setOnClickListener(v -> showGiftPanel());
@@ -235,7 +234,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // WhatsApp style Bottom Sheet Gift Panel Method
+    // Bottom Sheet Gift Panel Method with updated drawables
     private void showGiftPanel() {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         View sheetView = getLayoutInflater().inflate(R.layout.dialog_gift_panel, null);
@@ -248,7 +247,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         Button btnSendGift = sheetView.findViewById(R.id.btnSendGift);
 
         List<GiftModel> allGifts = new ArrayList<>();
-        // Category: Gift
+        // Category: Gift (Using Vector placeholder / coin drawable assets)
         allGifts.add(new GiftModel("Sports Car", "100K", R.drawable.ic_gift_placeholder, "gift"));
         allGifts.add(new GiftModel("Dragon", "500K", R.drawable.ic_gift_placeholder, "gift"));
         allGifts.add(new GiftModel("Tiger", "250K", R.drawable.ic_gift_placeholder, "gift"));
@@ -259,8 +258,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         allGifts.add(new GiftModel("Rose Bouquet", "50K", R.drawable.ic_gift_placeholder, "cp"));
         
         // Category: Lucky Gift
-        allGifts.add(new GiftModel("Mystery Box", "10K", R.drawable.ic_gift_placeholder, "lucky"));
-        allGifts.add(new GiftModel("Lucky Star", "20K", R.drawable.ic_gift_placeholder, "lucky"));
+        allGifts.add(new GiftModel("Mystery Box", "10K", R.drawable.ic_coin, "lucky"));
+        allGifts.add(new GiftModel("Lucky Star", "20K", R.drawable.ic_coin, "lucky"));
 
         List<GiftModel> displayedGifts = new ArrayList<>();
         for (GiftModel g : allGifts) {
@@ -310,7 +309,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             if (msgId != null) {
                 java.util.Map<String, Object> msgMap = new java.util.HashMap<>();
                 msgMap.put("senderName", "🎁 " + userName);
-                msgMap.put("message", "sent a premium gift from bottom sheet panel!");
+                msgMap.put("message", "sent a premium gift!");
                 messagesRef.child(msgId).setValue(msgMap);
             }
             Toast.makeText(this, "Gift Sent Successfully!", Toast.LENGTH_SHORT).show();
@@ -610,7 +609,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 }
                             } catch (Exception e) {
                                 seatImg.setImageResource(android.R.drawable.ic_menu_my_calendar);
-                                seatImg.setPadding(12, 12, 12, 12);
                             }
                         } else {
                             if (seatImg != null) {
@@ -637,6 +635,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
+    // Updated seat interaction logic to show Demo-Style Profile Card option
     private void setupSeatInteractions() {
         int[] seatCardIds = {
             R.id.seatCard1, R.id.seatCard2, R.id.seatCard3, R.id.seatCard4, R.id.seatCard5,
@@ -657,48 +656,38 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             String occupantName = seatSnap.child("userName").getValue(String.class);
                             boolean isOccupied = occupantName != null && !occupantName.isEmpty();
 
-                            CharSequence[] seatOptions;
-                            if (currentUserId.equals(roomOwnerId)) {
-                                if (isOccupied) {
-                                    if (seatIndex == 0) {
-                                        seatOptions = new CharSequence[]{"Mute Seat", "Cancel"};
-                                    } else {
-                                        seatOptions = new CharSequence[]{"Remove from Mic (Kick)", "Mute Seat", "Cancel"};
-                                    }
+                            List<String> optionsList = new ArrayList<>();
+                            if (isOccupied) {
+                                optionsList.add("👤 View Profile"); // Demo App Style Profile Option
+                                if (currentUserId.equals(roomOwnerId)) {
+                                    if (seatIndex > 0) optionsList.add("🚫 Remove from Mic (Kick)");
+                                    optionsList.add("🔇 Mute Seat");
                                 } else {
-                                    seatOptions = new CharSequence[]{"Take Mic", "Cancel"};
+                                    optionsList.add("🚪 Leave Mic");
                                 }
                             } else {
-                                if (isOccupied) {
-                                    seatOptions = new CharSequence[]{"View Profile", "Leave Mic"};
-                                } else {
-                                    seatOptions = new CharSequence[]{"Take Mic", "Cancel"};
-                                }
+                                optionsList.add("🎙️ Take Mic");
                             }
+                            optionsList.add("❌ Cancel");
+
+                            CharSequence[] seatOptions = optionsList.toArray(new CharSequence[0]);
 
                             AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
                             builder.setTitle("🎙️ Seat " + seatNumber + (isOccupied ? " (" + occupantName + ")" : " (Empty)"));
                             builder.setItems(seatOptions, (dialog, which) -> {
-                                if (currentUserId.equals(roomOwnerId)) {
-                                    if (isOccupied) {
-                                        if (seatIndex > 0 && which == 0) { 
-                                            databaseReference.child("seats").child(seatKey).removeValue();
-                                            Toast.makeText(VoiceRoomActivity.this, occupantName + " removed from seat!", Toast.LENGTH_SHORT).show();
-                                        } else { 
-                                            Toast.makeText(VoiceRoomActivity.this, "Seat action executed", Toast.LENGTH_SHORT).show();
-                                        }
-                                    } else {
-                                        if (which == 0) { 
-                                            takeSeat(seatIndex, seatKey);
-                                        }
-                                    }
-                                } else {
-                                    if (which == 0 && !isOccupied) {
-                                        takeSeat(seatIndex, seatKey);
-                                    } else if (isOccupied && which == 1) {
-                                        databaseReference.child("seats").child(seatKey).removeValue();
-                                        Toast.makeText(VoiceRoomActivity.this, "Left seat", Toast.LENGTH_SHORT).show();
-                                    }
+                                String selectedOption = seatOptions[which].toString();
+                                if (selectedOption.contains("View Profile")) {
+                                    showUserProfileCard(occupantName, seatIndex);
+                                } else if (selectedOption.contains("Take Mic")) {
+                                    takeSeat(seatIndex, seatKey);
+                                } else if (selectedOption.contains("Remove from Mic")) {
+                                    databaseReference.child("seats").child(seatKey).removeValue();
+                                    Toast.makeText(VoiceRoomActivity.this, occupantName + " removed from seat!", Toast.LENGTH_SHORT).show();
+                                } else if (selectedOption.contains("Leave Mic")) {
+                                    databaseReference.child("seats").child(seatKey).removeValue();
+                                    Toast.makeText(VoiceRoomActivity.this, "Left seat", Toast.LENGTH_SHORT).show();
+                                } else if (selectedOption.contains("Mute Seat")) {
+                                    Toast.makeText(VoiceRoomActivity.this, "Seat muted", Toast.LENGTH_SHORT).show();
                                 }
                             });
                             builder.show();
@@ -709,6 +698,39 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 });
             }
         }
+    }
+
+    // Demo App Style User Profile Bottom Sheet Card Dialog
+    private void showUserProfileCard(String userName, int seatIndex) {
+        BottomSheetDialog profileDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(60, 50, 60, 50);
+        layout.setBackgroundColor(getResources().getColor(android.R.color.white));
+
+        TextView txtTitle = new TextView(this);
+        txtTitle.setText("👑 " + userName + "'s Profile");
+        txtTitle.setTextSize(20);
+        txtTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        txtTitle.setGravity(Gravity.CENTER);
+        layout.addView(txtTitle);
+
+        TextView txtSub = new TextView(this);
+        txtSub.setText("Seat Position: #" + (seatIndex == 0 ? "Host Seat" : (seatIndex + 1)));
+        txtSub.setGravity(Gravity.CENTER);
+        txtSub.setPadding(0, 10, 0, 30);
+        layout.addView(txtSub);
+
+        Button btnSendDirectGift = new Button(this);
+        btnSendDirectGift.setText("🎁 Send Gift to " + userName);
+        btnSendDirectGift.setOnClickListener(v -> {
+            profileDialog.dismiss();
+            showGiftPanel();
+        });
+        layout.addView(btnSendDirectGift);
+
+        profileDialog.setContentView(layout);
+        profileDialog.show();
     }
 
     private void takeSeat(int seatIndex, String seatKey) {
