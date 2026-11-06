@@ -53,8 +53,7 @@
                 android:layout_alignParentBottom="true"
                 android:background="#E91E63"
                 android:padding="5dp"
-                android:src="@android:drawable/ic_menu_edit"
-                android:tint="#FFFFFF" />
+                android:src="@android:drawable/ic_menu_edit" />
         </RelativeLayout>
 
         <!-- User Name -->
@@ -63,7 +62,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
-            android:text="Muktadul Rahaman"
+            android:text="SR Apon"
             android:textColor="#FFFFFF"
             android:textSize="18sp"
             android:textStyle="bold" />
