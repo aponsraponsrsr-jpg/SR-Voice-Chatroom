@@ -212,7 +212,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
                 android:background="#1AFFFFFF"
-                android:drawableStart="@android:drawable/ic_menu_award"
+                android:drawableStart="@android:drawable/ic_menu_info_details"
                 android:drawablePadding="12dp"
                 android:gravity="center_vertical"
                 android:padding="14dp"
