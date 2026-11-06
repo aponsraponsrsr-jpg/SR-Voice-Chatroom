@@ -23,6 +23,7 @@
         <activity android:name=".EditProfileActivity" />
         <activity android:name=".HomeActivity" />
         <activity android:name=".MainActivity" />
+        <activity android:name=".MeActivity" android:exported="false" />
         <activity android:name=".VoiceRoomActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
 
     </application>
