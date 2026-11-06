@@ -18,7 +18,7 @@ public class MeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_me);
 
-        // ভিউ ইনিশিয়ালাইজেশন
+        // সেফলি ভিউ ইনিশিয়ালাইজেশন
         imgProfileMe = findViewById(R.id.imgProfileMe);
         btnEditProfileIcon = findViewById(R.id.btnEditProfileIcon);
         textUserNameMe = findViewById(R.id.textUserNameMe);
@@ -26,7 +26,7 @@ public class MeActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
 
-        // সেভ করা নাম ও আইডি লোড করা
+        // সেভ করা নাম ও আইডি লোড করা (নাল চেকসহ)
         String savedName = prefs.getString("USER_NAME", "SR Apon");
         String savedPermanentId = prefs.getString("MY_9_DIGIT_ID", "480384559");
 
@@ -40,8 +40,12 @@ public class MeActivity extends AppCompatActivity {
         // এডিট প্রোফাইল আইকনে ক্লিক হ্যান্ডলার
         if (btnEditProfileIcon != null) {
             btnEditProfileIcon.setOnClickListener(v -> {
-                Intent intent = new Intent(MeActivity.this, EditProfileActivity.class);
-                startActivity(intent);
+                try {
+                    Intent intent = new Intent(MeActivity.this, EditProfileActivity.class);
+                    startActivity(intent);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             });
         }
     }
