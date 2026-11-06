@@ -234,7 +234,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // Bottom Sheet Gift Panel Method with updated drawables
     private void showGiftPanel() {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         View sheetView = getLayoutInflater().inflate(R.layout.dialog_gift_panel, null);
@@ -247,17 +246,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
         Button btnSendGift = sheetView.findViewById(R.id.btnSendGift);
 
         List<GiftModel> allGifts = new ArrayList<>();
-        // Category: Gift (Using Vector placeholder / coin drawable assets)
         allGifts.add(new GiftModel("Sports Car", "100K", R.drawable.ic_gift_placeholder, "gift"));
         allGifts.add(new GiftModel("Dragon", "500K", R.drawable.ic_gift_placeholder, "gift"));
         allGifts.add(new GiftModel("Tiger", "250K", R.drawable.ic_gift_placeholder, "gift"));
         allGifts.add(new GiftModel("Spiderman", "300K", R.drawable.ic_gift_placeholder, "gift"));
         
-        // Category: CP Gift
         allGifts.add(new GiftModel("Love Ring", "99K", R.drawable.ic_gift_placeholder, "cp"));
         allGifts.add(new GiftModel("Rose Bouquet", "50K", R.drawable.ic_gift_placeholder, "cp"));
         
-        // Category: Lucky Gift
         allGifts.add(new GiftModel("Mystery Box", "10K", R.drawable.ic_coin, "lucky"));
         allGifts.add(new GiftModel("Lucky Star", "20K", R.drawable.ic_coin, "lucky"));
 
@@ -274,30 +270,18 @@ public class VoiceRoomActivity extends AppCompatActivity {
         rvGifts.setAdapter(adapter);
 
         tabGift.setOnClickListener(v -> {
-            tabGift.setTextColor(getResources().getColor(R.color.gift_tab_selected));
-            tabCpGift.setTextColor(getResources().getColor(R.color.gift_tab_unselected));
-            tabLuckyGift.setTextColor(getResources().getColor(R.color.gift_tab_unselected));
-            
             displayedGifts.clear();
             for (GiftModel g : allGifts) { if (g.getCategory().equals("gift")) displayedGifts.add(g); }
             adapter.notifyDataSetChanged();
         });
 
         tabCpGift.setOnClickListener(v -> {
-            tabCpGift.setTextColor(getResources().getColor(R.color.gift_tab_selected));
-            tabGift.setTextColor(getResources().getColor(R.color.gift_tab_unselected));
-            tabLuckyGift.setTextColor(getResources().getColor(R.color.gift_tab_unselected));
-            
             displayedGifts.clear();
             for (GiftModel g : allGifts) { if (g.getCategory().equals("cp")) displayedGifts.add(g); }
             adapter.notifyDataSetChanged();
         });
 
         tabLuckyGift.setOnClickListener(v -> {
-            tabLuckyGift.setTextColor(getResources().getColor(R.color.gift_tab_selected));
-            tabGift.setTextColor(getResources().getColor(R.color.gift_tab_unselected));
-            tabCpGift.setTextColor(getResources().getColor(R.color.gift_tab_unselected));
-            
             displayedGifts.clear();
             for (GiftModel g : allGifts) { if (g.getCategory().equals("lucky")) displayedGifts.add(g); }
             adapter.notifyDataSetChanged();
@@ -635,7 +619,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // Updated seat interaction logic to show Demo-Style Profile Card option
     private void setupSeatInteractions() {
         int[] seatCardIds = {
             R.id.seatCard1, R.id.seatCard2, R.id.seatCard3, R.id.seatCard4, R.id.seatCard5,
@@ -658,7 +641,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
                             List<String> optionsList = new ArrayList<>();
                             if (isOccupied) {
-                                optionsList.add("👤 View Profile"); // Demo App Style Profile Option
+                                optionsList.add("👤 View Profile");
                                 if (currentUserId.equals(roomOwnerId)) {
                                     if (seatIndex > 0) optionsList.add("🚫 Remove from Mic (Kick)");
                                     optionsList.add("🔇 Mute Seat");
@@ -700,29 +683,73 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // Demo App Style User Profile Bottom Sheet Card Dialog
+    // Premium Half-Screen User Profile Card Popup (Showing ID, Name, Fans, Followers & Owner Badge)
     private void showUserProfileCard(String userName, int seatIndex) {
         BottomSheetDialog profileDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
+        
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(60, 50, 60, 50);
+        layout.setPadding(40, 50, 40, 50);
         layout.setBackgroundColor(getResources().getColor(android.R.color.white));
+        
+        // Match parent width and half screen layout look
+        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT, 
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        layout.setLayoutParams(params);
 
-        TextView txtTitle = new TextView(this);
-        txtTitle.setText("👑 " + userName + "'s Profile");
-        txtTitle.setTextSize(20);
-        txtTitle.setTypeface(null, android.graphics.Typeface.BOLD);
-        txtTitle.setGravity(Gravity.CENTER);
-        layout.addView(txtTitle);
+        // Owner/VIP Badge & Title Header
+        TextView txtBadge = new TextView(this);
+        txtBadge.setText("👑 SR Verified VIP Profile");
+        txtBadge.setTextColor(getResources().getColor(android.R.color.holo_orange_dark));
+        txtBadge.setTextSize(14);
+        txtBadge.setGravity(Gravity.CENTER);
+        layout.addView(txtBadge);
 
-        TextView txtSub = new TextView(this);
-        txtSub.setText("Seat Position: #" + (seatIndex == 0 ? "Host Seat" : (seatIndex + 1)));
-        txtSub.setGravity(Gravity.CENTER);
-        txtSub.setPadding(0, 10, 0, 30);
-        layout.addView(txtSub);
+        // User Name
+        TextView txtName = new TextView(this);
+        txtName.setText(userName != null ? userName : "User");
+        txtName.setTextSize(22);
+        txtName.setTypeface(null, android.graphics.Typeface.BOLD);
+        txtName.setTextColor(getResources().getColor(android.R.color.black));
+        txtName.setGravity(Gravity.CENTER);
+        txtName.setPadding(0, 10, 0, 5);
+        layout.addView(txtName);
 
+        // Unique ID & Seat Position
+        TextView txtIdInfo = new TextView(this);
+        txtIdInfo.setText("ID: " + currentUserId + " | Seat: #" + (seatIndex == 0 ? "Host" : (seatIndex + 1)));
+        txtIdInfo.setTextColor(getResources().getColor(android.R.color.darker_gray));
+        txtIdInfo.setTextSize(14);
+        txtIdInfo.setGravity(Gravity.CENTER);
+        layout.addView(txtIdInfo);
+
+        // Fans & Followers stats layout
+        LinearLayout statsLayout = new LinearLayout(this);
+        statsLayout.setOrientation(LinearLayout.HORIZONTAL);
+        statsLayout.setGravity(Gravity.CENTER);
+        statsLayout.setPadding(0, 20, 0, 30);
+
+        TextView txtFans = new TextView(this);
+        txtFans.setText("👥 Fans: 1.2K");
+        txtFans.setPadding(20, 10, 20, 10);
+        txtFans.setTextColor(getResources().getColor(android.R.color.black));
+        statsLayout.addView(txtFans);
+
+        TextView txtFollowers = new TextView(this);
+        txtFollowers.setText("❤️ Following: 340");
+        txtFollowers.setPadding(20, 10, 20, 10);
+        txtFollowers.setTextColor(getResources().getColor(android.R.color.black));
+        statsLayout.addView(txtFollowers);
+
+        layout.addView(statsLayout);
+
+        // Send Gift Button (Universal Gifting for all user profiles)
         Button btnSendDirectGift = new Button(this);
-        btnSendDirectGift.setText("🎁 Send Gift to " + userName);
+        btnSendDirectGift.setText("🎁 Send Gift to " + (userName != null ? userName : "User"));
+        btnSendDirectGift.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark));
+        btnSendDirectGift.setTextColor(getResources().getColor(android.R.color.white));
         btnSendDirectGift.setOnClickListener(v -> {
             profileDialog.dismiss();
             showGiftPanel();
