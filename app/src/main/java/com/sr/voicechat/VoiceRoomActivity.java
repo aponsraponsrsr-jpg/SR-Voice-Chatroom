@@ -88,10 +88,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
         databaseReference = FirebaseDatabase.getInstance().getReference("rooms").child("room_" + roomOwnerId);
         roomMetaRef = databaseReference.child("meta");
         messagesRef = databaseReference.child("messages");
+        
+        // Fix: Using roomOwnerId as the exact child key to prevent duplicate rooms on re-login
         activeRoomsRef = FirebaseDatabase.getInstance().getReference("active_rooms").child(roomOwnerId);
         userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
 
-        // লেটেস্ট প্রোফাইল ও নাম সিঙ্ক করার ফাংশন কল
         syncLatestUserProfile();
         listenToRoomDetails();
 
@@ -334,6 +335,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     }
                 }
 
+                // Single Room Overwrite Logic: Ensures only one active room node exists per room owner
                 if (currentUserId.equals(roomOwnerId)) {
                     activeRoomsRef.child("roomOwnerId").setValue(roomOwnerId);
                     activeRoomsRef.child("roomName").setValue(roomName != null ? roomName : "🌟 SR Voice Room");
@@ -637,7 +639,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
     }
 
     private void takeSeat(int seatIndex, String seatKey) {
-        // Fetch latest name & profile image directly from SharedPreferences (which gets updated instantly on profile edit)
         final String userName = prefs.getString("USER_NAME", "User");
         final String userImageUriStr = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
 
