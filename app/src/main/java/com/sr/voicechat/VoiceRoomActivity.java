@@ -127,7 +127,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // Room Header Click -> Opens Room Info & Member List Tabbed Dialog (As requested in video)
+        // Header Click -> Opens Large Premium Room Info & Member List Dialog
         if (roomTitleText != null) {
             roomTitleText.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
         }
@@ -147,7 +147,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
 
         if (btnOnlineList != null) {
-            btnOnlineList.setOnClickListener(v -> showOnlineMembersDialog());
+            btnOnlineList.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
         }
 
         chatListView = findViewById(R.id.chatListView);
@@ -496,77 +496,114 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // 🌟 Premium Header Click Dialog with Room Info & Member List Tabs (As seen in video demo)
+    // 🌟 Large, Clean & Premium Room Info & Member List Dialog (Matching Your Reference Image Style)
     private void showRoomInfoAndMembersBottomSheet() {
         BottomSheetDialog sheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         
         LinearLayout mainLayout = new LinearLayout(this);
         mainLayout.setOrientation(LinearLayout.VERTICAL);
-        mainLayout.setPadding(40, 40, 40, 40);
+        mainLayout.setPadding(40, 40, 40, 60);
         
+        // Clean White/Light Premium Background matching real chat apps
         GradientDrawable bg = new GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
-            new int[]{Color.parseColor("#2A1B4E"), Color.parseColor("#120A2A")}
+            new int[]{Color.parseColor("#FFFFFF"), Color.parseColor("#F8F9FA")}
         );
-        bg.setCornerRadii(new float[]{40, 40, 40, 40, 0, 0, 0, 0});
+        bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
         mainLayout.setBackground(bg);
 
-        // Header Title
-        TextView title = new TextView(this);
-        title.setText("🌟 SR Voice Room Information");
-        title.setTextColor(Color.parseColor("#FFD700"));
-        title.setTextSize(16);
-        title.setTypeface(null, android.graphics.Typeface.BOLD);
-        title.setGravity(Gravity.CENTER);
-        title.setPadding(0, 0, 0, 20);
-        mainLayout.addView(title);
+        // Top Header Row with Title and Close Button
+        LinearLayout topHeaderLayout = new LinearLayout(this);
+        topHeaderLayout.setOrientation(LinearLayout.HORIZONTAL);
+        topHeaderLayout.setGravity(Gravity.CENTER_VERTICAL);
+        topHeaderLayout.setPadding(0, 0, 0, 20);
 
-        // Tab Navigation Layout
+        TextView title = new TextView(this);
+        title.setText("Bangladesh Official Room");
+        title.setTextColor(Color.parseColor("#111111"));
+        title.setTextSize(18);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
+        title.setLayoutParams(titleParams);
+        topHeaderLayout.addView(title);
+
+        TextView closeBtn = new TextView(this);
+        closeBtn.setText("✕");
+        closeBtn.setTextColor(Color.parseColor("#666666"));
+        closeBtn.setTextSize(20);
+        closeBtn.setPadding(20, 10, 10, 10);
+        closeBtn.setOnClickListener(v -> sheetDialog.dismiss());
+        topHeaderLayout.addView(closeBtn);
+
+        mainLayout.addView(topHeaderLayout);
+
+        // Tab Navigation Layout (Room information & Member List)
         LinearLayout tabLayout = new LinearLayout(this);
         tabLayout.setOrientation(LinearLayout.HORIZONTAL);
         tabLayout.setGravity(Gravity.CENTER);
-        tabLayout.setPadding(0, 0, 0, 20);
+        tabLayout.setPadding(0, 10, 0, 25);
 
         Button btnTabInfo = new Button(this);
-        btnTabInfo.setText("📌 Room Info");
-        btnTabInfo.setBackgroundColor(Color.parseColor("#FF4081"));
+        btnTabInfo.setText("Room information");
+        btnTabInfo.setAllCaps(false);
+        btnTabInfo.setBackgroundColor(Color.parseColor("#7B1FA2"));
         btnTabInfo.setTextColor(Color.WHITE);
+        btnTabInfo.setTextSize(14);
 
         Button btnTabMembers = new Button(this);
-        btnTabMembers.setText("👥 Member List");
-        btnTabMembers.setBackgroundColor(Color.parseColor("#333333"));
-        btnTabMembers.setTextColor(Color.WHITE);
+        btnTabMembers.setText("Member List");
+        btnTabMembers.setAllCaps(false);
+        btnTabMembers.setBackgroundColor(Color.parseColor("#E0E0E0"));
+        btnTabMembers.setTextColor(Color.parseColor("#555555"));
+        btnTabMembers.setTextSize(14);
+
+        LinearLayout.LayoutParams tabParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
+        tabParams.setMargins(10, 0, 10, 0);
+        btnTabInfo.setLayoutParams(tabParams);
+        btnTabMembers.setLayoutParams(tabParams);
 
         tabLayout.addView(btnTabInfo);
         tabLayout.addView(btnTabMembers);
         mainLayout.addView(tabLayout);
 
-        // Content Container Layout
+        // Dynamic Content Scroll Container
         LinearLayout contentLayout = new LinearLayout(this);
         contentLayout.setOrientation(LinearLayout.VERTICAL);
-        contentLayout.setPadding(20, 20, 20, 20);
+        contentLayout.setPadding(10, 10, 10, 10);
         mainLayout.addView(contentLayout);
 
         // Load Room Info View by default
-        loadRoomInfoView(contentLayout);
+        loadRoomInfoLargeView(contentLayout);
 
         btnTabInfo.setOnClickListener(v -> {
-            btnTabInfo.setBackgroundColor(Color.parseColor("#FF4081"));
-            btnTabMembers.setBackgroundColor(Color.parseColor("#333333"));
-            loadRoomInfoView(contentLayout);
+            btnTabInfo.setBackgroundColor(Color.parseColor("#7B1FA2"));
+            btnTabInfo.setTextColor(Color.WHITE);
+            btnTabMembers.setBackgroundColor(Color.parseColor("#E0E0E0"));
+            btnTabMembers.setTextColor(Color.parseColor("#555555"));
+            loadRoomInfoLargeView(contentLayout);
         });
 
         btnTabMembers.setOnClickListener(v -> {
-            btnTabMembers.setBackgroundColor(Color.parseColor("#FF4081"));
-            btnTabInfo.setBackgroundColor(Color.parseColor("#333333"));
-            loadMemberListView(contentLayout);
+            btnTabMembers.setBackgroundColor(Color.parseColor("#7B1FA2"));
+            btnTabMembers.setTextColor(Color.WHITE);
+            btnTabInfo.setBackgroundColor(Color.parseColor("#E0E0E0"));
+            btnTabInfo.setTextColor(Color.parseColor("#555555"));
+            loadMemberListLargeView(contentLayout);
         });
 
         sheetDialog.setContentView(mainLayout);
+        
+        // Force larger height / full display window look like the reference photo
+        Window window = sheetDialog.getWindow();
+        if (window != null) {
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1500); // Large height for clear viewing
+            window.setGravity(Gravity.BOTTOM);
+        }
+
         sheetDialog.show();
     }
 
-    private void loadRoomInfoView(LinearLayout container) {
+    private void loadRoomInfoLargeView(LinearLayout container) {
         container.removeAllViews();
 
         roomMetaRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -575,32 +612,51 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 String rName = snapshot.child("roomName").getValue(String.class);
                 String rBio = snapshot.child("roomBio").getValue(String.class);
 
-                TextView txt1 = new TextView(VoiceRoomActivity.this);
-                txt1.setText("📌 Room Name: " + (rName != null ? rName : "SR Official Voice Room"));
-                txt1.setTextColor(Color.WHITE);
-                txt1.setTextSize(15);
-                txt1.setPadding(0, 10, 0, 10);
-                container.addView(txt1);
+                // Premium Banner Card Box matching reference photo
+                LinearLayout bannerCard = new LinearLayout(VoiceRoomActivity.this);
+                bannerCard.setOrientation(LinearLayout.HORIZONTAL);
+                bannerCard.setPadding(25, 25, 25, 25);
+                bannerCard.setGravity(Gravity.CENTER_VERTICAL);
+                
+                GradientDrawable bannerBg = new GradientDrawable(
+                    GradientDrawable.Orientation.LEFT_RIGHT,
+                    new int[]{Color.parseColor("#FFE082"), Color.parseColor("#FFB300")}
+                );
+                bannerBg.setCornerRadius(20);
+                bannerCard.setBackground(bannerBg);
 
-                TextView txt2 = new TextView(VoiceRoomActivity.this);
-                txt2.setText("🆔 Room Owner ID: " + roomOwnerId);
-                txt2.setTextColor(Color.parseColor("#00E676"));
-                txt2.setTextSize(14);
-                txt2.setPadding(0, 10, 0, 10);
-                container.addView(txt2);
+                LinearLayout textStack = new LinearLayout(VoiceRoomActivity.this);
+                textStack.setOrientation(LinearLayout.VERTICAL);
 
-                TextView txt3 = new TextView(VoiceRoomActivity.this);
-                txt3.setText("📝 Room Notice/Bio:\n" + (rBio != null && !rBio.isEmpty() ? rBio : "Welcome to our room! Enjoy chatting & music."));
-                txt3.setTextColor(Color.parseColor("#FFEB3B"));
-                txt3.setTextSize(14);
-                txt3.setPadding(0, 10, 0, 10);
-                container.addView(txt3);
+                TextView nameTxt = new TextView(VoiceRoomActivity.this);
+                nameTxt.setText(rName != null ? rName : "Bangladesh Official Room");
+                nameTxt.setTextColor(Color.parseColor("#111111"));
+                nameTxt.setTextSize(16);
+                nameTxt.setTypeface(null, android.graphics.Typeface.BOLD);
+                textStack.addView(nameTxt);
+
+                TextView idTxt = new TextView(VoiceRoomActivity.this);
+                idTxt.setText("ID: " + roomOwnerId);
+                idTxt.setTextColor(Color.parseColor("#333333"));
+                idTxt.setTextSize(13);
+                textStack.addView(idTxt);
+
+                bannerCard.addView(textStack);
+                container.addView(bannerCard);
+
+                // Members count detail row
+                addDetailRow(container, "Number of members", "1/500");
+                addDetailRow(container, "Room Owner", prefs.getString("USER_NAME", "MR ADIL"));
+                addDetailRow(container, "Country/Region", "🇧🇩 Bangladesh");
+                addDetailRow(container, "Tag", "Chat");
+                addDetailRow(container, "Notice of Room", (rBio != null && !rBio.isEmpty() ? rBio : "Girls Respect\nPersonal Chat Not Allowed\nBad Comments Not Allowed"));
 
                 if (currentUserId.equals(roomOwnerId)) {
                     Button btnEdit = new Button(VoiceRoomActivity.this);
-                    btnEdit.setText("⚙️ Edit Room Details");
+                    btnEdit.setText("⚙️ EDIT ROOM DETAILS");
                     btnEdit.setBackgroundColor(Color.parseColor("#00E676"));
                     btnEdit.setTextColor(Color.BLACK);
+                    btnEdit.setTypeface(null, android.graphics.Typeface.BOLD);
                     btnEdit.setOnClickListener(v -> showEditRoomDialog());
                     container.addView(btnEdit);
                 }
@@ -611,38 +667,56 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    private void loadMemberListView(LinearLayout container) {
+    private void addDetailRow(LinearLayout container, String label, String value) {
+        LinearLayout row = new LinearLayout(container.getContext());
+        row.setOrientation(LinearLayout.VERTICAL);
+        row.setPadding(0, 15, 0, 15);
+
+        TextView lbl = new TextView(container.getContext());
+        lbl.setText(label);
+        lbl.setTextColor(Color.parseColor("#777777"));
+        lbl.setTextSize(12);
+        row.addView(lbl);
+
+        TextView val = new TextView(container.getContext());
+        val.setText(value);
+        val.setTextColor(Color.parseColor("#111111"));
+        val.setTextSize(15);
+        val.setTypeface(null, android.graphics.Typeface.BOLD);
+        row.addView(val);
+
+        // Divider line
+        View divider = new View(container.getContext());
+        divider.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
+        divider.setBackgroundColor(Color.parseColor("#EEEEEE"));
+        
+        container.addView(row);
+        container.addView(divider);
+    }
+
+    private void loadMemberListLargeView(LinearLayout container) {
         container.removeAllViews();
 
         databaseReference.child("online_users").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                TextView ownerHeader = new TextView(VoiceRoomActivity.this);
-                ownerHeader.setText("👑 Room Owner:\n👉 ID: " + roomOwnerId + " [Owner Badge Active]");
-                ownerHeader.setTextColor(Color.parseColor("#FFD700"));
-                ownerHeader.setTextSize(14);
-                ownerHeader.setTypeface(null, android.graphics.Typeface.BOLD);
-                ownerHeader.setPadding(0, 10, 0, 15);
-                container.addView(ownerHeader);
+                TextView countHeader = new TextView(VoiceRoomActivity.this);
+                countHeader.setText("Number of members: " + snapshot.getChildrenCount() + "/500   |   🛡️ Admins 2/3");
+                countHeader.setTextColor(Color.parseColor("#555555"));
+                countHeader.setTextSize(13);
+                countHeader.setPadding(0, 0, 0, 20);
+                container.addView(countHeader);
 
-                TextView memberHeader = new TextView(VoiceRoomActivity.this);
-                memberHeader.setText("--- Active Members & Admins ---");
-                memberHeader.setTextColor(Color.parseColor("#00E676"));
-                memberHeader.setTextSize(13);
-                memberHeader.setPadding(0, 10, 0, 10);
-                container.addView(memberHeader);
+                // Owner Row matching your reference screenshot 38733.jpg
+                LinearLayout ownerRow = createMemberRowItem("MR ADIL", "👑 Owner", "#FFD700", roomOwnerId.equals(currentUserId));
+                container.addView(ownerRow);
 
                 for (DataSnapshot child : snapshot.getChildren()) {
                     String name = child.getValue(String.class);
                     String uId = child.getKey();
-                    if (name != null) {
-                        TextView userTxt = new TextView(VoiceRoomActivity.this);
-                        String roleBadge = uId.equals(roomOwnerId) ? " 👑 [Owner]" : " 👤 [Member]";
-                        userTxt.setText("• " + name + roleBadge);
-                        userTxt.setTextColor(Color.WHITE);
-                        userTxt.setTextSize(13);
-                        userTxt.setPadding(10, 5, 0, 5);
-                        container.addView(userTxt);
+                    if (name != null && !uId.equals(roomOwnerId)) {
+                        LinearLayout memberRow = createMemberRowItem(name, "🛡️ Admin", "#00E676", false);
+                        container.addView(memberRow);
                     }
                 }
             }
@@ -650,6 +724,52 @@ public class VoiceRoomActivity extends AppCompatActivity {
             @Override
             public void onCancelled(@NonNull DatabaseError error) {}
         });
+    }
+
+    private LinearLayout createMemberRowItem(String name, String role, String badgeColorHex, boolean isSelf) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setPadding(20, 20, 20, 20);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        
+        GradientDrawable rowBg = new GradientDrawable();
+        rowBg.setColor(Color.parseColor("#FFFFFF"));
+        rowBg.setCornerRadius(16);
+        row.setBackground(rowBg);
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.setMargins(0, 0, 0, 15);
+        row.setLayoutParams(params);
+
+        // Avatar placeholder
+        ImageView avatar = new ImageView(this);
+        avatar.setLayoutParams(new LinearLayout.LayoutParams(90, 90));
+        avatar.setImageResource(android.R.drawable.ic_menu_my_calendar);
+        avatar.setBackgroundColor(Color.parseColor("#DDDDDD"));
+        row.addView(avatar);
+
+        LinearLayout textLayout = new LinearLayout(this);
+        textLayout.setOrientation(LinearLayout.VERTICAL);
+        textLayout.setPadding(25, 0, 0, 0);
+        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
+        textLayout.setLayoutParams(textParams);
+
+        TextView nameView = new TextView(this);
+        nameView.setText(name);
+        nameView.setTextColor(Color.parseColor("#111111"));
+        nameView.setTextSize(16);
+        nameView.setTypeface(null, android.graphics.Typeface.BOLD);
+        textLayout.addView(nameView);
+
+        TextView roleView = new TextView(this);
+        roleView.setText(role);
+        roleView.setTextColor(Color.parseColor(badgeColorHex));
+        roleView.setTextSize(12);
+        roleView.setTypeface(null, android.graphics.Typeface.BOLD);
+        textLayout.addView(roleView);
+
+        row.addView(textLayout);
+        return row;
     }
 
     private void showOnlineMembersDialog() {
@@ -752,10 +872,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             if (isOccupied) {
                                 optionsList.add("👤 View Profile"); 
                                 
-                                // 🛡️ OWNER SECURITY & POWER PROTECTION LOGIC:
-                                // Only the Room Owner can kick or mute others. NO ONE can kick or mute the Room Owner!
                                 if (currentUserId.equals(roomOwnerId)) {
-                                    // If current user is room owner, they can kick others (except themselves or on host seat)
                                     if (seatIndex > 0 && (occupantUserId == null || !occupantUserId.equals(roomOwnerId))) {
                                         optionsList.add("🚫 Remove from Mic (Kick)");
                                     }
@@ -763,9 +880,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                         optionsList.add("🔇 Mute Seat");
                                     }
                                 } else {
-                                    // If occupant is Room Owner, normal users or admins CANNOT kick/mute him!
                                     if (occupantUserId != null && occupantUserId.equals(roomOwnerId)) {
-                                        // Owner is protected! No kick/mute options for others against owner.
+                                        // Owner is fully protected!
                                     } else if (currentUserId.equals(occupantUserId)) {
                                         optionsList.add("🚪 Leave Mic");
                                     }
@@ -786,7 +902,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 } else if (selectedOption.contains("Take Mic")) {
                                     takeSeat(seatIndex, seatKey);
                                 } else if (selectedOption.contains("Remove from Mic")) {
-                                    // Security check: Never allow kicking room owner under any circumstances
                                     if (occupantUserId != null && occupantUserId.equals(roomOwnerId)) {
                                         Toast.makeText(VoiceRoomActivity.this, "Security Alert: Cannot kick Room Owner!", Toast.LENGTH_LONG).show();
                                     } else {
