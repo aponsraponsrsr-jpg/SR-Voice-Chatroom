@@ -29,6 +29,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -37,9 +40,13 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import com.sr.voicechat.adapters.GiftAdapter;
+import com.sr.voicechat.models.GiftModel;
+
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.List;
 
 public class VoiceRoomActivity extends AppCompatActivity {
 
@@ -89,7 +96,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         roomMetaRef = databaseReference.child("meta");
         messagesRef = databaseReference.child("messages");
         
-        // Fix: Using roomOwnerId as the exact child key to prevent duplicate rooms on re-login
         activeRoomsRef = FirebaseDatabase.getInstance().getReference("active_rooms").child(roomOwnerId);
         userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
 
@@ -209,27 +215,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
+        // Updated Gift Box Click to open WhatsApp style Bottom Sheet Gift Panel
         btnGiftBox = findViewById(R.id.btnGiftBox);
         if (btnGiftBox != null) {
-            btnGiftBox.setOnClickListener(v -> {
-                CharSequence[] gifts = {"🌹 Rose (10 Coins)", "👑 Crown (500 Coins)", "💎 Diamond (1000 Coins)"};
-                AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-                builder.setTitle("🎁 Premium Gift Center");
-                builder.setItems(gifts, (dialog, which) -> {
-                    String giftName = gifts[which].toString();
-                    String userName = prefs.getString("USER_NAME", "User");
-                    
-                    String msgId = messagesRef.push().getKey();
-                    if (msgId != null) {
-                        java.util.Map<String, Object> msgMap = new java.util.HashMap<>();
-                        msgMap.put("senderName", "🎁 " + userName);
-                        msgMap.put("message", "sent a gorgeous gift: " + giftName);
-                        messagesRef.child(msgId).setValue(msgMap);
-                    }
-                    Toast.makeText(this, "Successfully Sent Gift!", Toast.LENGTH_SHORT).show();
-                });
-                builder.show();
-            });
+            btnGiftBox.setOnClickListener(v -> showGiftPanel());
         }
 
         btnGameBox = findViewById(R.id.btnGameBox);
@@ -244,6 +233,91 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 builder.show();
             });
         }
+    }
+
+    // WhatsApp style Bottom Sheet Gift Panel Method
+    private void showGiftPanel() {
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
+        View sheetView = getLayoutInflater().inflate(R.layout.dialog_gift_panel, null);
+        bottomSheetDialog.setContentView(sheetView);
+
+        TextView tabGift = sheetView.findViewById(R.id.tabGift);
+        TextView tabCpGift = sheetView.findViewById(R.id.tabCpGift);
+        TextView tabLuckyGift = sheetView.findViewById(R.id.tabLuckyGift);
+        RecyclerView rvGifts = sheetView.findViewById(R.id.rvGifts);
+        Button btnSendGift = sheetView.findViewById(R.id.btnSendGift);
+
+        List<GiftModel> allGifts = new ArrayList<>();
+        // Category: Gift
+        allGifts.add(new GiftModel("Sports Car", "100K", R.drawable.ic_gift_placeholder, "gift"));
+        allGifts.add(new GiftModel("Dragon", "500K", R.drawable.ic_gift_placeholder, "gift"));
+        allGifts.add(new GiftModel("Tiger", "250K", R.drawable.ic_gift_placeholder, "gift"));
+        allGifts.add(new GiftModel("Spiderman", "300K", R.drawable.ic_gift_placeholder, "gift"));
+        
+        // Category: CP Gift
+        allGifts.add(new GiftModel("Love Ring", "99K", R.drawable.ic_gift_placeholder, "cp"));
+        allGifts.add(new GiftModel("Rose Bouquet", "50K", R.drawable.ic_gift_placeholder, "cp"));
+        
+        // Category: Lucky Gift
+        allGifts.add(new GiftModel("Mystery Box", "10K", R.drawable.ic_gift_placeholder, "lucky"));
+        allGifts.add(new GiftModel("Lucky Star", "20K", R.drawable.ic_gift_placeholder, "lucky"));
+
+        List<GiftModel> displayedGifts = new ArrayList<>();
+        for (GiftModel g : allGifts) {
+            if (g.getCategory().equals("gift")) {
+                displayedGifts.add(g);
+            }
+        }
+
+        GiftAdapter adapter = new GiftAdapter(displayedGifts, gift -> {
+            Toast.makeText(this, "Selected: " + gift.getGiftName(), Toast.LENGTH_SHORT).show();
+        });
+        rvGifts.setAdapter(adapter);
+
+        tabGift.setOnClickListener(v -> {
+            tabGift.setTextColor(getResources().getColor(R.color.gift_tab_selected));
+            tabCpGift.setTextColor(getResources().getColor(R.color.gift_tab_unselected));
+            tabLuckyGift.setTextColor(getResources().getColor(R.color.gift_tab_unselected));
+            
+            displayedGifts.clear();
+            for (GiftModel g : allGifts) { if (g.getCategory().equals("gift")) displayedGifts.add(g); }
+            adapter.notifyDataSetChanged();
+        });
+
+        tabCpGift.setOnClickListener(v -> {
+            tabCpGift.setTextColor(getResources().getColor(R.color.gift_tab_selected));
+            tabGift.setTextColor(getResources().getColor(R.color.gift_tab_unselected));
+            tabLuckyGift.setTextColor(getResources().getColor(R.color.gift_tab_unselected));
+            
+            displayedGifts.clear();
+            for (GiftModel g : allGifts) { if (g.getCategory().equals("cp")) displayedGifts.add(g); }
+            adapter.notifyDataSetChanged();
+        });
+
+        tabLuckyGift.setOnClickListener(v -> {
+            tabLuckyGift.setTextColor(getResources().getColor(R.color.gift_tab_selected));
+            tabGift.setTextColor(getResources().getColor(R.color.gift_tab_unselected));
+            tabCpGift.setTextColor(getResources().getColor(R.color.gift_tab_unselected));
+            
+            displayedGifts.clear();
+            for (GiftModel g : allGifts) { if (g.getCategory().equals("lucky")) displayedGifts.add(g); }
+            adapter.notifyDataSetChanged();
+        });
+
+        btnSendGift.setOnClickListener(v -> {
+            String userName = prefs.getString("USER_NAME", "User");
+            String msgId = messagesRef.push().getKey();
+            if (msgId != null) {
+                java.util.Map<String, Object> msgMap = new java.util.HashMap<>();
+                msgMap.put("senderName", "🎁 " + userName);
+                msgMap.put("message", "sent a premium gift from bottom sheet panel!");
+                messagesRef.child(msgId).setValue(msgMap);
+            }
+            Toast.makeText(this, "Gift Sent Successfully!", Toast.LENGTH_SHORT).show();
+            bottomSheetDialog.dismiss();
+        });
+
+        bottomSheetDialog.show();
     }
 
     private void syncLatestUserProfile() {
@@ -335,7 +409,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     }
                 }
 
-                // Single Room Overwrite Logic: Ensures only one active room node exists per room owner
                 if (currentUserId.equals(roomOwnerId)) {
                     activeRoomsRef.child("roomOwnerId").setValue(roomOwnerId);
                     activeRoomsRef.child("roomName").setValue(roomName != null ? roomName : "🌟 SR Voice Room");
