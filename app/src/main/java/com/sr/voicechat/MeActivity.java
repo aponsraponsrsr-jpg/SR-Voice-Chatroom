@@ -19,7 +19,7 @@ public class MeActivity extends AppCompatActivity {
 
     private TextView textUserNameMe, textPermanentIdMe, btnCopyId;
     private ImageView imgProfileMe;
-    private Button btnEditProfile, btnVipPrivilege, btnRechargeTopUp, btnStore, btnLevel;
+    private Button btnEditProfile;
     private SharedPreferences prefs;
 
     @Override
@@ -34,11 +34,6 @@ public class MeActivity extends AppCompatActivity {
         btnCopyId = findViewById(R.id.btnCopyId);
         imgProfileMe = findViewById(R.id.imgProfileMe);
         btnEditProfile = findViewById(R.id.btnEditProfile);
-        
-        btnVipPrivilege = findViewById(R.id.btnVipPrivilege);
-        btnRechargeTopUp = findViewById(R.id.btnRechargeTopUp);
-        btnStore = findViewById(R.id.btnStore);
-        btnLevel = findViewById(R.id.btnLevel);
 
         loadUserProfileData();
 
@@ -61,19 +56,6 @@ public class MeActivity extends AppCompatActivity {
                     }
                 }
             });
-        }
-
-        if (btnVipPrivilege != null) {
-            btnVipPrivilege.setOnClickListener(v -> Toast.makeText(this, "SR Voice - VIP Privilege Coming Soon!", Toast.LENGTH_SHORT).show());
-        }
-        if (btnRechargeTopUp != null) {
-            btnRechargeTopUp.setOnClickListener(v -> Toast.makeText(this, "SR Voice - Recharge Top-Up Coming Soon!", Toast.LENGTH_SHORT).show());
-        }
-        if (btnStore != null) {
-            btnStore.setOnClickListener(v -> Toast.makeText(this, "SR Voice - Store Coming Soon!", Toast.LENGTH_SHORT).show());
-        }
-        if (btnLevel != null) {
-            btnLevel.setOnClickListener(v -> Toast.makeText(this, "SR Voice - Level System Coming Soon!", Toast.LENGTH_SHORT).show());
         }
     }
 
@@ -103,7 +85,6 @@ public class MeActivity extends AppCompatActivity {
                 Bitmap decodedBitmap = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                 if (decodedBitmap != null) {
                     imgProfileMe.setImageBitmap(decodedBitmap);
-                    imgProfileMe.setPadding(0, 0, 0, 0);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
