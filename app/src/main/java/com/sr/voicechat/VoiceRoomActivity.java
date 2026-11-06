@@ -234,6 +234,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
+    // Handle system back button press to instantly clear seat and status
+    @Override
+    public void onBackPressed() {
+        leaveRoomAndFinish();
+    }
+
     private void showGiftPanel() {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         View sheetView = getLayoutInflater().inflate(R.layout.dialog_gift_panel, null);
@@ -660,7 +666,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             builder.setItems(seatOptions, (dialog, which) -> {
                                 String selectedOption = seatOptions[which].toString();
                                 if (selectedOption.contains("View Profile")) {
-                                    showUserProfileCard(occupantName, seatIndex);
+                                    showUserProfileCard(occupantName, seatIndex, seatSnap);
                                 } else if (selectedOption.contains("Take Mic")) {
                                     takeSeat(seatIndex, seatKey);
                                 } else if (selectedOption.contains("Remove from Mic")) {
@@ -683,8 +689,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // Premium Half-Screen User Profile Card Popup (Showing ID, Name, Fans, Followers & Owner Badge)
-    private void showUserProfileCard(String userName, int seatIndex) {
+    private void showUserProfileCard(String userName, int seatIndex, DataSnapshot seatSnap) {
         BottomSheetDialog profileDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         
         LinearLayout layout = new LinearLayout(this);
@@ -692,14 +697,17 @@ public class VoiceRoomActivity extends AppCompatActivity {
         layout.setPadding(40, 50, 40, 50);
         layout.setBackgroundColor(getResources().getColor(android.R.color.white));
         
-        // Match parent width and half screen layout look
         ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, 
             ViewGroup.LayoutParams.WRAP_CONTENT
         );
         layout.setLayoutParams(params);
 
-        // Owner/VIP Badge & Title Header
+        String occupantId = seatSnap.child("userId").getValue(String.class);
+        if (occupantId == null || occupantId.isEmpty()) {
+            occupantId = currentUserId;
+        }
+
         TextView txtBadge = new TextView(this);
         txtBadge.setText("👑 SR Verified VIP Profile");
         txtBadge.setTextColor(getResources().getColor(android.R.color.holo_orange_dark));
@@ -707,7 +715,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         txtBadge.setGravity(Gravity.CENTER);
         layout.addView(txtBadge);
 
-        // User Name
         TextView txtName = new TextView(this);
         txtName.setText(userName != null ? userName : "User");
         txtName.setTextSize(22);
@@ -717,15 +724,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
         txtName.setPadding(0, 10, 0, 5);
         layout.addView(txtName);
 
-        // Unique ID & Seat Position
         TextView txtIdInfo = new TextView(this);
-        txtIdInfo.setText("ID: " + currentUserId + " | Seat: #" + (seatIndex == 0 ? "Host" : (seatIndex + 1)));
+        txtIdInfo.setText("ID: " + occupantId + " | Seat: #" + (seatIndex == 0 ? "Host" : (seatIndex + 1)));
         txtIdInfo.setTextColor(getResources().getColor(android.R.color.darker_gray));
         txtIdInfo.setTextSize(14);
         txtIdInfo.setGravity(Gravity.CENTER);
         layout.addView(txtIdInfo);
 
-        // Fans & Followers stats layout
         LinearLayout statsLayout = new LinearLayout(this);
         statsLayout.setOrientation(LinearLayout.HORIZONTAL);
         statsLayout.setGravity(Gravity.CENTER);
@@ -745,7 +750,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         layout.addView(statsLayout);
 
-        // Send Gift Button (Universal Gifting for all user profiles)
         Button btnSendDirectGift = new Button(this);
         btnSendDirectGift.setText("🎁 Send Gift to " + (userName != null ? userName : "User"));
         btnSendDirectGift.setBackgroundColor(getResources().getColor(android.R.color.holo_red_dark));
@@ -764,13 +768,15 @@ public class VoiceRoomActivity extends AppCompatActivity {
         final String userName = prefs.getString("USER_NAME", "User");
         final String userImageUriStr = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
 
+        // Clear user from any previous seat in this room first
         for (int j = 0; j < 10; j++) {
             final int oldIndex = j;
-            databaseReference.child("seats").child("seat_" + oldIndex).child("userName").addListenerForSingleValueEvent(new ValueEventListener() {
+            databaseReference.child("seats").child("seat_" + oldIndex).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    String existingName = snapshot.getValue(String.class);
-                    if (existingName != null && existingName.equals(userName)) {
+                    String sUserId = snapshot.child("userId").getValue(String.class);
+                    String existingName = snapshot.child("userName").getValue(String.class);
+                    if ((sUserId != null && sUserId.equals(currentUserId)) || (existingName != null && existingName.equals(userName))) {
                         databaseReference.child("seats").child("seat_" + oldIndex).removeValue();
                     }
                 }
@@ -798,6 +804,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         }
 
+        databaseReference.child("seats").child(seatKey).child("userId").setValue(currentUserId);
         databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
         databaseReference.child("seats").child(seatKey).child("userImage").setValue(imageBase64[0]);
         
@@ -808,14 +815,17 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void leaveRoomAndFinish() {
         databaseReference.child("online_users").child(currentUserId).removeValue();
+        
+        // Instantly remove user from any seat in this room upon exit or leave
         for (int i = 0; i < 10; i++) {
             final int index = i;
-            databaseReference.child("seats").child("seat_" + index).child("userName").addListenerForSingleValueEvent(new ValueEventListener() {
+            databaseReference.child("seats").child("seat_" + index).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    String name = snapshot.getValue(String.class);
+                    String sUserId = snapshot.child("userId").getValue(String.class);
+                    String name = snapshot.child("userName").getValue(String.class);
                     String uName = prefs.getString("USER_NAME", "User");
-                    if (name != null && name.equals(uName)) {
+                    if ((sUserId != null && sUserId.equals(currentUserId)) || (name != null && name.equals(uName))) {
                         databaseReference.child("seats").child("seat_" + index).removeValue();
                     }
                 }
