@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
@@ -23,7 +24,7 @@
         <activity android:name=".EditProfileActivity" />
         <activity android:name=".HomeActivity" />
         <activity android:name=".MainActivity" />
-        <activity android:name=".MeActivity" android:exported="false" />
+        <activity android:name=".MeActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
         <activity android:name=".VoiceRoomActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
 
     </application>
