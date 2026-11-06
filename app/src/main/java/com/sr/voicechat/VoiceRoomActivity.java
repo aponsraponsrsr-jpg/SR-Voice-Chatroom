@@ -245,7 +245,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // ফায়ারবেস থেকে ইউজারের লেটেস্ট নাম ও ছবি পার্মানেন্টলি সিঙ্ক করার ফাংশন
     private void syncLatestUserProfile() {
         if (!currentUserId.isEmpty()) {
             userDatabaseRef.child(currentUserId).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -605,9 +604,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
                             builder.setTitle("🎙️ Seat " + seatNumber + (isOccupied ? " (" + occupantName + ")" : " (Empty)"));
                             builder.setItems(seatOptions, (dialog, which) -> {
-                                String userName = prefs.getString("USER_NAME", "User");
-                                String userImageUriStr = prefs.getString("USER_IMAGE", "");
-
                                 if (currentUserId.equals(roomOwnerId)) {
                                     if (isOccupied) {
                                         if (seatIndex > 0 && which == 0) { 
@@ -618,12 +614,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                         }
                                     } else {
                                         if (which == 0) { 
-                                            takeSeat(seatIndex, seatKey, userName, userImageUriStr);
+                                            takeSeat(seatIndex, seatKey);
                                         }
                                     }
                                 } else {
                                     if (which == 0 && !isOccupied) {
-                                        takeSeat(seatIndex, seatKey, userName, userImageUriStr);
+                                        takeSeat(seatIndex, seatKey);
                                     } else if (isOccupied && which == 1) {
                                         databaseReference.child("seats").child(seatKey).removeValue();
                                         Toast.makeText(VoiceRoomActivity.this, "Left seat", Toast.LENGTH_SHORT).show();
@@ -640,7 +636,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    private void takeSeat(int seatIndex, String seatKey, String userName, String userImageUriStr) {
+    private void takeSeat(int seatIndex, String seatKey) {
+        // Fetch latest name & profile image directly from SharedPreferences (which gets updated instantly on profile edit)
+        final String userName = prefs.getString("USER_NAME", "User");
+        final String userImageUriStr = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
+
         for (int j = 0; j < 10; j++) {
             final int oldIndex = j;
             databaseReference.child("seats").child("seat_" + oldIndex).child("userName").addListenerForSingleValueEvent(new ValueEventListener() {
@@ -656,22 +656,19 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        final String[] imageBase64 = {"v"};
-        imageBase64[0] = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
+        final String[] imageBase64 = {userImageUriStr};
         
-        if (userImageUriStr != null && !userImageUriStr.isEmpty() && !userImageUriStr.startsWith("/")) {
+        if (userImageUriStr != null && !userImageUriStr.isEmpty() && (userImageUriStr.startsWith("content://") || userImageUriStr.startsWith("file://"))) {
             try {
-                if (userImageUriStr.startsWith("content://") || userImageUriStr.startsWith("file://")) {
-                    Uri uri = Uri.parse(userImageUriStr);
-                    InputStream inputStream = getContentResolver().openInputStream(uri);
-                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-                    if (bitmap != null) {
-                        Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 120, 120, true);
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
-                        byte[] imageBytes = baos.toByteArray();
-                        imageBase64[0] = android.util.Base64.encodeToString(imageBytes, android.util.Base64.DEFAULT);
-                    }
+                Uri uri = Uri.parse(userImageUriStr);
+                InputStream inputStream = getContentResolver().openInputStream(uri);
+                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                if (bitmap != null) {
+                    Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 120, 120, true);
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
+                    byte[] imageBytes = baos.toByteArray();
+                    imageBase64[0] = android.util.Base64.encodeToString(imageBytes, android.util.Base64.DEFAULT);
                 }
             } catch (Exception e) {
                 // keep base64 from prefs
