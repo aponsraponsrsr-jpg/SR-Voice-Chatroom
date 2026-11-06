@@ -58,8 +58,31 @@
             android:textColorHint="#DDDDDD"
             android:textSize="16sp"
             android:paddingHorizontal="16dp"
-            android:layout_marginBottom="20dp"
+            android:layout_marginBottom="16dp"
             android:singleLine="true"/>
+
+        <!-- Location Input Field -->
+        <EditText
+            android:id="@+id/editUserLocation"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:background="#33000000"
+            android:hint="Enter your country/location..."
+            android:textColor="#FFFFFF"
+            android:textColorHint="#DDDDDD"
+            android:textSize="16sp"
+            android:paddingHorizontal="16dp"
+            android:layout_marginBottom="16dp"
+            android:singleLine="true"/>
+
+        <!-- Gender Selection Spinner -->
+        <Spinner
+            android:id="@+id/spinnerGender"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:background="#33000000"
+            android:paddingHorizontal="12dp"
+            android:layout_marginBottom="24dp"/>
 
         <!-- Save Button -->
         <Button
