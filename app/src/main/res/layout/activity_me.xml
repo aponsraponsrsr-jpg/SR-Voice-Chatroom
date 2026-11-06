@@ -1,38 +1,199 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFFFF"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:padding="24dp">
+    android:background="@drawable/bg_profile_gradient"
+    android:fillViewport="true">
 
-    <TextView
-        android:id="@+id/textUserNameMe"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="SR Apon"
-        android:textColor="#000000"
-        android:textSize="22sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/textPermanentIdMe"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:text="ID: 480384559"
-        android:textColor="#666666"
-        android:textSize="16sp" />
-
-    <Button
-        android:id="@+id/btnEditProfile"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="32dp"
-        android:backgroundTint="#E91E63"
-        android:text="Edit Profile"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp" />
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:gravity="center_horizontal">
 
-</LinearLayout>
+        <!-- Top Header Settings / Edit -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:layout_marginBottom="10dp">
+
+            <Button
+                android:id="@+id/btnEditProfile"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="✏️ Edit Profile"
+                android:textSize="12sp"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#33FFFFFF"
+                android:elevation="2dp"/>
+        </LinearLayout>
+
+        <!-- Profile Header Section -->
+        <ImageView
+            android:id="@+id/imgProfileMe"
+            android:layout_width="90dp"
+            android:layout_height="90dp"
+            android:src="@android:drawable/ic_menu_camera"
+            android:background="#33FFFFFF"
+            android:scaleType="centerCrop"
+            android:layout_marginBottom="12dp"
+            android:elevation="4dp"/>
+
+        <TextView
+            android:id="@+id/textUserNameMe"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SR Apon"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp"/>
+
+        <!-- ID with Copy Option Container -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="#22000000"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="4dp"
+            android:layout_marginBottom="20dp">
+
+            <TextView
+                android:id="@+id/textPermanentIdMe"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ID: 480384559"
+                android:textColor="#FFD700"
+                android:textSize="14sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/btnCopyId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" 📋"
+                android:textSize="14sp"
+                android:clickable="true"
+                android:focusable="true"/>
+        </LinearLayout>
+
+        <!-- Followers / Fans / Visitors Counter Layout -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="3"
+            android:background="#15FFFFFF"
+            android:padding="12dp"
+            android:layout_marginBottom="20dp"
+            android:gravity="center">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <TextView android:text="0" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold"/>
+                <TextView android:text="Followers" android:textColor="#DDDDDD" android:textSize="12sp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <TextView android:text="0" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold"/>
+                <TextView android:text="Fans" android:textColor="#DDDDDD" android:textSize="12sp"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <TextView android:text="1" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold"/>
+                <TextView android:text="Visitors" android:textColor="#DDDDDD" android:textSize="12sp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- VIP & Recharge Cards (Locked / Coming Soon) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2"
+            android:layout_marginBottom="20dp">
+
+            <Button
+                android:id="@+id/btnVipPrivilege"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:text="👑 VIP Privilege"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:backgroundTint="#33000000"
+                android:layout_marginEnd="8dp"/>
+
+            <Button
+                android:id="@+id/btnRechargeTopUp"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:text="💰 Recharge Top-Up"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:backgroundTint="#33000000"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
+        <!-- General Tools Section Header -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🛠️ General Tools"
+            android:textColor="#FFD700"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp"/>
+
+        <!-- General Tools: Store & Level -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <Button
+                android:id="@+id/btnStore"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:text="🏬 Store"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:backgroundTint="#33000000"
+                android:layout_marginEnd="8dp"/>
+
+            <Button
+                android:id="@+id/btnLevel"
+                android:layout_width="0dp"
+                android:layout_height="50dp"
+                android:layout_weight="1"
+                android:text="⭐ Level"
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:backgroundTint="#33000000"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>
