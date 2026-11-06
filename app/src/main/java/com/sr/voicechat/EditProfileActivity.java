@@ -75,10 +75,16 @@ public class EditProfileActivity extends AppCompatActivity {
             if (!encodedImage.isEmpty()) {
                 editor.putString("USER_PROFILE_IMAGE", encodedImage);
             }
-            editor.apply();
+            
+            // Using commit() to instantly save data before closing activity
+            boolean isSaved = editor.commit();
 
-            Toast.makeText(this, "Profile Updated Successfully!", Toast.LENGTH_SHORT).show();
-            finish();
+            if (isSaved) {
+                Toast.makeText(this, "Profile Updated Successfully!", Toast.LENGTH_SHORT).show();
+                finish();
+            } else {
+                Toast.makeText(this, "Failed to save profile!", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
