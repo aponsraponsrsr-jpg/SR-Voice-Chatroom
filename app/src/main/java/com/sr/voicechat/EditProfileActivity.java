@@ -17,6 +17,7 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -28,15 +29,30 @@ import java.util.Random;
 public class EditProfileActivity extends AppCompatActivity {
 
     private ImageView imgProfilePic;
-    private EditText inputName, inputLocation;
-    private Spinner spinnerGender;
+    private EditText inputName;
+    private Spinner spinnerGender, spinnerCountry;
     private Button btnSaveProfile, btnLogOut;
 
-    private String userEmail, deviceId;
+    private String userEmail, deviceId, permanentId;
     private String encodedImage = "";
     private SharedPreferences prefs;
 
     private static final int PICK_IMAGE_REQUEST = 1;
+
+    // দেশের তালিকা ফ্ল্যাগসহ
+    private final String[] countries = {
+        "Select Country", 
+        "🇧🇩 Bangladesh", 
+        "🇸🇦 Saudi Arabia", 
+        "🇦🇪 United Arab Emirates", 
+        "🇲🇾 Malaysia", 
+        "🇴🇲 Oman", 
+        "🇶🇦 Qatar", 
+        "🇰🇼 Kuwait", 
+        "🇧🇭 Bahrain", 
+        "🇮🇳 India", 
+        "🌍 Other Country"
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,16 +64,38 @@ public class EditProfileActivity extends AppCompatActivity {
         userEmail = getIntent().getStringExtra("USER_EMAIL");
         deviceId = getIntent().getStringExtra("DEVICE_ID");
 
+        if (userEmail == null || userEmail.isEmpty()) {
+            userEmail = prefs.getString("USER_EMAIL", "user@gmail.com");
+        }
+
         imgProfilePic = findViewById(R.id.imgProfilePic);
         inputName = findViewById(R.id.inputName);
-        inputLocation = findViewById(R.id.inputLocation);
+        spinnerCountry = findViewById(R.id.spinnerCountry);
         spinnerGender = findViewById(R.id.spinnerGender);
         btnSaveProfile = findViewById(R.id.btnSaveProfile);
         btnLogOut = findViewById(R.id.btnLogOut);
 
+        // জেন্ডার অ্যাডাপ্টার
         String[] genders = {"Select Gender", "Male", "Female", "Other"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, genders);
-        spinnerGender.setAdapter(adapter);
+        ArrayAdapter<String> genderAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, genders);
+        spinnerGender.setAdapter(genderAdapter);
+
+        // কান্ট্রি অ্যাডাপ্টার (ফ্ল্যাগসহ)
+        ArrayAdapter<String> countryAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, countries);
+        spinnerCountry.setAdapter(countryAdapter);
+
+        // পার্মানেন্ট আইডি চেক করা (আগে থেকে থাকলে সেটাই রাখবে, না থাকলে নতুন তৈরি করে চিরতরে সেভ করে নেবে)
+        permanentId = prefs.getString("MY_9_DIGIT_ID", "");
+        if (permanentId == null || permanentId.isEmpty()) {
+            permanentId = generatePermanentId();
+            prefs.edit().putString("MY_9_DIGIT_ID", permanentId).apply();
+        }
+
+        // যদি আগে থেকেই নাম বা ডাটা সেভ থাকে তা বক্সে দেখানোর জন্য
+        String existingName = prefs.getString("USER_NAME", "");
+        if (!existingName.isEmpty() && inputName != null) {
+            inputName.setText(existingName);
+        }
 
         // লগআউট বাটন ক্লিক লজিক
         if (btnLogOut != null) {
@@ -71,8 +109,6 @@ public class EditProfileActivity extends AppCompatActivity {
             });
         }
 
-        imgProfilePSettings();
-
         imgProfilePic.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             startActivityForResult(intent, PICK_IMAGE_REQUEST);
@@ -80,8 +116,8 @@ public class EditProfileActivity extends AppCompatActivity {
 
         btnSaveProfile.setOnClickListener(v -> {
             String name = inputName.getText().toString().trim();
-            String location = inputLocation.getText().toString().trim();
             String gender = spinnerGender.getSelectedItem().toString();
+            String country = spinnerCountry.getSelectedItem().toString();
 
             if (name.isEmpty()) {
                 Toast.makeText(this, "Please enter your name!", Toast.LENGTH_SHORT).show();
@@ -91,22 +127,20 @@ public class EditProfileActivity extends AppCompatActivity {
                 Toast.makeText(this, "Please select your gender!", Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (location.isEmpty()) {
-                Toast.makeText(this, "Please enter your location!", Toast.LENGTH_SHORT).show();
+            if (country.equals("Select Country")) {
+                Toast.makeText(this, "Please select your country!", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            String permanentId = generatePermanentId();
-
             DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(permanentId);
-            DatabaseReference deviceBindingRef = FirebaseDatabase.getInstance().getReference("device_bindings").child(deviceId);
+            DatabaseReference deviceBindingRef = FirebaseDatabase.getInstance().getReference("device_bindings");
 
             HashMap<String, Object> userData = new HashMap<>();
             userData.put("userId", permanentId);
             userData.put("email", userEmail);
             userData.put("name", name);
             userData.put("gender", gender);
-            userData.put("location", location);
+            userData.put("location", country);
             userData.put("profileImage", encodedImage);
             userData.put("coins", 0);
 
@@ -115,25 +149,26 @@ public class EditProfileActivity extends AppCompatActivity {
             bindingData.put("email", userEmail);
             bindingData.put("name", name);
 
+            // ফায়ারবেসে পার্মানেন্টলি ডাটা সেভ করা
             userRef.setValue(userData).addOnSuccessListener(aVoid -> {
-                deviceBindingRef.setValue(bindingData).addOnSuccessListener(aVoid2 -> {
-                    SharedPreferences.Editor editor = prefs.edit();
-                    editor.putBoolean("IS_LOGGED_IN", true);
-                    editor.putString("USER_EMAIL", userEmail);
-                    editor.putString("MY_9_DIGIT_ID", permanentId);
-                    editor.putString("USER_NAME", name);
-                    editor.apply();
+                if (deviceId != null && !deviceId.isEmpty()) {
+                    deviceBindingRef.child(deviceId).setValue(bindingData);
+                }
 
-                    Toast.makeText(this, "Profile Setup Successful! ID: " + permanentId, Toast.LENGTH_LONG).show();
-                    startActivity(new Intent(EditProfileActivity.this, HomeActivity.class));
-                    finish();
-                });
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.putBoolean("IS_LOGGED_IN", true);
+                editor.putString("USER_EMAIL", userEmail);
+                editor.putString("MY_9_DIGIT_ID", permanentId);
+                editor.putString("USER_NAME", name);
+                editor.putString("USER_COUNTRY", country);
+                editor.putString("USER_GENDER", gender);
+                editor.apply();
+
+                Toast.makeText(this, "Profile Saved Successfully! ID: " + permanentId, Toast.LENGTH_LONG).show();
+                startActivity(new Intent(EditProfileActivity.this, HomeActivity.class));
+                finish();
             }).addOnFailureListener(e -> Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show());
         });
-    }
-
-    private void imgProfilePSettings() {
-        // Placeholder helper method if needed
     }
 
     private String generatePermanentId() {
@@ -153,7 +188,7 @@ public class EditProfileActivity extends AppCompatActivity {
                 imgProfilePic.setImageBitmap(bitmap);
 
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 50, baos);
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 40, baos);
                 byte[] imageBytes = baos.toByteArray();
                 encodedImage = Base64.encodeToString(imageBytes, Base64.DEFAULT);
 
