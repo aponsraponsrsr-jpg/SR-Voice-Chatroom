@@ -160,7 +160,7 @@
                 android:drawablePadding="12dp"
                 android:gravity="center_vertical"
                 android:padding="14dp"
-                android:text="💎 Wallet & Coins (Recharge)"
+                android:text="💎 Wallet &amp; Coins (Recharge)"
                 android:textColor="#FFFFFF"
                 android:textSize="15sp" />
 
@@ -174,7 +174,7 @@
                 android:drawablePadding="12dp"
                 android:gravity="center_vertical"
                 android:padding="14dp"
-                android:text="🛍️ Store & Dress Frames"
+                android:text="🛍️ Store &amp; Dress Frames"
                 android:textColor="#FFFFFF"
                 android:textSize="15sp" />
 
@@ -188,7 +188,7 @@
                 android:drawablePadding="12dp"
                 android:gravity="center_vertical"
                 android:padding="14dp"
-                android:text="⭐ Level & Daily Tasks"
+                android:text="⭐ Level &amp; Daily Tasks"
                 android:textColor="#FFFFFF"
                 android:textSize="15sp" />
 
@@ -216,7 +216,7 @@
                 android:drawablePadding="12dp"
                 android:gravity="center_vertical"
                 android:padding="14dp"
-                android:text="🏅 Medal & Badges"
+                android:text="🏅 Medal &amp; Badges"
                 android:textColor="#FFFFFF"
                 android:textSize="15sp" />
 
@@ -230,7 +230,7 @@
                 android:drawablePadding="12dp"
                 android:gravity="center_vertical"
                 android:padding="14dp"
-                android:text="🎙️ Host Center & Agency"
+                android:text="🎙️ Host Center &amp; Agency"
                 android:textColor="#FFFFFF"
                 android:textSize="15sp" />
 
