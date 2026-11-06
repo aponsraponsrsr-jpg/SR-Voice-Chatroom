@@ -71,12 +71,12 @@ public class MeActivity extends AppCompatActivity {
             });
         }
 
-        // Wallet & Recharge Click -> Coming Soon Dialog[span_1](start_span)[span_1](end_span)
+        // Wallet & Recharge Click -> Coming Soon Dialog
         if (btnWalletRecharge != null) {
             btnWalletRecharge.setOnClickListener(v -> {
                 new AlertDialog.Builder(MeActivity.this)
                     .setTitle("💰 Wallet & Recharge")
-                    .setMessage("Coming Soon")[span_2](start_span)[span_2](end_span)
+                    .setMessage("Coming Soon")
                     .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
                     .show();
             });
