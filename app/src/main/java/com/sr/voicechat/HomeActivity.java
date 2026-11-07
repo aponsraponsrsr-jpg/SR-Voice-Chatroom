@@ -60,9 +60,34 @@ public class HomeActivity extends AppCompatActivity {
 
         loadActiveRooms();
 
-        // 🌟 সবার জন্য সহজে রুম ক্রিয়েট করার ডায়লগ ওপেন করার লজিক
+        // 🌟 স্মার্ট প্লাস (+) আইকন লজিক: ইউজার একবার রুম বানালে বারবার ডায়লগ আসবে না, সরাসরি নিজের রুমে প্রবেশ করবে!
         if (btnPlus != null) {
-            btnPlus.setOnClickListener(v -> showCreateRoomDialog());
+            btnPlus.setOnClickListener(v -> {
+                String myId = prefs.getString("MY_9_DIGIT_ID", "");
+                if (myId.isEmpty()) {
+                    showCreateRoomDialog();
+                } else {
+                    activeRoomsRef.child(myId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if (snapshot.exists()) {
+                                // ইউজার আগেই রুম বানিয়েছে! তাই সরাসরি তার নিজস্ব রুমে এন্ট্রি করিয়ে দেব
+                                Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
+                                intent.putExtra("ROOM_OWNER_ID", myId);
+                                startActivity(intent);
+                            } else {
+                                // রুম না থাকলে ক্রিয়েট করার ডায়লগ দেখাবে
+                                showCreateRoomDialog();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            showCreateRoomDialog();
+                        }
+                    });
+                }
+            });
         }
 
         if (btnSearchRoom != null) {
@@ -80,6 +105,7 @@ public class HomeActivity extends AppCompatActivity {
             });
         }
 
+        // সরাসরি প্রিমিয়াম MeActivity ওপেন করার লজিক
         if (btnMeTab != null) {
             btnMeTab.setOnClickListener(v -> {
                 Intent intent = new Intent(HomeActivity.this, MeActivity.class);
@@ -94,7 +120,7 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
-    // 🌟 যেকোনো ইউজার যেন খুব সহজে এক ক্লিকে রুম ক্রিয়েট করতে পারে
+    // 🌟 নতুন রুম ক্রিয়েট করার ডায়লগ বক্স
     private void showCreateRoomDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
         builder.setTitle("🎙️ Create Your Voice Room");
@@ -117,7 +143,6 @@ public class HomeActivity extends AppCompatActivity {
             String roomName = inputRoomName.getText().toString().trim();
             String roomBio = inputRoomBio.getText().toString().trim();
 
-            // ইউজারের নিজস্ব আইডি নিশ্চিত করা (না থাকলে নতুন জেনারেট হবে)
             String myId = prefs.getString("MY_9_DIGIT_ID", "");
             if (myId == null || myId.isEmpty()) {
                 myId = String.valueOf((int)(Math.random() * 900000000) + 100000000);
@@ -131,10 +156,9 @@ public class HomeActivity extends AppCompatActivity {
                 roomBio = "Welcome to my voice chat room!";
             }
 
-            String userName = prefs.getString("USER_NAME", "User");
             String userImage = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
 
-            // ফায়ারবেসে রুমের ডাটা পার্মানেন্টলি সেভ করা যাতে অন্য ইউজাররাও দেখতে পায়
+            // ফায়ারবেসে রুমের মেটা ডাটা এবং একটিভ রুমে সেভ করা
             DatabaseReference roomMetaRef = roomsRef.child("room_" + myId).child("meta");
             roomMetaRef.child("roomName").setValue(roomName);
             roomMetaRef.child("roomBio").setValue(roomBio);
@@ -148,7 +172,7 @@ public class HomeActivity extends AppCompatActivity {
 
             Toast.makeText(this, "Room Created Successfully!", Toast.LENGTH_SHORT).show();
 
-            // সরাসরি ভয়েস রুমে এন্ট্রি করানো
+            // সরাসরি ভয়েস রুমে প্রবেশ করানো
             Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
             intent.putExtra("ROOM_OWNER_ID", myId);
             startActivity(intent);
