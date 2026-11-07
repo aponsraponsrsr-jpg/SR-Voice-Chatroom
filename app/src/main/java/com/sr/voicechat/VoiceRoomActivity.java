@@ -323,7 +323,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // 🌟 Room-Specific Badge Icon Logic (Strictly checks THIS room's owner & admins)
+    // 🌟 Strictly checks THIS room's owner & admin status (No global cross-room bugs)
     private String getCorrectBadgeIcon(String targetUid) {
         if (targetUid == null || targetUid.isEmpty()) {
             return ""; 
@@ -333,7 +333,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         } else if (roomAdminList.contains(targetUid)) {
             return "🛡️[Admin] "; // ic_admin_shield.png
         } else {
-            return "🛡️ ";     // ic_member_shield.png
+            return ""; // Normal members in other rooms will have no special shield prefix
         }
     }
 
@@ -454,9 +454,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
         listContainer.setOrientation(LinearLayout.VERTICAL);
         listContainer.setPadding(10, 10, 10, 10);
 
-        addRankUserRow(listContainer, "1", "🛡️[Owner] SR CEO", "0 Coins", "#FFD700");
-        addRankUserRow(listContainer, "2", "🛡️[Admin] Apon Rahman", "0 Coins", "#C0C0C0");
-        addRankUserRow(listContainer, "3", "🛡️ Voice Host BD", "0 Coins", "#CD7F32");
+        addRankUserRow(listContainer, "1", "🛡️[Owner] Room Host", "0 Coins", "#FFD700");
+        addRankUserRow(listContainer, "2", "🛡️[Admin] Room Admin", "0 Coins", "#C0C0C0");
+        addRankUserRow(listContainer, "3", "Active Member", "0 Coins", "#CD7F32");
 
         rankLayout.addView(listContainer);
         rankSheet.setContentView(rankLayout);
