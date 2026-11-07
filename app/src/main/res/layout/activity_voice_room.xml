@@ -438,64 +438,72 @@
         android:paddingHorizontal="8dp"
         android:paddingTop="8dp"/>
 
-    <!-- Bottom Action Bar -->
+    <!-- 🌟 Ultra Premium Bottom Action Bar with Glowing/Rounded Buttons -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="65dp"
+        android:layout_height="70dp"
         android:orientation="horizontal"
-        android:background="#33000000"
+        android:background="#22000000"
         android:gravity="center"
         android:paddingHorizontal="12dp"
-        android:paddingTop="6dp"
-        android:paddingBottom="10dp">
+        android:paddingTop="8dp"
+        android:paddingBottom="12dp">
 
+        <!-- Mic Button -->
         <Button
             android:id="@+id/btnMicToggle"
             android:layout_width="0dp"
-            android:layout_height="44dp"
+            android:layout_height="46dp"
             android:layout_weight="1"
             android:text="🎙️ Mic"
             android:textColor="#FFFFFF"
             android:textSize="12sp"
             android:backgroundTint="#00E676"
-            android:layout_marginHorizontal="4dp"
-            android:textStyle="bold"/>
+            android:layout_marginHorizontal="5dp"
+            android:textStyle="bold"
+            android:elevation="4dp"/>
 
+        <!-- Chat Button -->
         <Button
             android:id="@+id/btnChatOption"
             android:layout_width="0dp"
-            android:layout_height="44dp"
+            android:layout_height="46dp"
             android:layout_weight="1"
             android:text="💬 Chat"
             android:textColor="#FFFFFF"
             android:textSize="12sp"
-            android:backgroundTint="#333333"
-            android:layout_marginHorizontal="4dp"
-            android:textStyle="bold"/>
+            android:backgroundTint="#4527A0"
+            android:layout_marginHorizontal="5dp"
+            android:textStyle="bold"
+            android:elevation="4dp"/>
 
+        <!-- Gift Button -->
         <Button
             android:id="@+id/btnGiftBox"
             android:layout_width="0dp"
-            android:layout_height="44dp"
+            android:layout_height="46dp"
             android:layout_weight="1"
             android:text="🎁 Gift"
-            android:textColor="#FFFFFF"
+            android:textColor="#111111"
             android:textSize="12sp"
             android:backgroundTint="#FFD700"
-            android:layout_marginHorizontal="4dp"
-            android:textStyle="bold"/>
+            android:layout_marginHorizontal="5dp"
+            android:textStyle="bold"
+            android:elevation="4dp"/>
 
+        <!-- Game Button -->
         <Button
             android:id="@+id/btnGameBox"
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="46dp"
             android:layout_weight="1"
             android:text="🎮 Game"
-            android:textColor="#FFFFFF"
+            android:textColor="#111111"
             android:textSize="12sp"
             android:backgroundTint="#00E5FF"
-            android:layout_marginHorizontal="4dp"
-            android:textStyle="bold"/>
+            android:layout_marginHorizontal="5dp"
+            android:textStyle="bold"
+            android:elevation="4dp"/>
 
     </LinearLayout>
 
