@@ -39,7 +39,7 @@
 
             <!-- প্রোফাইল পিকচার -->
             <ImageView
-                android:id="@+id/imgUserProfile"
+                android:id="@+id/imgMeProfile"
                 android:layout_width="110dp"
                 android:layout_height="110dp"
                 android:layout_marginTop="20dp"
@@ -47,7 +47,7 @@
 
             <!-- ইউজার নেম -->
             <TextView
-                android:id="@+id/textUserName"
+                android:id="@+id/textMeName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Sr-Apon"
@@ -66,7 +66,7 @@
                 android:background="#1AFFFFFF"
                 android:padding="4dp">
                 <TextView
-                    android:id="@+id/textUserId"
+                    android:id="@+id/textMeId"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="ID: 493859069"
@@ -148,6 +148,7 @@
                 android:gravity="center">
                 
                 <LinearLayout
+                    android:id="@+id/btnVipStatus"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -155,19 +156,24 @@
                     android:background="#4A148C"
                     android:padding="12dp"
                     android:gravity="center"
-                    android:layout_marginEnd="8dp">
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👑 VIP Status" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="(Locked)" android:textColor="#FFEB3B" android:textSize="10sp"/>
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/btnWalletRecharge"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
                     android:background="#004D40"
                     android:padding="12dp"
-                    android:gravity="center">
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💰 Wallet / Recharge" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="(Locked)" android:textColor="#00E676" android:textSize="10sp"/>
                 </LinearLayout>
@@ -182,6 +188,7 @@
                 android:gravity="center">
                 
                 <LinearLayout
+                    android:id="@+id/btnHostCenter"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
@@ -189,19 +196,24 @@
                     android:background="#1B5E20"
                     android:padding="12dp"
                     android:gravity="center"
-                    android:layout_marginEnd="8dp">
+                    android:layout_marginEnd="8dp"
+                    android:clickable="true"
+                    android:focusable="true">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎙️ Host Center" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Target &amp; Earnings" android:textColor="#B9F6CA" android:textSize="10sp"/>
                 </LinearLayout>
 
                 <LinearLayout
+                    android:id="@+id/btnHostPolicy"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
                     android:background="#880E4F"
                     android:padding="12dp"
-                    android:gravity="center">
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📜 Host Policy" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rules &amp; Guidelines" android:textColor="#F8BBD0" android:textSize="10sp"/>
                 </LinearLayout>
