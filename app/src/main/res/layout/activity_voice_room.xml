@@ -123,7 +123,7 @@
         android:maxLines="1"
         android:ellipsize="end"/>
 
-    <!-- 10 Voice Seats Grid Container (Enhanced Premium Golden Ring Style) -->
+    <!-- 10 Voice Seats Grid Container (Using your existing circle_gold.xml for Premium Look) -->
     <GridLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -143,11 +143,10 @@
                 app:cardElevation="6dp"
                 app:cardBackgroundColor="#22000000"
                 app:cardPreventCornerOverlap="false">
-                <!-- Outer Glow/Border effect wrapper -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/bg_circle_gold_ring"
+                    android:background="@drawable/circle_gold"
                     android:padding="2.5dp">
                     <ImageView
                         android:id="@+id/seatImg1"
@@ -175,7 +174,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/bg_circle_gold_ring"
+                    android:background="@drawable/circle_gold"
                     android:padding="2.5dp">
                     <ImageView
                         android:id="@+id/seatImg2"
@@ -202,7 +201,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/bg_circle_gold_ring"
+                    android:background="@drawable/circle_gold"
                     android:padding="2.5dp">
                     <ImageView
                         android:id="@+id/seatImg3"
@@ -229,7 +228,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/bg_circle_gold_ring"
+                    android:background="@drawable/circle_gold"
                     android:padding="2.5dp">
                     <ImageView
                         android:id="@+id/seatImg4"
@@ -256,7 +255,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/bg_circle_gold_ring"
+                    android:background="@drawable/circle_gold"
                     android:padding="2.5dp">
                     <ImageView
                         android:id="@+id/seatImg5"
@@ -283,7 +282,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/bg_circle_gold_ring"
+                    android:background="@drawable/circle_gold"
                     android:padding="2.5dp">
                     <ImageView
                         android:id="@+id/seatImg6"
@@ -310,7 +309,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/bg_circle_gold_ring"
+                    android:background="@drawable/circle_gold"
                     android:padding="2.5dp">
                     <ImageView
                         android:id="@+id/seatImg7"
@@ -337,7 +336,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/bg_circle_gold_ring"
+                    android:background="@drawable/circle_gold"
                     android:padding="2.5dp">
                     <ImageView
                         android:id="@+id/seatImg8"
@@ -364,7 +363,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/bg_circle_gold_ring"
+                    android:background="@drawable/circle_gold"
                     android:padding="2.5dp">
                     <ImageView
                         android:id="@+id/seatImg9"
@@ -391,7 +390,7 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/bg_circle_gold_ring"
+                    android:background="@drawable/circle_gold"
                     android:padding="2.5dp">
                     <ImageView
                         android:id="@+id/seatImg10"
@@ -420,7 +419,7 @@
         android:paddingHorizontal="8dp"
         android:paddingTop="8dp"/>
 
-    <!-- Bottom Action Bar (Lifted up nicely with proper padding so it won't hide behind system nav bar) -->
+    <!-- Bottom Action Bar (Fixed properly so it won't cut off at the bottom) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="65dp"
