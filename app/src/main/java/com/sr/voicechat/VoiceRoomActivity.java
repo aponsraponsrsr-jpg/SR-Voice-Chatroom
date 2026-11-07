@@ -323,14 +323,17 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // 🌟 Dynamic Shield Icon based on Role (Linked with drawable resources: ic_owner_shield, ic_admin_shield, ic_member_shield)
+    // 🌟 Global Room-Specific Badge Icon Logic (Linked with drawable resources: ic_owner_shield, ic_admin_shield, ic_member_shield)
     private String getCorrectBadgeIcon(String targetUid) {
+        if (targetUid == null || targetUid.isEmpty()) {
+            return ""; 
+        }
         if (targetUid.equals(roomOwnerId)) {
-            return "🛡️[Owner] "; // Dynamically linked with ic_owner_shield drawable reference
+            return "🛡️[Owner] "; // ic_owner_shield.png
         } else if (roomAdminList.contains(targetUid)) {
-            return "🛡️[Admin] "; // Dynamically linked with ic_admin_shield drawable reference
+            return "🛡️[Admin] "; // ic_admin_shield.png
         } else {
-            return "🛡️ ";     // Dynamically linked with ic_member_shield drawable reference
+            return "🛡️ ";     // ic_member_shield.png
         }
     }
 
@@ -882,7 +885,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
                 String currentUserName = prefs.getString("USER_NAME", "User");
                 addDetailRow(container, "Total Room Members", "3 / 20400");
-                addDetailRow(container, "Room Owner", "🛡️[Owner] " + currentUserName);
+                addDetailRow(container, "Room Owner", getCorrectBadgeIcon(roomOwnerId) + currentUserName);
                 addDetailRow(container, "Country/Region", "🌍 Global");
                 addDetailRow(container, "Tag", "Chat");
                 addDetailRow(container, "Notice of Room", (rBio != null && !rBio.isEmpty() ? rBio : "Welcome to SR Voice Chat Room!"));
