@@ -61,6 +61,16 @@
                 android:ellipsize="end"/>
         </LinearLayout>
 
+        <!-- 🌟 Room Tools / Owner Control Panel Icon (Four-Leaves / Menu Icon) -->
+        <ImageView
+            android:id="@+id/btnRoomTools"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@android:drawable/ic_menu_manage"
+            android:tint="#00E5FF"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="Room Tools"/>
+
         <!-- 🌟 Golden Cup Icon with "Rank" Text -->
         <LinearLayout
             android:id="@+id/btnInRoomRanking"
@@ -426,7 +436,7 @@
 
     </GridLayout>
 
-    <!-- Screen Chat Messages List -->
+    <!-- Screen Chat Messages List (Properly positioned above action bar) -->
     <ListView
         android:id="@+id/chatListView"
         android:layout_width="match_parent"
@@ -435,25 +445,26 @@
         android:divider="@null"
         android:stackFromBottom="true"
         android:transcriptMode="normal"
-        android:paddingHorizontal="8dp"
-        android:paddingTop="8dp"/>
+        android:paddingHorizontal="10dp"
+        android:paddingTop="8dp"
+        android:layout_marginBottom="8dp"/>
 
-    <!-- 🌟 Ultra Premium Bottom Action Bar with Glowing/Rounded Buttons -->
+    <!-- 🌟 Lifted & Fully Visible Ultra Premium Bottom Action Bar -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="70dp"
+        android:layout_height="72dp"
         android:orientation="horizontal"
-        android:background="#22000000"
+        android:background="#44000000"
         android:gravity="center"
         android:paddingHorizontal="12dp"
         android:paddingTop="8dp"
-        android:paddingBottom="12dp">
+        android:paddingBottom="14dp">
 
         <!-- Mic Button -->
         <Button
             android:id="@+id/btnMicToggle"
             android:layout_width="0dp"
-            android:layout_height="46dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:text="🎙️ Mic"
             android:textColor="#FFFFFF"
@@ -461,27 +472,27 @@
             android:backgroundTint="#00E676"
             android:layout_marginHorizontal="5dp"
             android:textStyle="bold"
-            android:elevation="4dp"/>
+            android:elevation="6dp"/>
 
         <!-- Chat Button -->
         <Button
             android:id="@+id/btnChatOption"
             android:layout_width="0dp"
-            android:layout_height="46dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:text="💬 Chat"
             android:textColor="#FFFFFF"
             android:textSize="12sp"
-            android:backgroundTint="#4527A0"
+            android:backgroundTint="#5E35B1"
             android:layout_marginHorizontal="5dp"
             android:textStyle="bold"
-            android:elevation="4dp"/>
+            android:elevation="6dp"/>
 
         <!-- Gift Button -->
         <Button
             android:id="@+id/btnGiftBox"
             android:layout_width="0dp"
-            android:layout_height="46dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:text="🎁 Gift"
             android:textColor="#111111"
@@ -489,13 +500,13 @@
             android:backgroundTint="#FFD700"
             android:layout_marginHorizontal="5dp"
             android:textStyle="bold"
-            android:elevation="4dp"/>
+            android:elevation="6dp"/>
 
         <!-- Game Button -->
         <Button
             android:id="@+id/btnGameBox"
             android:layout_width="0dp"
-            android:layout_height="46dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:text="🎮 Game"
             android:textColor="#111111"
@@ -503,7 +514,7 @@
             android:backgroundTint="#00E5FF"
             android:layout_marginHorizontal="5dp"
             android:textStyle="bold"
-            android:elevation="4dp"/>
+            android:elevation="6dp"/>
 
     </LinearLayout>
 
