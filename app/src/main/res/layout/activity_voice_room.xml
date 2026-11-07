@@ -7,20 +7,20 @@
     android:fitsSystemWindows="true"
     android:background="@drawable/voice_room_bg">
 
-    <!-- Top Bar: Room Header Profile, Title, Bio & Controls -->
+    <!-- Top Bar: Clean & Premium Compact Banner Header -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="10dp"
+        android:padding="8dp"
         android:gravity="center_vertical"
-        android:background="#22000000">
+        android:background="#33000000">
 
-        <!-- Header Profile Picture -->
+        <!-- Header Profile Picture (Simple Circle without any extra frames) -->
         <androidx.cardview.widget.CardView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            app:cardCornerRadius="20dp"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            app:cardCornerRadius="19dp"
             app:cardElevation="2dp"
             android:layout_marginEnd="8dp"
             app:cardBackgroundColor="@android:color/transparent">
@@ -29,10 +29,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
-                android:src="@android:drawable/ic_menu_my_calendar"
-                android:background="@drawable/bg_circle_pink"/>
+                android:src="@android:drawable/ic_menu_my_calendar"/>
         </androidx.cardview.widget.CardView>
 
+        <!-- Room Name & ID (No Bio/Notice here) -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -43,9 +43,9 @@
                 android:id="@+id/roomTitleText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="🌟 SR Official Voice Room"
+                android:text="SR Voice Room"
                 android:textColor="#FFFFFF"
-                android:textSize="15sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:maxLines="1"
                 android:ellipsize="end"/>
@@ -54,12 +54,22 @@
                 android:id="@+id/roomInfoText"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="ID: 777888 | 📝 Welcome to room!"
-                android:textColor="#FFD700"
+                android:text="ID: 493859069"
+                android:textColor="#CCCCCC"
                 android:textSize="11sp"
                 android:maxLines="1"
                 android:ellipsize="end"/>
         </LinearLayout>
+
+        <!-- 🌟 In-Room Ranking / Wealth List Icon (Daily, Weekly, Monthly) -->
+        <ImageView
+            android:id="@+id/btnInRoomRanking"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@android:drawable/ic_menu_sort_by_size"
+            android:tint="#FFD700"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="Ranking List"/>
 
         <!-- Online Member Count & Icon -->
         <LinearLayout
@@ -71,8 +81,8 @@
 
             <ImageView
                 android:id="@+id/btnOnlineList"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
                 android:src="@android:drawable/ic_menu_myplaces"
                 android:tint="#00E676"
                 android:contentDescription="Online List"/>
@@ -83,16 +93,16 @@
                 android:layout_height="wrap_content"
                 android:text="1"
                 android:textColor="#00E676"
-                android:textSize="13sp"
+                android:textSize="12sp"
                 android:textStyle="bold"
-                android:layout_marginStart="3dp"/>
+                android:layout_marginStart="2dp"/>
         </LinearLayout>
 
         <!-- Power / Exit Button -->
         <ImageButton
             android:id="@+id/btnPower"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_lock_power_off"
             android:tint="#FF4081"
@@ -351,7 +361,7 @@
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:orientation="horizontal"
-        android:background="#22000000"
+        android:background="#33000000"
         android:gravity="center"
         android:paddingHorizontal="8dp"
         android:paddingBottom="4dp">
