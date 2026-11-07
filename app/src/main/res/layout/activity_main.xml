@@ -5,13 +5,9 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center_horizontal"
-    
-    <!-- 🌟 এখানে তোমার ড্রয়েবলের প্রিমিయం ব্যাকগ্রাউন্ড ইমেজ সেট করা হলো -->
     android:background="@drawable/aponsraponsrs_jpg"
-    
     android:padding="20dp">
 
-    <!-- 🌟 ভেতরের লেআউট যেন ট্রান্সপারেন্ট থাকে এবং ব্যাকগ্রাউন্ড ইমেজটি পুরোপুরি ভেসে ওঠে -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -20,7 +16,6 @@
         android:background="@android:color/transparent"
         android:padding="10dp">
 
-        <!-- হেডার (Edit Profile বাটন) -->
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -37,7 +32,6 @@
                 android:textSize="12sp"/>
         </RelativeLayout>
 
-        <!-- প্রোফাইল পিকচার (SR লোগো) -->
         <ImageView
             android:id="@+id/imgUserProfile"
             android:layout_width="120dp"
@@ -45,7 +39,6 @@
             android:layout_marginTop="30dp"
             android:src="@android:drawable/ic_menu_my_calendar" />
 
-        <!-- ইউজার নেম -->
         <TextView
             android:id="@+id/textUserName"
             android:layout_width="wrap_content"
@@ -56,7 +49,6 @@
             android:textStyle="bold"
             android:layout_marginTop="15dp"/>
 
-        <!-- SR আইডি এবং কপি আইকন -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -74,7 +66,6 @@
                 android:textSize="14sp"/>
         </LinearLayout>
 
-        <!-- ফলোয়ার্স/ফ্যান্স/ভিজিটরস কাউন্ট কার্ড -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -136,7 +127,6 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- ভিআইপি এবং ওয়ালেট বাটন -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
