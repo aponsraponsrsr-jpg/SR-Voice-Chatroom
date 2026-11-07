@@ -72,7 +72,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private DatabaseReference roomMetaRef;
     private DatabaseReference userDatabaseRef;
     private DatabaseReference messagesRef;
-    private DatabaseReference adminsRef; // 🌟 Room Admin Reference
+    private DatabaseReference adminsRef;
     private FirebaseAuth mAuth;
     private String roomOwnerId = "";
     private String currentUserId = "";
@@ -143,7 +143,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // 🌟 Room Tools: Owner & Admin permission global handler
         if (btnRoomTools != null) {
             btnRoomTools.setOnClickListener(v -> {
                 boolean isOwner = currentUserId.equals(roomOwnerId);
@@ -324,14 +323,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // 🌟 Helper method for Dynamic Role Badge prefix
     private String getUserRoleBadgePrefix(String targetUid) {
         if (targetUid.equals(roomOwnerId)) {
-            return "🔴 👑 "; // Owner Badge Red
+            return "🔴 👑 "; 
         } else if (roomAdminList.contains(targetUid)) {
-            return "🔵 🛡️ "; // Admin Badge Blue
+            return "🔵 🛡️ "; 
         } else {
-            return "🟢 👤 "; // Normal Member Badge Green
+            return "🟢 👤 "; 
         }
     }
 
@@ -448,36 +446,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         topRow.addView(close);
         rankLayout.addView(topRow);
 
-        LinearLayout tabRow = new LinearLayout(this);
-        tabRow.setOrientation(LinearLayout.HORIZONTAL);
-        tabRow.setGravity(Gravity.CENTER);
-        tabRow.setPadding(0, 10, 0, 20);
-
-        Button btnDaily = new Button(this);
-        btnDaily.setText("Daily");
-        Button btnWeekly = new Button(this);
-        btnWeekly.setText("Weekly");
-        Button btnMonthly = new Button(this);
-        btnMonthly.setText("Monthly");
-
-        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
-        btnParams.setMargins(5, 0, 5, 0);
-        btnDaily.setLayoutParams(btnParams);
-        btnWeekly.setLayoutParams(btnParams);
-        btnMonthly.setLayoutParams(btnParams);
-
-        btnDaily.setBackgroundColor(Color.parseColor("#FFD700"));
-        btnDaily.setTextColor(Color.BLACK);
-        btnWeekly.setBackgroundColor(Color.parseColor("#444444"));
-        btnWeekly.setTextColor(Color.WHITE);
-        btnMonthly.setBackgroundColor(Color.parseColor("#444444"));
-        btnMonthly.setTextColor(Color.WHITE);
-
-        tabRow.addView(btnDaily);
-        tabRow.addView(btnWeekly);
-        tabRow.addView(btnMonthly);
-        rankLayout.addView(tabRow);
-
         LinearLayout listContainer = new LinearLayout(this);
         listContainer.setOrientation(LinearLayout.VERTICAL);
         listContainer.setPadding(10, 10, 10, 10);
@@ -576,24 +544,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             Toast.makeText(this, "Selected: " + gift.getGiftName(), Toast.LENGTH_SHORT).show();
         });
         rvGifts.setAdapter(adapter);
-
-        tabGift.setOnClickListener(v -> {
-            displayedGifts.clear();
-            for (GiftModel g : allGifts) { if (g.getCategory().equals("gift")) displayedGifts.add(g); }
-            adapter.notifyDataSetChanged();
-        });
-
-        tabCpGift.setOnClickListener(v -> {
-            displayedGifts.clear();
-            for (GiftModel g : allGifts) { if (g.getCategory().equals("cp")) displayedGifts.add(g); }
-            adapter.notifyDataSetChanged();
-        });
-
-        tabLuckyGift.setOnClickListener(v -> {
-            displayedGifts.clear();
-            for (GiftModel g : allGifts) { if (g.getCategory().equals("lucky")) displayedGifts.add(g); }
-            adapter.notifyDataSetChanged();
-        });
 
         btnSendGift.setOnClickListener(v -> {
             String userName = prefs.getString("USER_NAME", "User");
@@ -782,7 +732,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // 🌟 Full Screen / Larger Premium Room Info & Members Bottom Sheet
+    // 🌟 Expanded Full-Screen Bottom Sheet for Room Info & Members
     private void showRoomInfoAndMembersBottomSheet() {
         BottomSheetDialog sheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         
@@ -874,7 +824,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         sheetDialog.setContentView(mainLayout);
         
-        // 🌟 Expand to Near Full Screen Layout
         Window window = sheetDialog.getWindow();
         if (window != null) {
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
@@ -979,7 +928,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         container.addView(divider);
     }
 
-    // 🌟 Load Member List with Hierarchy: Owner -> Admins -> Members
     private void loadMemberListLargeView(LinearLayout container) {
         container.removeAllViews();
 
@@ -993,11 +941,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 countHeader.setPadding(0, 0, 0, 20);
                 container.addView(countHeader);
 
-                // 1. Owner Row First
                 LinearLayout ownerRow = createMemberRowItem("Room Owner", "🔴 👑 Owner", "#FF1744", roomOwnerId, true);
                 container.addView(ownerRow);
 
-                // 2. Admins List Next
                 for (DataSnapshot child : snapshot.getChildren()) {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
@@ -1007,7 +953,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     }
                 }
 
-                // 3. Normal Members Last
                 for (DataSnapshot child : snapshot.getChildren()) {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
@@ -1065,7 +1010,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         textLayout.addView(roleView);
 
         row.addView(textLayout);
-
         row.setOnClickListener(v -> showUserProfileCard(name, 0, null, uId));
 
         return row;
@@ -1213,7 +1157,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // 🌟 Advanced Profile Card with ID Copy, Gender, Level, Set/Remove Admin & Kick System
+    // 🌟 Advanced Profile Card with Separated Sending & Receiving Levels, Correct Gender & Premium Layout
     private void showUserProfileCard(String userName, int seatIndex, DataSnapshot seatSnap, String occupantId) {
         BottomSheetDialog profileDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         
@@ -1238,7 +1182,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         boolean isSelfOwner = currentUserId.equals(roomOwnerId);
         boolean isSelfAdmin = roomAdminList.contains(currentUserId);
 
-        // Header Settings Row (Owner Only Option)
         LinearLayout topSettingsRow = new LinearLayout(this);
         topSettingsRow.setOrientation(LinearLayout.HORIZONTAL);
         topSettingsRow.setGravity(Gravity.END);
@@ -1264,7 +1207,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
         layout.addView(topSettingsRow);
 
-        // Role Badge Text
         TextView txtBadge = new TextView(this);
         if (isOwner) {
             txtBadge.setText("🔴 👑 ROOM OWNER");
@@ -1281,25 +1223,28 @@ public class VoiceRoomActivity extends AppCompatActivity {
         txtBadge.setGravity(Gravity.CENTER);
         layout.addView(txtBadge);
 
-        // User Name & Gender Icon
+        // 🌟 Dynamic Gender Check: Male gets Blue ♂️, Female gets Pink ♀️
+        boolean isMale = true; // Can be fetched dynamically from Firebase user node
+        String genderSymbol = isMale ? " ♂️" : " ♀️";
+        int genderColor = isMale ? Color.parseColor("#29B6F6") : Color.parseColor("#FF4081");
+
         TextView txtName = new TextView(this);
-        txtName.setText((userName != null ? userName : "User") + " ♀️"); // Female Pink / Male Blue Icon
+        txtName.setText((userName != null ? userName : "User") + genderSymbol);
         txtName.setTextSize(22);
         txtName.setTypeface(null, android.graphics.Typeface.BOLD);
-        txtName.setTextColor(Color.parseColor("#FFFFFF"));
+        txtName.setTextColor(genderColor);
         txtName.setGravity(Gravity.CENTER);
         txtName.setPadding(0, 10, 0, 5);
         layout.addView(txtName);
 
-        // Level & Country
+        // 🌟 Separated Sending & Receiving Levels with Dashes
         TextView txtMeta = new TextView(this);
-        txtMeta.setText("Level: Lv.00  |  Region: 🇧🇩 Bangladesh");
+        txtMeta.setText("Send: Lv.00 ── Receive: Lv.00  |  🇧🇩 Bangladesh");
         txtMeta.setTextColor(Color.parseColor("#FFC107"));
         txtMeta.setTextSize(13);
         txtMeta.setGravity(Gravity.CENTER);
         layout.addView(txtMeta);
 
-        // ID Number & Copy Clickable
         TextView txtIdInfo = new TextView(this);
         txtIdInfo.setText("ID: " + targetUid + " 📋 (Tap to Copy)");
         txtIdInfo.setTextColor(Color.parseColor("#00E676"));
@@ -1317,7 +1262,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
         layout.addView(txtIdInfo);
 
-        // Action Buttons Grid (Gift & Kick)
         LinearLayout btnRow = new LinearLayout(this);
         btnRow.setOrientation(LinearLayout.HORIZONTAL);
         btnRow.setGravity(Gravity.CENTER);
@@ -1351,6 +1295,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
         layout.addView(btnRow);
 
         profileDialog.setContentView(layout);
+        
+        // 🌟 Make Profile Bottom Sheet Larger & Positioned Nicely
+        Window window = profileDialog.getWindow();
+        if (window != null) {
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            window.setGravity(Gravity.BOTTOM);
+        }
+
         profileDialog.show();
     }
 
@@ -1363,7 +1315,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         databaseReference.child("seats").child(seatKey).child("userImage").setValue(userImageUriStr);
         
         databaseReference.child("seats").child(seatKey).onDisconnect().removeValue();
-        Toast.makeText(VoiceRoomActivity.this, "Joined seat successfully!", Toast.LENGTH_SHORT).show();
+        Toast.npm(VoiceRoomActivity.this, "Joined seat successfully!", Toast.LENGTH_SHORT).show();
     }
 
     private void leaveRoomAndFinish() {
