@@ -113,7 +113,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         roomHeaderProfileImg = findViewById(R.id.roomHeaderProfileImg);
         btnInRoomRanking = findViewById(R.id.btnInRoomRanking);
         roomNoticeBarText = findViewById(R.id.roomNoticeBarText);
-        btnRoomTools = findViewById(R.id.btnRoomTools); // 🌟 Room Tools Icon (Four leaves / menu)
+        btnRoomTools = findViewById(R.id.btnRoomTools); // 🌟 Room Tools Icon
 
         if (btnPower != null) {
             btnPower.setOnClickListener(v -> {
@@ -131,24 +131,43 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // 🌟 Room Tools Click Action (Chat Clean & Room Control)
+        // 🌟 Permanent & Smooth Room Control Tools Bottom Sheet (Grid Popup)
         if (btnRoomTools != null) {
             btnRoomTools.setOnClickListener(v -> {
-                CharSequence[] toolsOptions = {"🧹 Clear Chat History", "🔒 Room Lock/Unlock", "⚙️ Room Settings"};
-                AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-                builder.setTitle("🛠️ Room Control Tools");
-                builder.setItems(toolsOptions, (dialog, which) -> {
-                    if (which == 0) {
+                BottomSheetDialog toolsSheet = new BottomSheetDialog(VoiceRoomActivity.this, R.style.Theme_Design_BottomSheetDialog);
+                View sheetView = getLayoutInflater().inflate(R.layout.dialog_room_tools, null);
+                toolsSheet.setContentView(sheetView);
+
+                // 1. Room Lock Action
+                LinearLayout toolRoomLock = sheetView.findViewById(R.id.toolRoomLock);
+                if (toolRoomLock != null) {
+                    toolRoomLock.setOnClickListener(view -> {
+                        toolsSheet.dismiss();
+                        showRoomLockPasswordDialog();
+                    });
+                }
+
+                // 2. Clean Chat Action
+                LinearLayout toolCleanChat = sheetView.findViewById(R.id.toolCleanChat);
+                if (toolCleanChat != null) {
+                    toolCleanChat.setOnClickListener(view -> {
                         chatMessages.clear();
                         chatAdapter.notifyDataSetChanged();
-                        Toast.makeText(this, "Chat history cleared!", Toast.LENGTH_SHORT).show();
-                    } else if (which == 1) {
-                        Toast.makeText(this, "Room lock settings updated", Toast.LENGTH_SHORT).show();
-                    } else {
+                        Toast.makeText(VoiceRoomActivity.this, "Chat history cleaned successfully!", Toast.LENGTH_SHORT).show();
+                        toolsSheet.dismiss();
+                    });
+                }
+
+                // 3. Room Settings Action
+                LinearLayout toolRoomSettings = sheetView.findViewById(R.id.toolRoomSettings);
+                if (toolRoomSettings != null) {
+                    toolRoomSettings.setOnClickListener(view -> {
+                        toolsSheet.dismiss();
                         showEditRoomDialog();
-                    }
-                });
-                builder.show();
+                    });
+                }
+
+                toolsSheet.show();
             });
         }
 
@@ -267,6 +286,43 @@ public class VoiceRoomActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         leaveRoomAndFinish();
+    }
+
+    // 🌟 Room Lock Password Dialog with Cancel & Unlock options
+    private void showRoomLockPasswordDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
+        builder.setTitle("🔒 Room Lock Protection");
+
+        LinearLayout layout = new LinearLayout(VoiceRoomActivity.this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 30, 50, 30);
+
+        final EditText inputPassword = new EditText(VoiceRoomActivity.this);
+        inputPassword.setHint("Enter Room Password...");
+        inputPassword.setInputType(android.text.InputType.TYPE_CLASS_NUMBER | android.text.InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+        layout.addView(inputPassword);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Lock Room", (dialog, which) -> {
+            String password = inputPassword.getText().toString().trim();
+            if (!password.isEmpty()) {
+                roomMetaRef.child("roomPassword").setValue(password);
+                roomMetaRef.child("isLocked").setValue(true);
+                Toast.makeText(this, "Room locked with password successfully!", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Password cannot be empty!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNeutralButton("Unlock Room", (dialog, which) -> {
+            roomMetaRef.child("roomPassword").removeValue();
+            roomMetaRef.child("isLocked").setValue(false);
+            Toast.makeText(this, "Room is now Unlocked!", Toast.LENGTH_SHORT).show();
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+        builder.show();
     }
 
     private void showInRoomRankingBottomSheet() {
