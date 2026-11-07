@@ -61,15 +61,34 @@
                 android:ellipsize="end"/>
         </LinearLayout>
 
-        <!-- 🌟 In-Room Ranking / Wealth List Icon (Cup Icon) -->
-        <ImageView
+        <!-- 🌟 Golden Cup Icon with "Rank" Text -->
+        <LinearLayout
             android:id="@+id/btnInRoomRanking"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:src="@android:drawable/ic_menu_sort_by_size"
-            android:tint="#FFD700"
-            android:layout_marginEnd="8dp"
-            android:contentDescription="Ranking List"/>
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:layout_marginEnd="10dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="2dp">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@android:drawable/ic_menu_agenda"
+                android:tint="#FFD700"
+                android:contentDescription="Cup Ranking"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rank"
+                android:textColor="#FFD700"
+                android:textSize="9sp"
+                android:textStyle="bold"/>
+        </LinearLayout>
 
         <!-- Online Member Count & Icon -->
         <LinearLayout
@@ -123,7 +142,7 @@
         android:maxLines="1"
         android:ellipsize="end"/>
 
-    <!-- 10 Voice Seats Grid Container (Using your existing circle_gold.xml for Premium Look) -->
+    <!-- 10 Voice Seats Grid Container -->
     <GridLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -133,7 +152,7 @@
         android:columnOrderPreserved="false"
         android:gravity="center">
 
-        <!-- Seat 1: Host / Owner -->
+        <!-- Seat 1: Host -->
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
             <androidx.cardview.widget.CardView
                 android:id="@+id/seatCard1"
@@ -419,7 +438,7 @@
         android:paddingHorizontal="8dp"
         android:paddingTop="8dp"/>
 
-    <!-- Bottom Action Bar (Fixed properly so it won't cut off at the bottom) -->
+    <!-- Bottom Action Bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="65dp"
