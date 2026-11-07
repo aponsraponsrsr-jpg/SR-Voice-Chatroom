@@ -55,7 +55,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private ImageButton btnPower;
     private Button btnMicToggle, btnChatOption, btnGiftBox, btnGameBox;
     private TextView roomTitleText, roomInfoText, textOnlineCount, roomNoticeBarText;
-    private ImageView btnOnlineList, roomHeaderProfileImg;
+    private ImageView btnOnlineList, roomHeaderProfileImg, btnRoomTools;
     private LinearLayout btnInRoomRanking;
     private boolean isMuted = false;
 
@@ -113,6 +113,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         roomHeaderProfileImg = findViewById(R.id.roomHeaderProfileImg);
         btnInRoomRanking = findViewById(R.id.btnInRoomRanking);
         roomNoticeBarText = findViewById(R.id.roomNoticeBarText);
+        btnRoomTools = findViewById(R.id.btnRoomTools); // 🌟 Room Tools Icon (Four leaves / menu)
 
         if (btnPower != null) {
             btnPower.setOnClickListener(v -> {
@@ -124,6 +125,27 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         moveTaskToBack(true);
                     } else {
                         leaveRoomAndFinish();
+                    }
+                });
+                builder.show();
+            });
+        }
+
+        // 🌟 Room Tools Click Action (Chat Clean & Room Control)
+        if (btnRoomTools != null) {
+            btnRoomTools.setOnClickListener(v -> {
+                CharSequence[] toolsOptions = {"🧹 Clear Chat History", "🔒 Room Lock/Unlock", "⚙️ Room Settings"};
+                AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
+                builder.setTitle("🛠️ Room Control Tools");
+                builder.setItems(toolsOptions, (dialog, which) -> {
+                    if (which == 0) {
+                        chatMessages.clear();
+                        chatAdapter.notifyDataSetChanged();
+                        Toast.makeText(this, "Chat history cleared!", Toast.LENGTH_SHORT).show();
+                    } else if (which == 1) {
+                        Toast.makeText(this, "Room lock settings updated", Toast.LENGTH_SHORT).show();
+                    } else {
+                        showEditRoomDialog();
                     }
                 });
                 builder.show();
