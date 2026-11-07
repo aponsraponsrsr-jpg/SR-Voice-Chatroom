@@ -7,6 +7,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -32,6 +33,7 @@ public class HomeActivity extends AppCompatActivity {
     private RoomGridAdapter roomGridAdapter;
 
     private DatabaseReference activeRoomsRef;
+    private DatabaseReference roomsRef;
     private SharedPreferences prefs;
 
     @Override
@@ -41,6 +43,7 @@ public class HomeActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
         activeRoomsRef = FirebaseDatabase.getInstance().getReference("active_rooms");
+        roomsRef = FirebaseDatabase.getInstance().getReference("rooms");
 
         btnPlus = findViewById(R.id.btnPlus);
         btnSearchRoom = findViewById(R.id.btnSearchRoom);
@@ -57,13 +60,9 @@ public class HomeActivity extends AppCompatActivity {
 
         loadActiveRooms();
 
+        // 🌟 প্লাস (+) আইকনে ক্লিক করলে রুম ক্রিয়েট ডায়লগ আসার নিখুঁত লজিক
         if (btnPlus != null) {
-            btnPlus.setOnClickListener(v -> {
-                String myId = prefs.getString("MY_9_DIGIT_ID", "777888");
-                Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
-                intent.putExtra("ROOM_OWNER_ID", myId);
-                startActivity(intent);
-            });
+            btnPlus.setOnClickListener(v -> showCreateRoomDialog());
         }
 
         if (btnSearchRoom != null) {
@@ -94,6 +93,69 @@ public class HomeActivity extends AppCompatActivity {
                 Toast.makeText(this, "SR Moments Coming Soon!", Toast.LENGTH_SHORT).show()
             );
         }
+    }
+
+    // 🌟 নতুন রুম ক্রিয়েট করার ডায়লগ বক্স
+    private void showCreateRoomDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
+        builder.setTitle("🎙️ Create Voice Room");
+
+        LinearLayout layout = new LinearLayout(HomeActivity.this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 20, 50, 20);
+
+        final EditText inputRoomName = new EditText(HomeActivity.this);
+        inputRoomName.setHint("Enter Room Name (e.g. Bangladesh Room)...");
+        layout.addView(inputRoomName);
+
+        final EditText inputRoomBio = new EditText(HomeActivity.this);
+        inputRoomBio.setHint("Enter Room Notice / Bio...");
+        layout.addView(inputRoomBio);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("CONFIRM", (dialog, which) -> {
+            String roomName = inputRoomName.getText().toString().trim();
+            String roomBio = inputRoomBio.getText().toString().trim();
+
+            if (roomName.isEmpty()) {
+                roomName = prefs.getString("USER_NAME", "Sr") + "'s Room";
+            }
+            if (roomBio.isEmpty()) {
+                roomBio = "Welcome to my voice chat room!";
+            }
+
+            String myId = prefs.getString("MY_9_DIGIT_ID", "");
+            if (myId.isEmpty()) {
+                myId = String.valueOf((int)(Math.random() * 900000000) + 100000000);
+                prefs.edit().putString("MY_9_DIGIT_ID", myId).apply();
+            }
+
+            String userName = prefs.getString("USER_NAME", "User");
+            String userImage = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
+
+            // ফায়ারবেসে রুমের মেটা ডাটা এবং একটিভ রুমে সেভ করা
+            DatabaseReference roomMetaRef = roomsRef.child("room_" + myId).child("meta");
+            roomMetaRef.child("roomName").setValue(roomName);
+            roomMetaRef.child("roomBio").setValue(roomBio);
+            roomMetaRef.child("roomOwnerImage").setValue(userImage);
+
+            DatabaseReference singleActiveRoomRef = activeRoomsRef.child(myId);
+            singleActiveRoomRef.child("roomOwnerId").setValue(myId);
+            singleActiveRoomRef.child("roomName").setValue(roomName);
+            singleActiveRoomRef.child("roomBio").setValue(roomBio);
+            singleActiveRoomRef.child("roomOwnerImage").setValue(userImage);
+
+            Toast.makeText(this, "Room Created Successfully!", Toast.LENGTH_SHORT).show();
+
+            // সরাসরি ভয়েস রুমে প্রবেশ করানো
+            Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
+            intent.putExtra("ROOM_OWNER_ID", myId);
+            startActivity(intent);
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+        builder.show();
     }
 
     private void loadActiveRooms() {
