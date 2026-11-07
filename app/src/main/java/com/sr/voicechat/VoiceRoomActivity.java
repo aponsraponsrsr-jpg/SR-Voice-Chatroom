@@ -272,9 +272,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         if (!message.isEmpty()) {
                             String msgId = messagesRef.push().getKey();
                             if (msgId != null) {
-                                String userRoleBadge = getUserRoleBadgePrefix(currentUserId);
+                                String roleBadge = getCorrectBadgeIcon(currentUserId);
                                 java.util.Map<String, Object> msgMap = new java.util.HashMap<>();
-                                msgMap.put("senderName", userRoleBadge + userName);
+                                msgMap.put("senderName", roleBadge + userName);
                                 msgMap.put("senderId", currentUserId);
                                 msgMap.put("message", message);
                                 msgMap.put("timestamp", msgTimestamp);
@@ -323,14 +323,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // 🌟 Shield Badge with text inside for Owner, Admin & Member
-    private String getUserRoleBadgePrefix(String targetUid) {
+    // 🌟 Correct Shield Icon based on Role (Only Icons, Original Name remains intact)
+    private String getCorrectBadgeIcon(String targetUid) {
         if (targetUid.equals(roomOwnerId)) {
-            return "[🛡️ OWNER] "; 
+            return "🔴⚪ "; // Red & Silver Shield for Owner in this room
         } else if (roomAdminList.contains(targetUid)) {
-            return "[🛡️ ADMIN] "; 
+            return "🔵⚪ "; // Blue & Silver Shield for Admin in this room
         } else {
-            return "[🛡️ MEMBER] "; 
+            return "🟢 ";   // Green Shield for Normal Member
         }
     }
 
@@ -451,9 +451,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
         listContainer.setOrientation(LinearLayout.VERTICAL);
         listContainer.setPadding(10, 10, 10, 10);
 
-        addRankUserRow(listContainer, "1", "[🛡️ OWNER] SR CEO", "0 Coins", "#FFD700");
-        addRankUserRow(listContainer, "2", "[🛡️ ADMIN] Apon Rahman", "0 Coins", "#C0C0C0");
-        addRankUserRow(listContainer, "3", "[🛡️ MEMBER] Voice Host BD", "0 Coins", "#CD7F32");
+        addRankUserRow(listContainer, "1", "🔴⚪ SR CEO", "0 Coins", "#FFD700");
+        addRankUserRow(listContainer, "2", "🔵⚪ Apon Rahman", "0 Coins", "#C0C0C0");
+        addRankUserRow(listContainer, "3", "🟢 Voice Host BD", "0 Coins", "#CD7F32");
 
         rankLayout.addView(listContainer);
         rankSheet.setContentView(rankLayout);
@@ -551,9 +551,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
             long msgTimestamp = System.currentTimeMillis();
             String msgId = messagesRef.push().getKey();
             if (msgId != null) {
-                String userRoleBadge = getUserRoleBadgePrefix(currentUserId);
+                String roleBadge = getCorrectBadgeIcon(currentUserId);
                 java.util.Map<String, Object> msgMap = new java.util.HashMap<>();
-                msgMap.put("senderName", userRoleBadge + "🎁 " + userName);
+                msgMap.put("senderName", roleBadge + "🎁 " + userName);
                 msgMap.put("message", "sent a premium gift!");
                 msgMap.put("timestamp", msgTimestamp);
                 messagesRef.child(msgId).setValue(msgMap);
@@ -880,8 +880,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 bannerCard.addView(textStack);
                 container.addView(bannerCard);
 
+                String currentUserName = prefs.getString("USER_NAME", "User");
                 addDetailRow(container, "Total Room Members", "3 / 20400");
-                addDetailRow(container, "Room Owner", "[🛡️ OWNER] " + prefs.getString("USER_NAME", "User"));
+                addDetailRow(container, "Room Owner", "🔴⚪ " + currentUserName);
                 addDetailRow(container, "Country/Region", "🌍 Global");
                 addDetailRow(container, "Tag", "Chat");
                 addDetailRow(container, "Notice of Room", (rBio != null && !rBio.isEmpty() ? rBio : "Welcome to SR Voice Chat Room!"));
@@ -941,14 +942,21 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 countHeader.setPadding(0, 0, 0, 20);
                 container.addView(countHeader);
 
-                LinearLayout ownerRow = createMemberRowItem("Room Owner", "[🛡️ OWNER] Owner", "#FF1744", roomOwnerId, true);
-                container.addView(ownerRow);
+                for (DataSnapshot child : snapshot.getChildren()) {
+                    String uId = child.getKey();
+                    String name = child.getValue(String.class);
+                    if (uId != null && uId.equals(roomOwnerId)) {
+                        LinearLayout ownerRow = createMemberRowItem(name, "🔴⚪ Owner", "#FF1744", uId, true);
+                        container.addView(ownerRow);
+                        break;
+                    }
+                }
 
                 for (DataSnapshot child : snapshot.getChildren()) {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
                     if (uId != null && !uId.equals(roomOwnerId) && roomAdminList.contains(uId)) {
-                        LinearLayout adminRow = createMemberRowItem(name, "[🛡️ ADMIN] Admin", "#29B6F6", uId, false);
+                        LinearLayout adminRow = createMemberRowItem(name, "🔵⚪ Admin", "#29B6F6", uId, false);
                         container.addView(adminRow);
                     }
                 }
@@ -957,7 +965,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
                     if (uId != null && !uId.equals(roomOwnerId) && !roomAdminList.contains(uId)) {
-                        LinearLayout memberRow = createMemberRowItem(name, "[🛡️ MEMBER] Member", "#00E676", uId, false);
+                        LinearLayout memberRow = createMemberRowItem(name, "🟢 Member", "#00E676", uId, false);
                         container.addView(memberRow);
                     }
                 }
@@ -996,7 +1004,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         textLayout.setLayoutParams(textParams);
 
         TextView nameView = new TextView(this);
-        nameView.setText(name);
+        nameView.setText(name != null ? name : "User");
         nameView.setTextColor(Color.parseColor("#111111"));
         nameView.setTextSize(16);
         nameView.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -1040,12 +1048,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         String sUid = snapshot.child(seatKey).child("userId").getValue(String.class);
 
                         if (seatTxt != null) {
-                            String rolePrefix = (sUid != null) ? getUserRoleBadgePrefix(sUid) : "";
-                            if (i == 0) {
-                                seatTxt.setText(rolePrefix + (name != null && !name.isEmpty() ? name : "Host"));
-                            } else {
-                                seatTxt.setText(rolePrefix + (name != null && !name.isEmpty() ? name : String.valueOf(i + 1)));
-                            }
+                            String roleIcon = (sUid != null) ? getCorrectBadgeIcon(sUid) : "";
+                            String displayName = (name != null && !name.isEmpty()) ? name : (i == 0 ? "Host" : String.valueOf(i + 1));
+                            seatTxt.setText(roleIcon + displayName);
                         }
 
                         if (seatImg != null && imageBase64 != null && !imageBase64.isEmpty()) {
@@ -1208,13 +1213,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         TextView txtBadge = new TextView(this);
         if (isOwner) {
-            txtBadge.setText("[🛡️ OWNER]");
+            txtBadge.setText("🔴⚪ ROOM OWNER");
             txtBadge.setTextColor(Color.parseColor("#FF1744"));
         } else if (isAdmin) {
-            txtBadge.setText("[🛡️ ADMIN]");
+            txtBadge.setText("🔵⚪ ROOM ADMIN");
             txtBadge.setTextColor(Color.parseColor("#29B6F6"));
         } else {
-            txtBadge.setText("[🛡️ MEMBER]");
+            txtBadge.setText("🟢 VERIFIED MEMBER");
             txtBadge.setTextColor(Color.parseColor("#00E676"));
         }
         txtBadge.setTextSize(14);
