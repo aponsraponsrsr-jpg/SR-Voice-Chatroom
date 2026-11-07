@@ -1,4 +1,4 @@
-package com.sr.voicechat;
+Package com.sr.voicechat;
 
 import android.app.Dialog;
 import android.content.ClipData;
@@ -323,14 +323,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // 🌟 Correct Shield Icon based on Role (Only Icons, Original Name remains intact)
+    // 🌟 Dynamic Shield Icon based on Role (Linked with drawable resources: ic_owner_shield, ic_admin_shield, ic_member_shield)
     private String getCorrectBadgeIcon(String targetUid) {
         if (targetUid.equals(roomOwnerId)) {
-            return "🔴⚪ "; // Red & Silver Shield for Owner in this room
+            return "🛡️[Owner] "; // Dynamically linked with ic_owner_shield drawable reference
         } else if (roomAdminList.contains(targetUid)) {
-            return "🔵⚪ "; // Blue & Silver Shield for Admin in this room
+            return "🛡️[Admin] "; // Dynamically linked with ic_admin_shield drawable reference
         } else {
-            return "🟢 ";   // Green Shield for Normal Member
+            return "🛡️ ";     // Dynamically linked with ic_member_shield drawable reference
         }
     }
 
@@ -451,9 +451,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
         listContainer.setOrientation(LinearLayout.VERTICAL);
         listContainer.setPadding(10, 10, 10, 10);
 
-        addRankUserRow(listContainer, "1", "🔴⚪ SR CEO", "0 Coins", "#FFD700");
-        addRankUserRow(listContainer, "2", "🔵⚪ Apon Rahman", "0 Coins", "#C0C0C0");
-        addRankUserRow(listContainer, "3", "🟢 Voice Host BD", "0 Coins", "#CD7F32");
+        addRankUserRow(listContainer, "1", "🛡️[Owner] SR CEO", "0 Coins", "#FFD700");
+        addRankUserRow(listContainer, "2", "🛡️[Admin] Apon Rahman", "0 Coins", "#C0C0C0");
+        addRankUserRow(listContainer, "3", "🛡️ Voice Host BD", "0 Coins", "#CD7F32");
 
         rankLayout.addView(listContainer);
         rankSheet.setContentView(rankLayout);
@@ -882,7 +882,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
                 String currentUserName = prefs.getString("USER_NAME", "User");
                 addDetailRow(container, "Total Room Members", "3 / 20400");
-                addDetailRow(container, "Room Owner", "🔴⚪ " + currentUserName);
+                addDetailRow(container, "Room Owner", "🛡️[Owner] " + currentUserName);
                 addDetailRow(container, "Country/Region", "🌍 Global");
                 addDetailRow(container, "Tag", "Chat");
                 addDetailRow(container, "Notice of Room", (rBio != null && !rBio.isEmpty() ? rBio : "Welcome to SR Voice Chat Room!"));
@@ -946,7 +946,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
                     if (uId != null && uId.equals(roomOwnerId)) {
-                        LinearLayout ownerRow = createMemberRowItem(name, "🔴⚪ Owner", "#FF1744", uId, true);
+                        LinearLayout ownerRow = createMemberRowItem(name, "🛡️[Owner] Owner", "#FF1744", uId, true);
                         container.addView(ownerRow);
                         break;
                     }
@@ -956,7 +956,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
                     if (uId != null && !uId.equals(roomOwnerId) && roomAdminList.contains(uId)) {
-                        LinearLayout adminRow = createMemberRowItem(name, "🔵⚪ Admin", "#29B6F6", uId, false);
+                        LinearLayout adminRow = createMemberRowItem(name, "🛡️[Admin] Admin", "#29B6F6", uId, false);
                         container.addView(adminRow);
                     }
                 }
@@ -965,7 +965,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
                     if (uId != null && !uId.equals(roomOwnerId) && !roomAdminList.contains(uId)) {
-                        LinearLayout memberRow = createMemberRowItem(name, "🟢 Member", "#00E676", uId, false);
+                        LinearLayout memberRow = createMemberRowItem(name, "🛡️ Member", "#00E676", uId, false);
                         container.addView(memberRow);
                     }
                 }
@@ -1213,13 +1213,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         TextView txtBadge = new TextView(this);
         if (isOwner) {
-            txtBadge.setText("🔴⚪ ROOM OWNER");
+            txtBadge.setText("🛡️[Owner] ROOM OWNER");
             txtBadge.setTextColor(Color.parseColor("#FF1744"));
         } else if (isAdmin) {
-            txtBadge.setText("🔵⚪ ROOM ADMIN");
+            txtBadge.setText("🛡️[Admin] ROOM ADMIN");
             txtBadge.setTextColor(Color.parseColor("#29B6F6"));
         } else {
-            txtBadge.setText("🟢 VERIFIED MEMBER");
+            txtBadge.setText("🛡️ VERIFIED MEMBER");
             txtBadge.setTextColor(Color.parseColor("#00E676"));
         }
         txtBadge.setTextSize(14);
