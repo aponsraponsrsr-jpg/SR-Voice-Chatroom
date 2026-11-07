@@ -90,8 +90,8 @@
                     android:layout_weight="1"
                     android:orientation="vertical"
                     android:gravity="center">
-                    <TextView android:text="0" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold"/>
-                    <TextView android:text="Followers" android:textColor="#DDFFFFFF" android:textSize="11sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Followers" android:textColor="#DDFFFFFF" android:textSize="11sp"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -100,8 +100,8 @@
                     android:layout_weight="1"
                     android:orientation="vertical"
                     android:gravity="center">
-                    <TextView android:text="0" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold"/>
-                    <TextView android:text="Fans" android:textColor="#DDFFFFFF" android:textSize="11sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Fans" android:textColor="#DDFFFFFF" android:textSize="11sp"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -110,12 +110,12 @@
                     android:layout_weight="1"
                     android:orientation="vertical"
                     android:gravity="center">
-                    <TextView android:text="1" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold"/>
-                    <TextView android:text="Visitors" android:textColor="#DDFFFFFF" android:textSize="11sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Visitors" android:textColor="#DDFFFFFF" android:textSize="11sp"/>
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- লেভেল স্ট্যাটাস (Sending & Receiving Level) - নতুন সংযোজন -->
+            <!-- লেভেল স্ট্যাটাস (Sending & Receiving Level) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -156,8 +156,8 @@
                     android:padding="12dp"
                     android:gravity="center"
                     android:layout_marginEnd="8dp">
-                    <TextView android:text="👑 VIP Status" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
-                    <TextView android:text="(Locked)" android:textColor="#FFEB3B" android:textSize="10sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👑 VIP Status" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="(Locked)" android:textColor="#FFEB3B" android:textSize="10sp"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -168,12 +168,12 @@
                     android:background="#004D40"
                     android:padding="12dp"
                     android:gravity="center">
-                    <TextView android:text="💰 Wallet / Recharge" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
-                    <TextView android:text="(Locked)" android:textColor="#00E676" android:textSize="10sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💰 Wallet / Recharge" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="(Locked)" android:textColor="#00E676" android:textSize="10sp"/>
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- হোস্ট সেন্টার ও পলিসি সেকশন - নতুন সংযোজন -->
+            <!-- হোস্ট সেন্টার ও পলিসি সেকশন -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -190,8 +190,8 @@
                     android:padding="12dp"
                     android:gravity="center"
                     android:layout_marginEnd="8dp">
-                    <TextView android:text="🎙️ Host Center" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
-                    <TextView android:text="Target & Earnings" android:textColor="#B9F6CA" android:textSize="10sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎙️ Host Center" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Target & Earnings" android:textColor="#B9F6CA" android:textSize="10sp"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -202,8 +202,8 @@
                     android:background="#880E4F"
                     android:padding="12dp"
                     android:gravity="center">
-                    <TextView android:text="📜 Host Policy" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
-                    <TextView android:text="Rules & Guidelines" android:textColor="#F8BBD0" android:textSize="10sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📜 Host Policy" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rules & Guidelines" android:textColor="#F8BBD0" android:textSize="10sp"/>
                 </LinearLayout>
             </LinearLayout>
 
