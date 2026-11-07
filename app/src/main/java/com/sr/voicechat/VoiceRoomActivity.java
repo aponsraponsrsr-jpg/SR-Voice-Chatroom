@@ -55,7 +55,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private ImageButton btnPower;
     private Button btnMicToggle, btnChatOption, btnGiftBox, btnGameBox;
     private TextView roomTitleText, roomInfoText, textOnlineCount, roomNoticeBarText;
-    private ImageView btnOnlineList, roomHeaderProfileImg, btnInRoomRanking;
+    private ImageView btnOnlineList, roomHeaderProfileImg;
+    private LinearLayout btnInRoomRanking; // Golden Cup Rank Layout
     private boolean isMuted = false;
 
     private ListView chatListView;
@@ -111,7 +112,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         btnOnlineList = findViewById(R.id.btnOnlineList);
         roomHeaderProfileImg = findViewById(R.id.roomHeaderProfileImg);
         btnInRoomRanking = findViewById(R.id.btnInRoomRanking);
-        roomNoticeBarText = findViewById(R.id.roomNoticeBarText); // Linked Notice Bar
+        roomNoticeBarText = findViewById(R.id.roomNoticeBarText);
 
         if (btnPower != null) {
             btnPower.setOnClickListener(v -> {
@@ -129,7 +130,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // 🌟 In-Room Ranking / Cup Icon Click -> Opens Wealth & Charm Daily/Weekly Ranking
+        // 🌟 Golden Cup Ranking Click
         if (btnInRoomRanking != null) {
             btnInRoomRanking.setOnClickListener(v -> showInRoomRankingBottomSheet());
         }
@@ -158,6 +159,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         chatListView = findViewById(R.id.chatListView);
         chatMessages = new ArrayList<>();
+        
+        // 🌟 Clean Chat on Entry: Clear local adapter history when entering room fresh
+        chatMessages.clear(); 
+
         chatAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, chatMessages);
         if (chatListView != null) {
             chatListView.setAdapter(chatAdapter);
@@ -244,7 +249,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         leaveRoomAndFinish();
     }
 
-    // 🌟 In-Room Cup Ranking BottomSheet (Daily, Weekly, Monthly Wealth & Charm Leaderboard)
+    // 🌟 Ranking BottomSheet
     private void showInRoomRankingBottomSheet() {
         BottomSheetDialog rankSheet = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout rankLayout = new LinearLayout(this);
@@ -314,10 +319,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
         listContainer.setOrientation(LinearLayout.VERTICAL);
         listContainer.setPadding(10, 10, 10, 10);
 
-        addRankUserRow(listContainer, "1", "👑 SR CEO", "985,420 Coins", "#FFD700");
-        addRankUserRow(listContainer, "2", "🥈 Apon Rahman", "650,100 Coins", "#C0C0C0");
-        addRankUserRow(listContainer, "3", "🥉 Voice Host BD", "410,900 Coins", "#CD7F32");
-        addRankUserRow(listContainer, "4", "👤 User Active", "150,000 Coins", "#FFFFFF");
+        addRankUserRow(listContainer, "1", "👑 SR CEO", "0 Coins", "#FFD700");
+        addRankUserRow(listContainer, "2", "🥈 Apon Rahman", "0 Coins", "#C0C0C0");
+        addRankUserRow(listContainer, "3", "🥉 Voice Host BD", "0 Coins", "#CD7F32");
+        addRankUserRow(listContainer, "4", "👤 User Active", "0 Coins", "#FFFFFF");
 
         rankLayout.addView(listContainer);
         rankSheet.setContentView(rankLayout);
