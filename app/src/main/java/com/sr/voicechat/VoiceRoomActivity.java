@@ -75,6 +75,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private static final int PICK_IMAGE_REQUEST = 101;
     private EditText dialogInputName, dialogInputBio;
     private DatabaseReference activeRoomsRef;
+    private long roomJoinTimestamp = 0; // 🌟 Track exact entry time to ignore old messages
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,6 +96,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
             roomOwnerId = currentUserId;
         }
 
+        // 🌟 Record join timestamp so previous persistent messages are ignored on re-entry
+        roomJoinTimestamp = System.currentTimeMillis();
+
         databaseReference = FirebaseDatabase.getInstance().getReference("rooms").child("room_" + roomOwnerId);
         roomMetaRef = databaseReference.child("meta");
         messagesRef = databaseReference.child("messages");
@@ -113,7 +117,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         roomHeaderProfileImg = findViewById(R.id.roomHeaderProfileImg);
         btnInRoomRanking = findViewById(R.id.btnInRoomRanking);
         roomNoticeBarText = findViewById(R.id.roomNoticeBarText);
-        btnRoomTools = findViewById(R.id.btnRoomTools); // 🌟 Room Tools Icon
+        btnRoomTools = findViewById(R.id.btnRoomTools);
 
         if (btnPower != null) {
             btnPower.setOnClickListener(v -> {
@@ -131,7 +135,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // 🌟 Permanent & Smooth Room Control Tools Bottom Sheet (Grid Popup)
+        // 🌟 Permanent Room Tools & Realtime Global Chat Clean Handler
         if (btnRoomTools != null) {
             btnRoomTools.setOnClickListener(v -> {
                 BottomSheetDialog toolsSheet = new BottomSheetDialog(VoiceRoomActivity.this, R.style.Theme_Design_BottomSheetDialog);
@@ -147,13 +151,15 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     });
                 }
 
-                // 2. Clean Chat Action
+                // 2. Global Clean Chat Action (Clears Firebase database messages so all users see clean screen)
                 LinearLayout toolCleanChat = sheetView.findViewById(R.id.toolCleanChat);
                 if (toolCleanChat != null) {
                     toolCleanChat.setOnClickListener(view -> {
-                        chatMessages.clear();
-                        chatAdapter.notifyDataSetChanged();
-                        Toast.makeText(VoiceRoomActivity.this, "Chat history cleaned successfully!", Toast.LENGTH_SHORT).show();
+                        messagesRef.removeValue().addOnCompleteListener(task -> {
+                            chatMessages.clear();
+                            chatAdapter.notifyDataSetChanged();
+                            Toast.makeText(VoiceRoomActivity.this, "Chat history cleaned globally!", Toast.LENGTH_SHORT).show();
+                        });
                         toolsSheet.dismiss();
                     });
                 }
@@ -197,10 +203,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
             btnOnlineList.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
         }
 
-        // 🌟 Strictly Force Clean Chat History on Entry
+        // 🌟 Strictly Force Clean Local Chat History on Entry
         chatListView = findViewById(R.id.chatListView);
         chatMessages = new ArrayList<>();
-        chatMessages.clear(); // Ensure fresh start
+        chatMessages.clear();
 
         chatAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, chatMessages);
         if (chatListView != null) {
@@ -210,7 +216,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         setupSeatInteractions();
         listenToFirebaseSeats();
         listenToOnlineMembers();
-        listenToRealtimeChatMessages();
+        listenToRealtimeChatMessages(); // 🌟 Updated listener with timestamp & remote removal filter
 
         btnMicToggle = findViewById(R.id.btnMicToggle);
         if (btnMicToggle != null) {
@@ -247,12 +253,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     btnSendMsg.setOnClickListener(view -> {
                         String message = inputMsg.getText().toString().trim();
                         String userName = prefs.getString("USER_NAME", "User");
+                        long msgTimestamp = System.currentTimeMillis(); // 🌟 Attach message timestamp
                         if (!message.isEmpty()) {
                             String msgId = messagesRef.push().getKey();
                             if (msgId != null) {
                                 java.util.Map<String, Object> msgMap = new java.util.HashMap<>();
                                 msgMap.put("senderName", userName);
                                 msgMap.put("message", message);
+                                msgMap.put("timestamp", msgTimestamp);
                                 messagesRef.child(msgId).setValue(msgMap);
                             }
                             inputMsg.setText("");
@@ -288,7 +296,46 @@ public class VoiceRoomActivity extends AppCompatActivity {
         leaveRoomAndFinish();
     }
 
-    // 🌟 Room Lock Password Dialog with Cancel & Unlock options
+    // 🌟 Robust Real-time Chat Listener with Re-entry Filter and Global Clean Support
+    private void listenToRealtimeChatMessages() {
+        messagesRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                String senderName = snapshot.child("senderName").getValue(String.class);
+                String message = snapshot.child("message").getValue(String.class);
+                Long msgTime = snapshot.child("timestamp").getValue(Long.class);
+
+                // 🌟 Filter out messages sent before user joined the room
+                if (msgTime != null && msgTime < roomJoinTimestamp) {
+                    return; 
+                }
+
+                if (senderName != null && message != null) {
+                    String fullMsg = senderName + ": " + message;
+                    if (!chatMessages.contains(fullMsg)) {
+                        chatMessages.add(fullMsg);
+                        chatAdapter.notifyDataSetChanged();
+                        if (chatListView != null) {
+                            chatListView.setSelection(chatMessages.size() - 1);
+                        }
+                    }
+                }
+            }
+
+            @Override public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
+            
+            @Override 
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+                // 🌟 Instantly clears screen when admin/owner triggers global clean
+                chatMessages.clear();
+                chatAdapter.notifyDataSetChanged();
+            }
+
+            @Override public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
     private void showRoomLockPasswordDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
         builder.setTitle("🔒 Room Lock Protection");
@@ -510,11 +557,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         btnSendGift.setOnClickListener(v -> {
             String userName = prefs.getString("USER_NAME", "User");
+            long msgTimestamp = System.currentTimeMillis();
             String msgId = messagesRef.push().getKey();
             if (msgId != null) {
                 java.util.Map<String, Object> msgMap = new java.util.HashMap<>();
                 msgMap.put("senderName", "🎁 " + userName);
                 msgMap.put("message", "sent a premium gift!");
+                msgMap.put("timestamp", msgTimestamp);
                 messagesRef.child(msgId).setValue(msgMap);
             }
             Toast.makeText(this, "Gift Sent Successfully!", Toast.LENGTH_SHORT).show();
@@ -549,31 +598,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 public void onCancelled(@NonNull DatabaseError error) {}
             });
         }
-    }
-
-    private void listenToRealtimeChatMessages() {
-        messagesRef.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
-                String senderName = snapshot.child("senderName").getValue(String.class);
-                String message = snapshot.child("message").getValue(String.class);
-                if (senderName != null && message != null) {
-                    String fullMsg = senderName + ": " + message;
-                    if (!chatMessages.contains(fullMsg)) {
-                        chatMessages.add(fullMsg);
-                        chatAdapter.notifyDataSetChanged();
-                        if (chatListView != null) {
-                            chatListView.setSelection(chatMessages.size() - 1);
-                        }
-                    }
-                }
-            }
-
-            @Override public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
-            @Override public void onChildRemoved(@NonNull DataSnapshot snapshot) {}
-            @Override public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
-            @Override public void onCancelled(@NonNull DatabaseError error) {}
-        });
     }
 
     private void listenToRoomDetails() {
