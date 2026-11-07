@@ -16,7 +16,7 @@
         android:gravity="center_vertical"
         android:background="#33000000">
 
-        <!-- Header Profile Picture (Simple Circle without any extra frames) -->
+        <!-- Header Profile Picture -->
         <androidx.cardview.widget.CardView
             android:layout_width="38dp"
             android:layout_height="38dp"
@@ -32,7 +32,7 @@
                 android:src="@android:drawable/ic_menu_my_calendar"/>
         </androidx.cardview.widget.CardView>
 
-        <!-- Room Name & ID (No Bio/Notice here) -->
+        <!-- Room Name & ID -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -61,7 +61,7 @@
                 android:ellipsize="end"/>
         </LinearLayout>
 
-        <!-- 🌟 In-Room Ranking / Wealth List Icon (Daily, Weekly, Monthly) -->
+        <!-- 🌟 In-Room Ranking / Wealth List Icon (Cup Icon) -->
         <ImageView
             android:id="@+id/btnInRoomRanking"
             android:layout_width="28dp"
@@ -109,11 +109,12 @@
             android:contentDescription="Power Button" />
     </LinearLayout>
 
-    <!-- Notice Bar -->
+    <!-- Notice Bar (Added proper ID here) -->
     <TextView
+        android:id="@+id/roomNoticeBarText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="📢 Notice: এসআর ভয়েস চ্যাটরুমে সবাইকে স্বাগতম! কেউ কাউকে অশ্লীল গালিগালাজ করবেন না।"
+        android:text="📢 Notice: এসআর ভয়েস চ্যাটরুমে সবাইকে স্বাগতম!"
         android:textColor="#FFEB3B"
         android:textSize="12sp"
         android:padding="8dp"
@@ -132,7 +133,7 @@
         android:columnOrderPreserved="false"
         android:gravity="center">
 
-        <!-- Seat 1: Host / Owner -->
+        <!-- Seat 1: Host -->
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
             <androidx.cardview.widget.CardView
                 android:id="@+id/seatCard1"
