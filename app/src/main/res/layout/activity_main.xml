@@ -5,15 +5,20 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center_horizontal"
+    
+    <!-- 🌟 এখানে তোমার ড্রয়েবলের প্রিমিయం ব্যাকগ্রাউন্ড ইমেজ সেট করা হলো -->
+    android:background="@drawable/aponsraponsrs_jpg"
+    
     android:padding="20dp">
 
-    <!-- 🌟 প্রিমিয়াম গ্রেডিয়েন্ট ব্যাকগ্রাউন্ড (কোড দিয়ে তৈরি) -->
+    <!-- 🌟 ভেতরের লেআউট যেন ট্রান্সপারেন্ট থাকে এবং ব্যাকগ্রাউন্ড ইমেজটি পুরোপুরি ভেসে ওঠে -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:gravity="center_horizontal"
-        android:padding="20px">
+        android:background="@android:color/transparent"
+        android:padding="10dp">
 
         <!-- হেডার (Edit Profile বাটন) -->
         <RelativeLayout
