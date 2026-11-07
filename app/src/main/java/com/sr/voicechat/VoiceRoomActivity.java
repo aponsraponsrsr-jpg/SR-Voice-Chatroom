@@ -323,13 +323,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
+    // 🌟 Shield Badge with text inside for Owner, Admin & Member
     private String getUserRoleBadgePrefix(String targetUid) {
         if (targetUid.equals(roomOwnerId)) {
-            return "🔴 👑 "; 
+            return "[🛡️ OWNER] "; 
         } else if (roomAdminList.contains(targetUid)) {
-            return "🔵 🛡️ "; 
+            return "[🛡️ ADMIN] "; 
         } else {
-            return "🟢 👤 "; 
+            return "[🛡️ MEMBER] "; 
         }
     }
 
@@ -450,9 +451,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
         listContainer.setOrientation(LinearLayout.VERTICAL);
         listContainer.setPadding(10, 10, 10, 10);
 
-        addRankUserRow(listContainer, "1", "🔴 👑 SR CEO", "0 Coins", "#FFD700");
-        addRankUserRow(listContainer, "2", "🔵 🛡️ Apon Rahman", "0 Coins", "#C0C0C0");
-        addRankUserRow(listContainer, "3", "🟢 👤 Voice Host BD", "0 Coins", "#CD7F32");
+        addRankUserRow(listContainer, "1", "[🛡️ OWNER] SR CEO", "0 Coins", "#FFD700");
+        addRankUserRow(listContainer, "2", "[🛡️ ADMIN] Apon Rahman", "0 Coins", "#C0C0C0");
+        addRankUserRow(listContainer, "3", "[🛡️ MEMBER] Voice Host BD", "0 Coins", "#CD7F32");
 
         rankLayout.addView(listContainer);
         rankSheet.setContentView(rankLayout);
@@ -732,7 +733,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // 🌟 Expanded Full-Screen Bottom Sheet for Room Info & Members
     private void showRoomInfoAndMembersBottomSheet() {
         BottomSheetDialog sheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         
@@ -881,7 +881,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 container.addView(bannerCard);
 
                 addDetailRow(container, "Total Room Members", "3 / 20400");
-                addDetailRow(container, "Room Owner", "🔴 👑 " + prefs.getString("USER_NAME", "User"));
+                addDetailRow(container, "Room Owner", "[🛡️ OWNER] " + prefs.getString("USER_NAME", "User"));
                 addDetailRow(container, "Country/Region", "🌍 Global");
                 addDetailRow(container, "Tag", "Chat");
                 addDetailRow(container, "Notice of Room", (rBio != null && !rBio.isEmpty() ? rBio : "Welcome to SR Voice Chat Room!"));
@@ -941,14 +941,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 countHeader.setPadding(0, 0, 0, 20);
                 container.addView(countHeader);
 
-                LinearLayout ownerRow = createMemberRowItem("Room Owner", "🔴 👑 Owner", "#FF1744", roomOwnerId, true);
+                LinearLayout ownerRow = createMemberRowItem("Room Owner", "[🛡️ OWNER] Owner", "#FF1744", roomOwnerId, true);
                 container.addView(ownerRow);
 
                 for (DataSnapshot child : snapshot.getChildren()) {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
                     if (uId != null && !uId.equals(roomOwnerId) && roomAdminList.contains(uId)) {
-                        LinearLayout adminRow = createMemberRowItem(name, "🔵 🛡️ Admin", "#29B6F6", uId, false);
+                        LinearLayout adminRow = createMemberRowItem(name, "[🛡️ ADMIN] Admin", "#29B6F6", uId, false);
                         container.addView(adminRow);
                     }
                 }
@@ -957,7 +957,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
                     if (uId != null && !uId.equals(roomOwnerId) && !roomAdminList.contains(uId)) {
-                        LinearLayout memberRow = createMemberRowItem(name, "🟢 👤 Member", "#00E676", uId, false);
+                        LinearLayout memberRow = createMemberRowItem(name, "[🛡️ MEMBER] Member", "#00E676", uId, false);
                         container.addView(memberRow);
                     }
                 }
@@ -1157,7 +1157,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // 🌟 Advanced Profile Card with Separated Sending & Receiving Levels, Correct Gender & Premium Layout
     private void showUserProfileCard(String userName, int seatIndex, DataSnapshot seatSnap, String occupantId) {
         BottomSheetDialog profileDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         
@@ -1209,13 +1208,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         TextView txtBadge = new TextView(this);
         if (isOwner) {
-            txtBadge.setText("🔴 👑 ROOM OWNER");
+            txtBadge.setText("[🛡️ OWNER]");
             txtBadge.setTextColor(Color.parseColor("#FF1744"));
         } else if (isAdmin) {
-            txtBadge.setText("🔵 🛡️ ROOM ADMIN");
+            txtBadge.setText("[🛡️ ADMIN]");
             txtBadge.setTextColor(Color.parseColor("#29B6F6"));
         } else {
-            txtBadge.setText("🟢 👤 VERIFIED MEMBER");
+            txtBadge.setText("[🛡️ MEMBER]");
             txtBadge.setTextColor(Color.parseColor("#00E676"));
         }
         txtBadge.setTextSize(14);
@@ -1223,8 +1222,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         txtBadge.setGravity(Gravity.CENTER);
         layout.addView(txtBadge);
 
-        // 🌟 Dynamic Gender Check: Male gets Blue ♂️, Female gets Pink ♀️
-        boolean isMale = true; // Can be fetched dynamically from Firebase user node
+        boolean isMale = true; 
         String genderSymbol = isMale ? " ♂️" : " ♀️";
         int genderColor = isMale ? Color.parseColor("#29B6F6") : Color.parseColor("#FF4081");
 
@@ -1237,7 +1235,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         txtName.setPadding(0, 10, 0, 5);
         layout.addView(txtName);
 
-        // 🌟 Separated Sending & Receiving Levels with Dashes
         TextView txtMeta = new TextView(this);
         txtMeta.setText("Send: Lv.00 ── Receive: Lv.00  |  🇧🇩 Bangladesh");
         txtMeta.setTextColor(Color.parseColor("#FFC107"));
@@ -1296,7 +1293,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         profileDialog.setContentView(layout);
         
-        // 🌟 Make Profile Bottom Sheet Larger & Positioned Nicely
         Window window = profileDialog.getWindow();
         if (window != null) {
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -1315,7 +1311,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         databaseReference.child("seats").child(seatKey).child("userImage").setValue(userImageUriStr);
         
         databaseReference.child("seats").child(seatKey).onDisconnect().removeValue();
-        Toast.npm(VoiceRoomActivity.this, "Joined seat successfully!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(VoiceRoomActivity.this, "Joined seat successfully!", Toast.LENGTH_SHORT).show();
     }
 
     private void leaveRoomAndFinish() {
