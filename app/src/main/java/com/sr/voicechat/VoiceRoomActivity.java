@@ -56,7 +56,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private Button btnMicToggle, btnChatOption, btnGiftBox, btnGameBox;
     private TextView roomTitleText, roomInfoText, textOnlineCount, roomNoticeBarText;
     private ImageView btnOnlineList, roomHeaderProfileImg;
-    private LinearLayout btnInRoomRanking; // Golden Cup Rank Layout
+    private LinearLayout btnInRoomRanking;
     private boolean isMuted = false;
 
     private ListView chatListView;
@@ -130,7 +130,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // 🌟 Golden Cup Ranking Click
         if (btnInRoomRanking != null) {
             btnInRoomRanking.setOnClickListener(v -> showInRoomRankingBottomSheet());
         }
@@ -157,11 +156,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
             btnOnlineList.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
         }
 
+        // 🌟 Strictly Force Clean Chat History on Entry
         chatListView = findViewById(R.id.chatListView);
         chatMessages = new ArrayList<>();
-        
-        // 🌟 Clean Chat on Entry: Clear local adapter history when entering room fresh
-        chatMessages.clear(); 
+        chatMessages.clear(); // Ensure fresh start
 
         chatAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, chatMessages);
         if (chatListView != null) {
@@ -249,7 +247,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         leaveRoomAndFinish();
     }
 
-    // 🌟 Ranking BottomSheet
     private void showInRoomRankingBottomSheet() {
         BottomSheetDialog rankSheet = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout rankLayout = new LinearLayout(this);
