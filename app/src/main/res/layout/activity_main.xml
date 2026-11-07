@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center_horizontal"
-    android:background="@drawable/aponsraponsrs_jpg"
+    android:background="#120318"
     android:padding="20dp">
 
     <LinearLayout
@@ -13,7 +13,7 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:gravity="center_horizontal"
-        android:background="@android:color/transparent"
+        android:background="#1A2D1A3B"
         android:padding="10dp">
 
         <RelativeLayout
