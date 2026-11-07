@@ -8,171 +8,205 @@
     android:background="#120318"
     android:padding="20dp">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:background="#1A2D1A3B"
-        android:padding="10dp">
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp">
-            <Button
-                android:id="@+id/btnEditProfile"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="✎ Edit Profile"
-                android:backgroundTint="#7A1FA2"
-                android:textColor="#FFFFFF"
-                android:textAllCaps="false"
-                android:layout_alignParentEnd="true"
-                android:textSize="12sp"/>
-        </RelativeLayout>
-
-        <ImageView
-            android:id="@+id/imgUserProfile"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:layout_marginTop="30dp"
-            android:src="@android:drawable/ic_menu_my_calendar" />
-
-        <TextView
-            android:id="@+id/textUserName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Sr-Apon"
-            android:textColor="#FFFFFF"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:layout_marginTop="15dp"/>
+        android:scrollbars="none">
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginTop="5dp"
-            android:background="#1AFFFFFF"
-            android:padding="5dp">
+            android:orientation="vertical"
+            android:gravity="center_horizontal"
+            android:padding="10dp">
+
+            <!-- হেডার (Edit Profile বাটন) -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp">
+                <Button
+                    android:id="@+id/btnEditProfile"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="✎ Edit Profile"
+                    android:backgroundTint="#7A1FA2"
+                    android:textColor="#FFFFFF"
+                    android:textAllCaps="false"
+                    android:layout_alignParentEnd="true"
+                    android:textSize="12sp"/>
+            </RelativeLayout>
+
+            <!-- প্রোফাইল পিকচার -->
+            <ImageView
+                android:id="@+id/imgUserProfile"
+                android:layout_width="110dp"
+                android:layout_height="110dp"
+                android:layout_marginTop="20dp"
+                android:src="@android:drawable/ic_menu_my_calendar" />
+
+            <!-- ইউজার নেম -->
             <TextView
-                android:id="@+id/textUserId"
+                android:id="@+id/textUserName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="ID: 493859069"
-                android:textColor="#FFEB3B"
-                android:textSize="14sp"/>
-        </LinearLayout>
+                android:text="Sr-Apon"
+                android:textColor="#FFFFFF"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:layout_marginTop="10dp"/>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="30dp"
-            android:background="#33FFFFFF"
-            android:padding="20dp"
-            android:gravity="center">
-            
+            <!-- SR আইডি -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
-                <TextView
-                    android:text="0"
-                    android:textColor="#FFFFFF"
-                    android:textSize="18sp"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:text="Followers"
-                    android:textColor="#DDFFFFFF"
-                    android:textSize="12sp"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
-                <TextView
-                    android:text="0"
-                    android:textColor="#FFFFFF"
-                    android:textSize="18sp"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:text="Fans"
-                    android:textColor="#DDFFFFFF"
-                    android:textSize="12sp"/>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:gravity="center">
-                <TextView
-                    android:text="1"
-                    android:textColor="#FFFFFF"
-                    android:textSize="18sp"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:text="Visitors"
-                    android:textColor="#DDFFFFFF"
-                    android:textSize="12sp"/>
-            </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="20dp"
-            android:gravity="center">
-            
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:background="#4A148C"
-                android:padding="15dp"
+                android:orientation="horizontal"
                 android:gravity="center"
-                android:layout_marginEnd="10dp">
+                android:layout_marginTop="4dp"
+                android:background="#1AFFFFFF"
+                android:padding="4dp">
                 <TextView
-                    android:text="👑 VIP Status"
-                    android:textColor="#FFFFFF"
-                    android:textSize="14sp"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:text="(Locked)"
+                    android:id="@+id/textUserId"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ID: 493859069"
                     android:textColor="#FFEB3B"
-                    android:textSize="11sp"/>
+                    android:textSize="13sp"/>
             </LinearLayout>
 
+            <!-- ফলোয়ার্স / ফ্যান্স / ভিজিটরস কাউন্ট কার্ড -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:background="#004D40"
+                android:orientation="horizontal"
+                android:layout_marginTop="20dp"
+                android:background="#22FFFFFF"
                 android:padding="15dp"
                 android:gravity="center">
-                <TextView
-                    android:text="💰 Wallet / Recharge"
-                    android:textColor="#FFFFFF"
-                    android:textSize="14sp"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:text="(Locked)"
-                    android:textColor="#00E676"
-                    android:textSize="11sp"/>
-            </LinearLayout>
-        </LinearLayout>
+                
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView android:text="0" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold"/>
+                    <TextView android:text="Followers" android:textColor="#DDFFFFFF" android:textSize="11sp"/>
+                </LinearLayout>
 
-    </LinearLayout>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView android:text="0" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold"/>
+                    <TextView android:text="Fans" android:textColor="#DDFFFFFF" android:textSize="11sp"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView android:text="1" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold"/>
+                    <TextView android:text="Visitors" android:textColor="#DDFFFFFF" android:textSize="11sp"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- লেভেল স্ট্যাটাস (Sending & Receiving Level) - নতুন সংযোজন -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="12dp"
+                android:gravity="center">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="⭐ Sending Level: Lv.0"
+                    android:textColor="#FFEB3B"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:layout_marginEnd="15dp"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="💎 Receiving Level: Lv.0"
+                    android:textColor="#00E676"
+                    android:textSize="13sp"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <!-- ভিআইপি এবং ওয়ালেট বাটন -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="15dp"
+                android:gravity="center">
+                
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:background="#4A148C"
+                    android:padding="12dp"
+                    android:gravity="center"
+                    android:layout_marginEnd="8dp">
+                    <TextView android:text="👑 VIP Status" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
+                    <TextView android:text="(Locked)" android:textColor="#FFEB3B" android:textSize="10sp"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:background="#004D40"
+                    android:padding="12dp"
+                    android:gravity="center">
+                    <TextView android:text="💰 Wallet / Recharge" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
+                    <TextView android:text="(Locked)" android:textColor="#00E676" android:textSize="10sp"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- হোস্ট সেন্টার ও পলিসি সেকশন - নতুন সংযোজন -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="12dp"
+                android:gravity="center">
+                
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:background="#1B5E20"
+                    android:padding="12dp"
+                    android:gravity="center"
+                    android:layout_marginEnd="8dp">
+                    <TextView android:text="🎙️ Host Center" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
+                    <TextView android:text="Target & Earnings" android:textColor="#B9F6CA" android:textSize="10sp"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:background="#880E4F"
+                    android:padding="12dp"
+                    android:gravity="center">
+                    <TextView android:text="📜 Host Policy" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
+                    <TextView android:text="Rules & Guidelines" android:textColor="#F8BBD0" android:textSize="10sp"/>
+                </LinearLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
 </LinearLayout>
