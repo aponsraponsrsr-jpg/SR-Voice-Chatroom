@@ -42,8 +42,8 @@ public class EditProfileActivity extends AppCompatActivity {
 
         imgEditProfilePic = findViewById(R.id.imgEditProfilePic);
         editUserName = findViewById(R.id.editUserName);
-        editUserLocation = findViewById(R.id.editUserLocation); // নতুন লোকেশন ফিল্ড
-        spinnerGender = findViewById(R.id.spinnerGender);       // নতুন জেন্ডার স্পিনার
+        editUserLocation = findViewById(R.id.editUserLocation);
+        spinnerGender = findViewById(R.id.spinnerGender);
         btnSaveProfile = findViewById(R.id.btnSaveProfile);
 
         // Setup Gender Spinner items
@@ -51,9 +51,13 @@ public class EditProfileActivity extends AppCompatActivity {
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, genders);
         spinnerGender.setAdapter(adapter);
 
+        // 🌟 চেক করা: লোকেশন, জেন্ডার বা আইডি আগে থেকেই লক করা আছে কি না
+        boolean isProfileLocked = prefs.getBoolean("IS_PROFILE_LOCKED", false);
+        String savedId = prefs.getString("MY_9_DIGIT_ID", "");
+
         // Load existing data if available
         String currentName = prefs.getString("USER_NAME", "SR Apon");
-        String currentLocation = prefs.getString("USER_LOCATION", "");
+        String currentLocation = prefs.getString("USER_LOCATION", "🇧🇩 Bangladesh");
         String currentGender = prefs.getString("USER_GENDER", "");
         encodedImage = prefs.getString("USER_PROFILE_IMAGE", "");
 
@@ -62,13 +66,22 @@ public class EditProfileActivity extends AppCompatActivity {
         }
         if (editUserLocation != null) {
             editUserLocation.setText(currentLocation);
+            if (isProfileLocked) {
+                editUserLocation.setEnabled(false); // 🔒 লোকেশন স্থায়ীভাবে লক করে দেওয়া হলো
+                editUserLocation.setAlpha(0.7f);
+            }
         }
+
         if (!currentGender.isEmpty()) {
             for (int i = 0; i < genders.length; i++) {
                 if (genders[i].equals(currentGender)) {
                     spinnerGender.setSelection(i);
                     break;
                 }
+            }
+            if (isProfileLocked) {
+                spinnerGender.setEnabled(false); // 🔒 জেন্ডার স্থায়ীভাবে লক করে দেওয়া হলো
+                spinnerGender.setAlpha(0.7f);
             }
         }
 
@@ -93,7 +106,7 @@ public class EditProfileActivity extends AppCompatActivity {
         // Save Profile Data
         btnSaveProfile.setOnClickListener(v -> {
             String newName = editUserName.getText().toString().trim();
-            String newLocation = editUserLocation != null ? editUserLocation.getText().toString().trim() : "";
+            String newLocation = editUserLocation != null ? editUserLocation.getText().toString().trim() : "🇧🇩 Bangladesh";
             String newGender = spinnerGender.getSelectedItem().toString();
 
             if (newName.isEmpty()) {
@@ -105,32 +118,45 @@ public class EditProfileActivity extends AppCompatActivity {
                 return;
             }
 
+            // 🌟 অটোমেটিক ৯-ডিজিট পার্মানেন্ট আইডি জেনারেট করা (যদি আগে না থাকে)
+            String permanentId = prefs.getString("MY_9_DIGIT_ID", "");
+            if (permanentId.isEmpty()) {
+                permanentId = String.valueOf((int)(Math.random() * 900000000) + 100000000);
+            }
+
             SharedPreferences.Editor editor = prefs.edit();
+            editor.putString("MY_9_DIGIT_ID", permanentId);
+            editor.putString("USER_ID", permanentId);
             editor.putString("USER_NAME", newName);
-            editor.putString("USER_LOCATION", newLocation);
-            editor.putString("USER_GENDER", newGender);
+            
+            // যদি প্রোফাইল প্রথমবার সেভ হয়, তবে লোকেশন ও জেন্ডার পার্মানেন্টলি লক করে দেব
+            if (!isProfileLocked) {
+                editor.putString("USER_LOCATION", newLocation);
+                editor.putString("USER_GENDER", newGender);
+                editor.putBoolean("IS_PROFILE_LOCKED", true); // 🔒 লক স্ট্যাটাস সেভ
+            }
+
             if (!encodedImage.isEmpty()) {
                 editor.putString("USER_PROFILE_IMAGE", encodedImage);
             }
+            editor.putBoolean("IS_LOGGED_IN", true);
             boolean isSaved = editor.commit();
 
-            // Also update user's global Firebase profile node so rooms can sync instantly
-            String currentUserId = prefs.getString("MY_9_DIGIT_ID", "");
-            if (!currentUserId.isEmpty()) {
-                DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(currentUserId);
-                userRef.child("name").setValue(newName);
-                userRef.child("location").setValue(newLocation);
-                userRef.child("gender").setValue(newGender);
-                if (!encodedImage.isEmpty()) {
-                    userRef.child("profileImage").setValue(encodedImage);
-                }
+            // ফায়ারবেসের গ্লোবাল users টেবিলে পার্মানেন্ট ডাটা সিঙ্ক করা
+            DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(permanentId);
+            userRef.child("userId").setValue(permanentId);
+            userRef.child("name").setValue(newName);
+            userRef.child("location").setValue(newLocation);
+            userRef.child("gender").setValue(newGender);
+            if (!encodedImage.isEmpty()) {
+                userRef.child("profileImage").setValue(encodedImage);
             }
 
             if (isSaved) {
-                Toast.makeText(this, "Profile Updated Successfully!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Profile Saved! ID: " + permanentId, Toast.LENGTH_LONG).show();
                 
-                // ক্র্যাশ রোধ করার জন্য এবং নিরাপদে হোম পেজে যাওয়ার জন্য Intent ব্যবহার করা হলো
-                Intent intent = new Intent(EditProfileActivity.this, MainActivity.class);
+                // সফলভাবে সরাসরি হোম পেজে রিডাইরেক্ট করা
+                Intent intent = new Intent(EditProfileActivity.this, HomeActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
                 finish();
