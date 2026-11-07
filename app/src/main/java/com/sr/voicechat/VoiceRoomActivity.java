@@ -323,7 +323,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // 🌟 Global Room-Specific Badge Icon Logic (Linked with drawable resources: ic_owner_shield, ic_admin_shield, ic_member_shield)
+    // 🌟 Room-Specific Badge Icon Logic (Strictly checks THIS room's owner & admins)
     private String getCorrectBadgeIcon(String targetUid) {
         if (targetUid == null || targetUid.isEmpty()) {
             return ""; 
@@ -883,9 +883,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 bannerCard.addView(textStack);
                 container.addView(bannerCard);
 
-                String currentUserName = prefs.getString("USER_NAME", "User");
                 addDetailRow(container, "Total Room Members", "3 / 20400");
-                addDetailRow(container, "Room Owner", getCorrectBadgeIcon(roomOwnerId) + currentUserName);
+                addDetailRow(container, "Room Owner ID", roomOwnerId);
                 addDetailRow(container, "Country/Region", "🌍 Global");
                 addDetailRow(container, "Tag", "Chat");
                 addDetailRow(container, "Notice of Room", (rBio != null && !rBio.isEmpty() ? rBio : "Welcome to SR Voice Chat Room!"));
