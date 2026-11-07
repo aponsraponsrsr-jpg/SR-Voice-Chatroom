@@ -111,7 +111,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         btnOnlineList = findViewById(R.id.btnOnlineList);
         roomHeaderProfileImg = findViewById(R.id.roomHeaderProfileImg);
         btnInRoomRanking = findViewById(R.id.btnInRoomRanking);
-        roomNoticeBarText = findViewById(R.id.roomNoticeBarText); // Notice Bar
+        roomNoticeBarText = findViewById(R.id.roomNoticeBarText); // Linked Notice Bar
 
         if (btnPower != null) {
             btnPower.setOnClickListener(v -> {
@@ -258,7 +258,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
         rankLayout.setBackground(bg);
 
-        // Header Title & Close
         LinearLayout topRow = new LinearLayout(this);
         topRow.setOrientation(LinearLayout.HORIZONTAL);
         topRow.setGravity(Gravity.CENTER_VERTICAL);
@@ -281,7 +280,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         topRow.addView(close);
         rankLayout.addView(topRow);
 
-        // Tabs: Daily | Weekly | Monthly
         LinearLayout tabRow = new LinearLayout(this);
         tabRow.setOrientation(LinearLayout.HORIZONTAL);
         tabRow.setGravity(Gravity.CENTER);
@@ -312,12 +310,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
         tabRow.addView(btnMonthly);
         rankLayout.addView(tabRow);
 
-        // List Container for Top Contributors
         LinearLayout listContainer = new LinearLayout(this);
         listContainer.setOrientation(LinearLayout.VERTICAL);
         listContainer.setPadding(10, 10, 10, 10);
 
-        // Dummy/Real-time top contributors sample for global users
         addRankUserRow(listContainer, "1", "👑 SR CEO", "985,420 Coins", "#FFD700");
         addRankUserRow(listContainer, "2", "🥈 Apon Rahman", "650,100 Coins", "#C0C0C0");
         addRankUserRow(listContainer, "3", "🥉 Voice Host BD", "410,900 Coins", "#CD7F32");
@@ -522,7 +518,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     roomInfoText.setText("ID: " + roomOwnerId);
                 }
 
-                // 🌟 Notice Bar text update
                 if (roomNoticeBarText != null) {
                     String bioText = (roomBio != null && !roomBio.isEmpty()) ? roomBio : "Welcome to my voice room!";
                     roomNoticeBarText.setText("📢 Notice: " + bioText);
