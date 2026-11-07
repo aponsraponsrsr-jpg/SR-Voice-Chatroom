@@ -1,4 +1,4 @@
-Package com.sr.voicechat;
+package com.sr.voicechat;
 
 import android.app.Dialog;
 import android.content.ClipData;
