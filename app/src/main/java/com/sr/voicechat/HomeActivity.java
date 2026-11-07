@@ -60,7 +60,7 @@ public class HomeActivity extends AppCompatActivity {
 
         loadActiveRooms();
 
-        // 🌟 প্লাস (+) আইকনে ক্লিক করলে রুম ক্রিয়েট ডায়লগ আসার নিখুঁত লজিক
+        // 🌟 সবার জন্য সহজে রুম ক্রিয়েট করার ডায়লগ ওপেন করার লজিক
         if (btnPlus != null) {
             btnPlus.setOnClickListener(v -> showCreateRoomDialog());
         }
@@ -80,7 +80,6 @@ public class HomeActivity extends AppCompatActivity {
             });
         }
 
-        // সরাসরি প্রিমিয়াম MeActivity ওপেন করার লজিক
         if (btnMeTab != null) {
             btnMeTab.setOnClickListener(v -> {
                 Intent intent = new Intent(HomeActivity.this, MeActivity.class);
@@ -95,17 +94,17 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
-    // 🌟 নতুন রুম ক্রিয়েট করার ডায়লগ বক্স
+    // 🌟 যেকোনো ইউজার যেন খুব সহজে এক ক্লিকে রুম ক্রিয়েট করতে পারে
     private void showCreateRoomDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
-        builder.setTitle("🎙️ Create Voice Room");
+        builder.setTitle("🎙️ Create Your Voice Room");
 
         LinearLayout layout = new LinearLayout(HomeActivity.this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(50, 20, 50, 20);
 
         final EditText inputRoomName = new EditText(HomeActivity.this);
-        inputRoomName.setHint("Enter Room Name (e.g. Bangladesh Room)...");
+        inputRoomName.setHint("Enter Room Name (e.g. My Chat Room)...");
         layout.addView(inputRoomName);
 
         final EditText inputRoomBio = new EditText(HomeActivity.this);
@@ -118,23 +117,24 @@ public class HomeActivity extends AppCompatActivity {
             String roomName = inputRoomName.getText().toString().trim();
             String roomBio = inputRoomBio.getText().toString().trim();
 
+            // ইউজারের নিজস্ব আইডি নিশ্চিত করা (না থাকলে নতুন জেনারেট হবে)
+            String myId = prefs.getString("MY_9_DIGIT_ID", "");
+            if (myId == null || myId.isEmpty()) {
+                myId = String.valueOf((int)(Math.random() * 900000000) + 100000000);
+                prefs.edit().putString("MY_9_DIGIT_ID", myId).apply();
+            }
+
             if (roomName.isEmpty()) {
-                roomName = prefs.getString("USER_NAME", "Sr") + "'s Room";
+                roomName = prefs.getString("USER_NAME", "User") + "'s Room";
             }
             if (roomBio.isEmpty()) {
                 roomBio = "Welcome to my voice chat room!";
             }
 
-            String myId = prefs.getString("MY_9_DIGIT_ID", "");
-            if (myId.isEmpty()) {
-                myId = String.valueOf((int)(Math.random() * 900000000) + 100000000);
-                prefs.edit().putString("MY_9_DIGIT_ID", myId).apply();
-            }
-
             String userName = prefs.getString("USER_NAME", "User");
             String userImage = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
 
-            // ফায়ারবেসে রুমের মেটা ডাটা এবং একটিভ রুমে সেভ করা
+            // ফায়ারবেসে রুমের ডাটা পার্মানেন্টলি সেভ করা যাতে অন্য ইউজাররাও দেখতে পায়
             DatabaseReference roomMetaRef = roomsRef.child("room_" + myId).child("meta");
             roomMetaRef.child("roomName").setValue(roomName);
             roomMetaRef.child("roomBio").setValue(roomBio);
@@ -148,7 +148,7 @@ public class HomeActivity extends AppCompatActivity {
 
             Toast.makeText(this, "Room Created Successfully!", Toast.LENGTH_SHORT).show();
 
-            // সরাসরি ভয়েস রুমে প্রবেশ করানো
+            // সরাসরি ভয়েস রুমে এন্ট্রি করানো
             Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
             intent.putExtra("ROOM_OWNER_ID", myId);
             startActivity(intent);
