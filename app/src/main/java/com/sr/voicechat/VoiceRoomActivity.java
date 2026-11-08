@@ -204,14 +204,18 @@ public class VoiceRoomActivity extends AppCompatActivity {
             roomTitleText.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
         }
 
-        // 🌟 হেডার প্রোফাইল পিকচারে সিক্রেট টাচ: শুধু সিইও (Room Owner) ক্লিক করলে 'SR Super Panel' ওপেন হবে, অন্যরা সাধারণ ইনফো দেখতে পাবে
+        // 🌟 হেডার প্রোফাইল পিকচার ক্লিক লজিক: শুধু সিইও (Room Owner) ডাবল ট্যাপ বা লং প্রেস বা নিজের আইডিতে সুপার প্যানেল পাবে, নরমাল ক্লিক করলে মেম্বার লিস্ট দেখাবে
         if (roomHeaderProfileImg != null) {
             roomHeaderProfileImg.setOnClickListener(v -> {
+                showRoomInfoAndMembersBottomSheet();
+            });
+            // সিক্রেট সুপার প্যানেল ওপেন করার জন্য লং প্রেস (Long Click) ব্যবহার করা হলো, যাতে নরমাল ক্লিক ডিস্টার্ব না করে
+            roomHeaderProfileImg.setOnLongClickListener(v -> {
                 if (currentUserId.equals(roomOwnerId)) {
-                    showSRSuperPanel(); // সিক্রেট এসআর সুপার প্যানেল
-                } else {
-                    showRoomInfoAndMembersBottomSheet();
+                    showSRSuperPanel();
+                    return true;
                 }
+                return false;
             });
         }
 
@@ -312,13 +316,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // 👑 "এসআর সুপার প্যানেল" (শুধুমাত্র সিইও বা ওনারের জন্য সিক্রেট ও সুরক্ষিত ড্যাশবোর্ড)
+    // 👑 "এসআর সুপার প্যানেল" (সিইও বা ওনারের জন্য সিক্রেট ড্যাশবোর্ড)
     private void showSRSuperPanel() {
-        if (!currentUserId.equals(roomOwnerId)) {
-            Toast.makeText(this, "Access Denied! This is a secret panel.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
         BottomSheetDialog superPanelDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
@@ -331,7 +330,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         bg.setCornerRadii(new float[]{40, 40, 40, 40, 0, 0, 0, 0});
         layout.setBackground(bg);
 
-        // প্যানেল টাইটেল
         TextView title = new TextView(this);
         title.setText("👑 এসআর সুপার প্যানেল (SR Super Panel)");
         title.setTextColor(Color.parseColor("#FFD700"));
@@ -341,7 +339,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         title.setPadding(0, 0, 0, 30);
         layout.addView(title);
 
-        // টার্গেট ইউজার আইডি ইনপুট বক্স (যাকে কয়েন পাঠাতে চান)
         final EditText inputTargetId = new EditText(this);
         inputTargetId.setHint("Enter Target User 9-Digit ID...");
         inputTargetId.setHintTextColor(Color.parseColor("#888888"));
@@ -350,7 +347,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         inputTargetId.setPadding(30, 30, 30, 30);
         layout.addView(inputTargetId);
 
-        // কয়েন অ্যামাউন্ট ইনপুট বক্স
         final EditText inputCoinAmount = new EditText(this);
         inputCoinAmount.setHint("Enter Coin Amount (e.g., 500000)...");
         inputCoinAmount.setHintTextColor(Color.parseColor("#888888"));
@@ -363,7 +359,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         inputCoinAmount.setLayoutParams(params);
         layout.addView(inputCoinAmount);
 
-        // কয়েন টপ-আপ বাটন
         Button btnAddCoins = new Button(this);
         btnAddCoins.setText("💎 Add Free Coins to User ID");
         btnAddCoins.setBackgroundColor(Color.parseColor("#00E676"));
@@ -848,7 +843,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         mainLayout.setBackground(bg);
 
         TextView title = new TextView(this);
-        title.setText("SR Official Voice Room");
+        title.setText("SR Official Voice Room Members");
         title.setTextColor(Color.parseColor("#111111"));
         title.setTextSize(18);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
