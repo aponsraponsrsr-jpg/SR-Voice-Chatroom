@@ -321,13 +321,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         for (int i = 2; i <= 150; i++) {
             if (i <= 20) {
-                currentRequirement += 5000000L; // লেভেল ১ থেকে ২০: প্রতি লেভেলে ৫ মিলিয়ন বৃদ্ধি
+                currentRequirement += 5000000L; 
             } else if (i <= 50) {
-                currentRequirement += 20000000L; // লেভেল ২১ থেকে ৫০: প্রতি লেভেলে ২০ মিলিয়ন বৃদ্ধি
+                currentRequirement += 20000000L; 
             } else if (i <= 100) {
-                currentRequirement += 25000000L; // লেভেল ৫১ থেকে ১০০: প্রতি লেভেলে ২৫ মিলিয়ন বৃদ্ধি
+                currentRequirement += 25000000L; 
             } else {
-                currentRequirement += 35000000L; // লেভেল ১০১ থেকে ১৫০: প্রতি লেভেলে ৩৫ মিলিয়ন বৃদ্ধি
+                currentRequirement += 35000000L; 
             }
 
             if (totalCoins >= currentRequirement) {
@@ -373,9 +373,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
             return ""; 
         }
         if (targetUid.equals(roomOwnerId)) {
-            return "🛡️[Owner] ";
+            return "🛡️ ";
         } else if (roomAdminList.contains(targetUid)) {
-            return "🛡️[Admin] ";
+            return "🛡️ ";
         } else {
             return "";
         }
@@ -498,8 +498,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         listContainer.setOrientation(LinearLayout.VERTICAL);
         listContainer.setPadding(10, 10, 10, 10);
 
-        addRankUserRow(listContainer, "1", "🛡️[Owner] Room Host", "0 Coins", "#FFD700");
-        addRankUserRow(listContainer, "2", "🛡️[Admin] Room Admin", "0 Coins", "#C0C0C0");
+        addRankUserRow(listContainer, "1", "Room Host", "0 Coins", "#FFD700");
+        addRankUserRow(listContainer, "2", "Room Admin", "0 Coins", "#C0C0C0");
         addRankUserRow(listContainer, "3", "Active Member", "0 Coins", "#CD7F32");
 
         rankLayout.addView(listContainer);
@@ -989,7 +989,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
                     if (uId != null && uId.equals(roomOwnerId)) {
-                        LinearLayout ownerRow = createMemberRowItem(name, "🛡️[Owner] Owner", "#FF1744", uId, true);
+                        LinearLayout ownerRow = createMemberRowItem(name, "🛡️ Owner", "#FF1744", uId, true);
                         container.addView(ownerRow);
                         break;
                     }
@@ -999,7 +999,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
                     if (uId != null && !uId.equals(roomOwnerId) && roomAdminList.contains(uId)) {
-                        LinearLayout adminRow = createMemberRowItem(name, "🛡️[Admin] Admin", "#29B6F6", uId, false);
+                        LinearLayout adminRow = createMemberRowItem(name, "🛡️ Admin", "#29B6F6", uId, false);
                         container.addView(adminRow);
                     }
                 }
@@ -1091,7 +1091,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         String sUid = snapshot.child(seatKey).child("userId").getValue(String.class);
 
                         if (seatTxt != null) {
-                            String roleIcon = (sUid != null) ? getCorrectBadgeIcon(sUid) : "";
+                            // 🌟 সুনির্দিষ্ট লজিক: ইউজারের নিজস্ব রিয়েল নামই থাকবে, শুধু ওনার/অ্যাডমিন হলে সামনে ছোট্ট আইকন (🛡️) শো করবে
+                            String roleIcon = "";
+                            if (sUid != null && sUid.equals(roomOwnerId)) {
+                                roleIcon = "🛡️ ";
+                            } else if (sUid != null && roomAdminList.contains(sUid)) {
+                                roleIcon = "🛡️ ";
+                            }
+
                             String displayName = (name != null && !name.isEmpty()) ? name : (i == 0 ? "Host" : String.valueOf(i + 1));
                             seatTxt.setText(roleIcon + displayName);
                         }
@@ -1256,10 +1263,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         TextView txtBadge = new TextView(this);
         if (isOwner) {
-            txtBadge.setText("🛡️[Owner] ROOM OWNER");
+            txtBadge.setText("🛡️ ROOM OWNER");
             txtBadge.setTextColor(Color.parseColor("#FF1744"));
         } else if (isAdmin) {
-            txtBadge.setText("🛡️[Admin] ROOM ADMIN");
+            txtBadge.setText("🛡️ ROOM ADMIN");
             txtBadge.setTextColor(Color.parseColor("#29B6F6"));
         } else {
             txtBadge.setText("🛡️ VERIFIED MEMBER");
@@ -1387,7 +1394,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             p.setMargins(0, 15, 0, 0);
             btnKickUser.setLayoutParams(p);
-            layout.addView(btnKickUser);
+            layout.addItemView(btnKickUser); // or layout.addView(btnKickUser);
         }
 
         profileDialog.setContentView(layout);
