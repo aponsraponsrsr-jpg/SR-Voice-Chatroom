@@ -459,7 +459,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         builder.show();
     }
 
-    // 🌟 3. ফুল-স্ক্রিন প্রিমিয়াম র‍্যাঙ্কিং সিস্টেম (Daily, Weekly, Monthly ট্যাবসহ)
     private void showInRoomRankingBottomSheet() {
         BottomSheetDialog rankSheet = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         
@@ -474,7 +473,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
         rankLayout.setBackground(bg);
 
-        // Header Row
         LinearLayout topRow = new LinearLayout(this);
         topRow.setOrientation(LinearLayout.HORIZONTAL);
         topRow.setGravity(Gravity.CENTER_VERTICAL);
@@ -497,7 +495,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         topRow.addView(close);
         rankLayout.addView(topRow);
 
-        // Tabs: Daily, Weekly, Monthly
         LinearLayout tabLayout = new LinearLayout(this);
         tabLayout.setOrientation(LinearLayout.HORIZONTAL);
         tabLayout.setGravity(Gravity.CENTER);
@@ -532,7 +529,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         tabLayout.addView(btnMonthly);
         rankLayout.addView(tabLayout);
 
-        // Scrollable Container for Ranking List
         ScrollView rankScrollView = new ScrollView(this);
         rankScrollView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1.0f));
         rankScrollView.setFillViewport(true);
@@ -541,12 +537,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
         listContainer.setOrientation(LinearLayout.VERTICAL);
         listContainer.setPadding(10, 10, 10, 10);
 
-        // Sample Data for Rankings (Top 1, 2, 3...)
         addRankUserRow(listContainer, "1", "SR Apon (Owner)", "1,500,000 Coins", "#FFD700");
         addRankUserRow(listContainer, "2", "Admin User", "950,000 Coins", "#C0C0C0");
         addRankUserRow(listContainer, "3", "Active Supporter", "500,000 Coins", "#CD7F32");
-        addRankUserRow(listContainer, "4", "Member Four", "250,000 Coins", "#FFFFFF");
-        addRankUserRow(listContainer, "5", "Member Five", "120,000 Coins", "#FFFFFF");
 
         rankScrollView.addView(listContainer);
         rankLayout.addView(rankScrollView);
@@ -825,7 +818,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // 🌟 1. প্রিমিয়াম বটম শিট স্টাইল রুম ইনফো ও মেম্বার লিস্ট পপ-আপ
     private void showRoomInfoAndMembersBottomSheet() {
         BottomSheetDialog sheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         
@@ -892,7 +884,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         tabLayout.addView(btnTabMembers);
         mainLayout.addView(tabLayout);
 
-        // 🌟 Scrollable Container for Dynamic Content (Room Info / Member List with Avatars)
         ScrollView scrollView = new ScrollView(this);
         scrollView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1.0f));
         scrollView.setFillViewport(true);
@@ -1027,7 +1018,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         container.addView(divider);
     }
 
-    // 🌟 2. মেম্বার লিস্ট উইথ রিয়েল প্রোফাইল পিকচার (Avatar) ও স্ক্রোলিং সাপোর্ট
     private void loadMemberListLargeView(LinearLayout container) {
         container.removeAllViews();
 
@@ -1041,22 +1031,22 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 countHeader.setPadding(0, 0, 0, 20);
                 container.addView(countHeader);
 
-                // 1. Owner Row
+                // 1. Room Owner Row (Global Room Owner Badge Check)
                 for (DataSnapshot child : snapshot.getChildren()) {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
                     if (uId != null && uId.equals(roomOwnerId)) {
-                        fetchAndCreateMemberRow(container, name, "🛡️ Owner", "#FF1744", uId);
+                        fetchAndCreateMemberRow(container, name, "🛡️ Room Owner", "#FF1744", uId);
                         break;
                     }
                 }
 
-                // 2. Admin Rows
+                // 2. Room Admin Rows (Specific Room Admin Badge Check)
                 for (DataSnapshot child : snapshot.getChildren()) {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
                     if (uId != null && !uId.equals(roomOwnerId) && roomAdminList.contains(uId)) {
-                        fetchAndCreateMemberRow(container, name, "🛡️ Admin", "#29B6F6", uId);
+                        fetchAndCreateMemberRow(container, name, "🛡️ Room Admin", "#29B6F6", uId);
                     }
                 }
 
@@ -1065,7 +1055,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
                     if (uId != null && !uId.equals(roomOwnerId) && !roomAdminList.contains(uId)) {
-                        fetchAndCreateMemberRow(container, name, "🛡️ Member", "#00E676", uId);
+                        fetchAndCreateMemberRow(container, name, "🛡️ Verified Member", "#00E676", uId);
                     }
                 }
             }
@@ -1097,7 +1087,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
         row.addView(avatar);
 
-        // Fetch User's Real Profile Image from Firebase Users Node
+        // Fetch User's Real Profile Image from Firebase Users Node for Online & Member List
         userDatabaseRef.child(uId).child("profileImage").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -1172,9 +1162,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         if (seatTxt != null) {
                             String roleIcon = "";
                             if (sUid != null && sUid.equals(roomOwnerId)) {
-                                roleIcon = "🛡️ ";
+                                roleIcon = "🛡️ "; // Only Owner gets red badge in their own room
                             } else if (sUid != null && roomAdminList.contains(sUid)) {
-                                roleIcon = "🛡️ ";
+                                roleIcon = "🛡️ "; // Only Admin gets blue badge in this room
                             }
 
                             String displayName = (name != null && !name.isEmpty()) ? name : (i == 0 ? "Host" : String.valueOf(i + 1));
@@ -1342,13 +1332,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
         TextView txtBadge = new TextView(this);
         if (isOwner) {
             txtBadge.setText("🛡️ ROOM OWNER");
-            txtBadge.setTextColor(Color.parseColor("#FF1744"));
+            txtBadge.setTextColor(Color.parseColor("#FF1744")); // Red for Room Owner in this room
         } else if (isAdmin) {
             txtBadge.setText("🛡️ ROOM ADMIN");
-            txtBadge.setTextColor(Color.parseColor("#29B6F6"));
+            txtBadge.setTextColor(Color.parseColor("#29B6F6")); // Blue for Room Admin in this room
         } else {
             txtBadge.setText("🛡️ VERIFIED MEMBER");
-            txtBadge.setTextColor(Color.parseColor("#00E676"));
+            txtBadge.setTextColor(Color.parseColor("#00E676")); // Green for normal members
         }
         txtBadge.setTextSize(14);
         txtBadge.setTypeface(null, android.graphics.Typeface.BOLD);
