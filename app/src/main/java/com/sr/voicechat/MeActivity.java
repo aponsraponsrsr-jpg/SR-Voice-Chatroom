@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -20,9 +19,8 @@ import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 
 public class MeActivity extends AppCompatActivity {
 
-    private ImageView imgMeProfile;
+    private ImageView imgMeProfile, btnEditProfile;
     private TextView textMeName, textMeId;
-    private Button btnEditProfile;
     private LinearLayout btnVipStatus, btnWalletRecharge, btnHostCenter, btnHostPolicy;
     private SharedPreferences prefs;
 
