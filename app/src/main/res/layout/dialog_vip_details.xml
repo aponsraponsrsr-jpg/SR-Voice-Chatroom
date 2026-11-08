@@ -11,7 +11,7 @@
         android:id="@+id/textDetailTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="👑 VIP Details & Privileges"
+        android:text="👑 VIP Details &amp; Privileges"
         android:textColor="#FFD700"
         android:textSize="20sp"
         android:textStyle="bold"
