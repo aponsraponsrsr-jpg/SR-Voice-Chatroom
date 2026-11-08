@@ -30,7 +30,7 @@ public class MeActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
 
-        // Binding UI elements with correct R.id references
+        // Binding UI elements
         imgMeProfile = findViewById(R.id.imgMeProfile);
         textMeName = findViewById(R.id.textMeName);
         textMeId = findViewById(R.id.textMeId);
@@ -71,30 +71,24 @@ public class MeActivity extends AppCompatActivity {
             });
         }
 
-        // Host Policy Click -> Opens Dynamic Policy Dialog
+        // Host Policy Click -> Opens Policy Dialog
         if (btnHostPolicy != null) {
             btnHostPolicy.setOnClickListener(v -> showPolicyDialog());
         }
     }
 
-    // Role-Based Dynamic Policy Dialog Method
+    // Policy Dialog Method
     private void showPolicyDialog() {
         final Dialog policyDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         policyDialog.setContentView(R.layout.dialog_policy);
 
         TextView btnClosePolicy = policyDialog.findViewById(R.id.btnClosePolicy);
         TextView textPolicyRoleBanner = policyDialog.findViewById(R.id.textPolicyRoleBanner);
-        TextView headerAgency = policyDialog.findViewById(R.id.headerAgency);
-        TextView headerTotal = policyDialog.findViewById(R.id.headerTotal);
 
         boolean isAgencyUser = prefs.getBoolean("IS_AGENCY_ROLE", true);
 
-        if (!isAgencyUser) {
-            if (headerAgency != null) headerAgency.setVisibility(View.GONE);
-            if (headerTotal != null) headerTotal.setVisibility(View.GONE);
-            if (textPolicyRoleBanner != null) {
-                textPolicyRoleBanner.setText("🎙️ Host Salary Target Chart (Level 1-22)");
-            }
+        if (!isAgencyUser && textPolicyRoleBanner != null) {
+            textPolicyRoleBanner.setText("🎙️ Host Salary Target Chart (Level 1-22)");
         }
 
         if (btnClosePolicy != null) {
