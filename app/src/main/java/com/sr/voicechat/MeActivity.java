@@ -102,15 +102,15 @@ public class MeActivity extends AppCompatActivity {
 
         recyclerVipList.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(this));
 
-        // VIP 1 to VIP 7 Demo Data List with Custom Sets, Frames, Bubbles & Entries
+        // VIP 1 to VIP 7 Demo Data List
         java.util.List<VipModel> vipList = new java.util.ArrayList<>();
-        vipList.add(new VipModel("VIP 1", "Level 1 Privileges", R.drawable.ic_menu_star, 0, 0, "Basic Sparkle"));
-        vipList.add(new VipModel("VIP 2", "Level 2 Privileges", R.drawable.ic_menu_star, 0, 0, "Glow Ring"));
-        vipList.add(new VipModel("VIP 3", "Level 3 Privileges", R.drawable.ic_menu_star, 0, 0, "Silver Wings"));
-        vipList.add(new VipModel("VIP 4", "Level 4 Privileges", R.drawable.ic_menu_star, 0, 0, "Golden Crown"));
-        vipList.add(new VipModel("VIP 5", "Level 5 Privileges", R.drawable.ic_menu_star, 0, 0, "Fire Tiger Entry"));
-        vipList.add(new VipModel("VIP 6", "Level 6 Privileges", R.drawable.ic_menu_star, 0, 0, "Royal Dragon"));
-        vipList.add(new VipModel("VIP 7", "Level 7 Privileges", R.drawable.ic_menu_star, 0, 0, "Supreme Lord Effect"));
+        vipList.add(new VipModel("VIP 1", "Level 1 Privileges", 0, 0, 0, "Basic Sparkle"));
+        vipList.add(new VipModel("VIP 2", "Level 2 Privileges", 0, 0, 0, "Glow Ring"));
+        vipList.add(new VipModel("VIP 3", "Level 3 Privileges", 0, 0, 0, "Silver Wings"));
+        vipList.add(new VipModel("VIP 4", "Level 4 Privileges", 0, 0, 0, "Golden Crown"));
+        vipList.add(new VipModel("VIP 5", "Level 5 Privileges", 0, 0, 0, "Fire Tiger Entry"));
+        vipList.add(new VipModel("VIP 6", "Level 6 Privileges", 0, 0, 0, "Royal Dragon"));
+        vipList.add(new VipModel("VIP 7", "Level 7 Privileges", 0, 0, 0, "Supreme Lord Effect"));
 
         VipAdapter adapter = new VipAdapter(this, vipList);
         recyclerVipList.setAdapter(adapter);
