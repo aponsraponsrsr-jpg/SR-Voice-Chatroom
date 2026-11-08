@@ -50,7 +50,7 @@ public class InboxActivity extends AppCompatActivity {
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
-                Toast.InboxMessageError(InboxActivity.this, "Failed to load system notice", Toast.LENGTH_SHORT).show();
+                Toast.makeText(InboxActivity.this, "Failed to load system notice", Toast.LENGTH_SHORT).show();
             }
         });
     }
