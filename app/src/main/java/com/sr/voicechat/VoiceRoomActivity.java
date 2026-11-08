@@ -73,6 +73,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private DatabaseReference userDatabaseRef;
     private DatabaseReference messagesRef;
     private DatabaseReference adminsRef;
+    private DatabaseReference followsRef;
     private FirebaseAuth mAuth;
     private String roomOwnerId = "";
     private String currentUserId = "";
@@ -109,6 +110,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         roomMetaRef = databaseReference.child("meta");
         messagesRef = databaseReference.child("messages");
         adminsRef = databaseReference.child("admins");
+        followsRef = FirebaseDatabase.getInstance().getReference("follows");
         
         activeRoomsRef = FirebaseDatabase.getInstance().getReference("active_rooms").child(roomOwnerId);
         userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
@@ -1239,7 +1241,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         layout.addView(txtName);
 
         TextView txtMeta = new TextView(this);
-        txtMeta.setText("Send: Lv.00 ── Receive: Lv.00  |  🇧🇩 Bangladesh");
+        txtMeta.setText("Level: Lv.15  |  🇧🇩 Bangladesh");
         txtMeta.setTextColor(Color.parseColor("#FFC107"));
         txtMeta.setTextSize(13);
         txtMeta.setGravity(Gravity.CENTER);
@@ -1262,23 +1264,61 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
         layout.addView(txtIdInfo);
 
+        // 🌟 প্রিমিয়াম ফলো, চ্যাট এবং গিফট অপশন (আপনার রিকোয়েস্ট অনুযায়ী যুক্ত করা হয়েছে)
         LinearLayout btnRow = new LinearLayout(this);
         btnRow.setOrientation(LinearLayout.HORIZONTAL);
         btnRow.setGravity(Gravity.CENTER);
+        btnRow.setPadding(0, 10, 0, 10);
+
+        Button btnFollow = new Button(this);
+        btnFollow.setText("➕ Follow");
+        btnFollow.setBackgroundColor(Color.parseColor("#00E676"));
+        btnFollow.setTextColor(Color.parseColor("#000000"));
+        btnFollow.setTypeface(null, android.graphics.Typeface.BOLD);
+        btnFollow.setOnClickListener(v -> {
+            if (targetUid.equals(currentUserId)) {
+                Toast.makeText(this, "You cannot follow yourself!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // ফায়ারবেসে রিয়েল-টাইম ফলো/ফ্রেন্ড রিকোয়েস্ট পাঠানো
+            followsRef.child(currentUserId).child("following").child(targetUid).setValue(true);
+            followsRef.child(targetUid).child("followers").child(currentUserId).setValue(true);
+            Toast.makeText(this, "Followed successfully! Friend request sent.", Toast.LENGTH_SHORT).show();
+            btnFollow.setText("✓ Following");
+        });
+        btnRow.addView(btnFollow);
+
+        Button btnChat = new Button(this);
+        btnChat.setText("💬 Chat");
+        btnChat.setBackgroundColor(Color.parseColor("#00B0FF"));
+        btnChat.setTextColor(Color.parseColor("#FFFFFF"));
+        btnChat.setTypeface(null, android.graphics.Typeface.BOLD);
+        LinearLayout.LayoutParams chatParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        chatParams.setMargins(15, 0, 15, 0);
+        btnChat.setLayoutParams(chatParams);
+        btnChat.setOnClickListener(v -> {
+            Toast.makeText(this, "Opening chat with " + (userName != null ? userName : "User"), Toast.LENGTH_SHORT).show();
+            profileDialog.dismiss();
+            // চাইলে এখানে সরাসরি Inbox / Chat Activity-তে রিডাইরেক্ট করতে পারেন
+        });
+        btnRow.addView(btnChat);
 
         Button btnSendDirectGift = new Button(this);
-        btnSendDirectGift.setText("🎁 Send Gift");
+        btnSendDirectGift.setText("🎁 Gift");
         btnSendDirectGift.setBackgroundColor(Color.parseColor("#FF4081"));
         btnSendDirectGift.setTextColor(Color.parseColor("#FFFFFF"));
+        btnSendDirectGift.setTypeface(null, android.graphics.Typeface.BOLD);
         btnSendDirectGift.setOnClickListener(v -> {
             profileDialog.dismiss();
             showGiftPanel();
         });
         btnRow.addView(btnSendDirectGift);
 
+        layout.addView(btnRow);
+
         if ((isSelfOwner || isSelfAdmin) && !targetUid.equals(currentUserId) && !isOwner) {
             Button btnKickUser = new Button(this);
-            btnKickUser.setText("🚫 Kick Out");
+            btnKickUser.setText("🚫 Kick Out from Room");
             btnKickUser.setBackgroundColor(Color.parseColor("#D50000"));
             btnKickUser.setTextColor(Color.parseColor("#FFFFFF"));
             btnKickUser.setOnClickListener(v -> {
@@ -1286,13 +1326,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 Toast.makeText(this, "User removed from room!", Toast.LENGTH_SHORT).show();
                 profileDialog.dismiss();
             });
-            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            p.setMargins(15, 0, 0, 0);
+            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            p.setMargins(0, 15, 0, 0);
             btnKickUser.setLayoutParams(p);
-            btnRow.addView(btnKickUser);
+            layout.addView(btnKickUser);
         }
-
-        layout.addView(btnRow);
 
         profileDialog.setContentView(layout);
         
@@ -1309,7 +1347,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         final String userName = prefs.getString("USER_NAME", "User");
         final String userImageUriStr = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
 
-        // Clear previous seat if user was already sitting anywhere else in the room
         databaseReference.child("seats").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -1323,7 +1360,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     }
                 }
 
-                // Now take the new target seat smoothly
                 databaseReference.child("seats").child(seatKey).child("userId").setValue(currentUserId);
                 databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
                 databaseReference.child("seats").child(seatKey).child("userImage").setValue(userImageUriStr);
