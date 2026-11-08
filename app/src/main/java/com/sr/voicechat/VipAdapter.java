@@ -4,7 +4,6 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -42,14 +41,12 @@ public class VipAdapter extends RecyclerView.Adapter<VipAdapter.VipViewHolder> {
 
     public static class VipViewHolder extends RecyclerView.ViewHolder {
         TextView textVipName, textVipLevel, textEffect;
-        ImageView imgVipBadge;
 
         public VipViewHolder(@NonNull View itemView) {
             super(itemView);
             textVipName = itemView.findViewById(R.id.textVipName);
             textVipLevel = itemView.findViewById(R.id.textVipLevel);
             textEffect = itemView.findViewById(R.id.textEffect);
-            imgVipBadge = itemView.findViewById(R.id.imgVipBadge);
         }
     }
 }
