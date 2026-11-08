@@ -187,7 +187,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // 🏆 প্রিমিয়াম র‍্যাঙ্কিং ক্লিক
+        // 🏆 র‍্যাঙ্কিং ক্লিক
         if (btnInRoomRanking != null) {
             btnInRoomRanking.setOnClickListener(v -> showPremiumRankingBottomSheet());
         }
@@ -203,7 +203,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             roomInfoText.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
         }
 
-        // 👥 স্ক্রোলযোগ্য অনলাইন মেম্বার লিস্ট ক্লিক
+        // 👥 অনলাইন মেম্বার লিস্ট ক্লিক
         if (btnOnlineList != null) {
             btnOnlineList.setOnClickListener(v -> showScrollableOnlineMembersDialog());
         }
@@ -943,12 +943,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // 🌟 প্রিমিয়াম প্রোফাইল কার্ড পপআপ (প্রফেশনাল অ্যাপের আদলে তৈরি)
+    // 🌟 প্রিমিয়াম ইউজার প্রোফাইল ভিউ কার্ড (Follow, Gift, Add Friend বাটনসহ)
     private void showUserProfileDialog(String userName, String userId, String userImage) {
         BottomSheetDialog profileDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(40, 40, 40, 50);
+        layout.setPadding(40, 45, 40, 55);
 
         GradientDrawable bg = new GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
@@ -957,21 +957,15 @@ public class VoiceRoomActivity extends AppCompatActivity {
         bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
         layout.setBackground(bg);
 
-        // টপ ট্যাব
-        LinearLayout topTab = new LinearLayout(this);
-        topTab.setOrientation(LinearLayout.HORIZONTAL);
-        topTab.setGravity(Gravity.CENTER);
-        topTab.setPadding(0, 0, 0, 20);
+        TextView title = new TextView(this);
+        title.setText("✨ User Profile Card");
+        title.setTextColor(Color.parseColor("#FFD700"));
+        title.setTextSize(17);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setGravity(Gravity.CENTER);
+        title.setPadding(0, 0, 0, 25);
+        layout.addView(title);
 
-        TextView tabProfile = new TextView(this);
-        tabProfile.setText("Profile");
-        tabProfile.setTextColor(Color.parseColor("#FFD700"));
-        tabProfile.setTextSize(16);
-        tabProfile.setTypeface(null, android.graphics.Typeface.BOLD);
-        topTab.addView(tabProfile);
-        layout.addView(topTab);
-
-        // ইউজার ইনফো কার্ড
         LinearLayout infoCard = new LinearLayout(this);
         infoCard.setOrientation(LinearLayout.VERTICAL);
         infoCard.setPadding(30, 30, 30, 30);
@@ -994,7 +988,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         idText.setPadding(0, 5, 0, 15);
         infoCard.addView(idText);
 
-        // ফলো ও ফ্যান্স কাউন্ট রো
         LinearLayout statsRow = new LinearLayout(this);
         statsRow.setOrientation(LinearLayout.HORIZONTAL);
         statsRow.setPadding(0, 10, 0, 15);
@@ -1020,13 +1013,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
         infoCard.addView(statsRow);
         layout.addView(infoCard);
 
-        // লেভেল ও কান্ট্রি ডিটেইলস
         LinearLayout detailsLayout = new LinearLayout(this);
         detailsLayout.setOrientation(LinearLayout.VERTICAL);
         detailsLayout.setPadding(10, 20, 10, 20);
 
         TextView levelTxt = new TextView(this);
-        levelTxt.setText("⭐ Level: Lv. 7");
+        levelTxt.setText("⭐ Level: Lv. 7 (VIP)");
         levelTxt.setTextColor(Color.parseColor("#FFD700"));
         levelTxt.setTextSize(14);
         levelTxt.setPadding(0, 8, 0, 8);
@@ -1041,37 +1033,51 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         layout.addView(detailsLayout);
 
-        // অ্যাকশন বাটন (Follow / Inbox)
+        // 🌟 ৩টি প্রিমিয়াম অ্যাকশন বাটন: Follow, Gift, Add Friend
         LinearLayout actionRow = new LinearLayout(this);
         actionRow.setOrientation(LinearLayout.HORIZONTAL);
         actionRow.setGravity(Gravity.CENTER);
-        actionRow.setPadding(0, 20, 0, 10);
+        actionRow.setPadding(0, 25, 0, 10);
 
         Button btnFollow = new Button(this);
         btnFollow.setText("✨ Follow");
         btnFollow.setBackgroundColor(Color.parseColor("#FFD700"));
         btnFollow.setTextColor(Color.BLACK);
         btnFollow.setTypeface(null, android.graphics.Typeface.BOLD);
-        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
-        btnParams.setMargins(0, 0, 10, 0);
-        btnFollow.setLayoutParams(btnParams);
+        LinearLayout.LayoutParams p1 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
+        p1.setMargins(0, 0, 6, 0);
+        btnFollow.setLayoutParams(p1);
         btnFollow.setOnClickListener(v -> {
             Toast.makeText(this, "Successfully Followed " + userName, Toast.LENGTH_SHORT).show();
         });
         actionRow.addView(btnFollow);
 
-        Button btnMessage = new Button(this);
-        btnMessage.setText("💬 Inbox");
-        btnMessage.setBackgroundColor(Color.parseColor("#00E676"));
-        btnMessage.setTextColor(Color.BLACK);
-        btnMessage.setTypeface(null, android.graphics.Typeface.BOLD);
-        LinearLayout.LayoutParams btnParams2 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
-        btnParams2.setMargins(10, 0, 0, 0);
-        btnMessage.setLayoutParams(btnParams2);
-        btnMessage.setOnClickListener(v -> {
-            Toast.makeText(this, "Opening Inbox with " + userName, Toast.LENGTH_SHORT).show();
+        Button btnPopupGift = new Button(this);
+        btnPopupGift.setText("🎁 Gift");
+        btnPopupGift.setBackgroundColor(Color.parseColor("#FF4081"));
+        btnPopupGift.setTextColor(Color.WHITE);
+        btnPopupGift.setTypeface(null, android.graphics.Typeface.BOLD);
+        LinearLayout.LayoutParams p2 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
+        p2.setMargins(6, 0, 6, 0);
+        btnPopupGift.setLayoutParams(p2);
+        btnPopupGift.setOnClickListener(v -> {
+            profileDialog.dismiss();
+            showGiftPanel();
         });
-        actionRow.addView(btnMessage);
+        actionRow.addView(btnPopupGift);
+
+        Button btnAddFriend = new Button(this);
+        btnAddFriend.setText("🤝 Add Friend");
+        btnAddFriend.setBackgroundColor(Color.parseColor("#00E676"));
+        btnAddFriend.setTextColor(Color.BLACK);
+        btnAddFriend.setTypeface(null, android.graphics.Typeface.BOLD);
+        LinearLayout.LayoutParams p3 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
+        p3.setMargins(6, 0, 0, 0);
+        btnAddFriend.setLayoutParams(p3);
+        btnAddFriend.setOnClickListener(v -> {
+            Toast.makeText(this, "Friend Request Sent to " + userName, Toast.LENGTH_SHORT).show();
+        });
+        actionRow.addView(btnAddFriend);
 
         layout.addView(actionRow);
 
