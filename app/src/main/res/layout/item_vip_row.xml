@@ -5,15 +5,22 @@
     android:orientation="horizontal"
     android:background="#2A1B4E"
     android:padding="12dp"
-    android:layout_marginBottom="8dp">
+    android:layout_marginBottom="8dp"
+    android:gravity="center_vertical">
 
-    <!-- VIP Badge / Logo -->
-    <ImageView
-        android:id="@+id/imgVipBadge"
+    <!-- VIP Badge Logo -->
+    <LinearLayout
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:background="#FFD700"
-        android:layout_gravity="center_vertical" />
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="👑"
+            android:textSize="24sp" />
+    </LinearLayout>
 
     <!-- Info Container -->
     <LinearLayout
@@ -21,8 +28,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:layout_marginStart="12dp"
-        android:layout_gravity="center_vertical">
+        android:layout_marginStart="12dp">
 
         <TextView
             android:id="@+id/textVipName"
@@ -37,17 +43,18 @@
             android:id="@+id/textVipLevel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Exclusive Frame &amp; Bubble"
-            android:textColor="#CCCCCC"
-            android:textSize="12sp"
+            android:text="2,000,000 Coins"
+            android:textColor="#FF4081"
+            android:textSize="13sp"
+            android:textStyle="bold"
             android:layout_marginTop="2dp" />
 
         <TextView
             android:id="@+id/textEffect"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Effect: Fire Tiger"
-            android:textColor="#FF4081"
+            android:text="Frame, Bubble &amp; Tiger Effect"
+            android:textColor="#CCCCCC"
             android:textSize="11sp"
             android:layout_marginTop="2dp" />
 
