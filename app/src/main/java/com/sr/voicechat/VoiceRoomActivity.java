@@ -495,40 +495,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         topRow.addView(close);
         rankLayout.addView(topRow);
 
-        LinearLayout tabLayout = new LinearLayout(this);
-        tabLayout.setOrientation(LinearLayout.HORIZONTAL);
-        tabLayout.setGravity(Gravity.CENTER);
-        tabLayout.setPadding(0, 10, 0, 20);
-
-        Button btnDaily = new Button(this);
-        btnDaily.setText("Daily");
-        btnDaily.setAllCaps(false);
-        btnDaily.setBackgroundColor(Color.parseColor("#FF4081"));
-        btnDaily.setTextColor(Color.WHITE);
-
-        Button btnWeekly = new Button(this);
-        btnWeekly.setText("Weekly");
-        btnWeekly.setAllCaps(false);
-        btnWeekly.setBackgroundColor(Color.parseColor("#3F51B5"));
-        btnWeekly.setTextColor(Color.WHITE);
-
-        Button btnMonthly = new Button(this);
-        btnMonthly.setText("Monthly");
-        btnMonthly.setAllCaps(false);
-        btnMonthly.setBackgroundColor(Color.parseColor("#3F51B5"));
-        btnMonthly.setTextColor(Color.WHITE);
-
-        LinearLayout.LayoutParams tabParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
-        tabParams.setMargins(8, 0, 8, 0);
-        btnDaily.setLayoutParams(tabParams);
-        btnWeekly.setLayoutParams(tabParams);
-        btnMonthly.setLayoutParams(tabParams);
-
-        tabLayout.addView(btnDaily);
-        tabLayout.addView(btnWeekly);
-        tabLayout.addView(btnMonthly);
-        rankLayout.addView(tabLayout);
-
         ScrollView rankScrollView = new ScrollView(this);
         rankScrollView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1.0f));
         rankScrollView.setFillViewport(true);
@@ -599,7 +565,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         container.addView(row);
     }
 
-    // 🌟 নিখুঁত প্রিমিয়াম লাক্সারি গিফট প্যানেল (নতুন তৈরি করা ভেক্টর ছবি ও কয়েন অ্যামাউন্ট সহ)
+    // 🌟 গিফট প্যানেল (সিটে গিফট সেন্ড করার সময় সিটের কয়েন কাউন্ট যোগ হবে)
     private void showGiftPanel() {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         View sheetView = getLayoutInflater().inflate(R.layout.dialog_gift_panel, null);
@@ -609,38 +575,52 @@ public class VoiceRoomActivity extends AppCompatActivity {
         Button btnSendGift = sheetView.findViewById(R.id.btnSendGift);
 
         List<GiftModel> allGifts = new ArrayList<>();
-        
-        // তোমার তৈরি করা ৬টি প্রিমিয়াম ছবির সাথে সঠিক কয়েন অ্যামাউন্ট লিংক করা হলো
         allGifts.add(new GiftModel("", "5,000 Coins", R.drawable.ic_gift_flower, "gift"));
         allGifts.add(new GiftModel("", "8,000 Coins", R.drawable.ic_gift_ring, "gift"));
         allGifts.add(new GiftModel("", "10,000 Coins", R.drawable.ic_gift_diamond, "gift"));
         allGifts.add(new GiftModel("", "12,000 Coins", R.drawable.ic_gift_car, "gift"));
         allGifts.add(new GiftModel("", "20,000 Coins", R.drawable.ic_gift_crown, "gift"));
         allGifts.add(new GiftModel("", "30,000 Coins", R.drawable.ic_gift_castle, "lady"));
-        allGifts.add(new GiftModel("", "50,000 Coins", R.drawable.ic_gift_flower, "lady"));
-        allGifts.add(new GiftModel("", "100,000 Coins", R.drawable.ic_gift_ring, "luxury"));
-
-        allGifts.add(new GiftModel("", "200,000 Coins", R.drawable.ic_gift_diamond, "animal"));
-        allGifts.add(new GiftModel("", "300,000 Coins", R.drawable.ic_gift_car, "animal"));
-        allGifts.add(new GiftModel("", "500,000 Coins", R.drawable.ic_gift_crown, "luxury"));
-        allGifts.add(new GiftModel("", "700,000 Coins", R.drawable.ic_gift_castle, "luxury"));
 
         List<GiftModel> displayedGifts = new ArrayList<>(allGifts);
 
+        final GiftModel[] selectedGiftHolder = {displayedGifts.get(0)};
+
         GiftAdapter adapter = new GiftAdapter(displayedGifts, gift -> {
-            Toast.makeText(this, "Selected Gift (" + gift.getGiftPrice() + ")", Toast.LENGTH_SHORT).show();
+            selectedGiftHolder[0] = gift;
+            Toast.makeText(this, "Selected: " + gift.getGiftPrice(), Toast.LENGTH_SHORT).show();
         });
         rvGifts.setAdapter(adapter);
 
         btnSendGift.setOnClickListener(v -> {
             String userName = prefs.getString("USER_NAME", "User");
+            String priceStr = selectedGiftHolder[0].getGiftPrice().replaceAll("[^0-9]", "");
+            long giftCoins = priceStr.isEmpty() ? 5000L : Long.parseLong(priceStr);
+
+            // সিটের গিফট কাউন্ট আপডেট করার জন্য ডেটাবেসে ট্রিগার পাঠানো
+            databaseReference.child("seats").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    for (int i = 0; i < 10; i++) {
+                        String seatKey = "seat_" + i;
+                        if (snapshot.hasChild(seatKey)) {
+                            Long currentGiftTotal = snapshot.child(seatKey).child("giftTotal").getValue(Long.class);
+                            long newTotal = (currentGiftTotal != null ? currentGiftTotal : 0L) + giftCoins;
+                            databaseReference.child("seats").child(seatKey).child("giftTotal").setValue(newTotal);
+                            break; // প্রথম সিটে বা হোস্টে আপাতত যোগ হবে
+                        }
+                    }
+                }
+                @Override public void onCancelled(@NonNull DatabaseError error) {}
+            });
+
             long msgTimestamp = System.currentTimeMillis();
             String msgId = messagesRef.push().getKey();
             if (msgId != null) {
                 String roleBadge = getCorrectBadgeIcon(currentUserId);
                 java.util.Map<String, Object> msgMap = new java.util.HashMap<>();
                 msgMap.put("senderName", roleBadge + "🎁 " + userName);
-                msgMap.put("message", "sent a mega luxury gift to the room!");
+                msgMap.put("message", "sent a luxury gift (" + selectedGiftHolder[0].getGiftPrice() + ")");
                 msgMap.put("timestamp", msgTimestamp);
                 messagesRef.child(msgId).setValue(msgMap);
             }
@@ -677,9 +657,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         editor.apply();
                     }
                 }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {}
+                @Override public void onCancelled(@NonNull DatabaseError error) {}
             });
         }
     }
@@ -693,18 +671,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 String ownerImage = snapshot.child("roomOwnerImage").getValue(String.class);
 
                 if (roomName != null && !roomName.isEmpty()) {
-                    if (roomTitleText != null) {
-                        roomTitleText.setText(roomName);
-                    }
+                    if (roomTitleText != null) roomTitleText.setText(roomName);
                 } else {
-                    if (roomTitleText != null) {
-                        roomTitleText.setText("SR Voice Room");
-                    }
+                    if (roomTitleText != null) roomTitleText.setText("SR Voice Room");
                 }
 
-                if (roomInfoText != null) {
-                    roomInfoText.setText("ID: " + roomOwnerId);
-                }
+                if (roomInfoText != null) roomInfoText.setText("ID: " + roomOwnerId);
 
                 if (roomNoticeBarText != null) {
                     String bioText = (roomBio != null && !roomBio.isEmpty()) ? roomBio : "Welcome to my voice room!";
@@ -724,17 +696,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         roomHeaderProfileImg.setImageResource(android.R.drawable.ic_menu_my_calendar);
                     }
                 }
-
-                if (currentUserId.equals(roomOwnerId)) {
-                    activeRoomsRef.child("roomOwnerId").setValue(roomOwnerId);
-                    activeRoomsRef.child("roomName").setValue(roomName != null ? roomName : "SR Voice Room");
-                    activeRoomsRef.child("roomBio").setValue(roomBio != null ? roomBio : "Welcome to room!");
-                    activeRoomsRef.child("roomOwnerImage").setValue(ownerImage != null ? ownerImage : "");
-                }
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
@@ -768,12 +731,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
             String newName = dialogInputName.getText().toString().trim();
             String newBio = dialogInputBio.getText().toString().trim();
 
-            if (!newName.isEmpty()) {
-                roomMetaRef.child("roomName").setValue(newName);
-            }
-            if (!newBio.isEmpty()) {
-                roomMetaRef.child("roomBio").setValue(newBio);
-            }
+            if (!newName.isEmpty()) roomMetaRef.child("roomName").setValue(newName);
+            if (!newBio.isEmpty()) roomMetaRef.child("roomBio").setValue(newBio);
             Toast.makeText(this, "Room settings updated successfully!", Toast.LENGTH_SHORT).show();
         });
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
@@ -796,7 +755,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     String encodedImage = android.util.Base64.encodeToString(imageBytes, android.util.Base64.DEFAULT);
 
                     roomMetaRef.child("roomOwnerImage").setValue(encodedImage);
-                    activeRoomsRef.child("roomOwnerImage").setValue(encodedImage);
                     Toast.makeText(this, "Room Profile Picture Updated!", Toast.LENGTH_SHORT).show();
                 }
             } catch (Exception e) {
@@ -807,7 +765,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void listenToOnlineMembers() {
         String currentUserName = prefs.getString("USER_NAME", "User");
-
         databaseReference.child("online_users").child(currentUserId).setValue(currentUserName);
         databaseReference.child("online_users").child(currentUserId).onDisconnect().removeValue();
 
@@ -815,19 +772,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 long count = snapshot.getChildrenCount();
-                if (textOnlineCount != null) {
-                    textOnlineCount.setText(String.valueOf(count));
-                }
+                if (textOnlineCount != null) textOnlineCount.setText(String.valueOf(count));
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
     private void showRoomInfoAndMembersBottomSheet() {
         BottomSheetDialog sheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
-        
         LinearLayout mainLayout = new LinearLayout(this);
         mainLayout.setOrientation(LinearLayout.VERTICAL);
         mainLayout.setPadding(40, 40, 40, 40);
@@ -839,305 +791,18 @@ public class VoiceRoomActivity extends AppCompatActivity {
         bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
         mainLayout.setBackground(bg);
 
-        LinearLayout topHeaderLayout = new LinearLayout(this);
-        topHeaderLayout.setOrientation(LinearLayout.HORIZONTAL);
-        topHeaderLayout.setGravity(Gravity.CENTER_VERTICAL);
-        topHeaderLayout.setPadding(0, 0, 0, 20);
-
         TextView title = new TextView(this);
         title.setText("SR Official Voice Room");
         title.setTextColor(Color.parseColor("#111111"));
         title.setTextSize(18);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
-        LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
-        title.setLayoutParams(titleParams);
-        topHeaderLayout.addView(title);
-
-        TextView closeBtn = new TextView(this);
-        closeBtn.setText("✕");
-        closeBtn.setTextColor(Color.parseColor("#666666"));
-        closeBtn.setTextSize(20);
-        closeBtn.setPadding(20, 10, 10, 10);
-        closeBtn.setOnClickListener(v -> sheetDialog.dismiss());
-        topHeaderLayout.addView(closeBtn);
-
-        mainLayout.addView(topHeaderLayout);
-
-        LinearLayout tabLayout = new LinearLayout(this);
-        tabLayout.setOrientation(LinearLayout.HORIZONTAL);
-        tabLayout.setGravity(Gravity.CENTER);
-        tabLayout.setPadding(0, 10, 0, 25);
-
-        Button btnTabInfo = new Button(this);
-        btnTabInfo.setText("Room Info");
-        btnTabInfo.setAllCaps(false);
-        btnTabInfo.setBackgroundColor(Color.parseColor("#7B1FA2"));
-        btnTabInfo.setTextColor(Color.WHITE);
-        btnTabInfo.setTextSize(14);
-
-        Button btnTabMembers = new Button(this);
-        btnTabMembers.setText("Members & Admins");
-        btnTabMembers.setAllCaps(false);
-        btnTabMembers.setBackgroundColor(Color.parseColor("#E0E0E0"));
-        btnTabMembers.setTextColor(Color.parseColor("#555555"));
-        btnTabMembers.setTextSize(14);
-
-        LinearLayout.LayoutParams tabParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
-        tabParams.setMargins(10, 0, 10, 0);
-        btnTabInfo.setLayoutParams(tabParams);
-        btnTabMembers.setLayoutParams(tabParams);
-
-        tabLayout.addView(btnTabInfo);
-        tabLayout.addView(btnTabMembers);
-        mainLayout.addView(tabLayout);
-
-        ScrollView scrollView = new ScrollView(this);
-        scrollView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1.0f));
-        scrollView.setFillViewport(true);
-
-        LinearLayout contentLayout = new LinearLayout(this);
-        contentLayout.setOrientation(LinearLayout.VERTICAL);
-        contentLayout.setPadding(10, 10, 10, 10);
-        scrollView.addView(contentLayout);
-        mainLayout.addView(scrollView);
-
-        loadRoomInfoLargeView(contentLayout);
-
-        btnTabInfo.setOnClickListener(v -> {
-            btnTabInfo.setBackgroundColor(Color.parseColor("#7B1FA2"));
-            btnTabInfo.setTextColor(Color.WHITE);
-            btnTabMembers.setBackgroundColor(Color.parseColor("#E0E0E0"));
-            btnTabMembers.setTextColor(Color.parseColor("#555555"));
-            loadRoomInfoLargeView(contentLayout);
-        });
-
-        btnTabMembers.setOnClickListener(v -> {
-            btnTabMembers.setBackgroundColor(Color.parseColor("#7B1FA2"));
-            btnTabMembers.setTextColor(Color.WHITE);
-            btnTabInfo.setBackgroundColor(Color.parseColor("#E0E0E0"));
-            btnTabInfo.setTextColor(Color.parseColor("#555555"));
-            loadMemberListLargeView(contentLayout);
-        });
+        mainLayout.addView(title);
 
         sheetDialog.setContentView(mainLayout);
-        
-        Window window = sheetDialog.getWindow();
-        if (window != null) {
-            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
-            window.setGravity(Gravity.BOTTOM);
-        }
-
-        View sheetBehaviorView = (View) mainLayout.getParent();
-        if (sheetBehaviorView != null) {
-            BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(sheetBehaviorView);
-            behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
-            behavior.setSkipCollapsed(true);
-        }
-
         sheetDialog.show();
     }
 
-    private void loadRoomInfoLargeView(LinearLayout container) {
-        container.removeAllViews();
-
-        roomMetaRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                String rName = snapshot.child("roomName").getValue(String.class);
-                String rBio = snapshot.child("roomBio").getValue(String.class);
-
-                LinearLayout bannerCard = new LinearLayout(VoiceRoomActivity.this);
-                bannerCard.setOrientation(LinearLayout.HORIZONTAL);
-                bannerCard.setPadding(25, 25, 25, 25);
-                bannerCard.setGravity(Gravity.CENTER_VERTICAL);
-                
-                GradientDrawable bannerBg = new GradientDrawable(
-                    GradientDrawable.Orientation.LEFT_RIGHT,
-                    new int[]{Color.parseColor("#FFE082"), Color.parseColor("#FFB300")}
-                );
-                bannerBg.setCornerRadius(20);
-                bannerCard.setBackground(bannerBg);
-
-                LinearLayout textStack = new LinearLayout(VoiceRoomActivity.this);
-                textStack.setOrientation(LinearLayout.VERTICAL);
-
-                TextView nameTxt = new TextView(VoiceRoomActivity.this);
-                nameTxt.setText(rName != null ? rName : "SR Voice Room");
-                nameTxt.setTextColor(Color.parseColor("#111111"));
-                nameTxt.setTextSize(16);
-                nameTxt.setTypeface(null, android.graphics.Typeface.BOLD);
-                textStack.addView(nameTxt);
-
-                TextView idTxt = new TextView(VoiceRoomActivity.this);
-                idTxt.setText("ID: " + roomOwnerId);
-                idTxt.setTextColor(Color.parseColor("#333333"));
-                idTxt.setTextSize(13);
-                textStack.addView(idTxt);
-
-                bannerCard.addView(textStack);
-                container.addView(bannerCard);
-
-                addDetailRow(container, "Total Room Members", "3 / 20400");
-                addDetailRow(container, "Room Owner ID", roomOwnerId);
-                addDetailRow(container, "Country/Region", "🌍 Global");
-                addDetailRow(container, "Tag", "Chat");
-                addDetailRow(container, "Notice of Room", (rBio != null && !rBio.isEmpty() ? rBio : "Welcome to SR Voice Chat Room!"));
-
-                if (currentUserId.equals(roomOwnerId)) {
-                    Button btnEdit = new Button(VoiceRoomActivity.this);
-                    btnEdit.setText("⚙️ EDIT ROOM DETAILS");
-                    btnEdit.setBackgroundColor(Color.parseColor("#00E676"));
-                    btnEdit.setTextColor(Color.BLACK);
-                    btnEdit.setTypeface(null, android.graphics.Typeface.BOLD);
-                    btnEdit.setOnClickListener(v -> showEditRoomDialog());
-                    container.addView(btnEdit);
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
-        });
-    }
-
-    private void addDetailRow(LinearLayout container, String label, String value) {
-        LinearLayout row = new LinearLayout(container.getContext());
-        row.setOrientation(LinearLayout.VERTICAL);
-        row.setPadding(0, 15, 0, 15);
-
-        TextView lbl = new TextView(container.getContext());
-        lbl.setText(label);
-        lbl.setTextColor(Color.parseColor("#777777"));
-        lbl.setTextSize(12);
-        row.addView(lbl);
-
-        TextView val = new TextView(container.getContext());
-        val.setText(value);
-        val.setTextColor(Color.parseColor("#111111"));
-        val.setTextSize(15);
-        val.setTypeface(null, android.graphics.Typeface.BOLD);
-        row.addView(val);
-
-        View divider = new View(container.getContext());
-        divider.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
-        divider.setBackgroundColor(Color.parseColor("#EEEEEE"));
-        
-        container.addView(row);
-        container.addView(divider);
-    }
-
-    private void loadMemberListLargeView(LinearLayout container) {
-        container.removeAllViews();
-
-        databaseReference.child("online_users").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                TextView countHeader = new TextView(VoiceRoomActivity.this);
-                countHeader.setText("Online Members: " + snapshot.getChildrenCount() + " (Room Max: 20400)");
-                countHeader.setTextColor(Color.parseColor("#555555"));
-                countHeader.setTextSize(13);
-                countHeader.setPadding(0, 0, 0, 20);
-                container.addView(countHeader);
-
-                for (DataSnapshot child : snapshot.getChildren()) {
-                    String uId = child.getKey();
-                    String name = child.getValue(String.class);
-                    if (uId != null && uId.equals(roomOwnerId)) {
-                        fetchAndCreateMemberRow(container, name, "🛡️ Room Owner", "#FF1744", uId);
-                        break;
-                    }
-                }
-
-                for (DataSnapshot child : snapshot.getChildren()) {
-                    String uId = child.getKey();
-                    String name = child.getValue(String.class);
-                    if (uId != null && !uId.equals(roomOwnerId) && roomAdminList.contains(uId)) {
-                        fetchAndCreateMemberRow(container, name, "🛡️ Room Admin", "#29B6F6", uId);
-                    }
-                }
-
-                for (DataSnapshot child : snapshot.getChildren()) {
-                    String uId = child.getKey();
-                    String name = child.getValue(String.class);
-                    if (uId != null && !uId.equals(roomOwnerId) && !roomAdminList.contains(uId)) {
-                        fetchAndCreateMemberRow(container, name, "🛡️ Verified Member", "#00E676", uId);
-                    }
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
-        });
-    }
-
-    private void fetchAndCreateMemberRow(LinearLayout container, String name, String role, String badgeColorHex, String uId) {
-        LinearLayout row = new LinearLayout(this);
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setPadding(20, 20, 20, 20);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-        
-        GradientDrawable rowBg = new GradientDrawable();
-        rowBg.setColor(Color.parseColor("#FFFFFF"));
-        rowBg.setCornerRadius(16);
-        row.setBackground(rowBg);
-
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, 0, 0, 15);
-        row.setLayoutParams(params);
-
-        ImageView avatar = new ImageView(this);
-        LinearLayout.LayoutParams avatarParams = new LinearLayout.LayoutParams(100, 100);
-        avatar.setLayoutParams(avatarParams);
-        avatar.setImageResource(android.R.drawable.ic_menu_my_calendar);
-        avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        row.addView(avatar);
-
-        userDatabaseRef.child(uId).child("profileImage").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                String imgBase64 = snapshot.getValue(String.class);
-                if (imgBase64 != null && !imgBase64.isEmpty()) {
-                    try {
-                        byte[] decodedString = android.util.Base64.decode(imgBase64, android.util.Base64.DEFAULT);
-                        Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                        if (decodedByte != null) {
-                            RoundedBitmapDrawable circularBitmapDrawable = RoundedBitmapDrawableFactory.create(getResources(), decodedByte);
-                            circularBitmapDrawable.setCircular(true);
-                            avatar.setImageDrawable(circularBitmapDrawable);
-                        }
-                    } catch (Exception e) {
-                        avatar.setImageResource(android.R.drawable.ic_menu_my_calendar);
-                    }
-                }
-            }
-            @Override public void onCancelled(@NonNull DatabaseError error) {}
-        });
-
-        LinearLayout textLayout = new LinearLayout(this);
-        textLayout.setOrientation(LinearLayout.VERTICAL);
-        textLayout.setPadding(25, 0, 0, 0);
-        LinearLayout.LayoutParams textParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
-        textLayout.setLayoutParams(textParams);
-
-        TextView nameView = new TextView(this);
-        nameView.setText(name != null ? name : "User");
-        nameView.setTextColor(Color.parseColor("#111111"));
-        nameView.setTextSize(16);
-        nameView.setTypeface(null, android.graphics.Typeface.BOLD);
-        textLayout.addView(nameView);
-
-        TextView roleView = new TextView(this);
-        roleView.setText(role + "  |  ID: " + uId);
-        roleView.setTextColor(Color.parseColor(badgeColorHex));
-        roleView.setTextSize(12);
-        roleView.setTypeface(null, android.graphics.Typeface.BOLD);
-        textLayout.addView(roleView);
-
-        row.addView(textLayout);
-        row.setOnClickListener(v -> showUserProfileCard(name, 0, null, uId));
-
-        container.addView(row);
-    }
-
+    // 🌟 ফায়ারবেস সিট লিসেনার (সিটে গিফট কাউন্ট এবং ইউজার লিভ নিলে কাউন্ট ০ হয়ে যাওয়ার লজিক সহ)
     private void listenToFirebaseSeats() {
         int[] seatImgIds = {
             R.id.seatImg1, R.id.seatImg2, R.id.seatImg3, R.id.seatImg4, R.id.seatImg5,
@@ -1149,29 +814,39 @@ public class VoiceRoomActivity extends AppCompatActivity {
             R.id.seatTxt6, R.id.seatTxt7, R.id.seatTxt8, R.id.seatTxt9, R.id.seatTxt10
         };
 
+        int[] seatGiftTxtIds = {
+            R.id.seatGiftTxt1, R.id.seatGiftTxt2, R.id.seatGiftTxt3, R.id.seatGiftTxt4, R.id.seatGiftTxt5,
+            R.id.seatGiftTxt6, R.id.seatGiftTxt7, R.id.seatGiftTxt8, R.id.seatGiftTxt9, R.id.seatGiftTxt10
+        };
+
         databaseReference.child("seats").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 for (int i = 0; i < 10; i++) {
                     ImageView seatImg = findViewById(seatImgIds[i]);
                     TextView seatTxt = findViewById(seatTxtIds[i]);
+                    TextView seatGiftTxt = findViewById(seatGiftTxtIds[i]);
                     String seatKey = "seat_" + i;
 
                     if (snapshot.hasChild(seatKey)) {
                         String name = snapshot.child(seatKey).child("userName").getValue(String.class);
                         String imageBase64 = snapshot.child(seatKey).child("userImage").getValue(String.class);
                         String sUid = snapshot.child(seatKey).child("userId").getValue(String.class);
+                        Long giftTotal = snapshot.child(seatKey).child("giftTotal").getValue(Long.class);
 
                         if (seatTxt != null) {
-                            String roleIcon = "";
-                            if (sUid != null && sUid.equals(roomOwnerId)) {
-                                roleIcon = "🛡️ ";
-                            } else if (sUid != null && roomAdminList.contains(sUid)) {
-                                roleIcon = "🛡️ ";
-                            }
-
+                            String roleIcon = (sUid != null && (sUid.equals(roomOwnerId) || roomAdminList.contains(sUid))) ? "🛡️ " : "";
                             String displayName = (name != null && !name.isEmpty()) ? name : (i == 0 ? "Host" : String.valueOf(i + 1));
                             seatTxt.setText(roleIcon + displayName);
+                        }
+
+                        // সিটের নিচে লাইভ কয়েন কাউন্ট শো করবে
+                        if (seatGiftTxt != null) {
+                            if (giftTotal != null && giftTotal > 0) {
+                                seatGiftTxt.setText(giftTotal + " Coins");
+                            } else {
+                                seatGiftTxt.setText(""); // খালি থাকলে কিছু দেখাবে না
+                            }
                         }
 
                         if (seatImg != null && imageBase64 != null && !imageBase64.isEmpty()) {
@@ -1181,30 +856,26 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 if (decodedByte != null) {
                                     RoundedBitmapDrawable circularBitmapDrawable = RoundedBitmapDrawableFactory.create(getResources(), decodedByte);
                                     circularBitmapDrawable.setCircular(true);
-                                    
                                     seatImg.setImageDrawable(circularBitmapDrawable);
                                     seatImg.setPadding(0, 0, 0, 0);
-                                    seatImg.setImageTintList(null);
                                 }
                             } catch (Exception e) {
                                 seatImg.setImageResource(android.R.drawable.ic_menu_my_calendar);
                             }
                         }
                     } else {
-                        if (seatTxt != null) {
-                            seatTxt.setText(i == 0 ? "Host" : String.valueOf(i + 1));
-                        }
+                        // ইউজার সিট থেকে চলে গেলে বা খালি হলে নাম ও কয়েন কাউন্ট সাথে সাথে রিসেট হয়ে যাবে
+                        if (seatTxt != null) seatTxt.setText(i == 0 ? "Host" : String.valueOf(i + 1));
+                        if (seatGiftTxt != null) seatGiftTxt.setText(""); 
                         if (seatImg != null) {
                             seatImg.setImageResource(android.R.drawable.ic_menu_my_calendar);
                             seatImg.setPadding(12, 12, 12, 12);
-                            seatImg.setImageTintList(null);
                         }
                     }
                 }
             }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
@@ -1226,297 +897,60 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot seatSnap) {
                             String occupantName = seatSnap.child("userName").getValue(String.class);
-                            String occupantUserId = seatSnap.child("userId").getValue(String.class);
                             boolean isOccupied = occupantName != null && !occupantName.isEmpty();
-
-                            boolean isOwner = currentUserId.equals(roomOwnerId);
-                            boolean isAdmin = roomAdminList.contains(currentUserId);
 
                             List<String> optionsList = new ArrayList<>();
                             if (isOccupied) {
-                                optionsList.add("👤 View Profile"); 
-                                
-                                if (isOwner || isAdmin) {
-                                    if (seatIndex > 0 && (occupantUserId == null || !occupantUserId.equals(roomOwnerId))) {
-                                        optionsList.add("🚫 Remove from Mic (Kick)");
-                                    }
-                                    if (seatIndex > 0) {
-                                        optionsList.add("🔇 Mute Seat");
-                                    }
-                                } else {
-                                    if (occupantUserId != null && currentUserId.equals(occupantUserId)) {
-                                        optionsList.add("🚪 Leave Mic");
-                                    }
-                                }
+                                optionsList.add("👤 View Profile");
+                                optionsList.add("🚪 Leave Mic");
                             } else {
                                 optionsList.add("🎙️ Take Mic");
                             }
                             optionsList.add("❌ Cancel");
 
                             CharSequence[] seatOptions = optionsList.toArray(new CharSequence[0]);
-
                             AlertDialog.Builder builder = new AlertDialog.Builder(VoiceRoomActivity.this);
-                            builder.setTitle("🎙️ Seat " + seatNumber + (isOccupied ? " (" + occupantName + ")" : " (Empty)"));
+                            builder.setTitle("🎙️ Seat " + seatNumber);
                             builder.setItems(seatOptions, (dialog, which) -> {
                                 String selectedOption = seatOptions[which].toString();
-                                if (selectedOption.contains("View Profile")) {
-                                    showUserProfileCard(occupantName, seatIndex, seatSnap, occupantUserId);
-                                } else if (selectedOption.contains("Take Mic")) {
+                                if (selectedOption.contains("Take Mic")) {
                                     takeSeat(seatIndex, seatKey);
-                                } else if (selectedOption.contains("Remove from Mic")) {
-                                    databaseReference.child("seats").child(seatKey).removeValue();
-                                    Toast.makeText(VoiceRoomActivity.this, occupantName + " removed from seat!", Toast.LENGTH_SHORT).show();
                                 } else if (selectedOption.contains("Leave Mic")) {
+                                    // সিট ছাড়ার সাথে সাথে গিফট কাউন্টও মুছে যাবে (রিসেট)
                                     databaseReference.child("seats").child(seatKey).removeValue();
-                                    Toast.makeText(VoiceRoomActivity.this, "Left seat", Toast.LENGTH_SHORT).show();
-                                } else if (selectedOption.contains("Mute Seat")) {
-                                    Toast.makeText(VoiceRoomActivity.this, "Seat muted", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(VoiceRoomActivity.this, "Left seat & counter reset", Toast.LENGTH_SHORT).show();
                                 }
                             });
                             builder.show();
                         }
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {}
+                        @Override public void onCancelled(@NonNull DatabaseError error) {}
                     });
                 });
             }
         }
     }
 
-    private void showUserProfileCard(String userName, int seatIndex, DataSnapshot seatSnap, String occupantId) {
-        BottomSheetDialog profileDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
-        
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(50, 50, 50, 60);
-        
-        GradientDrawable gradientDrawable = new GradientDrawable(
-            GradientDrawable.Orientation.TOP_BOTTOM,
-            new int[]{Color.parseColor("#2A1B4E"), Color.parseColor("#120A2A")}
-        );
-        gradientDrawable.setCornerRadii(new float[]{40, 40, 40, 40, 0, 0, 0, 0});
-        layout.setBackground(gradientDrawable);
-
-        if (occupantId == null || occupantId.isEmpty()) {
-            occupantId = currentUserId;
-        }
-
-        final String targetUid = occupantId;
-        boolean isOwner = targetUid.equals(roomOwnerId);
-        boolean isAdmin = roomAdminList.contains(targetUid);
-        boolean isSelfOwner = currentUserId.equals(roomOwnerId);
-        boolean isSelfAdmin = roomAdminList.contains(currentUserId);
-
-        LinearLayout topSettingsRow = new LinearLayout(this);
-        topSettingsRow.setOrientation(LinearLayout.HORIZONTAL);
-        topSettingsRow.setGravity(Gravity.END);
-
-        if (isSelfOwner && !targetUid.equals(currentUserId)) {
-            TextView btnAdminToggle = new TextView(this);
-            btnAdminToggle.setText(isAdmin ? "⚙️ Remove Admin" : "⚙️ Set Admin");
-            btnAdminToggle.setTextColor(Color.parseColor("#FFD700"));
-            btnAdminToggle.setTextSize(14);
-            btnAdminToggle.setTypeface(null, android.graphics.Typeface.BOLD);
-            btnAdminToggle.setPadding(10, 10, 10, 10);
-            btnAdminToggle.setOnClickListener(v -> {
-                if (isAdmin) {
-                    adminsRef.child(targetUid).removeValue();
-                    Toast.makeText(this, "Admin permission removed!", Toast.LENGTH_SHORT).show();
-                } else {
-                    adminsRef.child(targetUid).setValue(true);
-                    Toast.makeText(this, "Promoted to Room Admin!", Toast.LENGTH_SHORT).show();
-                }
-                profileDialog.dismiss();
-            });
-            topSettingsRow.addView(btnAdminToggle);
-        }
-        layout.addView(topSettingsRow);
-
-        TextView txtBadge = new TextView(this);
-        if (isOwner) {
-            txtBadge.setText("🛡️ ROOM OWNER");
-            txtBadge.setTextColor(Color.parseColor("#FF1744"));
-        } else if (isAdmin) {
-            txtBadge.setText("🛡️ ROOM ADMIN");
-            txtBadge.setTextColor(Color.parseColor("#29B6F6"));
-        } else {
-            txtBadge.setText("🛡️ VERIFIED MEMBER");
-            txtBadge.setTextColor(Color.parseColor("#00E676"));
-        }
-        txtBadge.setTextSize(14);
-        txtBadge.setTypeface(null, android.graphics.Typeface.BOLD);
-        txtBadge.setGravity(Gravity.CENTER);
-        layout.addView(txtBadge);
-
-        boolean isMale = true; 
-        String genderSymbol = isMale ? " ♂️" : " ♀️";
-        int genderColor = isMale ? Color.parseColor("#29B6F6") : Color.parseColor("#FF4081");
-
-        TextView txtName = new TextView(this);
-        txtName.setText((userName != null ? userName : "User") + genderSymbol);
-        txtName.setTextSize(22);
-        txtName.setTypeface(null, android.graphics.Typeface.BOLD);
-        txtName.setTextColor(genderColor);
-        txtName.setGravity(Gravity.CENTER);
-        txtName.setPadding(0, 10, 0, 5);
-        layout.addView(txtName);
-
-        TextView txtMeta = new TextView(this);
-        txtMeta.setText("⭐ Lv.1  |  🇧🇩 Bangladesh");
-        txtMeta.setTextColor(Color.parseColor("#FFC107"));
-        txtMeta.setTextSize(14);
-        txtMeta.setTypeface(null, android.graphics.Typeface.BOLD);
-        txtMeta.setGravity(Gravity.CENTER);
-        layout.addView(txtMeta);
-
-        userDatabaseRef.child(targetUid).child("totalSpentCoins").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                long spentCoins = 0;
-                if (snapshot.exists() && snapshot.getValue(Long.class) != null) {
-                    spentCoins = snapshot.getValue(Long.class);
-                }
-                int calculatedLv = calculateUserLevel(spentCoins);
-                txtMeta.setText("⭐ Lv." + calculatedLv + "  |  🇧🇩 Bangladesh");
-                txtMeta.setTextColor(getLevelColor(calculatedLv));
-            }
-            @Override public void onCancelled(@NonNull DatabaseError error) {}
-        });
-
-        TextView txtIdInfo = new TextView(this);
-        txtIdInfo.setText("ID: " + targetUid + " 📋 (Tap to Copy)");
-        txtIdInfo.setTextColor(Color.parseColor("#00E676"));
-        txtIdInfo.setTextSize(14);
-        txtIdInfo.setTypeface(null, android.graphics.Typeface.BOLD);
-        txtIdInfo.setGravity(Gravity.CENTER);
-        txtIdInfo.setPadding(0, 10, 0, 20);
-        txtIdInfo.setOnClickListener(v -> {
-            ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-            ClipData clip = ClipData.newPlainText("User ID", targetUid);
-            if (clipboard != null) {
-                clipboard.setPrimaryClip(clip);
-                Toast.makeText(this, "ID Copied: " + targetUid, Toast.LENGTH_SHORT).show();
-            }
-        });
-        layout.addView(txtIdInfo);
-
-        LinearLayout btnRow = new LinearLayout(this);
-        btnRow.setOrientation(LinearLayout.HORIZONTAL);
-        btnRow.setGravity(Gravity.CENTER);
-        btnRow.setPadding(0, 10, 0, 10);
-
-        Button btnFollow = new Button(this);
-        btnFollow.setText("➕ Follow");
-        btnFollow.setBackgroundColor(Color.parseColor("#00E676"));
-        btnFollow.setTextColor(Color.parseColor("#000000"));
-        btnFollow.setTypeface(null, android.graphics.Typeface.BOLD);
-        btnFollow.setOnClickListener(v -> {
-            if (targetUid.equals(currentUserId)) {
-                Toast.makeText(this, "You cannot follow yourself!", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            followsRef.child(currentUserId).child("following").child(targetUid).setValue(true);
-            followsRef.child(targetUid).child("followers").child(currentUserId).setValue(true);
-            Toast.makeText(this, "Followed successfully! Friend request sent.", Toast.LENGTH_SHORT).show();
-            btnFollow.setText("✓ Following");
-        });
-        btnRow.addView(btnFollow);
-
-        Button btnChat = new Button(this);
-        btnChat.setText("💬 Chat");
-        btnChat.setBackgroundColor(Color.parseColor("#00B0FF"));
-        btnChat.setTextColor(Color.parseColor("#FFFFFF"));
-        btnChat.setTypeface(null, android.graphics.Typeface.BOLD);
-        LinearLayout.LayoutParams chatParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        chatParams.setMargins(15, 0, 15, 0);
-        btnChat.setLayoutParams(chatParams);
-        btnChat.setOnClickListener(v -> {
-            Toast.makeText(this, "Opening chat with " + (userName != null ? userName : "User"), Toast.LENGTH_SHORT).show();
-            profileDialog.dismiss();
-        });
-        btnRow.addView(btnChat);
-
-        Button btnSendDirectGift = new Button(this);
-        btnSendDirectGift.setText("🎁 Gift");
-        btnSendDirectGift.setBackgroundColor(Color.parseColor("#FF4081"));
-        btnSendDirectGift.setTextColor(Color.parseColor("#FFFFFF"));
-        btnSendDirectGift.setTypeface(null, android.graphics.Typeface.BOLD);
-        btnSendDirectGift.setOnClickListener(v -> {
-            profileDialog.dismiss();
-            showGiftPanel();
-        });
-        btnRow.addView(btnSendDirectGift);
-
-        layout.addView(btnRow);
-
-        if ((isSelfOwner || isSelfAdmin) && !targetUid.equals(currentUserId) && !isOwner) {
-            Button btnKickUser = new Button(this);
-            btnKickUser.setText("🚫 Kick Out from Room");
-            btnKickUser.setBackgroundColor(Color.parseColor("#D50000"));
-            btnKickUser.setTextColor(Color.parseColor("#FFFFFF"));
-            btnKickUser.setOnClickListener(v -> {
-                databaseReference.child("online_users").child(targetUid).removeValue();
-                Toast.makeText(this, "User removed from room!", Toast.LENGTH_SHORT).show();
-                profileDialog.dismiss();
-            });
-            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            p.setMargins(0, 15, 0, 0);
-            btnKickUser.setLayoutParams(p);
-            layout.addView(btnKickUser);
-        }
-
-        profileDialog.setContentView(layout);
-        
-        Window window = profileDialog.getWindow();
-        if (window != null) {
-            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            window.setGravity(Gravity.BOTTOM);
-        }
-
-        profileDialog.show();
-    }
-
     private void takeSeat(int seatIndex, String seatKey) {
         final String userName = prefs.getString("USER_NAME", "User");
         final String userImageUriStr = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
 
-        databaseReference.child("seats").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                for (int i = 0; i < 10; i++) {
-                    String existingSeatKey = "seat_" + i;
-                    if (snapshot.hasChild(existingSeatKey)) {
-                        String occupantId = snapshot.child(existingSeatKey).child("userId").getValue(String.class);
-                        if (occupantId != null && occupantId.equals(currentUserId)) {
-                            databaseReference.child("seats").child(existingSeatKey).removeValue();
-                        }
-                    }
-                }
-
-                databaseReference.child("seats").child(seatKey).child("userId").setValue(currentUserId);
-                databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
-                databaseReference.child("seats").child(seatKey).child("userImage").setValue(userImageUriStr);
-                
-                databaseReference.child("seats").child(seatKey).onDisconnect().removeValue();
-                Toast.makeText(VoiceRoomActivity.this, "Joined seat successfully!", Toast.LENGTH_SHORT).show();
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
-        });
+        databaseReference.child("seats").child(seatKey).child("userId").setValue(currentUserId);
+        databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
+        databaseReference.child("seats").child(seatKey).child("userImage").setValue(userImageUriStr);
+        databaseReference.child("seats").child(seatKey).child("giftTotal").setValue(0L); // নতুন বসলে কাউন্ট ০ থেকে শুরু হবে
+        databaseReference.child("seats").child(seatKey).onDisconnect().removeValue();
+        Toast.makeText(VoiceRoomActivity.this, "Joined seat successfully!", Toast.LENGTH_SHORT).show();
     }
 
     private void leaveRoomAndFinish() {
         databaseReference.child("online_users").child(currentUserId).removeValue();
-        
         for (int i = 0; i < 10; i++) {
-            final int index = i;
-            databaseReference.child("seats").child("seat_" + index).addListenerForSingleValueEvent(new ValueEventListener() {
+            databaseReference.child("seats").child("seat_" + i).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     String sUserId = snapshot.child("userId").getValue(String.class);
                     if (sUserId != null && sUserId.equals(currentUserId)) {
-                        databaseReference.child("seats").child("seat_" + index).removeValue();
+                        databaseReference.child("seats").child("seat_" + i).removeValue();
                     }
                 }
                 @Override public void onCancelled(@NonNull DatabaseError error) {}
