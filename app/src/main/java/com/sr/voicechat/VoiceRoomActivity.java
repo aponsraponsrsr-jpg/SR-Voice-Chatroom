@@ -599,7 +599,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         container.addView(row);
     }
 
-    // 🌟 প্রিমিয়াম হাফ-স্ক্রিন লাক্সারি গিফট প্যানেল (৫ হাজার থেকে ৭ লাখ কয়েন পর্যন্ত বিভিন্ন রেঞ্জের আকর্ষণীয় গিফট)
+    // 🌟 প্রিমিয়াম লাক্সারি গিফট প্যানেল (৫ হাজার থেকে ৭ লাখ কয়েন পর্যন্ত ১২টি ইউনিক গিফট ও সঠিক ডেটা সহ)
     private void showGiftPanel() {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         View sheetView = getLayoutInflater().inflate(R.layout.dialog_gift_panel, null);
@@ -610,23 +610,21 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         List<GiftModel> allGifts = new ArrayList<>();
         
-        // 5,000 to 20,000 Coins Range (Lucky & Standard)
-        allGifts.add(new GiftModel("Lucky Star", "5,000 Coins", R.drawable.ic_coin, "gift"));
-        allGifts.add(new GiftModel("Rose Bouquet", "8,000 Coins", R.drawable.ic_gift_placeholder, "gift"));
+        // ১২টি প্রিমিয়াম লাক্সারি গিফট কালেকশন
+        allGifts.add(new GiftModel("Lucky", "5,000 Coins", R.drawable.ic_coin, "gift"));
+        allGifts.add(new GiftModel("Rose", "8,000 Coins", R.drawable.ic_gift_placeholder, "gift"));
         allGifts.add(new GiftModel("Love Ring", "10,000 Coins", R.drawable.ic_gift_placeholder, "gift"));
-        allGifts.add(new GiftModel("Mystery Box", "12,000 Coins", R.drawable.ic_coin, "gift"));
-        allGifts.add(new GiftModel("Cute Teddy", "20,000 Coins", R.drawable.ic_gift_placeholder, "gift"));
+        allGifts.add(new GiftModel("Mystery", "12,000 Coins", R.drawable.ic_gift_placeholder, "gift"));
+        
+        allGifts.add(new GiftModel("Cute", "20,000 Coins", R.drawable.ic_gift_placeholder, "gift"));
+        allGifts.add(new GiftModel("Diamond", "30,000 Coins", R.drawable.ic_gift_placeholder, "lady"));
+        allGifts.add(new GiftModel("Luxury", "50,000 Coins", R.drawable.ic_gift_placeholder, "lady"));
+        allGifts.add(new GiftModel("Royal", "100,000 Coins", R.drawable.ic_gift_placeholder, "luxury"));
 
-        // 30,000 to 100,000 Coins Range (Ladies Collection & Luxury)
-        allGifts.add(new GiftModel("Diamond Tiara", "30,000 Coins", R.drawable.ic_gift_placeholder, "lady"));
-        allGifts.add(new GiftModel("Luxury Perfume", "50,000 Coins", R.drawable.ic_gift_placeholder, "lady"));
-        allGifts.add(new GiftModel("Royal Sports Car", "100,000 Coins", R.drawable.ic_gift_placeholder, "luxury"));
-
-        // 200,000 to 700,000 Coins Range (Animals, Mega Luxury & Palaces)
-        allGifts.add(new GiftModel("Golden Tiger", "200,000 Coins", R.drawable.ic_gift_placeholder, "animal"));
-        allGifts.add(new GiftModel("Fire Dragon", "300,000 Coins", R.drawable.ic_gift_placeholder, "animal"));
-        allGifts.add(new GiftModel("Private Yacht", "500,000 Coins", R.drawable.ic_gift_placeholder, "luxury"));
-        allGifts.add(new GiftModel("Castle Palace", "700,000 Coins", R.drawable.ic_gift_placeholder, "luxury"));
+        allGifts.add(new GiftModel("Golden", "200,000 Coins", R.drawable.ic_gift_placeholder, "animal"));
+        allGifts.add(new GiftModel("Fire", "300,000 Coins", R.drawable.ic_gift_placeholder, "animal"));
+        allGifts.add(new GiftModel("Private", "500,000 Coins", R.drawable.ic_gift_placeholder, "luxury"));
+        allGifts.add(new GiftModel("Castle", "700,000 Coins", R.drawable.ic_gift_placeholder, "luxury"));
 
         List<GiftModel> displayedGifts = new ArrayList<>(allGifts);
 
@@ -655,7 +653,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         
         Window window = bottomSheetDialog.getWindow();
         if (window != null) {
-            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1300); // Half-screen premium height
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1300);
             window.setGravity(Gravity.BOTTOM);
         }
     }
