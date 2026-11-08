@@ -3,61 +3,157 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="#1E1233"
-    android:padding="20dp">
+    android:background="@drawable/bg_vip_dialog_gradient"
+    android:padding="20dp"
+    android:gravity="center_horizontal">
 
-    <!-- Title -->
+    <!-- Top Crown & Title -->
     <TextView
         android:id="@+id/textDetailTitle"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="👑 VIP Details &amp; Privileges"
+        android:text="👑 VIP 1 Privileges"
         android:textColor="#FFD700"
-        android:textSize="20sp"
+        android:textSize="22sp"
         android:textStyle="bold"
-        android:gravity="center"
         android:layout_marginBottom="15dp" />
 
-    <!-- Big Badge Preview -->
+    <!-- Room Card / Profile Preview Box -->
     <LinearLayout
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:background="#FFD700"
-        android:gravity="center"
-        android:layout_gravity="center"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#2A1B4E"
+        android:padding="15dp"
         android:layout_marginBottom="15dp"
-        android:padding="8dp">
+        android:gravity="center">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="👑"
-            android:textSize="36sp" />
+            android:text="[ Room Card &amp; Profile Preview ]"
+            android:textColor="#FF4081"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="10dp" />
+
+        <!-- 4 Grid Items: Badge, Frame, Bubble, Entry Effect -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:weightSum="4">
+
+            <!-- Item 1: Badge -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <TextView
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="#FFD700"
+                    android:text="👑"
+                    android:textSize="24sp"
+                    android:gravity="center" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Badge"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:layout_marginTop="5dp" />
+            </LinearLayout>
+
+            <!-- Item 2: Frame -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <TextView
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="#9C27B0"
+                    android:text="🖼️"
+                    android:textSize="24sp"
+                    android:gravity="center" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Frame"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:layout_marginTop="5dp" />
+            </LinearLayout>
+
+            <!-- Item 3: Bubble -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <TextView
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="#00BCD4"
+                    android:text="💬"
+                    android:textSize="24sp"
+                    android:gravity="center" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bubble"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:layout_marginTop="5dp" />
+            </LinearLayout>
+
+            <!-- Item 4: Entry Effect -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+                <TextView
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="#FF5722"
+                    android:text="🐅"
+                    android:textSize="24sp"
+                    android:gravity="center" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Effect"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:layout_marginTop="5dp" />
+            </LinearLayout>
+
+        </LinearLayout>
+
     </LinearLayout>
 
-    <!-- Privileges Description -->
+    <!-- Detailed Info & Validity -->
     <TextView
         android:id="@+id/textDetailDesc"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="• Exclusive Profile Frame\n• Custom Chat Bubble\n• Premium Entry Effect &amp; Badge"
+        android:text="• Exclusive Profile Frame &amp; Chat Bubble\n• Premium Tiger Entry Effect &amp; Golden Badge\n• Validity Options: 7 Days / 15 Days / 30 Days"
         android:textColor="#CCCCCC"
-        android:textSize="14sp"
+        android:textSize="13sp"
         android:lineSpacingExtra="4dp"
-        android:layout_marginBottom="15dp" />
-
-    <!-- Validity Info -->
-    <TextView
-        android:id="@+id/textValidity"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Validity Options: 7 Days / 10 Days / 30 Days (Admin Controlled)"
-        android:textColor="#FF4081"
-        android:textSize="12sp"
-        android:layout_marginBottom="20dp"
+        android:layout_marginBottom="15dp"
         android:gravity="center" />
 
-    <!-- Buy Button (Disabled / Closed for now) -->
+    <!-- Buy Button (Closed for purchase as requested) -->
     <Button
         android:id="@+id/btnBuyVip"
         android:layout_width="match_parent"
