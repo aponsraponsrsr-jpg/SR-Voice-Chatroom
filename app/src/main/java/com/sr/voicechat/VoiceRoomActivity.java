@@ -137,7 +137,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // 🌟 প্রিমিয়াম গ্রিড স্টাইল রুম টুলস পপআপ (Entry Effects, Room Settings, Lock, Admin List ইত্যাদি)
         if (btnRoomTools != null) {
             btnRoomTools.setOnClickListener(v -> {
                 boolean isOwner = currentUserId.equals(roomOwnerId);
@@ -176,7 +175,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 LinearLayout container = new LinearLayout(VoiceRoomActivity.this);
                 container.setOrientation(LinearLayout.VERTICAL);
 
-                // ১. Room Settings
                 container.addView(createToolButton("⚙️ Room Settings & Profile", "Change room name, bio & cover image", view -> {
                     toolsSheet.dismiss();
                     if (isOwner) {
@@ -186,23 +184,19 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     }
                 }));
 
-                // ২. Room Lock
                 container.addView(createToolButton("🔒 Room Lock Protection", "Set or remove room security password", view -> {
                     toolsSheet.dismiss();
                     showRoomLockPasswordDialog();
                 }));
 
-                // ৩. Entry Effects
                 container.addView(createToolButton("✨ Entry Effects & Animations", "Manage luxury car & VIP entry effects", view -> {
                     Toast.makeText(this, "Entry Effects settings opened!", Toast.LENGTH_SHORT).show();
                 }));
 
-                // ৪. Admin List
                 container.addView(createToolButton("🛡️ Admin List & Management", "View and manage room moderators", view -> {
                     Toast.makeText(this, "Admin List panel is active!", Toast.LENGTH_SHORT).show();
                 }));
 
-                // ৫. Clean Chat
                 container.addView(createToolButton("🧹 Clean Global Chat", "Clear all live messages from room", view -> {
                     messagesRef.removeValue().addOnCompleteListener(task -> {
                         chatMessages.clear();
@@ -225,23 +219,16 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // 🏆 র‍্যাঙ্কিং ক্লিক
         if (btnInRoomRanking != null) {
             btnInRoomRanking.setOnClickListener(v -> showPremiumRankingBottomSheet());
         }
 
-        // 📋 রুম টাইটেল ও হেডার ক্লিক
-        if (roomTitleText != null) {
-            roomTitleText.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
-        }
-        if (roomHeaderProfileImg != null) {
-            roomHeaderProfileImg.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
-        }
-        if (roomInfoText != null) {
-            roomInfoText.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
-        }
+        // 🌟 হেডার ক্লিক করলে প্রিমিয়াম গ্রুপ ইনফো ও মেম্বার ড্যাশবোর্ড পপআপ ওপেন হবে
+        View.OnClickListener headerClickListener = v -> showPremiumRoomInfoAndMembersDialog();
+        if (roomTitleText != null) roomTitleText.setOnClickListener(headerClickListener);
+        if (roomHeaderProfileImg != null) roomHeaderProfileImg.setOnClickListener(headerClickListener);
+        if (roomInfoText != null) roomInfoText.setOnClickListener(headerClickListener);
 
-        // 👥 অনলাইন মেম্বার লিস্ট ক্লিক
         if (btnOnlineList != null) {
             btnOnlineList.setOnClickListener(v -> showScrollableOnlineMembersDialog());
         }
@@ -333,6 +320,192 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 builder.show();
             });
         }
+    }
+
+    // 🌟 হেডারে ক্লিক করলে বড় প্রিমিয়াম গ্রুপ ইনফো ও মেম্বার ড্যাশবোর্ড (Info & Members Tabs + Event Banner)
+    private void showPremiumRoomInfoAndMembersDialog() {
+        BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(40, 40, 40, 40);
+
+        GradientDrawable bg = new GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")}
+        );
+        bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
+        root.setBackground(bg);
+
+        // ২-ট্যাব হেডার (Info & Members)
+        LinearLayout tabHeader = new LinearLayout(this);
+        tabHeader.setOrientation(LinearLayout.HORIZONTAL);
+        tabHeader.setGravity(Gravity.CENTER);
+        tabHeader.setPadding(0, 0, 0, 20);
+
+        Button tabInfoBtn = new Button(this);
+        tabInfoBtn.setText("ℹ️ Room Info");
+        tabInfoBtn.setBackgroundColor(Color.parseColor("#FFD700"));
+        tabInfoBtn.setTextColor(Color.BLACK);
+        tabInfoBtn.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
+
+        Button tabMembersBtn = new Button(this);
+        tabMembersBtn.setText("👥 Members");
+        tabMembersBtn.setBackgroundColor(Color.parseColor("#2A1B4E"));
+        tabMembersBtn.setTextColor(Color.WHITE);
+        tabMembersBtn.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
+
+        tabHeader.addView(tabInfoBtn);
+        tabHeader.addView(tabMembersBtn);
+        root.addView(tabHeader);
+
+        // কন্টেন্ট প্যানেল
+        ScrollView contentScrollView = new ScrollView(this);
+        contentScrollView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1200));
+        contentScrollView.setFillViewport(true);
+
+        LinearLayout mainContainer = new LinearLayout(this);
+        mainContainer.setOrientation(LinearLayout.VERTICAL);
+
+        // --- Info Layout ---
+        LinearLayout infoLayout = new LinearLayout(this);
+        infoLayout.setOrientation(LinearLayout.VERTICAL);
+
+        // ওনার ইনফো কার্ড
+        LinearLayout ownerCard = new LinearLayout(this);
+        ownerCard.setOrientation(LinearLayout.VERTICAL);
+        ownerCard.setPadding(25, 25, 25, 25);
+        GradientDrawable cardBg = new GradientDrawable();
+        cardBg.setColor(Color.parseColor("#2A1B4E"));
+        cardBg.setCornerRadius(20);
+        ownerCard.setBackground(cardBg);
+
+        TextView ownerTitle = new TextView(this);
+        ownerTitle.setText("👑 Room Owner: SR Official");
+        ownerTitle.setTextColor(Color.parseColor("#FFD700"));
+        ownerTitle.setTextSize(16);
+        ownerTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        ownerCard.addView(ownerTitle);
+
+        TextView ownerIdTxt = new TextView(this);
+        ownerIdTxt.setText("ID: " + roomOwnerId);
+        ownerIdTxt.setTextColor(Color.parseColor("#00E676"));
+        ownerIdTxt.setTextSize(13);
+        ownerIdTxt.setPadding(0, 4, 0, 10);
+        ownerCard.addView(ownerIdTxt);
+
+        TextView noticeTxt = new TextView(this);
+        noticeTxt.setText("📢 Welcome to SR Voice Chat Room! Enjoy live stream & luxury gifts.");
+        noticeTxt.setTextColor(Color.WHITE);
+        noticeTxt.setTextSize(13);
+        ownerCard.addView(noticeTxt);
+
+        infoLayout.addView(ownerCard);
+
+        // 🌟 ইভেন্ট / রিওয়ার্ড ব্যানার কার্ড
+        LinearLayout bannerCard = new LinearLayout(this);
+        bannerCard.setOrientation(LinearLayout.VERTICAL);
+        bannerCard.setPadding(30, 30, 30, 30);
+        LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        bp.setMargins(0, 20, 0, 0);
+        bannerCard.setLayoutParams(bp);
+
+        GradientDrawable bannerBg = new GradientDrawable(
+            GradientDrawable.Orientation.LEFT_RIGHT,
+            new int[]{Color.parseColor("#8E24AA"), Color.parseColor("#D81B60")}
+        );
+        bannerBg.setCornerRadius(20);
+        bannerCard.setBackground(bannerBg);
+
+        TextView bannerTitle = new TextView(this);
+        bannerTitle.setText("🎁 Room Reward Event");
+        bannerTitle.setTextColor(Color.WHITE);
+        bannerTitle.setTextSize(16);
+        bannerTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        bannerCard.addView(bannerTitle);
+
+        TextView bannerSub = new TextView(this);
+        bannerSub.setText("Weekly Top Sender Reward system (Coming Soon!)");
+        bannerSub.setTextColor(Color.parseColor("#FFEB3B"));
+        bannerSub.setTextSize(12);
+        bannerCard.addView(bannerSub);
+
+        infoLayout.addView(bannerCard);
+        mainContainer.addView(infoLayout);
+
+        // --- Members Layout (Hidden initially) ---
+        LinearLayout membersLayout = new LinearLayout(this);
+        membersLayout.setOrientation(LinearLayout.VERTICAL);
+        membersLayout.setVisibility(View.GONE);
+
+        databaseReference.child("online_users").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                membersLayout.removeAllViews();
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    String uName = ds.getValue(String.class);
+                    String uId = ds.getKey();
+                    if (uName != null) {
+                        LinearLayout row = new LinearLayout(VoiceRoomActivity.this);
+                        row.setOrientation(LinearLayout.HORIZONTAL);
+                        row.setPadding(20, 20, 20, 20);
+                        row.setGravity(Gravity.CENTER_VERTICAL);
+
+                        GradientDrawable rBg = new GradientDrawable();
+                        rBg.setColor(Color.parseColor("#2A1B4E"));
+                        rBg.setCornerRadius(16);
+                        row.setBackground(rBg);
+
+                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                        lp.setMargins(0, 0, 0, 10);
+                        row.setLayoutParams(lp);
+
+                        String roleBadge = (uId != null && uId.equals(roomOwnerId)) ? "👑 Owner " : (roomAdminList.contains(uId) ? "🛡️ Admin " : "🟢 Member ");
+
+                        TextView nameTxt = new TextView(VoiceRoomActivity.this);
+                        nameTxt.setText(roleBadge + uName + " (ID: " + uId + ")");
+                        nameTxt.setTextColor(Color.WHITE);
+                        nameTxt.setTextSize(14);
+                        nameTxt.setTypeface(null, android.graphics.Typeface.BOLD);
+                        row.addView(nameTxt);
+
+                        membersLayout.addView(row);
+                    }
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+
+        mainContainer.addView(membersLayout);
+
+        // ট্যাব সুইচিং লজিক
+        tabInfoBtn.setOnClickListener(v -> {
+            tabInfoBtn.setBackgroundColor(Color.parseColor("#FFD700"));
+            tabInfoBtn.setTextColor(Color.BLACK);
+            tabMembersBtn.setBackgroundColor(Color.parseColor("#2A1B4E"));
+            tabMembersBtn.setTextColor(Color.WHITE);
+            infoLayout.setVisibility(View.VISIBLE);
+            membersLayout.setVisibility(View.GONE);
+        });
+
+        tabMembersBtn.setOnClickListener(v -> {
+            tabMembersBtn.setBackgroundColor(Color.parseColor("#FFD700"));
+            tabMembersBtn.setTextColor(Color.BLACK);
+            tabInfoBtn.setBackgroundColor(Color.parseColor("#2A1B4E"));
+            tabInfoBtn.setTextColor(Color.WHITE);
+            infoLayout.setVisibility(View.GONE);
+            membersLayout.setVisibility(View.VISIBLE);
+        });
+
+        contentScrollView.addView(mainContainer);
+        root.addView(contentScrollView);
+
+        dialog.setContentView(root);
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1500);
+            window.setGravity(Gravity.BOTTOM);
+        }
+        dialog.show();
     }
 
     private View createToolButton(String title, String subtitle, View.OnClickListener listener) {
@@ -860,31 +1033,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    private void showRoomInfoAndMembersBottomSheet() {
-        BottomSheetDialog sheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
-        LinearLayout mainLayout = new LinearLayout(this);
-        mainLayout.setOrientation(LinearLayout.VERTICAL);
-        mainLayout.setPadding(40, 40, 40, 40);
-        mainLayout.setBackgroundColor(Color.parseColor("#120A2A"));
-
-        TextView title = new TextView(this);
-        title.setText("SR Official Room Info & Members");
-        title.setTextColor(Color.parseColor("#FFD700"));
-        title.setTextSize(18);
-        title.setTypeface(null, android.graphics.Typeface.BOLD);
-        title.setPadding(0, 0, 0, 20);
-        mainLayout.addView(title);
-
-        TextView info = new TextView(this);
-        info.setText("Welcome to SR Voice Chat Room. Enjoy high quality voice streaming and live interactions!");
-        info.setTextColor(Color.WHITE);
-        info.setTextSize(14);
-        mainLayout.addView(info);
-
-        sheetDialog.setContentView(mainLayout);
-        sheetDialog.show();
-    }
-
     private void listenToFirebaseSeats() {
         int[] seatImgIds = {
             R.id.seatImg1, R.id.seatImg2, R.id.seatImg3, R.id.seatImg4, R.id.seatImg5,
@@ -1162,7 +1310,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         final String userName = prefs.getString("USER_NAME", "User");
         final String userImageUriStr = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
 
-        // প্রথমে চেক করা যাক ইউজার আগে থেকেই অন্য কোনো সিটে আছে কি না, থাকলে সেটা রিমুভ করব
         for (int i = 0; i < 10; i++) {
             final int oldIndex = i;
             databaseReference.child("seats").child("seat_" + i).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -1177,7 +1324,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // নতুন সিটে জয়েন করা
         databaseReference.child("seats").child(seatKey).child("userId").setValue(currentUserId);
         databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
         databaseReference.child("seats").child(seatKey).child("userImage").setValue(userImageUriStr);
