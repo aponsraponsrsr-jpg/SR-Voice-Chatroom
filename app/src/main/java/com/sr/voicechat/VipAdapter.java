@@ -37,8 +37,8 @@ public class VipAdapter extends RecyclerView.Adapter<VipAdapter.VipViewHolder> {
         holder.textVipLevel.setText(model.getVipLevel());
         holder.textEffect.setText("Effect: " + model.getEntryEffectName());
 
-        // Click on specific VIP item to open big details dialog
-        holder.itemView.v.setOnClickListener(v -> showVipDetailsDialog(model));
+        // Fixed click listener on item view
+        holder.itemView.setOnClickListener(v -> showVipDetailsDialog(model));
     }
 
     private void showVipDetailsDialog(VipModel model) {
