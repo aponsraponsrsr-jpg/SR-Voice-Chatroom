@@ -1,32 +1,57 @@
 package com.sr.voicechat;
 
 import android.os.Bundle;
+import android.widget.TextView;
 import android.widget.Toast;
-import androidx.appcompat.app.AlertDialog;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
 public class InboxActivity extends AppCompatActivity {
+
+    private TextView txtSystemTitle, txtSystemMessage;
+    private DatabaseReference systemNoticeRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_inbox); // Ensure you have activity_inbox.xml or use a simple view
+        setContentView(R.layout.activity_inbox);
 
-        // Demo Hosting Invitation Alert for Testing
-        showHostingInvitationAlert();
+        txtSystemTitle = findViewById(R.id.txtSystemTitle);
+        txtSystemMessage = findViewById(R.id.txtSystemMessage);
+
+        // ফায়ারবেস থেকে রিয়েল-টাইম সিস্টেম নোটিশ লোড করার রেফারেন্স
+        systemNoticeRef = FirebaseDatabase.getInstance().getReference("system_notice");
+
+        loadSystemNotice();
     }
 
-    private void showHostingInvitationAlert() {
-        new AlertDialog.Builder(this)
-            .setTitle("🌟 SR Official Hosting Invitation")
-            .setMessage("Agency ID #948590 has invited you to join as an Official Host. Do you accept?")
-            .setPositiveButton("Accept", (dialog, which) -> {
-                Toast.makeText(this, "Hosting Accepted! Badge Unlocked.", Toast.LENGTH_LONG).show();
-                // Save hosting status in SharedPreferences
-            })
-            .setNegativeButton("Ignore", (dialog, which) -> {
-                dialog.dismiss();
-            })
-            .show();
+    private void loadSystemNotice() {
+        systemNoticeRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String title = snapshot.child("title").getValue(String.class);
+                    String message = snapshot.child("message").getValue(String.class);
+
+                    if (title != null) txtSystemTitle.setText(title);
+                    if (message != null) txtSystemMessage.setText(message);
+                } else {
+                    // ডিফল্ট অফিশিয়াল নোটিশ যদি ফায়ারবেসে না থাকে
+                    txtSystemTitle.setText("🌟 SR Voice Chatroom Official System");
+                    txtSystemMessage.setText("No new system announcements right now. Enjoy your voice chatting!");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.InboxMessageError(InboxActivity.this, "Failed to load system notice", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
