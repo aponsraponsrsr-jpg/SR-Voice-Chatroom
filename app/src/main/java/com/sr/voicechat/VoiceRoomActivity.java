@@ -1,9 +1,6 @@
 package com.sr.voicechat;
 
 import android.app.Dialog;
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -35,7 +32,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -74,14 +70,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private DatabaseReference userDatabaseRef;
     private DatabaseReference messagesRef;
     private DatabaseReference adminsRef;
-    private DatabaseReference followsRef;
     private FirebaseAuth mAuth;
     private String roomOwnerId = "";
     private String currentUserId = "";
 
     private static final int PICK_IMAGE_REQUEST = 101;
     private EditText dialogInputName, dialogInputBio;
-    private DatabaseReference activeRoomsRef;
     private long roomJoinTimestamp = 0;
 
     private List<String> roomAdminList = new ArrayList<>();
@@ -111,9 +105,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         roomMetaRef = databaseReference.child("meta");
         messagesRef = databaseReference.child("messages");
         adminsRef = databaseReference.child("admins");
-        followsRef = FirebaseDatabase.getInstance().getReference("follows");
         
-        activeRoomsRef = FirebaseDatabase.getInstance().getReference("active_rooms").child(roomOwnerId);
         userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
 
         syncLatestUserProfile();
@@ -196,35 +188,28 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
+        // 🏆 র‍্যাঙ্কিং ক্লিক লজিক
         if (btnInRoomRanking != null) {
             btnInRoomRanking.setOnClickListener(v -> showInRoomRankingBottomSheet());
         }
 
+        // 📋 রুম টাইটেল ক্লিক
         if (roomTitleText != null) {
             roomTitleText.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
         }
 
-        // 🌟 হেডার প্রোফাইল পিকচার ক্লিক লজিক: শুধু সিইও (Room Owner) ডাবল ট্যাপ বা লং প্রেস বা নিজের আইডিতে সুপার প্যানেল পাবে, নরমাল ক্লিক করলে মেম্বার লিস্ট দেখাবে
+        // 🖼️ রুম হেডার প্রোফাইল পিকচার ক্লিক (সম্পূর্ণ ফ্রি ও স্বাভাবিক মেম্বার লিস্টের জন্য)
         if (roomHeaderProfileImg != null) {
-            roomHeaderProfileImg.setOnClickListener(v -> {
-                showRoomInfoAndMembersBottomSheet();
-            });
-            // সিক্রেট সুপার প্যানেল ওপেন করার জন্য লং প্রেস (Long Click) ব্যবহার করা হলো, যাতে নরমাল ক্লিক ডিস্টার্ব না করে
-            roomHeaderProfileImg.setOnLongClickListener(v -> {
-                if (currentUserId.equals(roomOwnerId)) {
-                    showSRSuperPanel();
-                    return true;
-                }
-                return false;
-            });
+            roomHeaderProfileImg.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
         }
 
         if (roomInfoText != null) {
             roomInfoText.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
         }
 
+        // 👥 অনলাইন লিস্ট ক্লিক লজিক (সরাসরি অনলাইন মেম্বারদের পপআপ দেখাবে)
         if (btnOnlineList != null) {
-            btnOnlineList.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
+            btnOnlineList.setOnClickListener(v -> showOnlineMembersDialog());
         }
 
         chatListView = findViewById(R.id.chatListView);
@@ -316,97 +301,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // 👑 "এসআর সুপার প্যানেল" (সিইও বা ওনারের জন্য সিক্রেট ড্যাশবোর্ড)
-    private void showSRSuperPanel() {
-        BottomSheetDialog superPanelDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(50, 50, 50, 60);
-        
-        GradientDrawable bg = new GradientDrawable(
-            GradientDrawable.Orientation.TOP_BOTTOM,
-            new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")}
-        );
-        bg.setCornerRadii(new float[]{40, 40, 40, 40, 0, 0, 0, 0});
-        layout.setBackground(bg);
-
-        TextView title = new TextView(this);
-        title.setText("👑 এসআর সুপার প্যানেল (SR Super Panel)");
-        title.setTextColor(Color.parseColor("#FFD700"));
-        title.setTextSize(18);
-        title.setTypeface(null, android.graphics.Typeface.BOLD);
-        title.setGravity(Gravity.CENTER);
-        title.setPadding(0, 0, 0, 30);
-        layout.addView(title);
-
-        final EditText inputTargetId = new EditText(this);
-        inputTargetId.setHint("Enter Target User 9-Digit ID...");
-        inputTargetId.setHintTextColor(Color.parseColor("#888888"));
-        inputTargetId.setTextColor(Color.WHITE);
-        inputTargetId.setBackgroundColor(Color.parseColor("#2A1B4E"));
-        inputTargetId.setPadding(30, 30, 30, 30);
-        layout.addView(inputTargetId);
-
-        final EditText inputCoinAmount = new EditText(this);
-        inputCoinAmount.setHint("Enter Coin Amount (e.g., 500000)...");
-        inputCoinAmount.setHintTextColor(Color.parseColor("#888888"));
-        inputCoinAmount.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
-        inputCoinAmount.setTextColor(Color.WHITE);
-        inputCoinAmount.setBackgroundColor(Color.parseColor("#2A1B4E"));
-        inputCoinAmount.setPadding(30, 30, 30, 30);
-        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, 20, 0, 30);
-        inputCoinAmount.setLayoutParams(params);
-        layout.addView(inputCoinAmount);
-
-        Button btnAddCoins = new Button(this);
-        btnAddCoins.setText("💎 Add Free Coins to User ID");
-        btnAddCoins.setBackgroundColor(Color.parseColor("#00E676"));
-        btnAddCoins.setTextColor(Color.BLACK);
-        btnAddCoins.setTypeface(null, android.graphics.Typeface.BOLD);
-        btnAddCoins.setOnClickListener(v -> {
-            String targetId = inputTargetId.getText().toString().trim();
-            String coinStr = inputCoinAmount.getText().toString().trim();
-
-            if (targetId.isEmpty() || coinStr.isEmpty()) {
-                Toast.makeText(this, "Please enter both User ID and Coin Amount!", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            long coinsToAdd = Long.parseLong(coinStr);
-            DatabaseReference targetUserRef = FirebaseDatabase.getInstance().getReference("users").child(targetId);
-            
-            targetUserRef.child("totalSpentCoins").addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    long currentCoins = 0;
-                    if (snapshot.exists() && snapshot.getValue(Long.class) != null) {
-                        currentCoins = snapshot.getValue(Long.class);
-                    }
-                    long updatedTotal = currentCoins + coinsToAdd;
-                    
-                    targetUserRef.child("totalSpentCoins").setValue(updatedTotal);
-                    Toast.makeText(VoiceRoomActivity.this, "Successfully added " + coinsToAdd + " coins to ID: " + targetId, Toast.LENGTH_LONG).show();
-                    superPanelDialog.dismiss();
-                }
-
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    Toast.makeText(VoiceRoomActivity.this, "Failed to update database!", Toast.LENGTH_SHORT).show();
-                }
-            });
-        });
-        layout.addView(btnAddCoins);
-
-        superPanelDialog.setContentView(layout);
-        Window window = superPanelDialog.getWindow();
-        if (window != null) {
-            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            window.setGravity(Gravity.BOTTOM);
-        }
-        superPanelDialog.show();
-    }
-
     private void listenToRoomAdmins() {
         adminsRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -423,16 +317,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
     }
 
     private String getCorrectBadgeIcon(String targetUid) {
-        if (targetUid == null || targetUid.isEmpty()) {
-            return ""; 
-        }
-        if (targetUid.equals(roomOwnerId)) {
+        if (targetUid == null || targetUid.isEmpty()) return "";
+        if (targetUid.equals(roomOwnerId) || roomAdminList.contains(targetUid)) {
             return "🛡️ ";
-        } else if (roomAdminList.contains(targetUid)) {
-            return "🛡️ ";
-        } else {
-            return "";
         }
+        return "";
     }
 
     @Override
@@ -448,9 +337,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 String message = snapshot.child("message").getValue(String.class);
                 Long msgTime = snapshot.child("timestamp").getValue(Long.class);
 
-                if (msgTime != null && msgTime < roomJoinTimestamp) {
-                    return; 
-                }
+                if (msgTime != null && msgTime < roomJoinTimestamp) return;
 
                 if (senderName != null && message != null) {
                     String fullMsg = senderName + ": " + message;
@@ -465,13 +352,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
 
             @Override public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
-            
             @Override 
             public void onChildRemoved(@NonNull DataSnapshot snapshot) {
                 chatMessages.clear();
                 chatAdapter.notifyDataSetChanged();
             }
-
             @Override public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {}
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
@@ -513,6 +398,52 @@ public class VoiceRoomActivity extends AppCompatActivity {
         builder.show();
     }
 
+    // 👥 অনলাইন মেম্বার লিস্ট ডায়ালগ
+    private void showOnlineMembersDialog() {
+        BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(40, 40, 40, 40);
+        layout.setBackgroundColor(Color.parseColor("#120A2A"));
+
+        TextView title = new TextView(this);
+        title.setText("👥 Online Room Members");
+        title.setTextColor(Color.parseColor("#00E676"));
+        title.setTextSize(18);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setPadding(0, 0, 0, 20);
+        layout.addView(title);
+
+        ListView listView = new ListView(this);
+        ArrayList<String> memberNames = new ArrayList<>();
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, memberNames);
+        listView.setAdapter(adapter);
+
+        databaseReference.child("online_users").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                memberNames.clear();
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    String name = ds.getValue(String.class);
+                    if (name != null) memberNames.add("🟢 " + name);
+                }
+                adapter.notifyDataSetChanged();
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+
+        layout.addView(listView);
+        dialog.setContentView(layout);
+        
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1200);
+            window.setGravity(Gravity.BOTTOM);
+        }
+        dialog.show();
+    }
+
+    // 🏆 রুম র‍্যাঙ্কিং বটম শিট
     private void showInRoomRankingBottomSheet() {
         BottomSheetDialog rankSheet = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         
@@ -527,48 +458,29 @@ public class VoiceRoomActivity extends AppCompatActivity {
         bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
         rankLayout.setBackground(bg);
 
-        LinearLayout topRow = new LinearLayout(this);
-        topRow.setOrientation(LinearLayout.HORIZONTAL);
-        topRow.setGravity(Gravity.CENTER_VERTICAL);
-        topRow.setPadding(0, 0, 0, 20);
-
         TextView title = new TextView(this);
-        title.setText("🏆 Room Contribution Ranking");
+        title.setText("🏆 Room Contribution Ranking (Daily / Weekly)");
         title.setTextColor(Color.parseColor("#FFD700"));
-        title.setTextSize(18);
+        title.setTextSize(16);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
-        LinearLayout.LayoutParams tParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
-        title.setLayoutParams(tParams);
-        topRow.addView(title);
-
-        TextView close = new TextView(this);
-        close.setText("✕");
-        close.setTextColor(Color.WHITE);
-        close.setTextSize(20);
-        close.setOnClickListener(v -> rankSheet.dismiss());
-        topRow.addView(close);
-        rankLayout.addView(topRow);
+        title.setPadding(0, 0, 0, 20);
+        rankLayout.addView(title);
 
         ScrollView rankScrollView = new ScrollView(this);
-        rankScrollView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1.0f));
-        rankScrollView.setFillViewport(true);
-
         LinearLayout listContainer = new LinearLayout(this);
         listContainer.setOrientation(LinearLayout.VERTICAL);
-        listContainer.setPadding(10, 10, 10, 10);
 
         addRankUserRow(listContainer, "1", "SR Apon (Owner)", "1,500,000 Coins", "#FFD700");
-        addRankUserRow(listContainer, "2", "Admin User", "950,000 Coins", "#C0C0C0");
-        addRankUserRow(listContainer, "3", "Active Supporter", "500,000 Coins", "#CD7F32");
+        addRankUserRow(listContainer, "2", "Top Supporter", "950,000 Coins", "#C0C0C0");
+        addRankUserRow(listContainer, "3", "Active Member", "500,000 Coins", "#CD7F32");
 
         rankScrollView.addView(listContainer);
         rankLayout.addView(rankScrollView);
 
         rankSheet.setContentView(rankLayout);
-
         Window w = rankSheet.getWindow();
         if (w != null) {
-            w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1500);
+            w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1300);
             w.setGravity(Gravity.BOTTOM);
         }
         rankSheet.show();
@@ -606,7 +518,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         nameTxt.setText(name);
         nameTxt.setTextColor(Color.WHITE);
         nameTxt.setTextSize(15);
-        nameTxt.setTypeface(null, android.graphics.Typeface.BOLD);
         textStack.addView(nameTxt);
 
         TextView scoreTxt = new TextView(container.getContext());
@@ -635,13 +546,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         allGifts.add(new GiftModel("", "20,000 Coins", R.drawable.ic_gift_crown, "gift"));
         allGifts.add(new GiftModel("", "30,000 Coins", R.drawable.ic_gift_castle, "lady"));
 
-        List<GiftModel> displayedGifts = new ArrayList<>(allGifts);
-        final GiftModel[] selectedGiftHolder = {displayedGifts.get(0)};
-
-        GiftAdapter adapter = new GiftAdapter(displayedGifts, gift -> {
-            selectedGiftHolder[0] = gift;
-            Toast.makeText(this, "Selected: " + gift.getGiftPrice(), Toast.LENGTH_SHORT).show();
-        });
+        final GiftModel[] selectedGiftHolder = {allGifts.get(0)};
+        GiftAdapter adapter = new GiftAdapter(allGifts, gift -> selectedGiftHolder[0] = gift);
         rvGifts.setAdapter(adapter);
 
         btnSendGift.setOnClickListener(v -> {
@@ -680,7 +586,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
 
         bottomSheetDialog.show();
-        
         Window window = bottomSheetDialog.getWindow();
         if (window != null) {
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1300);
@@ -698,9 +603,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         String dbImage = snapshot.child("profileImage").getValue(String.class);
 
                         SharedPreferences.Editor editor = prefs.edit();
-                        if (dbName != null && !dbName.isEmpty()) {
-                            editor.putString("USER_NAME", dbName);
-                        }
+                        if (dbName != null && !dbName.isEmpty()) editor.putString("USER_NAME", dbName);
                         if (dbImage != null) {
                             editor.putString("USER_IMAGE", dbImage);
                             editor.putString("USER_PROFILE_IMAGE", dbImage);
@@ -834,20 +737,21 @@ public class VoiceRoomActivity extends AppCompatActivity {
         LinearLayout mainLayout = new LinearLayout(this);
         mainLayout.setOrientation(LinearLayout.VERTICAL);
         mainLayout.setPadding(40, 40, 40, 40);
-        
-        GradientDrawable bg = new GradientDrawable(
-            GradientDrawable.Orientation.TOP_BOTTOM,
-            new int[]{Color.parseColor("#FFFFFF"), Color.parseColor("#F8F9FA")}
-        );
-        bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
-        mainLayout.setBackground(bg);
+        mainLayout.setBackgroundColor(Color.parseColor("#120A2A"));
 
         TextView title = new TextView(this);
-        title.setText("SR Official Voice Room Members");
-        title.setTextColor(Color.parseColor("#111111"));
+        title.setText("SR Official Room Info");
+        title.setTextColor(Color.parseColor("#FFD700"));
         title.setTextSize(18);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setPadding(0, 0, 0, 20);
         mainLayout.addView(title);
+
+        TextView info = new TextView(this);
+        info.setText("Welcome to SR Voice Chat Room. Enjoy high quality voice streaming and live interactions!");
+        info.setTextColor(Color.WHITE);
+        info.setTextSize(14);
+        mainLayout.addView(info);
 
         sheetDialog.setContentView(mainLayout);
         sheetDialog.show();
