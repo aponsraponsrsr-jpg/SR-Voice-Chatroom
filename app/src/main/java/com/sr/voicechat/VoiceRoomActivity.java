@@ -204,10 +204,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
             roomTitleText.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
         }
 
+        // 🌟 হেডার প্রোফাইল পিকচারে সিক্রেট টাচ: শুধু সিইও (Room Owner) ক্লিক করলে 'SR Super Panel' ওপেন হবে, অন্যরা সাধারণ ইনফো দেখতে পাবে
         if (roomHeaderProfileImg != null) {
             roomHeaderProfileImg.setOnClickListener(v -> {
                 if (currentUserId.equals(roomOwnerId)) {
-                    showEditRoomDialog();
+                    showSRSuperPanel(); // সিক্রেট এসআর সুপার প্যানেল
                 } else {
                     showRoomInfoAndMembersBottomSheet();
                 }
@@ -309,6 +310,106 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 builder.show();
             });
         }
+    }
+
+    // 👑 "এসআর সুপার প্যানেল" (শুধুমাত্র সিইও বা ওনারের জন্য সিক্রেট ও সুরক্ষিত ড্যাশবোর্ড)
+    private void showSRSuperPanel() {
+        if (!currentUserId.equals(roomOwnerId)) {
+            Toast.makeText(this, "Access Denied! This is a secret panel.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        BottomSheetDialog superPanelDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 50, 50, 60);
+        
+        GradientDrawable bg = new GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")}
+        );
+        bg.setCornerRadii(new float[]{40, 40, 40, 40, 0, 0, 0, 0});
+        layout.setBackground(bg);
+
+        // প্যানেল টাইটেল
+        TextView title = new TextView(this);
+        title.setText("👑 এসআর সুপার প্যানেল (SR Super Panel)");
+        title.setTextColor(Color.parseColor("#FFD700"));
+        title.setTextSize(18);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setGravity(Gravity.CENTER);
+        title.setPadding(0, 0, 0, 30);
+        layout.addView(title);
+
+        // টার্গেট ইউজার আইডি ইনপুট বক্স (যাকে কয়েন পাঠাতে চান)
+        final EditText inputTargetId = new EditText(this);
+        inputTargetId.setHint("Enter Target User 9-Digit ID...");
+        inputTargetId.setHintTextColor(Color.parseColor("#888888"));
+        inputTargetId.setTextColor(Color.WHITE);
+        inputTargetId.setBackgroundColor(Color.parseColor("#2A1B4E"));
+        inputTargetId.setPadding(30, 30, 30, 30);
+        layout.addView(inputTargetId);
+
+        // কয়েন অ্যামাউন্ট ইনপুট বক্স
+        final EditText inputCoinAmount = new EditText(this);
+        inputCoinAmount.setHint("Enter Coin Amount (e.g., 500000)...");
+        inputCoinAmount.setHintTextColor(Color.parseColor("#888888"));
+        inputCoinAmount.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        inputCoinAmount.setTextColor(Color.WHITE);
+        inputCoinAmount.setBackgroundColor(Color.parseColor("#2A1B4E"));
+        inputCoinAmount.setPadding(30, 30, 30, 30);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.setMargins(0, 20, 0, 30);
+        inputCoinAmount.setLayoutParams(params);
+        layout.addView(inputCoinAmount);
+
+        // কয়েন টপ-আপ বাটন
+        Button btnAddCoins = new Button(this);
+        btnAddCoins.setText("💎 Add Free Coins to User ID");
+        btnAddCoins.setBackgroundColor(Color.parseColor("#00E676"));
+        btnAddCoins.setTextColor(Color.BLACK);
+        btnAddCoins.setTypeface(null, android.graphics.Typeface.BOLD);
+        btnAddCoins.setOnClickListener(v -> {
+            String targetId = inputTargetId.getText().toString().trim();
+            String coinStr = inputCoinAmount.getText().toString().trim();
+
+            if (targetId.isEmpty() || coinStr.isEmpty()) {
+                Toast.makeText(this, "Please enter both User ID and Coin Amount!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            long coinsToAdd = Long.parseLong(coinStr);
+            DatabaseReference targetUserRef = FirebaseDatabase.getInstance().getReference("users").child(targetId);
+            
+            targetUserRef.child("totalSpentCoins").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    long currentCoins = 0;
+                    if (snapshot.exists() && snapshot.getValue(Long.class) != null) {
+                        currentCoins = snapshot.getValue(Long.class);
+                    }
+                    long updatedTotal = currentCoins + coinsToAdd;
+                    
+                    targetUserRef.child("totalSpentCoins").setValue(updatedTotal);
+                    Toast.makeText(VoiceRoomActivity.this, "Successfully added " + coinsToAdd + " coins to ID: " + targetId, Toast.LENGTH_LONG).show();
+                    superPanelDialog.dismiss();
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(VoiceRoomActivity.this, "Failed to update database!", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+        layout.addView(btnAddCoins);
+
+        superPanelDialog.setContentView(layout);
+        Window window = superPanelDialog.getWindow();
+        if (window != null) {
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            window.setGravity(Gravity.BOTTOM);
+        }
+        superPanelDialog.show();
     }
 
     private void listenToRoomAdmins() {
@@ -896,7 +997,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private void leaveRoomAndFinish() {
         databaseReference.child("online_users").child(currentUserId).removeValue();
         
-        // 🌟 ফিক্সড লুপ (final ভেরিয়েবল ব্যবহার করা হয়েছে যাতে বিল্ড এরর না আসে)
         for (int index = 0; index < 10; index++) {
             final int i = index;
             databaseReference.child("seats").child("seat_" + i).addListenerForSingleValueEvent(new ValueEventListener() {
