@@ -310,6 +310,49 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
+    // 🌟 ১ থেকে ১৫০ লেভেল ক্যালকুলেটর ও প্রিমিয়াম কালার লজিক
+    private int calculateUserLevel(long totalCoins) {
+        if (totalCoins < 3000000L) { // ৩ মিলিয়নের নিচে Level 1
+            return 1;
+        }
+
+        long currentRequirement = 3000000L;
+        int level = 1;
+
+        for (int i = 2; i <= 150; i++) {
+            if (i <= 20) {
+                currentRequirement += 5000000L; // লেভেল ১ থেকে ২০: প্রতি লেভেলে ৫ মিলিয়ন বৃদ্ধি
+            } else if (i <= 50) {
+                currentRequirement += 20000000L; // লেভেল ২১ থেকে ৫০: প্রতি লেভেলে ২০ মিলিয়ন বৃদ্ধি
+            } else if (i <= 100) {
+                currentRequirement += 25000000L; // লেভেল ৫১ থেকে ১০০: প্রতি লেভেলে ২৫ মিলিয়ন বৃদ্ধি
+            } else {
+                currentRequirement += 35000000L; // লেভেল ১০১ থেকে ১৫০: প্রতি লেভেলে ৩৫ মিলিয়ন বৃদ্ধি
+            }
+
+            if (totalCoins >= currentRequirement) {
+                level = i;
+            } else {
+                break;
+            }
+        }
+        return Math.min(level, 150);
+    }
+
+    private int getLevelColor(int level) {
+        if (level <= 10) {
+            return Color.parseColor("#C0C0C0"); // Silver
+        } else if (level <= 20) {
+            return Color.parseColor("#29B6F6"); // Light Blue / Cyan
+        } else if (level <= 50) {
+            return Color.parseColor("#AB47BC"); // Royal Purple
+        } else if (level <= 100) {
+            return Color.parseColor("#FF4081"); // Diamond Pink
+        } else {
+            return Color.parseColor("#FFD700"); // Glowing Gold (101-150)
+        }
+    }
+
     private void listenToRoomAdmins() {
         adminsRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -1240,12 +1283,29 @@ public class VoiceRoomActivity extends AppCompatActivity {
         txtName.setPadding(0, 10, 0, 5);
         layout.addView(txtName);
 
+        // 🌟 ডাইনামিক লেভেল (ফায়ারবেস থেকে টোটাল কয়েন রিড করে ১ থেকে ১৫০ লেভেল শো করবে)
         TextView txtMeta = new TextView(this);
-        txtMeta.setText("Level: Lv.15  |  🇧🇩 Bangladesh");
+        txtMeta.setText("⭐ Lv.1  |  🇧🇩 Bangladesh");
         txtMeta.setTextColor(Color.parseColor("#FFC107"));
-        txtMeta.setTextSize(13);
+        txtMeta.setTextSize(14);
+        txtMeta.setTypeface(null, android.graphics.Typeface.BOLD);
         txtMeta.setGravity(Gravity.CENTER);
         layout.addView(txtMeta);
+
+        // ফায়ারবেস থেকে ইউজারের টোটাল স্পেন্ডিং কয়েন এনে লেভেল সেট করা
+        userDatabaseRef.child(targetUid).child("totalSpentCoins").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                long spentCoins = 0;
+                if (snapshot.exists() && snapshot.getValue(Long.class) != null) {
+                    spentCoins = snapshot.getValue(Long.class);
+                }
+                int calculatedLv = calculateUserLevel(spentCoins);
+                txtMeta.setText("⭐ Lv." + calculatedLv + "  |  🇧🇩 Bangladesh");
+                txtMeta.setTextColor(getLevelColor(calculatedLv));
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
 
         TextView txtIdInfo = new TextView(this);
         txtIdInfo.setText("ID: " + targetUid + " 📋 (Tap to Copy)");
@@ -1264,7 +1324,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
         layout.addView(txtIdInfo);
 
-        // 🌟 প্রিমিয়াম ফলো, চ্যাট এবং গিফট অপশন (আপনার রিকোয়েস্ট অনুযায়ী যুক্ত করা হয়েছে)
+        // 🌟 প্রিমিয়াম ফলো, চ্যাট এবং গিফট অপশন
         LinearLayout btnRow = new LinearLayout(this);
         btnRow.setOrientation(LinearLayout.HORIZONTAL);
         btnRow.setGravity(Gravity.CENTER);
@@ -1280,7 +1340,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 Toast.makeText(this, "You cannot follow yourself!", Toast.LENGTH_SHORT).show();
                 return;
             }
-            // ফায়ারবেসে রিয়েল-টাইম ফলো/ফ্রেন্ড রিকোয়েস্ট পাঠানো
             followsRef.child(currentUserId).child("following").child(targetUid).setValue(true);
             followsRef.child(targetUid).child("followers").child(currentUserId).setValue(true);
             Toast.makeText(this, "Followed successfully! Friend request sent.", Toast.LENGTH_SHORT).show();
@@ -1299,7 +1358,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         btnChat.setOnClickListener(v -> {
             Toast.makeText(this, "Opening chat with " + (userName != null ? userName : "User"), Toast.LENGTH_SHORT).show();
             profileDialog.dismiss();
-            // চাইলে এখানে সরাসরি Inbox / Chat Activity-তে রিডাইরেক্ট করতে পারেন
         });
         btnRow.addView(btnChat);
 
