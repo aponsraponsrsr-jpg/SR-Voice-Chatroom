@@ -323,17 +323,16 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // 🌟 Strictly checks THIS room's owner & admin status (No global cross-room bugs)
     private String getCorrectBadgeIcon(String targetUid) {
         if (targetUid == null || targetUid.isEmpty()) {
             return ""; 
         }
         if (targetUid.equals(roomOwnerId)) {
-            return "🛡️[Owner] "; // ic_owner_shield.png
+            return "🛡️[Owner] ";
         } else if (roomAdminList.contains(targetUid)) {
-            return "🛡️[Admin] "; // ic_admin_shield.png
+            return "🛡️[Admin] ";
         } else {
-            return ""; // Normal members in other rooms will have no special shield prefix
+            return "";
         }
     }
 
@@ -519,9 +518,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         View sheetView = getLayoutInflater().inflate(R.layout.dialog_gift_panel, null);
         bottomSheetDialog.setContentView(sheetView);
 
-        TextView tabGift = sheetView.findViewById(R.id.tabGift);
-        TextView tabCpGift = sheetView.findViewById(R.id.tabCpGift);
-        TextView tabLuckyGift = sheetView.findViewById(R.id.tabLuckyGift);
         RecyclerView rvGifts = sheetView.findViewById(R.id.rvGifts);
         Button btnSendGift = sheetView.findViewById(R.id.btnSendGift);
 
@@ -1313,12 +1309,32 @@ public class VoiceRoomActivity extends AppCompatActivity {
         final String userName = prefs.getString("USER_NAME", "User");
         final String userImageUriStr = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
 
-        databaseReference.child("seats").child(seatKey).child("userId").setValue(currentUserId);
-        databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
-        databaseReference.child("seats").child(seatKey).child("userImage").setValue(userImageUriStr);
-        
-        databaseReference.child("seats").child(seatKey).onDisconnect().removeValue();
-        Toast.makeText(VoiceRoomActivity.this, "Joined seat successfully!", Toast.LENGTH_SHORT).show();
+        // Clear previous seat if user was already sitting anywhere else in the room
+        databaseReference.child("seats").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                for (int i = 0; i < 10; i++) {
+                    String existingSeatKey = "seat_" + i;
+                    if (snapshot.hasChild(existingSeatKey)) {
+                        String occupantId = snapshot.child(existingSeatKey).child("userId").getValue(String.class);
+                        if (occupantId != null && occupantId.equals(currentUserId)) {
+                            databaseReference.child("seats").child(existingSeatKey).removeValue();
+                        }
+                    }
+                }
+
+                // Now take the new target seat smoothly
+                databaseReference.child("seats").child(seatKey).child("userId").setValue(currentUserId);
+                databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
+                databaseReference.child("seats").child(seatKey).child("userImage").setValue(userImageUriStr);
+                
+                databaseReference.child("seats").child(seatKey).onDisconnect().removeValue();
+                Toast.makeText(VoiceRoomActivity.this, "Joined seat successfully!", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
     }
 
     private void leaveRoomAndFinish() {
