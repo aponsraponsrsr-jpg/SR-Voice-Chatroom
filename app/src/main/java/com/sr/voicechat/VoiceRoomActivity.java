@@ -310,9 +310,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // 🌟 ১ থেকে ১৫০ লেভেল ক্যালকুলেটর ও প্রিমিয়াম কালার লজিক
     private int calculateUserLevel(long totalCoins) {
-        if (totalCoins < 3000000L) { // ৩ মিলিয়নের নিচে Level 1
+        if (totalCoins < 3000000L) {
             return 1;
         }
 
@@ -341,15 +340,15 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private int getLevelColor(int level) {
         if (level <= 10) {
-            return Color.parseColor("#C0C0C0"); // Silver
+            return Color.parseColor("#C0C0C0"); 
         } else if (level <= 20) {
-            return Color.parseColor("#29B6F6"); // Light Blue / Cyan
+            return Color.parseColor("#29B6F6"); 
         } else if (level <= 50) {
-            return Color.parseColor("#AB47BC"); // Royal Purple
+            return Color.parseColor("#AB47BC"); 
         } else if (level <= 100) {
-            return Color.parseColor("#FF4081"); // Diamond Pink
+            return Color.parseColor("#FF4081"); 
         } else {
-            return Color.parseColor("#FFD700"); // Glowing Gold (101-150)
+            return Color.parseColor("#FFD700"); 
         }
     }
 
@@ -498,9 +497,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
         listContainer.setOrientation(LinearLayout.VERTICAL);
         listContainer.setPadding(10, 10, 10, 10);
 
-        addRankUserRow(listContainer, "1", "Room Host", "0 Coins", "#FFD700");
-        addRankUserRow(listContainer, "2", "Room Admin", "0 Coins", "#C0C0C0");
-        addRankUserRow(listContainer, "3", "Active Member", "0 Coins", "#CD7F32");
+        addRankUserRow(listContainer, "1", "Room Host", "0 Coins", "#FF1744");
+        addRankUserRow(listContainer, "2", "Room Admin", "0 Coins", "#29B6F6");
+        addRankUserRow(listContainer, "3", "Active Member", "0 Coins", "#00E676");
 
         rankLayout.addView(listContainer);
         rankSheet.setContentView(rankLayout);
@@ -1055,7 +1054,15 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         TextView roleView = new TextView(this);
         roleView.setText(role + "  |  ID: " + uId);
-        roleView.setTextColor(Color.parseColor(badgeColorHex));
+        
+        if (role.contains("Owner")) {
+            roleView.setTextColor(Color.parseColor("#FF1744")); 
+        } else if (role.contains("Admin")) {
+            roleView.setTextColor(Color.parseColor("#29B6F6")); 
+        } else {
+            roleView.setTextColor(Color.parseColor("#00E676")); 
+        }
+
         roleView.setTextSize(12);
         roleView.setTypeface(null, android.graphics.Typeface.BOLD);
         textLayout.addView(roleView);
@@ -1091,7 +1098,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         String sUid = snapshot.child(seatKey).child("userId").getValue(String.class);
 
                         if (seatTxt != null) {
-                            // 🌟 সুনির্দিষ্ট লজিক: ইউজারের নিজস্ব রিয়েল নামই থাকবে, শুধু ওনার/অ্যাডমিন হলে সামনে ছোট্ট আইকন (🛡️) শো করবে
                             String roleIcon = "";
                             if (sUid != null && sUid.equals(roomOwnerId)) {
                                 roleIcon = "🛡️ ";
@@ -1290,7 +1296,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         txtName.setPadding(0, 10, 0, 5);
         layout.addView(txtName);
 
-        // 🌟 ডাইনামিক লেভেল (ফায়ারবেস থেকে টোটাল কয়েন রিড করে ১ থেকে ১৫০ লেভেল শো করবে)
         TextView txtMeta = new TextView(this);
         txtMeta.setText("⭐ Lv.1  |  🇧🇩 Bangladesh");
         txtMeta.setTextColor(Color.parseColor("#FFC107"));
@@ -1299,7 +1304,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         txtMeta.setGravity(Gravity.CENTER);
         layout.addView(txtMeta);
 
-        // ফায়ারবেস থেকে ইউজারের টোটাল স্পেন্ডিং কয়েন এনে লেভেল সেট করা
         userDatabaseRef.child(targetUid).child("totalSpentCoins").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -1331,7 +1335,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
         layout.addView(txtIdInfo);
 
-        // 🌟 প্রিমিয়াম ফলো, চ্যাট এবং গিফট অপশন
         LinearLayout btnRow = new LinearLayout(this);
         btnRow.setOrientation(LinearLayout.HORIZONTAL);
         btnRow.setGravity(Gravity.CENTER);
@@ -1394,7 +1397,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             p.setMargins(0, 15, 0, 0);
             btnKickUser.setLayoutParams(p);
-            layout.addItemView(btnKickUser); // or layout.addView(btnKickUser);
+            layout.addView(btnKickUser);
         }
 
         profileDialog.setContentView(layout);
