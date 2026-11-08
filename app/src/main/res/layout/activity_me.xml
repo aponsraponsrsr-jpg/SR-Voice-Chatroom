@@ -126,29 +126,36 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- লেভেল স্ট্যাটাস (Sending & Receiving Level) -->
+            <!-- 🌟 লেভেল সেন্টার এবং ডাইনামিক লেভেল স্ট্যাটাস বাটন -->
             <LinearLayout
+                android:id="@+id/btnLevelCenter"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/rounded_bg"
-                android:padding="10dp"
-                android:gravity="center">
+                android:padding="12dp"
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true">
+                
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="⭐ Sending: Lv.0"
-                    android:textColor="#FFD700"
-                    android:textSize="12sp"
+                    android:layout_weight="1"
+                    android:text="🏆 Level Center (Lv.1 - 150)"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp"
                     android:textStyle="bold"
-                    android:layout_marginEnd="15dp"/>
+                    android:drawablePadding="8dp"/>
+
                 <TextView
+                    android:id="@+id/txtProfileLevel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="💎 Receiving: Lv.0"
-                    android:textColor="#00E676"
-                    android:textSize="12sp"
+                    android:text="⭐ Lv.1"
+                    android:textColor="#FFD700"
+                    android:textSize="14sp"
                     android:textStyle="bold"/>
             </LinearLayout>
 
