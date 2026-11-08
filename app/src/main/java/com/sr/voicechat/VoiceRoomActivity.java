@@ -599,6 +599,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         container.addView(row);
     }
 
+    // 🌟 প্রিমিয়াম হাফ-স্ক্রিন লাক্সারি গিফট প্যানেল (৫ হাজার থেকে ৭ লাখ কয়েন পর্যন্ত বিভিন্ন রেঞ্জের আকর্ষণীয় গিফট)
     private void showGiftPanel() {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         View sheetView = getLayoutInflater().inflate(R.layout.dialog_gift_panel, null);
@@ -608,26 +609,29 @@ public class VoiceRoomActivity extends AppCompatActivity {
         Button btnSendGift = sheetView.findViewById(R.id.btnSendGift);
 
         List<GiftModel> allGifts = new ArrayList<>();
-        allGifts.add(new GiftModel("Sports Car", "100K", R.drawable.ic_gift_placeholder, "gift"));
-        allGifts.add(new GiftModel("Dragon", "500K", R.drawable.ic_gift_placeholder, "gift"));
-        allGifts.add(new GiftModel("Tiger", "250K", R.drawable.ic_gift_placeholder, "gift"));
-        allGifts.add(new GiftModel("Spiderman", "300K", R.drawable.ic_gift_placeholder, "gift"));
         
-        allGifts.add(new GiftModel("Love Ring", "99K", R.drawable.ic_gift_placeholder, "cp"));
-        allGifts.add(new GiftModel("Rose Bouquet", "50K", R.drawable.ic_gift_placeholder, "cp"));
-        
-        allGifts.add(new GiftModel("Mystery Box", "10K", R.drawable.ic_coin, "lucky"));
-        allGifts.add(new GiftModel("Lucky Star", "20K", R.drawable.ic_coin, "lucky"));
+        // 5,000 to 20,000 Coins Range (Lucky & Standard)
+        allGifts.add(new GiftModel("Lucky Star", "5,000 Coins", R.drawable.ic_coin, "gift"));
+        allGifts.add(new GiftModel("Rose Bouquet", "8,000 Coins", R.drawable.ic_gift_placeholder, "gift"));
+        allGifts.add(new GiftModel("Love Ring", "10,000 Coins", R.drawable.ic_gift_placeholder, "gift"));
+        allGifts.add(new GiftModel("Mystery Box", "12,000 Coins", R.drawable.ic_coin, "gift"));
+        allGifts.add(new GiftModel("Cute Teddy", "20,000 Coins", R.drawable.ic_gift_placeholder, "gift"));
 
-        List<GiftModel> displayedGifts = new ArrayList<>();
-        for (GiftModel g : allGifts) {
-            if (g.getCategory().equals("gift")) {
-                displayedGifts.add(g);
-            }
-        }
+        // 30,000 to 100,000 Coins Range (Ladies Collection & Luxury)
+        allGifts.add(new GiftModel("Diamond Tiara", "30,000 Coins", R.drawable.ic_gift_placeholder, "lady"));
+        allGifts.add(new GiftModel("Luxury Perfume", "50,000 Coins", R.drawable.ic_gift_placeholder, "lady"));
+        allGifts.add(new GiftModel("Royal Sports Car", "100,000 Coins", R.drawable.ic_gift_placeholder, "luxury"));
+
+        // 200,000 to 700,000 Coins Range (Animals, Mega Luxury & Palaces)
+        allGifts.add(new GiftModel("Golden Tiger", "200,000 Coins", R.drawable.ic_gift_placeholder, "animal"));
+        allGifts.add(new GiftModel("Fire Dragon", "300,000 Coins", R.drawable.ic_gift_placeholder, "animal"));
+        allGifts.add(new GiftModel("Private Yacht", "500,000 Coins", R.drawable.ic_gift_placeholder, "luxury"));
+        allGifts.add(new GiftModel("Castle Palace", "700,000 Coins", R.drawable.ic_gift_placeholder, "luxury"));
+
+        List<GiftModel> displayedGifts = new ArrayList<>(allGifts);
 
         GiftAdapter adapter = new GiftAdapter(displayedGifts, gift -> {
-            Toast.makeText(this, "Selected: " + gift.getGiftName(), Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Selected: " + gift.getGiftName() + " (" + gift.getGiftPrice() + ")", Toast.LENGTH_SHORT).show();
         });
         rvGifts.setAdapter(adapter);
 
@@ -639,15 +643,21 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 String roleBadge = getCorrectBadgeIcon(currentUserId);
                 java.util.Map<String, Object> msgMap = new java.util.HashMap<>();
                 msgMap.put("senderName", roleBadge + "🎁 " + userName);
-                msgMap.put("message", "sent a premium gift!");
+                msgMap.put("message", "sent a mega luxury gift to the room!");
                 msgMap.put("timestamp", msgTimestamp);
                 messagesRef.child(msgId).setValue(msgMap);
             }
-            Toast.makeText(this, "Gift Sent Successfully!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Luxury Gift Sent Successfully!", Toast.LENGTH_SHORT).show();
             bottomSheetDialog.dismiss();
         });
 
         bottomSheetDialog.show();
+        
+        Window window = bottomSheetDialog.getWindow();
+        if (window != null) {
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1300); // Half-screen premium height
+            window.setGravity(Gravity.BOTTOM);
+        }
     }
 
     private void syncLatestUserProfile() {
@@ -1031,7 +1041,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 countHeader.setPadding(0, 0, 0, 20);
                 container.addView(countHeader);
 
-                // 1. Room Owner Row (Global Room Owner Badge Check)
+                // 1. Room Owner Row
                 for (DataSnapshot child : snapshot.getChildren()) {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
@@ -1041,7 +1051,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     }
                 }
 
-                // 2. Room Admin Rows (Specific Room Admin Badge Check)
+                // 2. Room Admin Rows
                 for (DataSnapshot child : snapshot.getChildren()) {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
@@ -1087,7 +1097,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
         row.addView(avatar);
 
-        // Fetch User's Real Profile Image from Firebase Users Node for Online & Member List
         userDatabaseRef.child(uId).child("profileImage").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -1162,9 +1171,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         if (seatTxt != null) {
                             String roleIcon = "";
                             if (sUid != null && sUid.equals(roomOwnerId)) {
-                                roleIcon = "🛡️ "; // Only Owner gets red badge in their own room
+                                roleIcon = "🛡️ ";
                             } else if (sUid != null && roomAdminList.contains(sUid)) {
-                                roleIcon = "🛡️ "; // Only Admin gets blue badge in this room
+                                roleIcon = "🛡️ ";
                             }
 
                             String displayName = (name != null && !name.isEmpty()) ? name : (i == 0 ? "Host" : String.valueOf(i + 1));
@@ -1332,13 +1341,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
         TextView txtBadge = new TextView(this);
         if (isOwner) {
             txtBadge.setText("🛡️ ROOM OWNER");
-            txtBadge.setTextColor(Color.parseColor("#FF1744")); // Red for Room Owner in this room
+            txtBadge.setTextColor(Color.parseColor("#FF1744"));
         } else if (isAdmin) {
             txtBadge.setText("🛡️ ROOM ADMIN");
-            txtBadge.setTextColor(Color.parseColor("#29B6F6")); // Blue for Room Admin in this room
+            txtBadge.setTextColor(Color.parseColor("#29B6F6"));
         } else {
             txtBadge.setText("🛡️ VERIFIED MEMBER");
-            txtBadge.setTextColor(Color.parseColor("#00E676")); // Green for normal members
+            txtBadge.setTextColor(Color.parseColor("#00E676"));
         }
         txtBadge.setTextSize(14);
         txtBadge.setTypeface(null, android.graphics.Typeface.BOLD);
