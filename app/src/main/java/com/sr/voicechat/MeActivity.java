@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -51,15 +52,9 @@ public class MeActivity extends AppCompatActivity {
             });
         }
 
-        // VIP Status Click -> Dialog
+        // VIP Status Click -> Custom Dialog with VIP 1 to VIP 7 List
         if (btnVipStatus != null) {
-            btnVipStatus.setOnClickListener(v -> {
-                new AlertDialog.Builder(MeActivity.this)
-                    .setTitle("👑 VIP Status")
-                    .setMessage("Unlock exclusive VIP perks, badges, and special privileges soon!")
-                    .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
-                    .show();
-            });
+            btnVipStatus.setOnClickListener(v -> showVipDialog());
         }
 
         // Wallet & Recharge Click -> Dialog
@@ -94,6 +89,36 @@ public class MeActivity extends AppCompatActivity {
                     .show();
             });
         }
+    }
+
+    // VIP 1 to VIP 7 Privileges Dialog Method
+    private void showVipDialog() {
+        android.app.Dialog dialog = new android.app.Dialog(this);
+        dialog.setContentView(R.layout.dialog_vip_status);
+        dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
+
+        androidx.recyclerview.widget.RecyclerView recyclerVipList = dialog.findViewById(R.id.recyclerVipList);
+        Button btnClose = dialog.findViewById(R.id.btnCloseVipDialog);
+
+        recyclerVipList.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(this));
+
+        // VIP 1 to VIP 7 Demo Data List with Custom Sets, Frames, Bubbles & Entries
+        java.util.List<VipModel> vipList = new java.util.ArrayList<>();
+        vipList.add(new VipModel("VIP 1", "Level 1 Privileges", R.drawable.ic_menu_star, 0, 0, "Basic Sparkle"));
+        vipList.add(new VipModel("VIP 2", "Level 2 Privileges", R.drawable.ic_menu_star, 0, 0, "Glow Ring"));
+        vipList.add(new VipModel("VIP 3", "Level 3 Privileges", R.drawable.ic_menu_star, 0, 0, "Silver Wings"));
+        vipList.add(new VipModel("VIP 4", "Level 4 Privileges", R.drawable.ic_menu_star, 0, 0, "Golden Crown"));
+        vipList.add(new VipModel("VIP 5", "Level 5 Privileges", R.drawable.ic_menu_star, 0, 0, "Fire Tiger Entry"));
+        vipList.add(new VipModel("VIP 6", "Level 6 Privileges", R.drawable.ic_menu_star, 0, 0, "Royal Dragon"));
+        vipList.add(new VipModel("VIP 7", "Level 7 Privileges", R.drawable.ic_menu_star, 0, 0, "Supreme Lord Effect"));
+
+        VipAdapter adapter = new VipAdapter(this, vipList);
+        recyclerVipList.setAdapter(adapter);
+
+        if (btnClose != null) {
+            btnClose.setOnClickListener(v -> dialog.dismiss());
+        }
+        dialog.show();
     }
 
     @Override
