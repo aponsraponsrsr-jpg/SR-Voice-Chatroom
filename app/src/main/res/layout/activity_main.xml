@@ -5,7 +5,7 @@
     android:orientation="vertical"
     android:background="#0A140A">
 
-    <!-- Top Header Bar: App Title / Tabs + Search & Create Room Icons -->
+    <!-- Top Header Bar: App Title + Search & Create Room (+) Icons -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="56dp"
@@ -15,13 +15,12 @@
         android:background="#112211">
 
         <TextView
-            android:id="@+id/textAppTitle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="SR Voice Chat"
             android:textColor="#00E676"
-            android:textSize="20sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
         <!-- Search Icon -->
@@ -31,24 +30,20 @@
             android:layout_height="36dp"
             android:src="@android:drawable/ic_menu_search"
             android:padding="6dp"
-            android:tint="#00E676"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:layout_marginRight="12dp"
-            android:contentDescription="Search" />
+            android:layout_marginRight="8dp" />
 
-        <!-- Create Room (+) Icon -->
+        <!-- Create Room (+) Icon right beside Search -->
         <ImageView
             android:id="@+id/btnCreateRoom"
             android:layout_width="36dp"
             android:layout_height="36dp"
             android:src="@android:drawable/ic_input_add"
             android:padding="6dp"
-            android:tint="#00E676"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Create Room" />
+            android:background="?attr/selectableItemBackgroundBorderless" />
     </LinearLayout>
 
-    <!-- Main Content Container (Fragments or Dynamic Views will load here) -->
+    <!-- Main Content Container -->
     <FrameLayout
         android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
@@ -61,8 +56,7 @@
         android:layout_height="60dp"
         android:orientation="horizontal"
         android:background="#112211"
-        android:gravity="center"
-        android:elevation="8dp">
+        android:gravity="center">
 
         <!-- Home Tab -->
         <LinearLayout
@@ -72,22 +66,18 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:clickable="true"
-            android:focusable="true"
             android:background="?attr/selectableItemBackground">
             
             <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_myplaces"
-                android:tint="#00E676" />
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@android:drawable/ic_menu_myplaces" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Home"
                 android:textColor="#00E676"
-                android:textSize="11sp"
-                android:textStyle="bold" />
+                android:textSize="11sp" />
         </LinearLayout>
 
         <!-- Moment Tab -->
@@ -98,15 +88,12 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:clickable="true"
-            android:focusable="true"
             android:background="?attr/selectableItemBackground">
             
             <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_slideshow"
-                android:tint="#AAAAAA" />
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@android:drawable/ic_menu_slideshow" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -123,15 +110,12 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:clickable="true"
-            android:focusable="true"
             android:background="?attr/selectableItemBackground">
             
             <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_dialog_email"
-                android:tint="#AAAAAA" />
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@android:drawable/ic_dialog_email" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -148,15 +132,12 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:gravity="center"
-            android:clickable="true"
-            android:focusable="true"
             android:background="?attr/selectableItemBackground">
             
             <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_my_calendar"
-                android:tint="#AAAAAA" />
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@android:drawable/ic_menu_my_calendar" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
