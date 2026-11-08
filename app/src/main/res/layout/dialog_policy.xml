@@ -101,33 +101,11 @@
                     <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.5" android:text="Total" android:textColor="#00E676" android:textStyle="bold" android:textSize="12sp" />
                 </LinearLayout>
 
-                <!-- Salary Rows (1 to 22 Clean Uniform Text) -->
-                <include layout="@string/policy_rows_placeholder" /> 
-                <!-- Note: Below is direct programmatic rows generator inside ScrollView -->
-
-                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="
- Lv 01  │  288,000 Coins  │  $1.00  │  $1.50\n
- Lv 02  │  588,000 Coins  │  $2.00  │  $3.00\n
- Lv 03  │  1,190,000 Coins │  $4.50  │  $6.00\n
- Lv 04  │  1,780,000 Coins │  $7.00  │  $9.00\n
- Lv 05  │  3,280,000 Coins │  $14.00 │  $17.00\n
- Lv 06  │  5,780,000 Coins │  $24.00 │  $30.00\n
- Lv 07  │  7,880,000 Coins │  $32.00 │  $40.00\n
- Lv 08  │  9,980,000 Coins │  $40.00 │  $50.00\n
- Lv 09  │  13,850,000 Coins│  $56.00 │  $70.00\n
- Lv 10  │  18,850,000 Coins│  $76.00 │  $95.00\n
- Lv 11  │  26,500,000 Coins│  $104.00│  $130.00\n
- Lv 12  │  34,500,000 Coins│  $132.00│  $165.00\n
- Lv 13  │  43,500,000 Coins│  $168.00│  $210.00\n
- Lv 14  │  56,500,000 Coins│  $220.00│  $275.00\n
- Lv 15  │  76,500,000 Coins│  $292.00│  $365.00\n
- Lv 16  │  88,500,000 Coins│  $348.00│  $435.00\n
- Lv 17  │  115,500,000 Coins│ $440.00│  $550.00\n
- Lv 18  │  155,000,000 Coins│ $584.00│  $730.00\n
- Lv 19  │  210,000,000 Coins│ $752.00│  $940.00\n
- Lv 20  │  288,000,000 Coins│ $1024.0|  $1280.0\n
- Lv 21  │  350,000,000 Coins│ $1240.0│  $1550.0\n
- Lv 22  │  460,000,000 Coins│ $1600.0│  $2000.0"
+                <!-- Salary Rows 1 to 22 -->
+                <TextView 
+                    android:layout_width="match_parent" 
+                    android:layout_height="wrap_content" 
+                    android:text="Lv 01  │  288,000 Coins  │  $1.00  │  $1.50\nLv 02  │  588,000 Coins  │  $2.00  │  $3.00\nLv 03  │  1,190,000 Coins │  $4.50  │  $6.00\nLv 04  │  1,780,000 Coins │  $7.00  │  $9.00\nLv 05  │  3,280,000 Coins │  $14.00 │  $17.00\nLv 06  │  5,780,000 Coins │  $24.00 │  $30.00\nLv 07  │  7,880,000 Coins │  $32.00 │  $40.00\nLv 08  │  9,980,000 Coins │  $40.00 │  $50.00\nLv 09  │  13,850,000 Coins│  $56.00 │  $70.00\nLv 10  │  18,850,000 Coins│  $76.00 │  $95.00\nLv 11  │  26,500,000 Coins│  $104.00│  $130.00\nLv 12  │  34,500,000 Coins│  $132.00│  $165.00\nLv 13  │  43,500,000 Coins│  $168.00│  $210.00\nLv 14  │  56,500,000 Coins│  $220.00│  $275.00\nLv 15  │  76,500,000 Coins│  $292.00│  $365.00\nLv 16  │  88,500,000 Coins│  $348.00│  $435.00\nLv 17  │  115,500,000 Coins│ $440.00│  $550.00\nLv 18  │  155,000,000 Coins│ $584.00│  $730.00\nLv 19  │  210,000,000 Coins│ $752.00│  $940.00\nLv 20  │  288,000,000 Coins│ $1024.0│  $1280.0\nLv 21  │  350,000,000 Coins│ $1240.0│  $1550.0\nLv 22  │  460,000,000 Coins│ $1600.0│  $2000.0"
                     android:textColor="#FFFFFF"
                     android:textSize="13sp"
                     android:fontFamily="monospace"
