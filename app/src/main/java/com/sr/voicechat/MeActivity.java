@@ -10,11 +10,11 @@ import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,6 +32,7 @@ public class MeActivity extends AppCompatActivity {
     private ImageView imgMeProfile, btnEditProfile;
     private TextView textMeName, textMeId, txtProfileLevel;
     private LinearLayout btnVipStatus, btnWalletRecharge, btnHostCenter, btnHostPolicy, btnLevelCenter;
+    private LinearLayout toolStore, toolDress, toolBirthday;
     private SharedPreferences prefs;
     private DatabaseReference userDatabaseRef;
     private String currentUserId = "";
@@ -49,13 +50,18 @@ public class MeActivity extends AppCompatActivity {
         imgMeProfile = findViewById(R.id.imgMeProfile);
         textMeName = findViewById(R.id.textMeName);
         textMeId = findViewById(R.id.textMeId);
-        txtProfileLevel = findViewById(R.id.txtProfileLevel); // আপনার লেভেল দেখানোর TextView (যদি লেআউটে না থাকে, নিচে কোড সেফ রাখা হয়েছে)
+        txtProfileLevel = findViewById(R.id.txtProfileLevel); 
         btnEditProfile = findViewById(R.id.btnEditProfile);
         btnVipStatus = findViewById(R.id.btnVipStatus);
         btnWalletRecharge = findViewById(R.id.btnWalletRecharge);
         btnHostCenter = findViewById(R.id.btnHostCenter);
         btnHostPolicy = findViewById(R.id.btnHostPolicy);
-        btnLevelCenter = findViewById(R.id.btnLevelCenter); // লেভেল সেন্টার অপশন (যদি XML-এ আইডি না থাকে, নিচে নিরাপদ হ্যান্ডেল করা হয়েছে)
+        btnLevelCenter = findViewById(R.id.btnLevelCenter); 
+
+        // General Tools Binding
+        toolStore = findViewById(R.id.toolStore);
+        toolDress = findViewById(R.id.toolDress);
+        toolBirthday = findViewById(R.id.toolBirthday);
 
         loadUserData();
         syncUserLevelFromFirebase();
@@ -68,7 +74,18 @@ public class MeActivity extends AppCompatActivity {
             });
         }
 
-        // 🌟 Level Center Click -> Opens 1 to 150 Level Details Chart Dialog
+        // General Tools Click Listeners
+        if (toolStore != null) {
+            toolStore.setOnClickListener(v -> Toast.makeText(this, "🛍️ Opening Store...", Toast.LENGTH_SHORT).show());
+        }
+        if (toolDress != null) {
+            toolDress.setOnClickListener(v -> Toast.makeText(this, "👕 Opening Dress & Frames...", Toast.LENGTH_SHORT).show());
+        }
+        if (toolBirthday != null) {
+            toolBirthday.setOnClickListener(v -> Toast.makeText(this, "🎂 Opening Birthday Gifts...", Toast.LENGTH_SHORT).show());
+        }
+
+        // Level Center Click
         if (btnLevelCenter != null) {
             btnLevelCenter.setOnClickListener(v -> showLevelCenterDialog());
         }
@@ -94,13 +111,12 @@ public class MeActivity extends AppCompatActivity {
             });
         }
 
-        // Host Policy Click -> Opens Policy Dialog
+        // Host Policy Click
         if (btnHostPolicy != null) {
             btnHostPolicy.setOnClickListener(v -> showPolicyDialog());
         }
     }
 
-    // 🌟 ১ থেকে ১৫০ লেভেল ক্যালকুলেটর লজিক
     private int calculateUserLevel(long totalCoins) {
         if (totalCoins < 3000000L) {
             return 1;
@@ -139,11 +155,10 @@ public class MeActivity extends AppCompatActivity {
         } else if (level <= 100) {
             return Color.parseColor("#FF4081"); // Diamond Pink
         } else {
-            return Color.parseColor("#FFD700"); // Glowing Gold (101-150)
+            return Color.parseColor("#FFD700"); // Glowing Gold
         }
     }
 
-    // 🌟 ফায়ারবেস থেকে কয়েন এনে লেভেল ও কালার সেট করা
     private void syncUserLevelFromFirebase() {
         if (!currentUserId.isEmpty()) {
             userDatabaseRef.child(currentUserId).child("totalSpentCoins").addValueEventListener(new ValueEventListener() {
@@ -155,7 +170,7 @@ public class MeActivity extends AppCompatActivity {
                     }
                     int currentLevel = calculateUserLevel(spentCoins);
                     if (txtProfileLevel != null) {
-                        txtProfileLevel.setText("⭐ Lv." + currentLevel);
+                        txtProfileLevel.setText("  |  ⭐ Lv." + currentLevel);
                         txtProfileLevel.setTextColor(getLevelColor(currentLevel));
                     }
                 }
@@ -164,7 +179,6 @@ public class MeActivity extends AppCompatActivity {
         }
     }
 
-    // 🌟 Level Center Dialog (১ থেকে ১৫০ লেভেল চার্ট দেখানোর জন্য)
     private void showLevelCenterDialog() {
         final Dialog levelDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         
@@ -205,7 +219,6 @@ public class MeActivity extends AppCompatActivity {
         levelDialog.show();
     }
 
-    // Policy Dialog Method
     private void showPolicyDialog() {
         final Dialog policyDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         policyDialog.setContentView(R.layout.dialog_policy);
@@ -226,7 +239,6 @@ public class MeActivity extends AppCompatActivity {
         policyDialog.show();
     }
 
-    // Full Screen Wallet & Recharge Dialog Method
     private void showWalletRechargeDialog() {
         final Dialog rechargeDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         rechargeDialog.setContentView(R.layout.dialog_wallet_recharge);
@@ -264,7 +276,6 @@ public class MeActivity extends AppCompatActivity {
         rechargeDialog.show();
     }
 
-    // VIP 1 to VIP 7 Privileges Dialog Method
     private void showVipDialog() {
         Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.dialog_vip_status);
