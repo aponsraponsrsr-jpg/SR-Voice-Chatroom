@@ -1,117 +1,110 @@
 package com.sr.voicechat;
 
 import android.app.Dialog;
-import android.graphics.Color;
+import android.content.Intent;
 import android.os.Bundle;
-import android.view.Gravity;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class MainActivity extends AppCompatActivity {
 
+    private LinearLayout navHome, navMoment, navInbox, navMe;
+    private ImageView btnSearch, btnCreateRoom;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-        // --- হোমপেজ - ১ ফাইলে সব, ব্যাকগ্রাউন্ড হালকা পিংক ---
-        LinearLayout mainLayout = new LinearLayout(this);
-        mainLayout.setOrientation(LinearLayout.VERTICAL);
-        mainLayout.setBackgroundColor(Color.parseColor("#FFF0F5")); // হালকা পিংক / গোলাপি
-        mainLayout.setLayoutParams(new LinearLayout.LayoutParams(-1, -1));
+        // Binding UI elements
+        navHome = findViewById(R.id.navHome);
+        navMoment = findViewById(R.id.navMoment);
+        navInbox = findViewById(R.id.navInbox);
+        navMe = findViewById(R.id.navMe);
+        btnSearch = findViewById(R.id.btnSearch);
+        btnCreateRoom = findViewById(R.id.btnCreateRoom);
 
-        // উপরের বার
-        TextView topBar = new TextView(this);
-        topBar.setText("🌟 SR Voice Chatroom");
-        topBar.setTextColor(Color.WHITE);
-        topBar.setTextSize(22);
-        topBar.setPadding(30, 30, 30, 30);
-        topBar.setBackgroundColor(Color.parseColor("#E91E63"));
-        mainLayout.addView(topBar);
+        // Top Search Click
+        if (btnSearch != null) {
+            btnSearch.setOnClickListener(v -> {
+                showSearchDialog();
+            });
+        }
 
-        // মাঝখানে
-        TextView welcome = new TextView(this);
-        welcome.setText("Welcome! Tap + to create room");
-        welcome.setTextColor(Color.parseColor("#880E4F"));
-        welcome.setTextSize(18);
-        welcome.setGravity(Gravity.CENTER);
-        LinearLayout.LayoutParams welcomeParams = new LinearLayout.LayoutParams(-1, 0, 1);
-        welcome.setLayoutParams(welcomeParams);
-        mainLayout.addView(welcome);
+        // Top Create Room (+) Button Click -> Opens Room Creation Dialog
+        if (btnCreateRoom != null) {
+            btnCreateRoom.setOnClickListener(v -> {
+                showCreateRoomDialog();
+            });
+        }
 
-        // + বাটন
-        LinearLayout plusRow = new LinearLayout(this);
-        plusRow.setGravity(Gravity.END);
-        plusRow.setPadding(0, 0, 40, 20);
-        Button btnPlus = new Button(this);
-        btnPlus.setText("+");
-        btnPlus.setTextSize(30);
-        btnPlus.setTextColor(Color.WHITE);
-        btnPlus.setBackgroundColor(Color.parseColor("#E91E63"));
-        btnPlus.setOnClickListener(v -> openCreateRoomDialog());
-        plusRow.addView(btnPlus);
-        mainLayout.addView(plusRow);
+        // Bottom Navigation Clicks
+        if (navHome != null) {
+            navHome.setOnClickListener(v -> {
+                Toast.makeText(this, "Home Loaded", Toast.LENGTH_SHORT).show();
+                // Already on Home or reload Home view
+            });
+        }
 
-        // নিচের বার - ইমারজেন্সি ৪টা অপশন
-        LinearLayout bottomBar = new LinearLayout(this);
-        bottomBar.setOrientation(LinearLayout.HORIZONTAL);
-        bottomBar.setBackgroundColor(Color.parseColor("#FFFFFF")); // সাদা, পিংক ব্যাকগ্রাউন্ডের সাথে সুন্দর লাগবে
-        bottomBar.setPadding(0, 12, 0, 12);
+        if (navMoment != null) {
+            navMoment.setOnClickListener(v -> {
+                Toast.makeText(this, "Moment Feed Opening...", Toast.LENGTH_SHORT).show();
+                // Open Moment activity or fragment if needed
+            });
+        }
 
-        bottomBar.addView(makeNavButton("🏠\nHome", "Home"));
-        bottomBar.addView(makeNavButton("✨\nMoment", "Moment"));
-        bottomBar.addView(makeNavButton("💬\nSMS", "SMS - Chat List"));
-        bottomBar.addView(makeNavButton("👤\nMe", "Me - My Profile"));
+        if (navInbox != null) {
+            navInbox.setOnClickListener(v -> {
+                // Open Inbox & Hosting Invitations
+                Intent intent = new Intent(MainActivity.this, InboxActivity.class);
+                startActivity(intent);
+            });
+        }
 
-        mainLayout.addView(bottomBar);
-
-        setContentView(mainLayout);
+        if (navMe != null) {
+            navMe.setOnClickListener(v -> {
+                // Open Me Profile Activity
+                Intent intent = new Intent(MainActivity.this, MeActivity.class);
+                startActivity(intent);
+            });
+        }
     }
 
-    private Button makeNavButton(String text, String toastMsg) {
-        Button btn = new Button(this);
-        btn.setText(text);
-        btn.setTextColor(Color.parseColor("#E91E63"));
-        btn.setTextSize(13);
-        btn.setBackgroundColor(Color.parseColor("#FFFFFF"));
-        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0, -2, 1);
-        btn.setLayoutParams(p);
-        btn.setOnClickListener(v -> Toast.makeText(this, toastMsg, Toast.LENGTH_SHORT).show());
-        return btn;
-    }
+    // Search Dialog Method
+    private void showSearchDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("🔍 Search Rooms / Users");
+        
+        final EditText input = new EditText(this);
+        input.setHint("Enter User ID or Room Name...");
+        input.setPadding(32, 24, 32, 24);
+        builder.setView(input);
 
-    private void openCreateRoomDialog() {
-        Dialog dialog = new Dialog(this);
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(40, 40, 40, 40);
-        layout.setBackgroundColor(Color.parseColor("#FFF0F5"));
-
-        TextView title = new TextView(this);
-        title.setText("Create Room");
-        title.setTextSize(20);
-        title.setGravity(Gravity.CENTER);
-        title.setTextColor(Color.parseColor("#E91E63"));
-        layout.addView(title);
-
-        EditText etName = new EditText(this);
-        etName.setHint("Room Name লিখো");
-        layout.addView(etName);
-
-        Button btnConfirm = new Button(this);
-        btnConfirm.setText("Confirm");
-        btnConfirm.setBackgroundColor(Color.parseColor("#E91E63"));
-        btnConfirm.setTextColor(Color.WHITE);
-        btnConfirm.setOnClickListener(v -> {
-            dialog.dismiss();
-            Toast.makeText(this, "Room চালু হয়ে গেছে!", Toast.LENGTH_LONG).show();
+        builder.setPositiveButton("Search", (dialog, which) -> {
+            String query = input.getText().toString().trim();
+            Toast.makeText(this, "Searching for: " + query, Toast.LENGTH_SHORT).show();
         });
-        layout.addView(btnConfirm);
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+        builder.show();
+    }
 
-        dialog.setContentView(layout);
-        dialog.show();
+    // Create Voice Chat Room Dialog Method
+    private void showCreateRoomDialog() {
+        Dialog roomDialog = new Dialog(this);
+        roomDialog.setContentView(R.layout.dialog_create_room); // Optional or quick alert
+        
+        new AlertDialog.Builder(this)
+            .setTitle("🎙️ Create Voice Chat Room")
+            .setMessage("Do you want to start your own live voice chat room now?")
+            .setPositiveButton("Create Room", (dialog, which) -> {
+                Toast.makeText(this, "Room Created Successfully!", Toast.LENGTH_SHORT).show();
+                // Direct to Voice Room Live Activity
+            })
+            .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+            .show();
     }
 }
