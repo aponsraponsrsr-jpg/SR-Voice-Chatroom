@@ -10,7 +10,9 @@ import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -21,6 +23,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -33,6 +36,9 @@ public class MeActivity extends AppCompatActivity {
     private TextView textMeName, textMeId, txtProfileLevel;
     private LinearLayout btnVipStatus, btnWalletRecharge, btnHostCenter, btnHostPolicy, btnLevelCenter;
     private LinearLayout toolStore, toolDress, toolBirthday;
+    
+    private LinearLayout btnSrSuperPanel;
+    
     private SharedPreferences prefs;
     private DatabaseReference userDatabaseRef;
     private String currentUserId = "";
@@ -43,6 +49,8 @@ public class MeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_me);
 
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
+        
+        // 🌟 তুমি চাইলে এখানে তোমার আইডি ম্যানুয়ালি "1" বা অন্য কিছু সেট করে টেস্ট করতে পারো
         currentUserId = prefs.getString("MY_9_DIGIT_ID", "493859069");
         userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
 
@@ -62,6 +70,9 @@ public class MeActivity extends AppCompatActivity {
         toolStore = findViewById(R.id.toolStore);
         toolDress = findViewById(R.id.toolDress);
         toolBirthday = findViewById(R.id.toolBirthday);
+
+        // 👑 সিক্রেট এসআর সুপার প্যানেল ডায়নামিক বাইন্ডিং (১ ডিজিট বা ইউনিক আইডি সাপোর্টসহ)
+        setupSrSuperPanelButton();
 
         loadUserData();
         syncUserLevelFromFirebase();
@@ -115,6 +126,165 @@ public class MeActivity extends AppCompatActivity {
         if (btnHostPolicy != null) {
             btnHostPolicy.setOnClickListener(v -> showPolicyDialog());
         }
+    }
+
+    // 👑 ডাইনামিক এবং ফায়ারবেস-সুরক্ষিত এসআর সুপার প্যানেল চেক (১ বা ২ ডিজিটের ইউনিক আইডি অটো-ডিটেক্ট করবে)
+    private void setupSrSuperPanelButton() {
+        DatabaseReference masterCheckRef = FirebaseDatabase.getInstance().getReference("super_admins").child(currentUserId);
+        
+        masterCheckRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                boolean isMasterOwner = (snapshot.exists() && Boolean.TRUE.equals(snapshot.getValue(Boolean.class))) 
+                                        || currentUserId.equals("493859069") 
+                                        || currentUserId.length() <= 2; // ১ বা ২ ডিজিটের আইডি (যেমন: "1", "7", "9") হলে অটো সুপার প্যানেল শো করবে!
+
+                if (isMasterOwner) {
+                    createAndShowSuperPanelButton();
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void createAndShowSuperPanelButton() {
+        LinearLayout parentLayout = findViewById(android.R.id.content);
+        if (parentLayout != null && parentLayout.getChildAt(0) instanceof ViewGroup) {
+            ViewGroup rootGroup = (ViewGroup) parentLayout.getChildAt(0);
+            
+            btnSrSuperPanel = new LinearLayout(this);
+            btnSrSuperPanel.setOrientation(LinearLayout.HORIZONTAL);
+            btnSrSuperPanel.setGravity(Gravity.CENTER_VERTICAL);
+            btnSrSuperPanel.setPadding(35, 25, 35, 25);
+
+            GradientDrawable panelBg = new GradientDrawable(
+                GradientDrawable.Orientation.LEFT_RIGHT,
+                new int[]{Color.parseColor("#2A1B4E"), Color.parseColor("#4A2E80")}
+            );
+            panelBg.setCornerRadius(30);
+            btnSrSuperPanel.setBackground(panelBg);
+
+            ImageView logoIcon = new ImageView(this);
+            logoIcon.setImageResource(android.R.drawable.ic_menu_manage);
+            logoIcon.setColorFilter(Color.parseColor("#FFD700"));
+            LinearLayout.LayoutParams imgParams = new LinearLayout.LayoutParams(70, 70);
+            imgParams.setMargins(0, 0, 20, 0);
+            logoIcon.setLayoutParams(imgParams);
+            btnSrSuperPanel.addView(logoIcon);
+
+            TextView panelText = new TextView(this);
+            panelText.setText("👑 এসআর সুপার প্যানেল (Master CEO Panel)");
+            panelText.setTextColor(Color.parseColor("#FFD700"));
+            panelText.setTextSize(16);
+            panelText.setTypeface(null, android.graphics.Typeface.BOLD);
+            btnSrSuperPanel.addView(panelText);
+
+            btnSrSuperPanel.setOnClickListener(v -> showSrSuperPanelDialog());
+
+            if (rootGroup instanceof LinearLayout) {
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, 
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                );
+                params.setMargins(40, 30, 40, 20);
+                btnSrSuperPanel.setLayoutParams(params);
+                
+                ((LinearLayout) rootGroup).addView(btnSrSuperPanel, 1);
+            }
+        }
+    }
+
+    // 👑 এসআর সুপার প্যানেল ডায়ালগ (কয়েন টপ-আপ করার জন্য)
+    private void showSrSuperPanelDialog() {
+        BottomSheetDialog superPanelDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 50, 50, 60);
+        
+        GradientDrawable bg = new GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")}
+        );
+        bg.setCornerRadii(new float[]{40, 40, 40, 40, 0, 0, 0, 0});
+        layout.setBackground(bg);
+
+        TextView title = new TextView(this);
+        title.setText("👑 এসআর সুপার প্যানেল (SR Super Panel)");
+        title.setTextColor(Color.parseColor("#FFD700"));
+        title.setTextSize(18);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setGravity(Gravity.CENTER);
+        title.setPadding(0, 0, 0, 30);
+        layout.addView(title);
+
+        final EditText inputTargetId = new EditText(this);
+        inputTargetId.setHint("Enter Target User 9-Digit ID...");
+        inputTargetId.setHintTextColor(Color.parseColor("#888888"));
+        inputTargetId.setTextColor(Color.WHITE);
+        inputTargetId.setBackgroundColor(Color.parseColor("#2A1B4E"));
+        inputTargetId.setPadding(30, 30, 30, 30);
+        layout.addView(inputTargetId);
+
+        final EditText inputCoinAmount = new EditText(this);
+        inputCoinAmount.setHint("Enter Coin Amount (e.g., 500000)...");
+        inputCoinAmount.setHintTextColor(Color.parseColor("#888888"));
+        inputCoinAmount.setInputType(android.text.InputType.TYPE_CLASS_NUMBER);
+        inputCoinAmount.setTextColor(Color.WHITE);
+        inputCoinAmount.setBackgroundColor(Color.parseColor("#2A1B4E"));
+        inputCoinAmount.setPadding(30, 30, 30, 30);
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        params.setMargins(0, 20, 0, 30);
+        inputCoinAmount.setLayoutParams(params);
+        layout.addView(inputCoinAmount);
+
+        Button btnAddCoins = new Button(this);
+        btnAddCoins.setText("💎 Add Free Coins to User ID");
+        btnAddCoins.setBackgroundColor(Color.parseColor("#00E676"));
+        btnAddCoins.setTextColor(Color.BLACK);
+        btnAddCoins.setTypeface(null, android.graphics.Typeface.BOLD);
+        btnAddCoins.setOnClickListener(v -> {
+            String targetId = inputTargetId.getText().toString().trim();
+            String coinStr = inputCoinAmount.getText().toString().trim();
+
+            if (targetId.isEmpty() || coinStr.isEmpty()) {
+                Toast.makeText(this, "Please enter both User ID and Coin Amount!", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            long coinsToAdd = Long.parseLong(coinStr);
+            DatabaseReference targetUserRef = FirebaseDatabase.getInstance().getReference("users").child(targetId);
+            
+            targetUserRef.child("totalSpentCoins").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    long currentCoins = 0;
+                    if (snapshot.exists() && snapshot.getValue(Long.class) != null) {
+                        currentCoins = snapshot.getValue(Long.class);
+                    }
+                    long updatedTotal = currentCoins + coinsToAdd;
+                    
+                    targetUserRef.child("totalSpentCoins").setValue(updatedTotal);
+                    Toast.makeText(MeActivity.this, "Successfully added " + coinsToAdd + " coins to ID: " + targetId, Toast.LENGTH_LONG).show();
+                    superPanelDialog.dismiss();
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    Toast.makeText(MeActivity.this, "Failed to update database!", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+        layout.addView(btnAddCoins);
+
+        superPanelDialog.setContentView(layout);
+        Window window = superPanelDialog.getWindow();
+        if (window != null) {
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            window.setGravity(Gravity.BOTTOM);
+        }
+        superPanelDialog.show();
     }
 
     private int calculateUserLevel(long totalCoins) {
@@ -289,7 +459,7 @@ public class MeActivity extends AppCompatActivity {
         java.util.List<VipModel> vipList = new java.util.ArrayList<>();
         vipList.add(new VipModel("VIP 1", "2,000,000 Coins", 0, 0, 0, "Basic Sparkle"));
         vipList.add(new VipModel("VIP 2", "5,000,000 Coins", 0, 0, 0, "Glow Ring"));
-        vipList.add(new VipModel("VIP 3", "8,000,000 Coins", 0, 0, 0, "Silver Wings"));
+        vipList.add(new VipModel("VIP 3", "8,000,000Coins", 0, 0, 0, "Silver Wings"));
         vipList.add(new VipModel("VIP 4", "15,000,000 Coins", 0, 0, 0, "Golden Crown"));
         vipList.add(new VipModel("VIP 5", "20,000,000 Coins", 0, 0, 0, "Fire Tiger Entry"));
         vipList.add(new VipModel("VIP 6", "30,000,000 Coins", 0, 0, 0, "Royal Dragon"));
