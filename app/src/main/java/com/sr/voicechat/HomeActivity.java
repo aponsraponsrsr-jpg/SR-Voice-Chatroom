@@ -3,6 +3,7 @@ package com.sr.voicechat;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
@@ -47,10 +48,10 @@ public class HomeActivity extends AppCompatActivity {
 
         btnPlus = findViewById(R.id.btnPlus);
         btnSearchRoom = findViewById(R.id.btnSearchRoom);
-        btnCreateRoomTop = findViewById(R.id.btnCreateRoomTop); // ওপরের প্লাস আইকন
+        btnCreateRoomTop = findViewById(R.id.btnCreateRoomTop);
         btnHomeTab = findViewById(R.id.btnHomeTab);
         btnMomentTab = findViewById(R.id.btnMomentTab);
-        btnInboxTab = findViewById(R.id.btnInboxTab); // ইনবক্স ট্যাব
+        btnInboxTab = findViewById(R.id.btnInboxTab);
         btnMeTab = findViewById(R.id.btnMeTab);
         roomGridView = findViewById(R.id.roomGridView);
 
@@ -62,7 +63,6 @@ public class HomeActivity extends AppCompatActivity {
 
         loadActiveRooms();
 
-        // 🌟 স্মার্ট প্লাস (+) আইকন লজিক (নিচের ও ওপরের দুটোর জন্যই কাজ করবে)
         View.OnClickListener createRoomListener = v -> checkAndCreateRoom();
 
         if (btnPlus != null) {
@@ -87,7 +87,6 @@ public class HomeActivity extends AppCompatActivity {
             });
         }
 
-        // ইনবক্স ট্যাব ক্লিক
         if (btnInboxTab != null) {
             btnInboxTab.setOnClickListener(v -> {
                 Intent intent = new Intent(HomeActivity.this, InboxActivity.class);
@@ -95,7 +94,6 @@ public class HomeActivity extends AppCompatActivity {
             });
         }
 
-        // সরাসরি প্রিমিয়াম MeActivity ওপেন করার লজিক
         if (btnMeTab != null) {
             btnMeTab.setOnClickListener(v -> {
                 Intent intent = new Intent(HomeActivity.this, MeActivity.class);
