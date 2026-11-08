@@ -37,7 +37,7 @@ public class VipAdapter extends RecyclerView.Adapter<VipAdapter.VipViewHolder> {
         holder.textVipLevel.setText(model.getVipLevel());
         holder.textEffect.setText("Effect: " + model.getEntryEffectName());
 
-        // Fixed click listener on item view
+        // Click listener to open premium VIP details dialog
         holder.itemView.setOnClickListener(v -> showVipDetailsDialog(model));
     }
 
@@ -48,15 +48,13 @@ public class VipAdapter extends RecyclerView.Adapter<VipAdapter.VipViewHolder> {
 
         TextView textDetailTitle = dialog.findViewById(R.id.textDetailTitle);
         TextView textDetailDesc = dialog.findViewById(R.id.textDetailDesc);
-        TextView textValidity = dialog.findViewById(R.id.textValidity);
         Button btnBuyVip = dialog.findViewById(R.id.btnBuyVip);
         Button btnCloseDetail = dialog.findViewById(R.id.btnCloseDetail);
 
         textDetailTitle.setText("👑 " + model.getVipName() + " Privileges");
-        textDetailDesc.setText("• Level: " + model.getVipName() + "\n• Exclusive Frame & Chat Bubble\n• Entry Effect: " + model.getEntryEffectName());
-        textValidity.setText("Validity: 7 Days / 10 Days / 30 Days (Assigned via Panel)");
+        textDetailDesc.setText("• Level: " + model.getVipName() + "\n• Exclusive Profile Frame & Chat Bubble\n• Entry Effect: " + model.getEntryEffectName() + "\n• Validity: 7 Days / 15 Days / 30 Days (Admin Controlled)");
 
-        // Coin amount and Buy text setup (Disabled as requested)
+        // Set coin pricing text based on VIP level
         String coinText = "Buy - 2,000,000 Coins (Coming Soon)";
         if (model.getVipName().contains("VIP 2")) coinText = "Buy - 5,000,000 Coins (Coming Soon)";
         else if (model.getVipName().contains("VIP 3")) coinText = "Buy - 8,000,000 Coins (Coming Soon)";
@@ -66,9 +64,11 @@ public class VipAdapter extends RecyclerView.Adapter<VipAdapter.VipViewHolder> {
         else if (model.getVipName().contains("VIP 7")) coinText = "Buy - 50,000,000 Coins (Coming Soon)";
 
         btnBuyVip.setText(coinText);
-        btnBuyVip.setEnabled(false); // Closed for purchase
+        btnBuyVip.setEnabled(false); // Closed for purchase as requested
 
-        btnCloseDetail.setOnClickListener(v -> dialog.dismiss());
+        if (btnCloseDetail != null) {
+            btnCloseDetail.setOnClickListener(v -> dialog.dismiss());
+        }
         dialog.show();
     }
 
