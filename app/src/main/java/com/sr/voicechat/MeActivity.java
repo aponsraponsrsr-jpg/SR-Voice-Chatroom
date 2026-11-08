@@ -1,9 +1,6 @@
 package com.sr.voicechat;
 
 import android.app.Dialog;
-import android.content.ClipData;
-import android.content.ClipboardManager;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -58,7 +55,7 @@ public class MeActivity extends AppCompatActivity {
             btnVipStatus.setOnClickListener(v -> showVipDialog());
         }
 
-        // Wallet & Recharge Click -> Full Screen Premium Dialog (Reseller Demo Mode)
+        // Wallet & Recharge Click -> Full Screen Premium Dialog
         if (btnWalletRecharge != null) {
             btnWalletRecharge.setOnClickListener(v -> showWalletRechargeDialog());
         }
@@ -86,7 +83,7 @@ public class MeActivity extends AppCompatActivity {
         }
     }
 
-    // Full Screen Wallet & Recharge Dialog Method
+    // Full Screen Wallet & Recharge Dialog Method with Short CEO Notice Popup
     private void showWalletRechargeDialog() {
         final Dialog rechargeDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         rechargeDialog.setContentView(R.layout.dialog_wallet_recharge);
@@ -94,8 +91,8 @@ public class MeActivity extends AppCompatActivity {
         TextView textUserBalance = rechargeDialog.findViewById(R.id.textUserBalance);
         TextView btnCloseRecharge = rechargeDialog.findViewById(R.id.btnCloseRecharge);
 
-        // Fetch current user coin balance (Demo: 411 coins or stored in prefs)
-        String currentCoins = prefs.getString("USER_COINS", "411");
+        // Default balance set to 0 Coins
+        String currentCoins = prefs.getString("USER_COINS", "0");
         if (textUserBalance != null) {
             textUserBalance.setText(currentCoins + " Coins");
         }
@@ -104,10 +101,29 @@ public class MeActivity extends AppCompatActivity {
             btnCloseRecharge.setOnClickListener(v -> rechargeDialog.dismiss());
         }
 
+        // Short, clean popup message when clicking recharge packages
+        android.view.View.OnClickListener packageClick = v -> {
+            new AlertDialog.Builder(MeActivity.this)
+                .setTitle("💎 Coin Recharge")
+                .setMessage("Please contact SR Voice Chat Room CEO for coin recharge.")
+                .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
+                .show();
+        };
+
+        LinearLayout pkg1 = rechargeDialog.findViewById(R.id.pkg1);
+        LinearLayout pkg2 = rechargeDialog.findViewById(R.id.pkg2);
+        LinearLayout pkg3 = rechargeDialog.findViewById(R.id.pkg3);
+        LinearLayout pkg4 = rechargeDialog.findViewById(R.id.pkg4);
+
+        if (pkg1 != null) pkg1.setOnClickListener(packageClick);
+        if (pkg2 != null) pkg2.setOnClickListener(packageClick);
+        if (pkg3 != null) pkg3.setOnClickListener(packageClick);
+        if (pkg4 != null) pkg4.setOnClickListener(packageClick);
+
         rechargeDialog.show();
     }
 
-    // VIP 1 to VIP 7 Privileges Dialog Method with Updated Coin Amounts
+    // VIP 1 to VIP 7 Privileges Dialog Method
     private void showVipDialog() {
         android.app.Dialog dialog = new android.app.Dialog(this);
         dialog.setContentView(R.layout.dialog_vip_status);
@@ -118,7 +134,6 @@ public class MeActivity extends AppCompatActivity {
 
         recyclerVipList.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(this));
 
-        // VIP 1 to VIP 7 Data with High Coin Amounts
         java.util.List<VipModel> vipList = new java.util.ArrayList<>();
         vipList.add(new VipModel("VIP 1", "2,000,000 Coins", 0, 0, 0, "Basic Sparkle"));
         vipList.add(new VipModel("VIP 2", "5,000,000 Coins", 0, 0, 0, "Glow Ring"));
