@@ -105,7 +105,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         roomMetaRef = databaseReference.child("meta");
         messagesRef = databaseReference.child("messages");
         adminsRef = databaseReference.child("admins");
-        
         userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
 
         syncLatestUserProfile();
@@ -188,28 +187,25 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // 🏆 র‍্যাঙ্কিং ক্লিক লজিক
+        // 🏆 প্রিমিয়াম র‍্যাঙ্কিং ক্লিক
         if (btnInRoomRanking != null) {
-            btnInRoomRanking.setOnClickListener(v -> showInRoomRankingBottomSheet());
+            btnInRoomRanking.setOnClickListener(v -> showPremiumRankingBottomSheet());
         }
 
-        // 📋 রুম টাইটেল ক্লিক
+        // 📋 রুম টাইটেল ও হেডার ক্লিক (রুম ইনফো ও মেম্বার ডিটেইলস)
         if (roomTitleText != null) {
             roomTitleText.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
         }
-
-        // 🖼️ রুম হেডার প্রোফাইল পিকচার ক্লিক (সম্পূর্ণ ফ্রি ও স্বাভাবিক মেম্বার লিস্টের জন্য)
         if (roomHeaderProfileImg != null) {
             roomHeaderProfileImg.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
         }
-
         if (roomInfoText != null) {
             roomInfoText.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
         }
 
-        // 👥 অনলাইন লিস্ট ক্লিক লজিক (সরাসরি অনলাইন মেম্বারদের পপআপ দেখাবে)
+        // 👥 স্ক্রোলযোগ্য অনলাইন মেম্বার লিস্ট ক্লিক
         if (btnOnlineList != null) {
-            btnOnlineList.setOnClickListener(v -> showOnlineMembersDialog());
+            btnOnlineList.setOnClickListener(v -> showScrollableOnlineMembersDialog());
         }
 
         chatListView = findViewById(R.id.chatListView);
@@ -398,53 +394,85 @@ public class VoiceRoomActivity extends AppCompatActivity {
         builder.show();
     }
 
-    // 👥 অনলাইন মেম্বার লিস্ট ডায়ালগ
-    private void showOnlineMembersDialog() {
+    // 👥 প্রিমিয়াম স্ক্রোলযোগ্য অনলাইন মেম্বার লিস্ট ডায়ালগ
+    private void showScrollableOnlineMembersDialog() {
         BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(40, 40, 40, 40);
-        layout.setBackgroundColor(Color.parseColor("#120A2A"));
+        
+        GradientDrawable bg = new GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")}
+        );
+        bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
+        layout.setBackground(bg);
 
         TextView title = new TextView(this);
-        title.setText("👥 Online Room Members");
+        title.setText("👥 Active Online Members");
         title.setTextColor(Color.parseColor("#00E676"));
         title.setTextSize(18);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
         title.setPadding(0, 0, 0, 20);
         layout.addView(title);
 
-        ListView listView = new ListView(this);
-        ArrayList<String> memberNames = new ArrayList<>();
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, memberNames);
-        listView.setAdapter(adapter);
+        ScrollView scrollView = new ScrollView(this);
+        scrollView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1200));
+        scrollView.setFillViewport(true);
 
-        databaseReference.child("online_users").addListenerForSingleValueEvent(new ValueEventListener() {
+        LinearLayout memberListContainer = new LinearLayout(this);
+        memberListContainer.setOrientation(LinearLayout.VERTICAL);
+
+        databaseReference.child("online_users").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                memberNames.clear();
+                memberListContainer.removeAllViews();
                 for (DataSnapshot ds : snapshot.getChildren()) {
-                    String name = ds.getValue(String.class);
-                    if (name != null) memberNames.add("🟢 " + name);
+                    String memberName = ds.getValue(String.class);
+                    String memberUid = ds.getKey();
+                    if (memberName != null) {
+                        LinearLayout row = new LinearLayout(VoiceRoomActivity.this);
+                        row.setOrientation(LinearLayout.HORIZONTAL);
+                        row.setPadding(20, 20, 20, 20);
+                        row.setGravity(Gravity.CENTER_VERTICAL);
+
+                        GradientDrawable rBg = new GradientDrawable();
+                        rBg.setColor(Color.parseColor("#2A1B4E"));
+                        rBg.setCornerRadius(16);
+                        row.setBackground(rBg);
+
+                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                        lp.setMargins(0, 0, 0, 10);
+                        row.setLayoutParams(lp);
+
+                        TextView nameTxt = new TextView(VoiceRoomActivity.this);
+                        nameTxt.setText("🟢  " + memberName + " (ID: " + memberUid + ")");
+                        nameTxt.setTextColor(Color.WHITE);
+                        nameTxt.setTextSize(15);
+                        nameTxt.setTypeface(null, android.graphics.Typeface.BOLD);
+                        row.addView(nameTxt);
+
+                        memberListContainer.addView(row);
+                    }
                 }
-                adapter.notifyDataSetChanged();
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
 
-        layout.addView(listView);
+        scrollView.addView(memberListContainer);
+        layout.addView(scrollView);
         dialog.setContentView(layout);
         
         Window window = dialog.getWindow();
         if (window != null) {
-            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1200);
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1400);
             window.setGravity(Gravity.BOTTOM);
         }
         dialog.show();
     }
 
-    // 🏆 রুম র‍্যাঙ্কিং বটম শিট
-    private void showInRoomRankingBottomSheet() {
+    // 🏆 প্রিমিয়াম র‍্যাঙ্কিং প্যানেল (Daily / Weekly / Monthly Tabs)
+    private void showPremiumRankingBottomSheet() {
         BottomSheetDialog rankSheet = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         
         LinearLayout rankLayout = new LinearLayout(this);
@@ -459,14 +487,47 @@ public class VoiceRoomActivity extends AppCompatActivity {
         rankLayout.setBackground(bg);
 
         TextView title = new TextView(this);
-        title.setText("🏆 Room Contribution Ranking (Daily / Weekly)");
+        title.setText("🏆 Room Contribution Ranking");
         title.setTextColor(Color.parseColor("#FFD700"));
-        title.setTextSize(16);
+        title.setTextSize(18);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setGravity(Gravity.CENTER);
         title.setPadding(0, 0, 0, 20);
         rankLayout.addView(title);
 
+        // Tabs Layout (Daily, Weekly, Monthly)
+        LinearLayout tabLayout = new LinearLayout(this);
+        tabLayout.setOrientation(LinearLayout.HORIZONTAL);
+        tabLayout.setGravity(Gravity.CENTER);
+        tabLayout.setPadding(0, 0, 0, 20);
+
+        Button btnDaily = new Button(this);
+        btnDaily.setText("Daily");
+        btnDaily.setBackgroundColor(Color.parseColor("#FFD700"));
+        btnDaily.setTextColor(Color.BLACK);
+        btnDaily.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
+
+        Button btnWeekly = new Button(this);
+        btnWeekly.setText("Weekly");
+        btnWeekly.setBackgroundColor(Color.parseColor("#441B1035"));
+        btnWeekly.setTextColor(Color.WHITE);
+        btnWeekly.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
+
+        Button btnMonthly = new Button(this);
+        btnMonthly.setText("Monthly");
+        btnMonthly.setBackgroundColor(Color.parseColor("#441B1035"));
+        btnMonthly.setTextColor(Color.WHITE);
+        btnMonthly.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
+
+        tabLayout.addView(btnDaily);
+        tabLayout.addView(btnWeekly);
+        tabLayout.addView(btnMonthly);
+        rankLayout.addView(tabLayout);
+
         ScrollView rankScrollView = new ScrollView(this);
+        rankScrollView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1.0f));
+        rankScrollView.setFillViewport(true);
+
         LinearLayout listContainer = new LinearLayout(this);
         listContainer.setOrientation(LinearLayout.VERTICAL);
 
@@ -480,7 +541,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         rankSheet.setContentView(rankLayout);
         Window w = rankSheet.getWindow();
         if (w != null) {
-            w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1300);
+            w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1500);
             w.setGravity(Gravity.BOTTOM);
         }
         rankSheet.show();
@@ -849,11 +910,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot seatSnap) {
                             String occupantName = seatSnap.child("userName").getValue(String.class);
+                            String occupantUid = seatSnap.child("userId").getValue(String.class);
                             boolean isOccupied = occupantName != null && !occupantName.isEmpty();
 
                             List<String> optionsList = new ArrayList<>();
                             if (isOccupied) {
-                                optionsList.add("👤 View Profile");
+                                optionsList.add("👤 View Profile (ID: " + occupantUid + ")");
                                 optionsList.add("🚪 Leave Mic");
                             } else {
                                 optionsList.add("🎙️ Take Mic");
@@ -867,6 +929,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 String selectedOption = seatOptions[which].toString();
                                 if (selectedOption.contains("Take Mic")) {
                                     takeSeat(seatIndex, seatKey);
+                                } else if (selectedOption.contains("View Profile")) {
+                                    showUserProfileDialog(occupantName, occupantUid);
                                 } else if (selectedOption.contains("Leave Mic")) {
                                     databaseReference.child("seats").child(seatKey).removeValue();
                                     Toast.makeText(VoiceRoomActivity.this, "Left seat & counter reset", Toast.LENGTH_SHORT).show();
@@ -879,6 +943,59 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 });
             }
         }
+    }
+
+    // 🌟 প্রিমিয়াম ইউজার প্রোফাইল ভিউ ডায়ালগ
+    private void showUserProfileDialog(String userName, String userId) {
+        Dialog profileDialog = new Dialog(this, R.style.Theme_Design_BottomSheetDialog);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 50, 50, 60);
+
+        GradientDrawable bg = new GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")}
+        );
+        bg.setCornerRadii(new float[]{40, 40, 40, 40, 0, 0, 0, 0});
+        layout.setBackground(bg);
+
+        TextView title = new TextView(this);
+        title.setText("👤 User Profile Card");
+        title.setTextColor(Color.parseColor("#FFD700"));
+        title.setTextSize(18);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setGravity(Gravity.CENTER);
+        title.setPadding(0, 0, 0, 30);
+        layout.addView(title);
+
+        TextView nameText = new TextView(this);
+        nameText.setText("Name: " + userName);
+        nameText.setTextColor(Color.WHITE);
+        nameText.setTextSize(16);
+        nameText.setPadding(0, 10, 0, 10);
+        layout.addView(nameText);
+
+        TextView idText = new TextView(this);
+        idText.setText("9-Digit ID: " + userId);
+        idText.setTextColor(Color.parseColor("#00E676"));
+        idText.setTextSize(16);
+        idText.setPadding(0, 10, 0, 30);
+        layout.addView(idText);
+
+        Button btnClose = new Button(this);
+        btnClose.setText("Close");
+        btnClose.setBackgroundColor(Color.parseColor("#5E35B1"));
+        btnClose.setTextColor(Color.WHITE);
+        btnClose.setOnClickListener(v -> profileDialog.dismiss());
+        layout.addView(btnClose);
+
+        profileDialog.setContentView(layout);
+        Window window = profileDialog.getWindow();
+        if (window != null) {
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            window.setGravity(Gravity.BOTTOM);
+        }
+        profileDialog.show();
     }
 
     private void takeSeat(int seatIndex, String seatKey) {
