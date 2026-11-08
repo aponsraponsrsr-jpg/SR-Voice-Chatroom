@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#0A140A"
-    android:padding="16dp">
+    android:padding="12dp">
 
     <!-- Top Bar: Title & Close Button -->
     <LinearLayout
@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginBottom="12dp">
+        android:layout_marginBottom="10dp">
 
         <TextView
             android:layout_width="0dp"
@@ -20,7 +20,7 @@
             android:layout_weight="1"
             android:text="📜 SR Official Host Salary Policy"
             android:textColor="#00E676"
-            android:textSize="18sp"
+            android:textSize="17sp"
             android:textStyle="bold" />
 
         <TextView
@@ -30,10 +30,29 @@
             android:text="✕"
             android:textColor="#FFFFFF"
             android:textSize="22sp"
-            android:padding="5dp" />
+            android:padding="6dp" />
     </LinearLayout>
 
-    <!-- Scrollable Policy Content -->
+    <!-- Header Banner -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#112211"
+        android:padding="10dp"
+        android:layout_marginBottom="10dp">
+
+        <TextView
+            android:id="@+id/textPolicyRoleBanner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🌟 Premium Host Reward Structure • 80% Anchor | 20% Agency"
+            android:textColor="#00E676"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Scrollable Content with Individual Level Boxes -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -43,76 +62,142 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:paddingBottom="10dp">
 
-            <!-- Agency vs Host Notice Banner -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:background="#112211"
-                android:padding="12dp"
-                android:layout_marginBottom="12dp">
-
-                <TextView
-                    android:id="@+id/textPolicyRoleBanner"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="🌟 Premium Host Reward Structure • 80% Anchor Salary | 20% Agency Commission"
-                    android:textColor="#00E676"
-                    android:textSize="13sp"
-                    android:textStyle="bold" />
+            <!-- Loop helper layout or individual premium level cards (Level 1 to 22) -->
+            
+            <!-- LEVEL 01 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 01" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 288,000 Coins\nAnchor ($1.00)  |  Agency ($0.50)  |  Total: $1.50" />
             </LinearLayout>
 
-            <!-- Table Header -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:background="#1B3B1B"
-                android:padding="10dp"
-                android:layout_marginBottom="4dp">
-                
-                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.2" android:text="Level" android:textColor="#00E676" android:textStyle="bold" android:textSize="12sp" />
-                <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="2.8" android:text="Target Coins" android:textColor="#00E676" android:textStyle="bold" android:textSize="12sp" />
-                <TextView android:id="@+id/headerAnchor" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="2.0" android:text="Anchor(80%)" android:textColor="#00E676" android:textStyle="bold" android:textSize="12sp" />
-                <TextView android:id="@+id/headerAgency" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.8" android:text="Agency(20%)" android:textColor="#00E676" android:textStyle="bold" android:textSize="12sp" />
-                <TextView android:id="@+id/headerTotal" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.8" android:text="Total" android:textColor="#00E676" android:textStyle="bold" android:textSize="12sp" />
+            <!-- LEVEL 02 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 02" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 588,000 Coins\nAnchor ($2.00)  |  Agency ($1.00)  |  Total: $3.00" />
             </LinearLayout>
 
-            <!-- Level 1 to 22 Salary Rows (Monospace clean alignment) -->
-            <TextView 
-                android:id="@+id/textSalaryRows"
-                android:layout_width="match_parent" 
-                android:layout_height="wrap_content" 
-                android:text="
- Lv 01  │  288,000 Coins  │  $1.00  │  $0.50  │  $1.50\n
- Lv 02  │  588,000 Coins  │  $2.00  │  $1.00  │  $3.00\n
- Lv 03  │  1,190,000 Coins │  $4.50  │  $1.50  │  $6.00\n
- Lv 04  │  1,780,000 Coins │  $7.00  │  $2.00  │  $9.00\n
- Lv 05  │  3,280,000 Coins │  $14.00 │  $3.00  │  $17.00\n
- Lv 06  │  5,780,000 Coins │  $24.00 │  $6.00  │  $30.00\n
- Lv 07  │  7,880,000 Coins │  $32.00 │  $8.00  │  $40.00\n
- Lv 08  │  9,980,000 Coins │  $40.00 │  $10.00 │  $50.00\n
- Lv 09  │  13,850,000 Coins│  $56.00 │  $14.00 │  $70.00\n
- Lv 10  │  18,850,000 Coins│  $76.00 │  $19.00 │  $95.00\n
- Lv 11  │  26,500,000 Coins│  $104.00│  $26.00 │  $130.00\n
- Lv 12  │  34,500,000 Coins│  $132.00│  $33.00 │  $165.00\n
- Lv 13  │  43,500,000 Coins│  $168.00│  $42.00 │  $210.00\n
- Lv 14  │  56,500,000 Coins│  $220.00│  $55.00 │  $275.00\n
- Lv 15  │  76,500,000 Coins│  $292.00│  $73.00 │  $365.00\n
- Lv 16  │  88,500,000 Coins│  $348.00│  $87.00 │  $435.00\n
- Lv 17  │  115,500,000 Coins│ $440.00│  $110.00│  $550.00\n
- Lv 18  │  155,000,000 Coins│ $584.00│  $146.00│  $730.00\n
- Lv 19  │  210,000,000 Coins│ $752.00│  $188.00│  $940.00\n
- Lv 20  │  288,000,000 Coins│ $1024.0│  $256.00│  $1280.0\n
- Lv 21  │  350,000,000 Coins│ $1240.0│  $310.00│  $1550.0\n
- Lv 22  │  460,000,000 Coins│ $1600.0│  $400.00│  $2000.0"
-                android:textColor="#FFFFFF"
-                android:textSize="12sp"
-                android:fontFamily="monospace"
-                android:paddingTop="8dp"
-                android:lineSpacingExtra="6dp" />
+            <!-- LEVEL 03 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 03" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 1,190,000 Coins\nAnchor ($4.50)  |  Agency ($1.50)  |  Total: $6.00" />
+            </LinearLayout>
+
+            <!-- LEVEL 04 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 04" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 1,780,000 Coins\nAnchor ($7.00)  |  Agency ($2.00)  |  Total: $9.00" />
+            </LinearLayout>
+
+            <!-- LEVEL 05 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 05" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 3,280,000 Coins\nAnchor ($14.00) |  Agency ($3.00)  |  Total: $17.00" />
+            </LinearLayout>
+
+            <!-- LEVEL 06 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 06" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 5,780,000 Coins\nAnchor ($24.00) |  Agency ($6.00)  |  Total: $30.00" />
+            </LinearLayout>
+
+            <!-- LEVEL 07 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 07" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 7,880,000 Coins\nAnchor ($32.00) |  Agency ($8.00)  |  Total: $40.00" />
+            </LinearLayout>
+
+            <!-- LEVEL 08 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 08" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 9,980,000 Coins\nAnchor ($40.00) |  Agency ($10.00) |  Total: $50.00" />
+            </LinearLayout>
+
+            <!-- LEVEL 09 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 09" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 13,850,000 Coins\nAnchor ($56.00) |  Agency ($14.00) |  Total: $70.00" />
+            </LinearLayout>
+
+            <!-- LEVEL 10 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 10" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 18,850,000 Coins\nAnchor ($76.00) |  Agency ($19.00) |  Total: $95.00" />
+            </LinearLayout>
+
+            <!-- LEVEL 11 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 11" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 26,500,000 Coins\nAnchor ($104.00)|  Agency ($26.00)|  Total: $130.00" />
+            </LinearLayout>
+
+            <!-- LEVEL 12 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 12" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 34,500,000 Coins\nAnchor ($132.00)|  Agency ($33.00)|  Total: $165.00" />
+            </LinearLayout>
+
+            <!-- LEVEL 13 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 13" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 43,500,000 Coins\nAnchor ($168.00)|  Agency ($42.00)|  Total: $210.00" />
+            </LinearLayout>
+
+            <!-- LEVEL 14 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 14" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 56,500,000 Coins\nAnchor ($220.00)|  Agency ($55.00)|  Total: $275.00" />
+            </LinearLayout>
+
+            <!-- LEVEL 15 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 15" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 76,500,000 Coins\nAnchor ($292.00)|  Agency ($73.00)|  Total: $365.00" />
+            </LinearLayout>
+
+            <!-- LEVEL 16 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 16" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 88,500,000 Coins\nAnchor ($348.00)|  Agency ($87.00)|  Total: $435.00" />
+            </LinearLayout>
+
+            <!-- LEVEL 17 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 17" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 115,500,000 Coins\nAnchor ($440.00)|  Agency ($110.0)|  Total: $550.00" />
+            </LinearLayout>
+
+            <!-- LEVEL 18 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 18" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 155,000,000 Coins\nAnchor ($584.00)|  Agency ($146.0)|  Total: $730.00" />
+            </LinearLayout>
+
+            <!-- LEVEL 19 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 19" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 210,000,000 Coins\nAnchor ($752.00)|  Agency ($188.0)|  Total: $940.00" />
+            </LinearLayout>
+
+            <!-- LEVEL 20 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 20" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 288,000,000 Coins\nAnchor ($1024.0)|  Agency ($256.0)|  Total: $1280.0" />
+            </LinearLayout>
+
+            <!-- LEVEL 21 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 21" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 350,000,000 Coins\nAnchor ($1240.0)|  Agency ($310.0)|  Total: $1550.0" />
+            </LinearLayout>
+
+            <!-- LEVEL 22 -->
+            <LinearLayout style="@style/LevelBoxStyle">
+                <TextView style="@style/LevelTitleStyle" android:text="Level 22" />
+                <TextView style="@style/LevelDescStyle" android:text="Target: 460,000,000 Coins\nAnchor ($1600.0)|  Agency ($400.0)|  Total: $2000.0" />
+            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
@@ -125,6 +210,6 @@
         android:textColor="#00E676"
         android:textSize="11sp"
         android:gravity="center"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="6dp" />
 
 </LinearLayout>
