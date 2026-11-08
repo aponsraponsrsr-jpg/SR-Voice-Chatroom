@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#0A140A"
+    android:padding="16dp">
+
+    <!-- Top Bar: Title & Close Button -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="📜 SR Official Policy &amp; Salary"
+            android:textColor="#00E676"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/btnClosePolicy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✕"
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:padding="5dp" />
+    </LinearLayout>
+
+    <!-- Scrollable Content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Section 1: User Wallet Rate -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="#112211"
+                android:padding="12dp"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="💎 PART 1: USER WALLET RATE"
+                    android:textColor="#00E676"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="6dp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="• Standard Rate: $1 = 100,000 Coins (Fixed for all users)\n• Instant wallet top-up available."
+                    android:textColor="#CCCCCC"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <!-- Section 2: Host Salary Policy (Level 1 to 22 Clean Table View) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:background="#112211"
+                android:padding="12dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🎙️ PART 2: HOST SALARY POLICY (LEVEL 1-22)"
+                    android:textColor="#00E676"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp" />
+
+                <!-- Table Header -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:background="#1B3B1B"
+                    android:padding="8dp">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Level" android:textColor="#00E676" android:textStyle="bold" android:textSize="12sp" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="2.2" android:text="Target Coins" android:textColor="#00E676" android:textStyle="bold" android:textSize="12sp" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.8" android:text="Anchor(80%)" android:textColor="#00E676" android:textStyle="bold" android:textSize="12sp" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.5" android:text="Total" android:textColor="#00E676" android:textStyle="bold" android:textSize="12sp" />
+                </LinearLayout>
+
+                <!-- Salary Rows (1 to 22 Clean Uniform Text) -->
+                <include layout="@string/policy_rows_placeholder" /> 
+                <!-- Note: Below is direct programmatic rows generator inside ScrollView -->
+
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="
+ Lv 01  │  288,000 Coins  │  $1.00  │  $1.50\n
+ Lv 02  │  588,000 Coins  │  $2.00  │  $3.00\n
+ Lv 03  │  1,190,000 Coins │  $4.50  │  $6.00\n
+ Lv 04  │  1,780,000 Coins │  $7.00  │  $9.00\n
+ Lv 05  │  3,280,000 Coins │  $14.00 │  $17.00\n
+ Lv 06  │  5,780,000 Coins │  $24.00 │  $30.00\n
+ Lv 07  │  7,880,000 Coins │  $32.00 │  $40.00\n
+ Lv 08  │  9,980,000 Coins │  $40.00 │  $50.00\n
+ Lv 09  │  13,850,000 Coins│  $56.00 │  $70.00\n
+ Lv 10  │  18,850,000 Coins│  $76.00 │  $95.00\n
+ Lv 11  │  26,500,000 Coins│  $104.00│  $130.00\n
+ Lv 12  │  34,500,000 Coins│  $132.00│  $165.00\n
+ Lv 13  │  43,500,000 Coins│  $168.00│  $210.00\n
+ Lv 14  │  56,500,000 Coins│  $220.00│  $275.00\n
+ Lv 15  │  76,500,000 Coins│  $292.00│  $365.00\n
+ Lv 16  │  88,500,000 Coins│  $348.00│  $435.00\n
+ Lv 17  │  115,500,000 Coins│ $440.00│  $550.00\n
+ Lv 18  │  155,000,000 Coins│ $584.00│  $730.00\n
+ Lv 19  │  210,000,000 Coins│ $752.00│  $940.00\n
+ Lv 20  │  288,000,000 Coins│ $1024.0|  $1280.0\n
+ Lv 21  │  350,000,000 Coins│ $1240.0│  $1550.0\n
+ Lv 22  │  460,000,000 Coins│ $1600.0│  $2000.0"
+                    android:textColor="#FFFFFF"
+                    android:textSize="13sp"
+                    android:fontFamily="monospace"
+                    android:paddingTop="8dp"
+                    android:lineSpacingExtra="4dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Footer -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="* 80% Anchor Salary | 20% Agency Commission. Reseller rules hidden (CEO direct deal)."
+        android:textColor="#00E676"
+        android:textSize="11sp"
+        android:gravity="center"
+        android:layout_marginTop="8dp" />
+
+</LinearLayout>
