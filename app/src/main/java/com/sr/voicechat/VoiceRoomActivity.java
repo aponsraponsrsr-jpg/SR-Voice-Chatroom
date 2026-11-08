@@ -25,6 +25,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -458,11 +459,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
         builder.show();
     }
 
+    // 🌟 3. ফুল-স্ক্রিন প্রিমিয়াম র‍্যাঙ্কিং সিস্টেম (Daily, Weekly, Monthly ট্যাবসহ)
     private void showInRoomRankingBottomSheet() {
         BottomSheetDialog rankSheet = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
+        
         LinearLayout rankLayout = new LinearLayout(this);
         rankLayout.setOrientation(LinearLayout.VERTICAL);
-        rankLayout.setPadding(40, 40, 40, 60);
+        rankLayout.setPadding(40, 40, 40, 40);
 
         GradientDrawable bg = new GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
@@ -471,15 +474,16 @@ public class VoiceRoomActivity extends AppCompatActivity {
         bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
         rankLayout.setBackground(bg);
 
+        // Header Row
         LinearLayout topRow = new LinearLayout(this);
         topRow.setOrientation(LinearLayout.HORIZONTAL);
         topRow.setGravity(Gravity.CENTER_VERTICAL);
         topRow.setPadding(0, 0, 0, 20);
 
         TextView title = new TextView(this);
-        title.setText("🏆 Room Contribution & Wealth Ranking");
+        title.setText("🏆 Room Contribution Ranking");
         title.setTextColor(Color.parseColor("#FFD700"));
-        title.setTextSize(16);
+        title.setTextSize(18);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
         LinearLayout.LayoutParams tParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
         title.setLayoutParams(tParams);
@@ -488,31 +492,76 @@ public class VoiceRoomActivity extends AppCompatActivity {
         TextView close = new TextView(this);
         close.setText("✕");
         close.setTextColor(Color.WHITE);
-        close.setTextSize(18);
+        close.setTextSize(20);
         close.setOnClickListener(v -> rankSheet.dismiss());
         topRow.addView(close);
         rankLayout.addView(topRow);
+
+        // Tabs: Daily, Weekly, Monthly
+        LinearLayout tabLayout = new LinearLayout(this);
+        tabLayout.setOrientation(LinearLayout.HORIZONTAL);
+        tabLayout.setGravity(Gravity.CENTER);
+        tabLayout.setPadding(0, 10, 0, 20);
+
+        Button btnDaily = new Button(this);
+        btnDaily.setText("Daily");
+        btnDaily.setAllCaps(false);
+        btnDaily.setBackgroundColor(Color.parseColor("#FF4081"));
+        btnDaily.setTextColor(Color.WHITE);
+
+        Button btnWeekly = new Button(this);
+        btnWeekly.setText("Weekly");
+        btnWeekly.setAllCaps(false);
+        btnWeekly.setBackgroundColor(Color.parseColor("#3F51B5"));
+        btnWeekly.setTextColor(Color.WHITE);
+
+        Button btnMonthly = new Button(this);
+        btnMonthly.setText("Monthly");
+        btnMonthly.setAllCaps(false);
+        btnMonthly.setBackgroundColor(Color.parseColor("#3F51B5"));
+        btnMonthly.setTextColor(Color.WHITE);
+
+        LinearLayout.LayoutParams tabParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
+        tabParams.setMargins(8, 0, 8, 0);
+        btnDaily.setLayoutParams(tabParams);
+        btnWeekly.setLayoutParams(tabParams);
+        btnMonthly.setLayoutParams(tabParams);
+
+        tabLayout.addView(btnDaily);
+        tabLayout.addView(btnWeekly);
+        tabLayout.addView(btnMonthly);
+        rankLayout.addView(tabLayout);
+
+        // Scrollable Container for Ranking List
+        ScrollView rankScrollView = new ScrollView(this);
+        rankScrollView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1.0f));
+        rankScrollView.setFillViewport(true);
 
         LinearLayout listContainer = new LinearLayout(this);
         listContainer.setOrientation(LinearLayout.VERTICAL);
         listContainer.setPadding(10, 10, 10, 10);
 
-        addRankUserRow(listContainer, "1", "Room Host", "0 Coins", "#FF1744");
-        addRankUserRow(listContainer, "2", "Room Admin", "0 Coins", "#29B6F6");
-        addRankUserRow(listContainer, "3", "Active Member", "0 Coins", "#00E676");
+        // Sample Data for Rankings (Top 1, 2, 3...)
+        addRankUserRow(listContainer, "1", "SR Apon (Owner)", "1,500,000 Coins", "#FFD700");
+        addRankUserRow(listContainer, "2", "Admin User", "950,000 Coins", "#C0C0C0");
+        addRankUserRow(listContainer, "3", "Active Supporter", "500,000 Coins", "#CD7F32");
+        addRankUserRow(listContainer, "4", "Member Four", "250,000 Coins", "#FFFFFF");
+        addRankUserRow(listContainer, "5", "Member Five", "120,000 Coins", "#FFFFFF");
 
-        rankLayout.addView(listContainer);
+        rankScrollView.addView(listContainer);
+        rankLayout.addView(rankScrollView);
+
         rankSheet.setContentView(rankLayout);
 
         Window w = rankSheet.getWindow();
         if (w != null) {
-            w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1200);
+            w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1500);
             w.setGravity(Gravity.BOTTOM);
         }
         rankSheet.show();
     }
 
-    private void addRankUserRow(LinearLayout container, String rank, String name, String score, String badgeColor) {
+    private void addRankUserRow(LinearLayout container, String rank, String name, String score, String badgeColorHex) {
         LinearLayout row = new LinearLayout(container.getContext());
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setPadding(20, 20, 20, 20);
@@ -528,11 +577,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
         row.setLayoutParams(p);
 
         TextView rankTxt = new TextView(container.getContext());
-        rankTxt.setText(rank);
-        rankTxt.setTextColor(Color.parseColor(badgeColor));
-        rankTxt.setTextSize(16);
+        rankTxt.setText("Top " + rank);
+        rankTxt.setTextColor(Color.parseColor(badgeColorHex));
+        rankTxt.setTextSize(14);
         rankTxt.setTypeface(null, android.graphics.Typeface.BOLD);
-        rankTxt.setMinWidth(60);
+        rankTxt.setMinWidth(80);
         row.addView(rankTxt);
 
         LinearLayout textStack = new LinearLayout(container.getContext());
@@ -776,12 +825,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
+    // 🌟 1. প্রিমিয়াম বটম শিট স্টাইল রুম ইনফো ও মেম্বার লিস্ট পপ-আপ
     private void showRoomInfoAndMembersBottomSheet() {
         BottomSheetDialog sheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         
         LinearLayout mainLayout = new LinearLayout(this);
         mainLayout.setOrientation(LinearLayout.VERTICAL);
-        mainLayout.setPadding(40, 40, 40, 60);
+        mainLayout.setPadding(40, 40, 40, 40);
         
         GradientDrawable bg = new GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
@@ -842,10 +892,16 @@ public class VoiceRoomActivity extends AppCompatActivity {
         tabLayout.addView(btnTabMembers);
         mainLayout.addView(tabLayout);
 
+        // 🌟 Scrollable Container for Dynamic Content (Room Info / Member List with Avatars)
+        ScrollView scrollView = new ScrollView(this);
+        scrollView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1.0f));
+        scrollView.setFillViewport(true);
+
         LinearLayout contentLayout = new LinearLayout(this);
         contentLayout.setOrientation(LinearLayout.VERTICAL);
         contentLayout.setPadding(10, 10, 10, 10);
-        mainLayout.addView(contentLayout);
+        scrollView.addView(contentLayout);
+        mainLayout.addView(scrollView);
 
         loadRoomInfoLargeView(contentLayout);
 
@@ -971,6 +1027,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         container.addView(divider);
     }
 
+    // 🌟 2. মেম্বার লিস্ট উইথ রিয়েল প্রোফাইল পিকচার (Avatar) ও স্ক্রোলিং সাপোর্ট
     private void loadMemberListLargeView(LinearLayout container) {
         container.removeAllViews();
 
@@ -984,31 +1041,31 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 countHeader.setPadding(0, 0, 0, 20);
                 container.addView(countHeader);
 
+                // 1. Owner Row
                 for (DataSnapshot child : snapshot.getChildren()) {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
                     if (uId != null && uId.equals(roomOwnerId)) {
-                        LinearLayout ownerRow = createMemberRowItem(name, "🛡️ Owner", "#FF1744", uId, true);
-                        container.addView(ownerRow);
+                        fetchAndCreateMemberRow(container, name, "🛡️ Owner", "#FF1744", uId);
                         break;
                     }
                 }
 
+                // 2. Admin Rows
                 for (DataSnapshot child : snapshot.getChildren()) {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
                     if (uId != null && !uId.equals(roomOwnerId) && roomAdminList.contains(uId)) {
-                        LinearLayout adminRow = createMemberRowItem(name, "🛡️ Admin", "#29B6F6", uId, false);
-                        container.addView(adminRow);
+                        fetchAndCreateMemberRow(container, name, "🛡️ Admin", "#29B6F6", uId);
                     }
                 }
 
+                // 3. Regular Member Rows
                 for (DataSnapshot child : snapshot.getChildren()) {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
                     if (uId != null && !uId.equals(roomOwnerId) && !roomAdminList.contains(uId)) {
-                        LinearLayout memberRow = createMemberRowItem(name, "🛡️ Member", "#00E676", uId, false);
-                        container.addView(memberRow);
+                        fetchAndCreateMemberRow(container, name, "🛡️ Member", "#00E676", uId);
                     }
                 }
             }
@@ -1018,10 +1075,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    private LinearLayout createMemberRowItem(String name, String role, String badgeColorHex, String uId, boolean isOwner) {
+    private void fetchAndCreateMemberRow(LinearLayout container, String name, String role, String badgeColorHex, String uId) {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setPadding(25, 25, 25, 25);
+        row.setPadding(20, 20, 20, 20);
         row.setGravity(Gravity.CENTER_VERTICAL);
         
         GradientDrawable rowBg = new GradientDrawable();
@@ -1034,10 +1091,33 @@ public class VoiceRoomActivity extends AppCompatActivity {
         row.setLayoutParams(params);
 
         ImageView avatar = new ImageView(this);
-        avatar.setLayoutParams(new LinearLayout.LayoutParams(100, 100));
+        LinearLayout.LayoutParams avatarParams = new LinearLayout.LayoutParams(100, 100);
+        avatar.setLayoutParams(avatarParams);
         avatar.setImageResource(android.R.drawable.ic_menu_my_calendar);
-        avatar.setBackgroundColor(Color.parseColor("#DDDDDD"));
+        avatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
         row.addView(avatar);
+
+        // Fetch User's Real Profile Image from Firebase Users Node
+        userDatabaseRef.child(uId).child("profileImage").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                String imgBase64 = snapshot.getValue(String.class);
+                if (imgBase64 != null && !imgBase64.isEmpty()) {
+                    try {
+                        byte[] decodedString = android.util.Base64.decode(imgBase64, android.util.Base64.DEFAULT);
+                        Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                        if (decodedByte != null) {
+                            RoundedBitmapDrawable circularBitmapDrawable = RoundedBitmapDrawableFactory.create(getResources(), decodedByte);
+                            circularBitmapDrawable.setCircular(true);
+                            avatar.setImageDrawable(circularBitmapDrawable);
+                        }
+                    } catch (Exception e) {
+                        avatar.setImageResource(android.R.drawable.ic_menu_my_calendar);
+                    }
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
 
         LinearLayout textLayout = new LinearLayout(this);
         textLayout.setOrientation(LinearLayout.VERTICAL);
@@ -1054,15 +1134,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         TextView roleView = new TextView(this);
         roleView.setText(role + "  |  ID: " + uId);
-        
-        if (role.contains("Owner")) {
-            roleView.setTextColor(Color.parseColor("#FF1744")); 
-        } else if (role.contains("Admin")) {
-            roleView.setTextColor(Color.parseColor("#29B6F6")); 
-        } else {
-            roleView.setTextColor(Color.parseColor("#00E676")); 
-        }
-
+        roleView.setTextColor(Color.parseColor(badgeColorHex));
         roleView.setTextSize(12);
         roleView.setTypeface(null, android.graphics.Typeface.BOLD);
         textLayout.addView(roleView);
@@ -1070,7 +1142,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         row.addView(textLayout);
         row.setOnClickListener(v -> showUserProfileCard(name, 0, null, uId));
 
-        return row;
+        container.addView(row);
     }
 
     private void listenToFirebaseSeats() {
