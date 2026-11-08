@@ -1001,19 +1001,19 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         TextView followingTxt = new TextView(this);
         followingTxt.setText("2 Following    ");
-        followingTxt.setTextColor(Color.LIGHTGRAY);
+        followingTxt.setTextColor(Color.parseColor("#CCCCCC"));
         followingTxt.setTextSize(13);
         statsRow.addView(followingTxt);
 
         TextView fansTxt = new TextView(this);
         fansTxt.setText("15 Fans    ");
-        fansTxt.setTextColor(Color.LIGHTGRAY);
+        fansTxt.setTextColor(Color.parseColor("#CCCCCC"));
         fansTxt.setTextSize(13);
         statsRow.addView(fansTxt);
 
         TextView visitorTxt = new TextView(this);
         visitorTxt.setText("1.2K Visitor");
-        visitorTxt.setTextColor(Color.LIGHTGRAY);
+        visitorTxt.setTextColor(Color.parseColor("#CCCCCC"));
         visitorTxt.setTextSize(13);
         statsRow.addView(visitorTxt);
 
