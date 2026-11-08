@@ -5,8 +5,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center_horizontal"
-    android:background="#120318"
-    android:padding="20dp">
+    android:background="@drawable/bg_profile_gradient"
+    android:padding="16dp">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -18,32 +18,41 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:gravity="center_horizontal"
-            android:padding="10dp">
+            android:paddingBottom="20dp">
 
-            <!-- হেডার (Edit Profile বাটন) -->
+            <!-- 🌟 প্রিমিয়াম টপ হেডার: প্রোফাইল পিকচার ও ঠিক পাশে ছোট্ট পেন্সিল এডিট বাটন -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp">
-                <Button
-                    android:id="@+id/btnEditProfile"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="✎ Edit Profile"
-                    android:backgroundTint="#7A1FA2"
-                    android:textColor="#FFFFFF"
-                    android:textAllCaps="false"
-                    android:layout_alignParentEnd="true"
-                    android:textSize="12sp"/>
-            </RelativeLayout>
+                android:layout_marginTop="10dp"
+                android:gravity="center">
 
-            <!-- প্রোফাইল পিকচার -->
-            <ImageView
-                android:id="@+id/imgMeProfile"
-                android:layout_width="110dp"
-                android:layout_height="110dp"
-                android:layout_marginTop="20dp"
-                android:src="@android:drawable/ic_menu_my_calendar" />
+                <!-- গোল প্রিমিয়াম প্রোফাইল ছবি -->
+                <ImageView
+                    android:id="@+id/imgMeProfile"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_centerHorizontal="true"
+                    android:scaleType="centerCrop"
+                    android:src="@android:drawable/ic_menu_my_calendar"
+                    android:background="@drawable/bg_circle_border"
+                    android:padding="2dp"/>
+
+                <!-- পেন্সিল এডিট বাটন (ছবির ঠিক ডানপাশে উপরে বসানো) -->
+                <ImageView
+                    android:id="@+id/btnEditProfile"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_toEndOf="@id/imgMeProfile"
+                    android:layout_marginStart="-25dp"
+                    android:layout_marginTop="5dp"
+                    android:background="@drawable/bg_circle_gold"
+                    android:src="@android:drawable/ic_menu_edit"
+                    android:padding="6dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="Edit Profile"/>
+            </RelativeLayout>
 
             <!-- ইউজার নেম -->
             <TextView
@@ -54,24 +63,26 @@
                 android:textColor="#FFFFFF"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:layout_marginTop="10dp"/>
+                android:layout_marginTop="8dp"/>
 
-            <!-- SR আইডি -->
+            <!-- SR আইডি (গ্লোয়িং কার্ড স্টাইল) -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center"
                 android:layout_marginTop="4dp"
-                android:background="#1AFFFFFF"
-                android:padding="4dp">
+                android:background="@drawable/bg_badge_rounded"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp">
                 <TextView
                     android:id="@+id/textMeId"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="ID: 493859069"
-                    android:textColor="#FFEB3B"
-                    android:textSize="13sp"/>
+                    android:textColor="#FFD700"
+                    android:textSize="13sp"
+                    android:textStyle="bold"/>
             </LinearLayout>
 
             <!-- ফলোয়ার্স / ফ্যান্স / ভিজিটরস কাউন্ট কার্ড -->
@@ -79,9 +90,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="20dp"
-                android:background="#22FFFFFF"
-                android:padding="15dp"
+                android:layout_marginTop="15dp"
+                android:background="@drawable/bg_card_glass"
+                android:padding="12dp"
                 android:gravity="center">
                 
                 <LinearLayout
@@ -91,7 +102,7 @@
                     android:orientation="vertical"
                     android:gravity="center">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Followers" android:textColor="#DDFFFFFF" android:textSize="11sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Followers" android:textColor="#B0BEC5" android:textSize="11sp"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -101,7 +112,7 @@
                     android:orientation="vertical"
                     android:gravity="center">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Fans" android:textColor="#DDFFFFFF" android:textSize="11sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Fans" android:textColor="#B0BEC5" android:textSize="11sp"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -111,7 +122,7 @@
                     android:orientation="vertical"
                     android:gravity="center">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Visitors" android:textColor="#DDFFFFFF" android:textSize="11sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Visitors" android:textColor="#B0BEC5" android:textSize="11sp"/>
                 </LinearLayout>
             </LinearLayout>
 
@@ -121,21 +132,23 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginTop="12dp"
+                android:background="@drawable/bg_card_glass"
+                android:padding="10dp"
                 android:gravity="center">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="⭐ Sending Level: Lv.0"
-                    android:textColor="#FFEB3B"
-                    android:textSize="13sp"
+                    android:text="⭐ Sending: Lv.0"
+                    android:textColor="#FFD700"
+                    android:textSize="12sp"
                     android:textStyle="bold"
                     android:layout_marginEnd="15dp"/>
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="💎 Receiving Level: Lv.0"
+                    android:text="💎 Receiving: Lv.0"
                     android:textColor="#00E676"
-                    android:textSize="13sp"
+                    android:textSize="12sp"
                     android:textStyle="bold"/>
             </LinearLayout>
 
@@ -144,7 +157,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="15dp"
+                android:layout_marginTop="12dp"
                 android:gravity="center">
                 
                 <LinearLayout
@@ -153,14 +166,14 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                    android:background="#4A148C"
+                    android:background="@drawable/bg_vip_card"
                     android:padding="12dp"
                     android:gravity="center"
-                    android:layout_marginEnd="8dp"
+                    android:layout_marginEnd="6dp"
                     android:clickable="true"
                     android:focusable="true">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👑 VIP Status" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="(Locked)" android:textColor="#FFEB3B" android:textSize="10sp"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="(Locked)" android:textColor="#FFD700" android:textSize="10sp"/>
                 </LinearLayout>
 
                 <LinearLayout
@@ -169,7 +182,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                    android:background="#004D40"
+                    android:background="@drawable/bg_wallet_card"
                     android:padding="12dp"
                     android:gravity="center"
                     android:clickable="true"
@@ -184,7 +197,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="10dp"
                 android:gravity="center">
                 
                 <LinearLayout
@@ -193,10 +206,10 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                    android:background="#1B5E20"
+                    android:background="@drawable/bg_host_card"
                     android:padding="12dp"
                     android:gravity="center"
-                    android:layout_marginEnd="8dp"
+                    android:layout_marginEnd="6dp"
                     android:clickable="true"
                     android:focusable="true">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎙️ Host Center" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
@@ -209,7 +222,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                    android:background="#880E4F"
+                    android:background="@drawable/bg_policy_card"
                     android:padding="12dp"
                     android:gravity="center"
                     android:clickable="true"
