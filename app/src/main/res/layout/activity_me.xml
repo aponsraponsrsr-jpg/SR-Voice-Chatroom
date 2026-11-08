@@ -20,14 +20,13 @@
             android:gravity="center_horizontal"
             android:paddingBottom="20dp">
 
-            <!-- 🌟 প্রিমিয়াম টপ হেডার: প্রোফাইল পিকচার ও ঠিক পাশে ছোট্ট পেন্সিল এডিট বাটন -->
+            <!-- 🌟 টপ হেডার: প্রোফাইল পিকচার ও পেন্সিল এডিট বাটন -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:gravity="center">
 
-                <!-- গোল প্রিমিয়াম প্রোফাইল ছবি -->
                 <ImageView
                     android:id="@+id/imgMeProfile"
                     android:layout_width="100dp"
@@ -38,7 +37,6 @@
                     android:background="@drawable/circle_shape"
                     android:padding="2dp"/>
 
-                <!-- পেন্সিল এডিট বাটন (ছবির ঠিক ডানপাশে উপরে বসানো) -->
                 <ImageView
                     android:id="@+id/btnEditProfile"
                     android:layout_width="32dp"
@@ -65,7 +63,7 @@
                 android:textStyle="bold"
                 android:layout_marginTop="8dp"/>
 
-            <!-- SR আইডি (গ্লোয়িং কার্ড স্টাইল) -->
+            <!-- SR আইডি -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -126,37 +124,28 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- 🌟 লেভেল সেন্টার এবং ডাইনামিক লেভেল স্ট্যাটাস বাটন -->
+            <!-- SVIP Center Banner -->
             <LinearLayout
-                android:id="@+id/btnLevelCenter"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:layout_marginTop="12dp"
                 android:background="@drawable/rounded_bg"
-                android:padding="12dp"
-                android:gravity="center_vertical"
-                android:clickable="true"
-                android:focusable="true">
-                
+                android:padding="14dp">
                 <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="🏆 Level Center (Lv.1 - 150)"
-                    android:textColor="#FFFFFF"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:drawablePadding="8dp"/>
-
-                <TextView
-                    android:id="@+id/txtProfileLevel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="⭐ Lv.1"
+                    android:text="👑 SVIP Center"
                     android:textColor="#FFD700"
-                    android:textSize="14sp"
+                    android:textSize="15sp"
                     android:textStyle="bold"/>
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Get SVIP and enjoy various privileges >"
+                    android:textColor="#E0E0E0"
+                    android:textSize="12sp"
+                    android:layout_marginTop="2dp"/>
             </LinearLayout>
 
             <!-- ভিআইপি এবং ওয়ালেট বাটন -->
@@ -199,12 +188,95 @@
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- 🌟 General Tools Section (যেমন স্ক্রিনশটে আছে) -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="15dp"
+                android:background="@drawable/rounded_bg"
+                android:padding="14dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="General Tools"
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <!-- Store -->
+                    <LinearLayout
+                        android:id="@+id/toolStore"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🛍️" android:textSize="24sp"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Store" android:textColor="#FFFFFF" android:textSize="12sp" android:layout_marginTop="4dp"/>
+                    </LinearLayout>
+
+                    <!-- Dress -->
+                    <LinearLayout
+                        android:id="@+id/toolDress"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👕" android:textSize="24sp"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dress" android:textColor="#FFFFFF" android:textSize="12sp" android:layout_marginTop="4dp"/>
+                    </LinearLayout>
+
+                    <!-- Birthday Gift -->
+                    <LinearLayout
+                        android:id="@+id/toolBirthday"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎂" android:textSize="24sp"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Birthday gift" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_marginTop="4dp"/>
+                    </LinearLayout>
+
+                    <!-- Level Center -->
+                    <LinearLayout
+                        android:id="@+id/btnLevelCenter"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⭐" android:textSize="24sp"/>
+                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Level" android:textColor="#FFFFFF" android:textSize="12sp" android:layout_marginTop="4dp"/>
+                    </LinearLayout>
+
+                </LinearLayout>
+            </LinearLayout>
+
             <!-- হোস্ট সেন্টার ও পলিসি সেকশন -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="12dp"
                 android:gravity="center">
                 
                 <LinearLayout
@@ -231,7 +303,7 @@
                     android:orientation="vertical"
                     android:background="@drawable/rounded_bg"
                     android:padding="12dp"
-                    android:gravity="center"
+,                    android:gravity="center"
                     android:clickable="true"
                     android:focusable="true">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📜 Host Policy" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
