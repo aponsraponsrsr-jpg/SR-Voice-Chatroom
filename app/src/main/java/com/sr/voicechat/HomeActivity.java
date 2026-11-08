@@ -25,8 +25,8 @@ import java.util.ArrayList;
 public class HomeActivity extends AppCompatActivity {
 
     private TextView btnPlus;
-    private ImageView btnSearchRoom;
-    private Button btnHomeTab, btnMomentTab, btnMeTab;
+    private ImageView btnSearchRoom, btnCreateRoomTop;
+    private Button btnHomeTab, btnMomentTab, btnInboxTab, btnMeTab;
     private GridView roomGridView;
 
     private ArrayList<RoomModel> roomModelList;
@@ -47,8 +47,10 @@ public class HomeActivity extends AppCompatActivity {
 
         btnPlus = findViewById(R.id.btnPlus);
         btnSearchRoom = findViewById(R.id.btnSearchRoom);
+        btnCreateRoomTop = findViewById(R.id.btnCreateRoomTop); // ওপরের প্লাস আইকন
         btnHomeTab = findViewById(R.id.btnHomeTab);
         btnMomentTab = findViewById(R.id.btnMomentTab);
+        btnInboxTab = findViewById(R.id.btnInboxTab); // ইনবক্স ট্যাব
         btnMeTab = findViewById(R.id.btnMeTab);
         roomGridView = findViewById(R.id.roomGridView);
 
@@ -60,34 +62,14 @@ public class HomeActivity extends AppCompatActivity {
 
         loadActiveRooms();
 
-        // 🌟 স্মার্ট প্লাস (+) আইকন লজিক: ইউজার একবার রুম বানালে বারবার ডায়লগ আসবে না, সরাসরি নিজের রুমে প্রবেশ করবে!
-        if (btnPlus != null) {
-            btnPlus.setOnClickListener(v -> {
-                String myId = prefs.getString("MY_9_DIGIT_ID", "");
-                if (myId.isEmpty()) {
-                    showCreateRoomDialog();
-                } else {
-                    activeRoomsRef.child(myId).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            if (snapshot.exists()) {
-                                // ইউজার আগেই রুম বানিয়েছে! তাই সরাসরি তার নিজস্ব রুমে এন্ট্রি করিয়ে দেব
-                                Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
-                                intent.putExtra("ROOM_OWNER_ID", myId);
-                                startActivity(intent);
-                            } else {
-                                // রুম না থাকলে ক্রিয়েট করার ডায়লগ দেখাবে
-                                showCreateRoomDialog();
-                            }
-                        }
+        // 🌟 স্মার্ট প্লাস (+) আইকন লজিক (নিচের ও ওপরের দুটোর জন্যই কাজ করবে)
+        View.OnClickListener createRoomListener = v -> checkAndCreateRoom();
 
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-                            showCreateRoomDialog();
-                        }
-                    });
-                }
-            });
+        if (btnPlus != null) {
+            btnPlus.setOnClickListener(createRoomListener);
+        }
+        if (btnCreateRoomTop != null) {
+            btnCreateRoomTop.setOnClickListener(createRoomListener);
         }
 
         if (btnSearchRoom != null) {
@@ -102,6 +84,14 @@ public class HomeActivity extends AppCompatActivity {
                     intent.putExtra("ROOM_OWNER_ID", selectedRoom.getRoomOwnerId());
                     startActivity(intent);
                 }
+            });
+        }
+
+        // ইনবক্স ট্যাব ক্লিক
+        if (btnInboxTab != null) {
+            btnInboxTab.setOnClickListener(v -> {
+                Intent intent = new Intent(HomeActivity.this, InboxActivity.class);
+                startActivity(intent);
             });
         }
 
@@ -120,7 +110,31 @@ public class HomeActivity extends AppCompatActivity {
         }
     }
 
-    // 🌟 নতুন রুম ক্রিয়েট করার ডায়লগ বক্স
+    private void checkAndCreateRoom() {
+        String myId = prefs.getString("MY_9_DIGIT_ID", "");
+        if (myId.isEmpty()) {
+            showCreateRoomDialog();
+        } else {
+            activeRoomsRef.child(myId).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
+                        intent.putExtra("ROOM_OWNER_ID", myId);
+                        startActivity(intent);
+                    } else {
+                        showCreateRoomDialog();
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    showCreateRoomDialog();
+                }
+            });
+        }
+    }
+
     private void showCreateRoomDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
         builder.setTitle("🎙️ Create Your Voice Room");
@@ -158,7 +172,6 @@ public class HomeActivity extends AppCompatActivity {
 
             String userImage = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
 
-            // ফায়ারবেসে রুমের মেটা ডাটা এবং একটিভ রুমে সেভ করা
             DatabaseReference roomMetaRef = roomsRef.child("room_" + myId).child("meta");
             roomMetaRef.child("roomName").setValue(roomName);
             roomMetaRef.child("roomBio").setValue(roomBio);
@@ -172,7 +185,6 @@ public class HomeActivity extends AppCompatActivity {
 
             Toast.makeText(this, "Room Created Successfully!", Toast.LENGTH_SHORT).show();
 
-            // সরাসরি ভয়েস রুমে প্রবেশ করানো
             Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
             intent.putExtra("ROOM_OWNER_ID", myId);
             startActivity(intent);
