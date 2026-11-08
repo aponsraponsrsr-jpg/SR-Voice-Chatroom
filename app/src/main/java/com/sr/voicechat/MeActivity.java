@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window; // 🌟 প্রয়োজনীয় ইমপোর্ট যুক্ত করা হয়েছে
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -49,12 +50,9 @@ public class MeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_me);
 
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
-        
-        // 🌟 তুমি চাইলে এখানে তোমার আইডি ম্যানুয়ালি "1" বা অন্য কিছু সেট করে টেস্ট করতে পারো
         currentUserId = prefs.getString("MY_9_DIGIT_ID", "493859069");
         userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
 
-        // Binding UI elements
         imgMeProfile = findViewById(R.id.imgMeProfile);
         textMeName = findViewById(R.id.textMeName);
         textMeId = findViewById(R.id.textMeId);
@@ -66,18 +64,15 @@ public class MeActivity extends AppCompatActivity {
         btnHostPolicy = findViewById(R.id.btnHostPolicy);
         btnLevelCenter = findViewById(R.id.btnLevelCenter); 
 
-        // General Tools Binding
         toolStore = findViewById(R.id.toolStore);
         toolDress = findViewById(R.id.toolDress);
         toolBirthday = findViewById(R.id.toolBirthday);
 
-        // 👑 সিক্রেট এসআর সুপার প্যানেল ডায়নামিক বাইন্ডিং (১ ডিজিট বা ইউনিক আইডি সাপোর্টসহ)
         setupSrSuperPanelButton();
 
         loadUserData();
         syncUserLevelFromFirebase();
 
-        // Edit Profile Click
         if (btnEditProfile != null) {
             btnEditProfile.setOnClickListener(v -> {
                 Intent intent = new Intent(MeActivity.this, EditProfileActivity.class);
@@ -85,7 +80,6 @@ public class MeActivity extends AppCompatActivity {
             });
         }
 
-        // General Tools Click Listeners
         if (toolStore != null) {
             toolStore.setOnClickListener(v -> Toast.makeText(this, "🛍️ Opening Store...", Toast.LENGTH_SHORT).show());
         }
@@ -96,22 +90,18 @@ public class MeActivity extends AppCompatActivity {
             toolBirthday.setOnClickListener(v -> Toast.makeText(this, "🎂 Opening Birthday Gifts...", Toast.LENGTH_SHORT).show());
         }
 
-        // Level Center Click
         if (btnLevelCenter != null) {
             btnLevelCenter.setOnClickListener(v -> showLevelCenterDialog());
         }
 
-        // VIP Status Click
         if (btnVipStatus != null) {
             btnVipStatus.setOnClickListener(v -> showVipDialog());
         }
 
-        // Wallet & Recharge Click
         if (btnWalletRecharge != null) {
             btnWalletRecharge.setOnClickListener(v -> showWalletRechargeDialog());
         }
 
-        // Host Center Click
         if (btnHostCenter != null) {
             btnHostCenter.setOnClickListener(v -> {
                 new AlertDialog.Builder(MeActivity.this)
@@ -122,13 +112,11 @@ public class MeActivity extends AppCompatActivity {
             });
         }
 
-        // Host Policy Click
         if (btnHostPolicy != null) {
             btnHostPolicy.setOnClickListener(v -> showPolicyDialog());
         }
     }
 
-    // 👑 ডাইনামিক এবং ফায়ারবেস-সুরক্ষিত এসআর সুপার প্যানেল চেক (১ বা ২ ডিজিটের ইউনিক আইডি অটো-ডিটেক্ট করবে)
     private void setupSrSuperPanelButton() {
         DatabaseReference masterCheckRef = FirebaseDatabase.getInstance().getReference("super_admins").child(currentUserId);
         
@@ -137,7 +125,7 @@ public class MeActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 boolean isMasterOwner = (snapshot.exists() && Boolean.TRUE.equals(snapshot.getValue(Boolean.class))) 
                                         || currentUserId.equals("493859069") 
-                                        || currentUserId.length() <= 2; // ১ বা ২ ডিজিটের আইডি (যেমন: "1", "7", "9") হলে অটো সুপার প্যানেল শো করবে!
+                                        || currentUserId.length() <= 2; 
 
                 if (isMasterOwner) {
                     createAndShowSuperPanelButton();
@@ -196,7 +184,6 @@ public class MeActivity extends AppCompatActivity {
         }
     }
 
-    // 👑 এসআর সুপার প্যানেল ডায়ালগ (কয়েন টপ-আপ করার জন্য)
     private void showSrSuperPanelDialog() {
         BottomSheetDialog superPanelDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout layout = new LinearLayout(this);
@@ -459,7 +446,7 @@ public class MeActivity extends AppCompatActivity {
         java.util.List<VipModel> vipList = new java.util.ArrayList<>();
         vipList.add(new VipModel("VIP 1", "2,000,000 Coins", 0, 0, 0, "Basic Sparkle"));
         vipList.add(new VipModel("VIP 2", "5,000,000 Coins", 0, 0, 0, "Glow Ring"));
-        vipList.add(new VipModel("VIP 3", "8,000,000Coins", 0, 0, 0, "Silver Wings"));
+        vipList.add(new VipModel("VIP 3", "8,000,000 Coins", 0, 0, 0, "Silver Wings"));
         vipList.add(new VipModel("VIP 4", "15,000,000 Coins", 0, 0, 0, "Golden Crown"));
         vipList.add(new VipModel("VIP 5", "20,000,000 Coins", 0, 0, 0, "Fire Tiger Entry"));
         vipList.add(new VipModel("VIP 6", "30,000,000 Coins", 0, 0, 0, "Royal Dragon"));
