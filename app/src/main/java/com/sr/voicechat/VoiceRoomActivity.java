@@ -599,7 +599,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         container.addView(row);
     }
 
-    // 🌟 প্রিমিয়াম লাক্সারি গিফট প্যানেল (৫ হাজার থেকে ৭ লাখ কয়েন পর্যন্ত ১২টি ইউনিক গিফট ও সঠিক ডেটা সহ)
+    // 🌟 নাম ছাড়া নিখুঁত প্রিমিয়াম লাক্সারি গিফট প্যানেল (শুধু বড় ছবি ও কয়েন অ্যামাউন্ট সহ)
     private void showGiftPanel() {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         View sheetView = getLayoutInflater().inflate(R.layout.dialog_gift_panel, null);
@@ -610,26 +610,26 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         List<GiftModel> allGifts = new ArrayList<>();
         
-        // ১২টি প্রিমিয়াম লাক্সারি গিফট কালেকশন
-        allGifts.add(new GiftModel("Lucky", "5,000 Coins", R.drawable.ic_coin, "gift"));
-        allGifts.add(new GiftModel("Rose", "8,000 Coins", R.drawable.ic_gift_placeholder, "gift"));
-        allGifts.add(new GiftModel("Love Ring", "10,000 Coins", R.drawable.ic_gift_placeholder, "gift"));
-        allGifts.add(new GiftModel("Mystery", "12,000 Coins", R.drawable.ic_gift_placeholder, "gift"));
+        // নাম বাদ দিয়ে শুধু ছবি এবং সঠিক কয়েন অ্যামাউন্ট সেট করা হলো
+        allGifts.add(new GiftModel("", "5,000 Coins", R.drawable.ic_coin, "gift"));
+        allGifts.add(new GiftModel("", "8,000 Coins", R.drawable.ic_gift_placeholder, "gift"));
+        allGifts.add(new GiftModel("", "10,000 Coins", R.drawable.ic_gift_placeholder, "gift"));
+        allGifts.add(new GiftModel("", "12,000 Coins", R.drawable.ic_coin, "gift"));
         
-        allGifts.add(new GiftModel("Cute", "20,000 Coins", R.drawable.ic_gift_placeholder, "gift"));
-        allGifts.add(new GiftModel("Diamond", "30,000 Coins", R.drawable.ic_gift_placeholder, "lady"));
-        allGifts.add(new GiftModel("Luxury", "50,000 Coins", R.drawable.ic_gift_placeholder, "lady"));
-        allGifts.add(new GiftModel("Royal", "100,000 Coins", R.drawable.ic_gift_placeholder, "luxury"));
+        allGifts.add(new GiftModel("", "20,000 Coins", R.drawable.ic_gift_placeholder, "gift"));
+        allGifts.add(new GiftModel("", "30,000 Coins", R.drawable.ic_gift_placeholder, "lady"));
+        allGifts.add(new GiftModel("", "50,000 Coins", R.drawable.ic_gift_placeholder, "lady"));
+        allGifts.add(new GiftModel("", "100,000 Coins", R.drawable.ic_gift_placeholder, "luxury"));
 
-        allGifts.add(new GiftModel("Golden", "200,000 Coins", R.drawable.ic_gift_placeholder, "animal"));
-        allGifts.add(new GiftModel("Fire", "300,000 Coins", R.drawable.ic_gift_placeholder, "animal"));
-        allGifts.add(new GiftModel("Private", "500,000 Coins", R.drawable.ic_gift_placeholder, "luxury"));
-        allGifts.add(new GiftModel("Castle", "700,000 Coins", R.drawable.ic_gift_placeholder, "luxury"));
+        allGifts.add(new GiftModel("", "200,000 Coins", R.drawable.ic_gift_placeholder, "animal"));
+        allGifts.add(new GiftModel("", "300,000 Coins", R.drawable.ic_gift_placeholder, "animal"));
+        allGifts.add(new GiftModel("", "500,000 Coins", R.drawable.ic_gift_placeholder, "luxury"));
+        allGifts.add(new GiftModel("", "700,000 Coins", R.drawable.ic_gift_placeholder, "luxury"));
 
         List<GiftModel> displayedGifts = new ArrayList<>(allGifts);
 
         GiftAdapter adapter = new GiftAdapter(displayedGifts, gift -> {
-            Toast.makeText(this, "Selected: " + gift.getGiftName() + " (" + gift.getGiftPrice() + ")", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Selected Gift (" + gift.getGiftPrice() + ")", Toast.LENGTH_SHORT).show();
         });
         rvGifts.setAdapter(adapter);
 
@@ -1039,7 +1039,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 countHeader.setPadding(0, 0, 0, 20);
                 container.addView(countHeader);
 
-                // 1. Room Owner Row
                 for (DataSnapshot child : snapshot.getChildren()) {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
@@ -1049,7 +1048,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     }
                 }
 
-                // 2. Room Admin Rows
                 for (DataSnapshot child : snapshot.getChildren()) {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
@@ -1058,7 +1056,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     }
                 }
 
-                // 3. Regular Member Rows
                 for (DataSnapshot child : snapshot.getChildren()) {
                     String uId = child.getKey();
                     String name = child.getValue(String.class);
