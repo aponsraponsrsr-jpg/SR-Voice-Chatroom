@@ -188,7 +188,7 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- 🌟 General Tools Section (যেমন স্ক্রিনশটে আছে) -->
+            <!-- 🌟 General Tools Section -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -303,7 +303,7 @@
                     android:orientation="vertical"
                     android:background="@drawable/rounded_bg"
                     android:padding="12dp"
-,                    android:gravity="center"
+                    android:gravity="center"
                     android:clickable="true"
                     android:focusable="true">
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📜 Host Policy" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
