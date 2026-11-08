@@ -12,7 +12,7 @@
         android:id="@+id/imgVipBadge"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:src="@android:drawable/ic_menu_star"
+        android:background="#FFD700"
         android:layout_gravity="center_vertical" />
 
     <!-- Info Container -->
