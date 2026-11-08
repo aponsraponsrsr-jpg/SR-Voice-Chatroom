@@ -56,7 +56,6 @@ public class LoginActivity extends AppCompatActivity {
 
         mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        // XML ফাইলের সঠিক আইডি (btnGoogleSignIn) এখানে যুক্ত করা হয়েছে
         Button btnGoogleSignIn = findViewById(R.id.btnGoogleSignIn);
         if (btnGoogleSignIn != null) {
             btnGoogleSignIn.setOnClickListener(v -> signIn());
@@ -97,7 +96,7 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
-    // জিমেইল চেক করে পুরাতন পার্মানেন্ট আইডি রিকভার করার লজিক
+    // জিমেইল চেক করে পুরাতন পার্মানেন্ট আইডি এবং সমস্ত প্রোফাইল ডাটা নিখুঁতভাবে রিকভার করার লজিক
     private void checkExistingUserInDatabase(String email) {
         if (email == null) return;
         String safeEmailKey = email.replace(".", "_").replace("@", "_");
@@ -109,28 +108,39 @@ public class LoginActivity extends AppCompatActivity {
                 editor.putString("USER_EMAIL", email);
 
                 if (snapshot.exists()) {
-                    // পুরাতন ইউজার! ডাটাবেস থেকে পার্মানেন্ট আইডি উদ্ধার করা হচ্ছে
+                    // পুরাতন ইউজার! ডাটাবেস থেকে পার্মানেন্ট আইডি, নাম, ছবি ও অন্যান্য তথ্য উদ্ধার করা হচ্ছে
                     String existingId = snapshot.child("userId").getValue(String.class);
                     String existingName = snapshot.child("name").getValue(String.class);
                     String existingImage = snapshot.child("profileImage").getValue(String.class);
+                    String existingLocation = snapshot.child("location").getValue(String.class);
+                    String existingGender = snapshot.child("gender").getValue(String.class);
 
                     if (existingId != null && !existingId.isEmpty()) {
                         editor.putString("MY_9_DIGIT_ID", existingId);
                         editor.putString("USER_ID", existingId);
                     }
-                    if (existingName != null) {
+                    if (existingName != null && !existingName.isEmpty()) {
                         editor.putString("USER_NAME", existingName);
                     }
-                    if (existingImage != null) {
+                    // প্রোফাইল পিকচার রিকভারি
+                    if (existingImage != null && !existingImage.isEmpty()) {
+                        editor.putString("USER_PROFILE_IMAGE", existingImage);
                         editor.putString("USER_IMAGE", existingImage);
+                    }
+                    if (existingLocation != null && !existingLocation.isEmpty()) {
+                        editor.putString("USER_LOCATION", existingLocation);
+                    }
+                    if (existingGender != null && !existingGender.isEmpty()) {
+                        editor.putString("USER_GENDER", existingGender);
                     }
 
                     editor.putBoolean("IS_LOGGED_IN", true);
+                    editor.putBoolean("IS_PROFILE_LOCKED", true);
                     editor.apply();
 
                     Toast.makeText(LoginActivity.this, "Welcome Back! ID: " + existingId, Toast.LENGTH_SHORT).show();
                     
-                    // সরাসরি হোম পেজে চলে যাবে, আর কখনোই এডিট প্রোফাইল পেজে যাবে না
+                    // সরাসরি হোম পেজে চলে যাবে, আর ছবি বা ডেটা হারাবে না
                     Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
