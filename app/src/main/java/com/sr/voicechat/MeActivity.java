@@ -10,7 +10,6 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.drawable.RoundedBitmapDrawable;
@@ -71,19 +70,26 @@ public class MeActivity extends AppCompatActivity {
             });
         }
 
-        // Host Policy Click -> Dialog
+        // Host Policy Click -> Opens Green-Black Policy & Salary Dialog
         if (btnHostPolicy != null) {
-            btnHostPolicy.setOnClickListener(v -> {
-                new AlertDialog.Builder(MeActivity.this)
-                    .setTitle("📜 Host Policy & Guidelines")
-                    .setMessage("1. Maintain respectful communication.\n2. No vulgar or abusive language.\n3. Follow agency and app streaming rules strictly to ensure the best service.")
-                    .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
-                    .show();
-            });
+            btnHostPolicy.setOnClickListener(v -> showPolicyDialog());
         }
     }
 
-    // Full Screen Wallet & Recharge Dialog Method with Short CEO Notice Popup
+    // Green & Black Theme Policy Dialog with Level 1-22 Salary Table
+    private void showPolicyDialog() {
+        final Dialog policyDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        policyDialog.setContentView(R.layout.dialog_policy);
+
+        TextView btnClosePolicy = policyDialog.findViewById(R.id.btnClosePolicy);
+        if (btnClosePolicy != null) {
+            btnClosePolicy.setOnClickListener(v -> policyDialog.dismiss());
+        }
+
+        policyDialog.show();
+    }
+
+    // Full Screen Wallet & Recharge Dialog Method
     private void showWalletRechargeDialog() {
         final Dialog rechargeDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         rechargeDialog.setContentView(R.layout.dialog_wallet_recharge);
@@ -101,7 +107,7 @@ public class MeActivity extends AppCompatActivity {
             btnCloseRecharge.setOnClickListener(v -> rechargeDialog.dismiss());
         }
 
-        // Short, clean popup message when clicking recharge packages
+        // Short popup message when clicking recharge packages
         android.view.View.OnClickListener packageClick = v -> {
             new AlertDialog.Builder(MeActivity.this)
                 .setTitle("💎 Coin Recharge")
