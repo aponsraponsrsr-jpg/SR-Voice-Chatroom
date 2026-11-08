@@ -1,5 +1,6 @@
 package com.sr.voicechat;
 
+import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
@@ -57,15 +58,9 @@ public class MeActivity extends AppCompatActivity {
             btnVipStatus.setOnClickListener(v -> showVipDialog());
         }
 
-        // Wallet & Recharge Click -> Dialog
+        // Wallet & Recharge Click -> Full Screen Premium Dialog (Reseller Demo Mode)
         if (btnWalletRecharge != null) {
-            btnWalletRecharge.setOnClickListener(v -> {
-                new AlertDialog.Builder(MeActivity.this)
-                    .setTitle("💰 Wallet & Recharge")
-                    .setMessage("Manage your coins, diamonds, and fast recharge options here.")
-                    .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
-                    .show();
-            });
+            btnWalletRecharge.setOnClickListener(v -> showWalletRechargeDialog());
         }
 
         // Host Center Click -> Dialog
@@ -89,6 +84,27 @@ public class MeActivity extends AppCompatActivity {
                     .show();
             });
         }
+    }
+
+    // Full Screen Wallet & Recharge Dialog Method
+    private void showWalletRechargeDialog() {
+        final Dialog rechargeDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        rechargeDialog.setContentView(R.layout.dialog_wallet_recharge);
+
+        TextView textUserBalance = rechargeDialog.findViewById(R.id.textUserBalance);
+        TextView btnCloseRecharge = rechargeDialog.findViewById(R.id.btnCloseRecharge);
+
+        // Fetch current user coin balance (Demo: 411 coins or stored in prefs)
+        String currentCoins = prefs.getString("USER_COINS", "411");
+        if (textUserBalance != null) {
+            textUserBalance.setText(currentCoins + " Coins");
+        }
+
+        if (btnCloseRecharge != null) {
+            btnCloseRecharge.setOnClickListener(v -> rechargeDialog.dismiss());
+        }
+
+        rechargeDialog.show();
     }
 
     // VIP 1 to VIP 7 Privileges Dialog Method with Updated Coin Amounts
