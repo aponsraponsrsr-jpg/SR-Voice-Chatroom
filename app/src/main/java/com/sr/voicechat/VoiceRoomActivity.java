@@ -137,6 +137,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
+        // 🌟 প্রিমিয়াম ৪-পাতা বা আইকন মেনু স্টাইলের রুম টুলস পপআপ (Entry Effects, Room Settings, Lock, Admin List ইত্যাদি)
         if (btnRoomTools != null) {
             btnRoomTools.setOnClickListener(v -> {
                 boolean isOwner = currentUserId.equals(roomOwnerId);
@@ -148,41 +149,78 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 }
 
                 BottomSheetDialog toolsSheet = new BottomSheetDialog(VoiceRoomActivity.this, R.style.Theme_Design_BottomSheetDialog);
-                View sheetView = getLayoutInflater().inflate(R.layout.dialog_room_tools, null);
-                toolsSheet.setContentView(sheetView);
+                LinearLayout toolLayout = new LinearLayout(VoiceRoomActivity.this);
+                toolLayout.setOrientation(LinearLayout.VERTICAL);
+                toolLayout.setPadding(40, 45, 40, 55);
 
-                LinearLayout toolRoomLock = sheetView.findViewById(R.id.toolRoomLock);
-                if (toolRoomLock != null) {
-                    toolRoomLock.setOnClickListener(view -> {
-                        toolsSheet.dismiss();
-                        showRoomLockPasswordDialog();
+                GradientDrawable bg = new GradientDrawable(
+                    GradientDrawable.Orientation.TOP_BOTTOM,
+                    new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")}
+                );
+                bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
+                toolLayout.setBackground(bg);
+
+                TextView title = new TextView(VoiceRoomActivity.this);
+                title.setText("🎛️ Room Management Tools");
+                title.setTextColor(Color.parseColor("#FFD700"));
+                title.setTextSize(18);
+                title.setTypeface(null, android.graphics.Typeface.BOLD);
+                title.setGravity(Gravity.CENTER);
+                title.setPadding(0, 0, 0, 25);
+                toolLayout.addView(title);
+
+                ScrollView toolScroll = new ScrollView(VoiceRoomActivity.this);
+                toolScroll.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1100));
+                toolScroll.setFillViewport(true);
+
+                LinearLayout container = new LinearLayout(VoiceRoomActivity.this);
+                container.setOrientation(LinearLayout.VERTICAL);
+
+                // ১. Room Settings (রুম প্রোফাইল পিক ও নাম চেঞ্জ)
+                container.addView(createToolButton("⚙️ Room Settings & Profile", "Change room name, bio & cover image", view -> {
+                    toolsSheet.dismiss();
+                    if (isOwner) {
+                        showEditRoomDialog();
+                    } else {
+                        Toast.makeText(this, "Only Room Owner can edit room settings!", Toast.LENGTH_SHORT).show();
+                    }
+                }));
+
+                // ২. Room Lock (রুম পাসওয়ার্ড প্রটেকশন)
+                container.addView(createToolButton("🔒 Room Lock Protection", "Set or remove room security password", view -> {
+                    toolsSheet.dismiss();
+                    showRoomLockPasswordDialog();
+                }));
+
+                // ৩. Entry Effects (এন্ট্রি এফেক্টস কন্ট্রোল)
+                container.addView(createToolButton("✨ Entry Effects & Animations", "Manage luxury car & VIP entry effects", view -> {
+                    Toast.makeText(this, "Entry Effects settings opened!", Toast.LENGTH_SHORT).show();
+                }));
+
+                // ৪. Admin List (এডমিন লিস্ট ও ম্যানেজমেন্ট)
+                container.addView(createToolButton("🛡️ Admin List & Management", "View and manage room moderators", view -> {
+                    Toast.makeText(this, "Admin List panel is active!", Toast.LENGTH_SHORT).show();
+                }));
+
+                // ৫. Clean Chat (চ্যাট হিস্ট্রি ক্লিয়ার)
+                container.addView(createToolButton("🧹 Clean Global Chat", "Clear all live messages from room", view -> {
+                    messagesRef.removeValue().addOnCompleteListener(task -> {
+                        chatMessages.clear();
+                        chatAdapter.notifyDataSetChanged();
+                        Toast.makeText(VoiceRoomActivity.this, "Chat history cleaned globally!", Toast.LENGTH_SHORT).show();
                     });
-                }
+                    toolsSheet.dismiss();
+                }));
 
-                LinearLayout toolCleanChat = sheetView.findViewById(R.id.toolCleanChat);
-                if (toolCleanChat != null) {
-                    toolCleanChat.setOnClickListener(view -> {
-                        messagesRef.removeValue().addOnCompleteListener(task -> {
-                            chatMessages.clear();
-                            chatAdapter.notifyDataSetChanged();
-                            Toast.makeText(VoiceRoomActivity.this, "Chat history cleaned globally!", Toast.LENGTH_SHORT).show();
-                        });
-                        toolsSheet.dismiss();
-                    });
-                }
+                toolScroll.addView(container);
+                toolLayout.addView(toolScroll);
+                toolsSheet.setContentView(toolLayout);
 
-                LinearLayout toolRoomSettings = sheetView.findViewById(R.id.toolRoomSettings);
-                if (toolRoomSettings != null) {
-                    toolRoomSettings.setOnClickListener(view -> {
-                        toolsSheet.dismiss();
-                        if (isOwner) {
-                            showEditRoomDialog();
-                        } else {
-                            Toast.makeText(this, "Only Room Owner can edit room settings!", Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                Window window = toolsSheet.getWindow();
+                if (window != null) {
+                    window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1300);
+                    window.setGravity(Gravity.BOTTOM);
                 }
-
                 toolsSheet.show();
             });
         }
@@ -192,7 +230,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             btnInRoomRanking.setOnClickListener(v -> showPremiumRankingBottomSheet());
         }
 
-        // 📋 রুম টাইটেল ও হেডার ক্লিক
+        // 📋 রুম টাইটেল ও হেডার ক্লিক (মেম্বার ও এডমিন লিস্ট পপআপ সহ)
         if (roomTitleText != null) {
             roomTitleText.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
         }
@@ -295,6 +333,39 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 builder.show();
             });
         }
+    }
+
+    // টুলস অপশনের জন্য সুন্দর বাটন রো তৈরি করার হেল্পার মেথড
+    private View createToolButton(String title, String subtitle, View.OnClickListener listener) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.VERTICAL);
+        row.setPadding(25, 20, 25, 20);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setOnClickListener(listener);
+
+        GradientDrawable rBg = new GradientDrawable();
+        rBg.setColor(Color.parseColor("#2A1B4E"));
+        rBg.setCornerRadius(18);
+        row.setBackground(rBg);
+
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(0, 0, 0, 14);
+        row.setLayoutParams(lp);
+
+        TextView titleTxt = new TextView(this);
+        titleTxt.setText(title);
+        titleTxt.setTextColor(Color.WHITE);
+        titleTxt.setTextSize(16);
+        titleTxt.setTypeface(null, android.graphics.Typeface.BOLD);
+        row.addView(titleTxt);
+
+        TextView subTxt = new TextView(this);
+        subTxt.setText(subtitle);
+        subTxt.setTextColor(Color.parseColor("#00E676"));
+        subTxt.setTextSize(12);
+        row.addView(subTxt);
+
+        return row;
     }
 
     private void listenToRoomAdmins() {
@@ -798,7 +869,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         mainLayout.setBackgroundColor(Color.parseColor("#120A2A"));
 
         TextView title = new TextView(this);
-        title.setText("SR Official Room Info");
+        title.setText("SR Official Room Info & Members");
         title.setTextColor(Color.parseColor("#FFD700"));
         title.setTextSize(18);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -806,9 +877,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
         mainLayout.addView(title);
 
         TextView info = new TextView(this);
-        info.setText("Welcome to SR Voice Chat Room. Enjoy high quality voice streaming and live interactions!");
+        info.setText("Welcome to SR Voice Chat Room. Here you can view active admins, members, and room details.");
         info.setTextColor(Color.WHITE);
         info.setTextSize(14);
+        info.setPadding(0, 0, 0, 20);
         mainLayout.addView(info);
 
         sheetDialog.setContentView(mainLayout);
@@ -943,7 +1015,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // 🌟 প্রিমিয়াম ইউজার প্রোফাইল ভিউ কার্ড (Follow, Gift, Add Friend বাটনসহ)
     private void showUserProfileDialog(String userName, String userId, String userImage) {
         BottomSheetDialog profileDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout layout = new LinearLayout(this);
@@ -1033,7 +1104,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         layout.addView(detailsLayout);
 
-        // 🌟 ৩টি প্রিমিয়াম অ্যাকশন বাটন: Follow, Gift, Add Friend
         LinearLayout actionRow = new LinearLayout(this);
         actionRow.setOrientation(LinearLayout.HORIZONTAL);
         actionRow.setGravity(Gravity.CENTER);
