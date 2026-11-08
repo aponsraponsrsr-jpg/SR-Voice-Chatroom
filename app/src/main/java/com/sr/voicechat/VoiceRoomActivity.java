@@ -599,7 +599,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         container.addView(row);
     }
 
-    // 🌟 নাম ছাড়া নিখুঁত প্রিমিয়াম লাক্সারি গিফট প্যানেল (শুধু বড় ছবি ও কয়েন অ্যামাউন্ট সহ)
+    // 🌟 নিখুঁত প্রিমিয়াম লাক্সারি গিফট প্যানেল (নতুন তৈরি করা ভেক্টর ছবি ও কয়েন অ্যামাউন্ট সহ)
     private void showGiftPanel() {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         View sheetView = getLayoutInflater().inflate(R.layout.dialog_gift_panel, null);
@@ -610,21 +610,20 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         List<GiftModel> allGifts = new ArrayList<>();
         
-        // নাম বাদ দিয়ে শুধু ছবি এবং সঠিক কয়েন অ্যামাউন্ট সেট করা হলো
-        allGifts.add(new GiftModel("", "5,000 Coins", R.drawable.ic_coin, "gift"));
-        allGifts.add(new GiftModel("", "8,000 Coins", R.drawable.ic_gift_placeholder, "gift"));
-        allGifts.add(new GiftModel("", "10,000 Coins", R.drawable.ic_gift_placeholder, "gift"));
-        allGifts.add(new GiftModel("", "12,000 Coins", R.drawable.ic_coin, "gift"));
-        
-        allGifts.add(new GiftModel("", "20,000 Coins", R.drawable.ic_gift_placeholder, "gift"));
-        allGifts.add(new GiftModel("", "30,000 Coins", R.drawable.ic_gift_placeholder, "lady"));
-        allGifts.add(new GiftModel("", "50,000 Coins", R.drawable.ic_gift_placeholder, "lady"));
-        allGifts.add(new GiftModel("", "100,000 Coins", R.drawable.ic_gift_placeholder, "luxury"));
+        // তোমার তৈরি করা ৬টি প্রিমিয়াম ছবির সাথে সঠিক কয়েন অ্যামাউন্ট লিংক করা হলো
+        allGifts.add(new GiftModel("", "5,000 Coins", R.drawable.ic_gift_flower, "gift"));
+        allGifts.add(new GiftModel("", "8,000 Coins", R.drawable.ic_gift_ring, "gift"));
+        allGifts.add(new GiftModel("", "10,000 Coins", R.drawable.ic_gift_diamond, "gift"));
+        allGifts.add(new GiftModel("", "12,000 Coins", R.drawable.ic_gift_car, "gift"));
+        allGifts.add(new GiftModel("", "20,000 Coins", R.drawable.ic_gift_crown, "gift"));
+        allGifts.add(new GiftModel("", "30,000 Coins", R.drawable.ic_gift_castle, "lady"));
+        allGifts.add(new GiftModel("", "50,000 Coins", R.drawable.ic_gift_flower, "lady"));
+        allGifts.add(new GiftModel("", "100,000 Coins", R.drawable.ic_gift_ring, "luxury"));
 
-        allGifts.add(new GiftModel("", "200,000 Coins", R.drawable.ic_gift_placeholder, "animal"));
-        allGifts.add(new GiftModel("", "300,000 Coins", R.drawable.ic_gift_placeholder, "animal"));
-        allGifts.add(new GiftModel("", "500,000 Coins", R.drawable.ic_gift_placeholder, "luxury"));
-        allGifts.add(new GiftModel("", "700,000 Coins", R.drawable.ic_gift_placeholder, "luxury"));
+        allGifts.add(new GiftModel("", "200,000 Coins", R.drawable.ic_gift_diamond, "animal"));
+        allGifts.add(new GiftModel("", "300,000 Coins", R.drawable.ic_gift_car, "animal"));
+        allGifts.add(new GiftModel("", "500,000 Coins", R.drawable.ic_gift_crown, "luxury"));
+        allGifts.add(new GiftModel("", "700,000 Coins", R.drawable.ic_gift_castle, "luxury"));
 
         List<GiftModel> displayedGifts = new ArrayList<>(allGifts);
 
