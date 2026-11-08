@@ -30,8 +30,8 @@ public class MeActivity extends AppCompatActivity {
 
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
 
-        // Binding UI elements
-        imgMeProfile = findViewById(imgMeProfile);
+        // Binding UI elements with correct R.id references
+        imgMeProfile = findViewById(R.id.imgMeProfile);
         textMeName = findViewById(R.id.textMeName);
         textMeId = findViewById(R.id.textMeId);
         btnEditProfile = findViewById(R.id.btnEditProfile);
@@ -87,11 +87,9 @@ public class MeActivity extends AppCompatActivity {
         TextView headerAgency = policyDialog.findViewById(R.id.headerAgency);
         TextView headerTotal = policyDialog.findViewById(R.id.headerTotal);
 
-        // Check if current user is an Agency/Admin or regular Host
-        boolean isAgencyUser = prefs.getBoolean("IS_AGENCY_ROLE", true); // Default true for demo/owner view
+        boolean isAgencyUser = prefs.getBoolean("IS_AGENCY_ROLE", true);
 
         if (!isAgencyUser) {
-            // Regular Host View: Hide Agency commission and Total payout columns description
             if (headerAgency != null) headerAgency.setVisibility(View.GONE);
             if (headerTotal != null) headerTotal.setVisibility(View.GONE);
             if (textPolicyRoleBanner != null) {
