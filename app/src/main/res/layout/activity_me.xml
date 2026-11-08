@@ -63,7 +63,7 @@
                 android:textStyle="bold"
                 android:layout_marginTop="8dp"/>
 
-            <!-- SR আইডি -->
+            <!-- SR আইডি ও লেভেল ব্যাজ -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -71,8 +71,9 @@
                 android:gravity="center"
                 android:layout_marginTop="4dp"
                 android:background="@drawable/rounded_bg"
-                android:paddingHorizontal="10dp"
-                android:paddingVertical="4dp">
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="6dp">
+                
                 <TextView
                     android:id="@+id/textMeId"
                     android:layout_width="wrap_content"
@@ -81,6 +82,16 @@
                     android:textColor="#FFD700"
                     android:textSize="13sp"
                     android:textStyle="bold"/>
+
+                <TextView
+                    android:id="@+id/txtProfileLevel"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="  |  ⭐ Lv.1"
+                    android:textColor="#00E676"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:layout_marginStart="8dp"/>
             </LinearLayout>
 
             <!-- ফলোয়ার্স / ফ্যান্স / ভিজিটরস কাউন্ট কার্ড -->
@@ -188,7 +199,7 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- 🌟 General Tools Section -->
+            <!-- 🌟 General Tools Section (Store, Dress, Birthday gift, Level) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
