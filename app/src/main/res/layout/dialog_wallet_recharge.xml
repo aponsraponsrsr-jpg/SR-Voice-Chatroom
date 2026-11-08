@@ -33,7 +33,7 @@
             android:padding="5dp" />
     </LinearLayout>
 
-    <!-- User Coin Balance Card -->
+    <!-- User Coin Balance Card (Starts at 0) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -67,7 +67,7 @@
                 android:id="@+id/textUserBalance"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="411 Coins"
+                android:text="0 Coins"
                 android:textColor="#FFD700"
                 android:textSize="28sp"
                 android:textStyle="bold" />
@@ -78,7 +78,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Select Recharge Package (Reseller &amp; Demo Mode)"
+        android:text="Select Recharge Package (Reseller Mode)"
         android:textColor="#FF4081"
         android:textSize="14sp"
         android:textStyle="bold"
@@ -98,106 +98,118 @@
 
             <!-- Package 1 -->
             <LinearLayout
+                android:id="@+id/pkg1"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:background="#2A1B4E"
                 android:padding="16dp"
                 android:layout_marginBottom="10dp"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true">
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="💎 1,00,000 Coins"
-                    android:textColor="#FFFFFF"
+                    android:text="🪙 1,00,000 Coins"
+                    android:textColor="#FFD700"
                     android:textSize="16sp"
                     android:textStyle="bold" />
                 <Button
                     android:layout_width="wrap_content"
                     android:layout_height="40dp"
-                    android:text="$0.99 (Coming Soon)"
+                    android:text="Recharge"
                     android:textColor="#FFFFFF"
-                    android:backgroundTint="#555555"
-                    android:enabled="false" />
+                    android:backgroundTint="#FF4081"
+                    android:clickable="false" />
             </LinearLayout>
 
             <!-- Package 2 -->
             <LinearLayout
+                android:id="@+id/pkg2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:background="#2A1B4E"
                 android:padding="16dp"
                 android:layout_marginBottom="10dp"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true">
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="💎 5,00,000 Coins"
-                    android:textColor="#FFFFFF"
+                    android:text="🪙 5,00,000 Coins"
+                    android:textColor="#FFD700"
                     android:textSize="16sp"
                     android:textStyle="bold" />
                 <Button
                     android:layout_width="wrap_content"
                     android:layout_height="40dp"
-                    android:text="$4.99 (Coming Soon)"
+                    android:text="Recharge"
                     android:textColor="#FFFFFF"
-                    android:backgroundTint="#555555"
-                    android:enabled="false" />
+                    android:backgroundTint="#FF4081"
+                    android:clickable="false" />
             </LinearLayout>
 
             <!-- Package 3 -->
             <LinearLayout
+                android:id="@+id/pkg3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:background="#2A1B4E"
                 android:padding="16dp"
                 android:layout_marginBottom="10dp"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true">
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="💎 10,000,000 Coins"
-                    android:textColor="#FFFFFF"
+                    android:text="🪙 10,000,000 Coins"
+                    android:textColor="#FFD700"
                     android:textSize="16sp"
                     android:textStyle="bold" />
                 <Button
                     android:layout_width="wrap_content"
                     android:layout_height="40dp"
-                    android:text="$9.99 (Coming Soon)"
+                    android:text="Recharge"
                     android:textColor="#FFFFFF"
-                    android:backgroundTint="#555555"
-                    android:enabled="false" />
+                    android:backgroundTint="#FF4081"
+                    android:clickable="false" />
             </LinearLayout>
 
             <!-- Package 4 -->
             <LinearLayout
+                android:id="@+id/pkg4"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:background="#2A1B4E"
                 android:padding="16dp"
                 android:layout_marginBottom="10dp"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:clickable="true"
+                android:focusable="true">
                 <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="💎 50,000,000 Coins"
-                    android:textColor="#FFFFFF"
+                    android:text="🪙 50,000,000 Coins"
+                    android:textColor="#FFD700"
                     android:textSize="16sp"
                     android:textStyle="bold" />
                 <Button
                     android:layout_width="wrap_content"
                     android:layout_height="40dp"
-                    android:text="$49.99 (Coming Soon)"
+                    android:text="Recharge"
                     android:textColor="#FFFFFF"
-                    android:backgroundTint="#555555"
-                    android:enabled="false" />
+                    android:backgroundTint="#FF4081"
+                    android:clickable="false" />
             </LinearLayout>
 
         </LinearLayout>
@@ -207,9 +219,10 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="* Direct card purchases are temporarily disabled. Please contact official resellers for coin recharge."
-        android:textColor="#888888"
-        android:textSize="12sp"
+        android:text="* Direct card purchases disabled. Contact Official Reseller or Official CEO for coin recharge."
+        android:textColor="#FFD700"
+        android:textSize="13sp"
+        android:textStyle="bold"
         android:gravity="center"
         android:layout_marginTop="15dp" />
 
