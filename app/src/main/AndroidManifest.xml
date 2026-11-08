@@ -23,6 +23,7 @@
 
         <activity android:name=".EditProfileActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
         <activity android:name=".HomeActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
+        <activity android:name=".InboxActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
         <activity android:name=".MainActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
         <activity android:name=".MeActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
         <activity android:name=".VoiceRoomActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
