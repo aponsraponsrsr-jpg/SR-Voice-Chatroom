@@ -10,13 +10,13 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="📥 Inbox & Messages"
+        android:text="Inbox &amp; Messages"
         android:textColor="#00E676"
         android:textSize="20sp"
         android:textStyle="bold"
         android:layout_marginBottom="16dp" />
 
-    <!-- Tabs or List Container -->
+    <!-- Content Container -->
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
