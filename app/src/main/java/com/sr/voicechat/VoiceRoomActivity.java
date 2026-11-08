@@ -192,7 +192,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             btnInRoomRanking.setOnClickListener(v -> showPremiumRankingBottomSheet());
         }
 
-        // 📋 রুম টাইটেল ও হেডার ক্লিক (রুম ইনফো ও মেম্বার ডিটেইলস)
+        // 📋 রুম টাইটেল ও হেডার ক্লিক
         if (roomTitleText != null) {
             roomTitleText.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
         }
@@ -394,7 +394,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         builder.show();
     }
 
-    // 👥 প্রিমিয়াম স্ক্রোলযোগ্য অনলাইন মেম্বার লিস্ট ডায়ালগ
     private void showScrollableOnlineMembersDialog() {
         BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout layout = new LinearLayout(this);
@@ -471,7 +470,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    // 🏆 প্রিমিয়াম র‍্যাঙ্কিং প্যানেল (Daily / Weekly / Monthly Tabs)
     private void showPremiumRankingBottomSheet() {
         BottomSheetDialog rankSheet = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         
@@ -495,7 +493,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         title.setPadding(0, 0, 0, 20);
         rankLayout.addView(title);
 
-        // Tabs Layout (Daily, Weekly, Monthly)
         LinearLayout tabLayout = new LinearLayout(this);
         tabLayout.setOrientation(LinearLayout.HORIZONTAL);
         tabLayout.setGravity(Gravity.CENTER);
@@ -930,7 +927,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 if (selectedOption.contains("Take Mic")) {
                                     takeSeat(seatIndex, seatKey);
                                 } else if (selectedOption.contains("View Profile")) {
-                                    showUserProfileDialog(occupantName, occupantUid);
+                                    String imgUri = seatSnap.child("userImage").getValue(String.class);
+                                    showUserProfileDialog(occupantName, occupantUid, imgUri);
                                 } else if (selectedOption.contains("Leave Mic")) {
                                     databaseReference.child("seats").child(seatKey).removeValue();
                                     Toast.makeText(VoiceRoomActivity.this, "Left seat & counter reset", Toast.LENGTH_SHORT).show();
@@ -945,49 +943,137 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // 🌟 প্রিমিয়াম ইউজার প্রোফাইল ভিউ ডায়ালগ
-    private void showUserProfileDialog(String userName, String userId) {
-        Dialog profileDialog = new Dialog(this, R.style.Theme_Design_BottomSheetDialog);
+    // 🌟 প্রিমিয়াম প্রোফাইল কার্ড পপআপ (প্রফেশনাল অ্যাপের আদলে তৈরি)
+    private void showUserProfileDialog(String userName, String userId, String userImage) {
+        BottomSheetDialog profileDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(50, 50, 50, 60);
+        layout.setPadding(40, 40, 40, 50);
 
         GradientDrawable bg = new GradientDrawable(
             GradientDrawable.Orientation.TOP_BOTTOM,
             new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")}
         );
-        bg.setCornerRadii(new float[]{40, 40, 40, 40, 0, 0, 0, 0});
+        bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
         layout.setBackground(bg);
 
-        TextView title = new TextView(this);
-        title.setText("👤 User Profile Card");
-        title.setTextColor(Color.parseColor("#FFD700"));
-        title.setTextSize(18);
-        title.setTypeface(null, android.graphics.Typeface.BOLD);
-        title.setGravity(Gravity.CENTER);
-        title.setPadding(0, 0, 0, 30);
-        layout.addView(title);
+        // টপ ট্যাব
+        LinearLayout topTab = new LinearLayout(this);
+        topTab.setOrientation(LinearLayout.HORIZONTAL);
+        topTab.setGravity(Gravity.CENTER);
+        topTab.setPadding(0, 0, 0, 20);
+
+        TextView tabProfile = new TextView(this);
+        tabProfile.setText("Profile");
+        tabProfile.setTextColor(Color.parseColor("#FFD700"));
+        tabProfile.setTextSize(16);
+        tabProfile.setTypeface(null, android.graphics.Typeface.BOLD);
+        topTab.addView(tabProfile);
+        layout.addView(topTab);
+
+        // ইউজার ইনফো কার্ড
+        LinearLayout infoCard = new LinearLayout(this);
+        infoCard.setOrientation(LinearLayout.VERTICAL);
+        infoCard.setPadding(30, 30, 30, 30);
+        GradientDrawable cardBg = new GradientDrawable();
+        cardBg.setColor(Color.parseColor("#2A1B4E"));
+        cardBg.setCornerRadius(24);
+        infoCard.setBackground(cardBg);
 
         TextView nameText = new TextView(this);
-        nameText.setText("Name: " + userName);
+        nameText.setText(userName != null ? userName : "SR User");
         nameText.setTextColor(Color.WHITE);
-        nameText.setTextSize(16);
-        nameText.setPadding(0, 10, 0, 10);
-        layout.addView(nameText);
+        nameText.setTextSize(18);
+        nameText.setTypeface(null, android.graphics.Typeface.BOLD);
+        infoCard.addView(nameText);
 
         TextView idText = new TextView(this);
-        idText.setText("9-Digit ID: " + userId);
+        idText.setText("ID: " + (userId != null ? userId : "493859069"));
         idText.setTextColor(Color.parseColor("#00E676"));
-        idText.setTextSize(16);
-        idText.setPadding(0, 10, 0, 30);
-        layout.addView(idText);
+        idText.setTextSize(14);
+        idText.setPadding(0, 5, 0, 15);
+        infoCard.addView(idText);
 
-        Button btnClose = new Button(this);
-        btnClose.setText("Close");
-        btnClose.setBackgroundColor(Color.parseColor("#5E35B1"));
-        btnClose.setTextColor(Color.WHITE);
-        btnClose.setOnClickListener(v -> profileDialog.dismiss());
-        layout.addView(btnClose);
+        // ফলো ও ফ্যান্স কাউন্ট রো
+        LinearLayout statsRow = new LinearLayout(this);
+        statsRow.setOrientation(LinearLayout.HORIZONTAL);
+        statsRow.setPadding(0, 10, 0, 15);
+
+        TextView followingTxt = new TextView(this);
+        followingTxt.setText("2 Following    ");
+        followingTxt.setTextColor(Color.LIGHTGRAY);
+        followingTxt.setTextSize(13);
+        statsRow.addView(followingTxt);
+
+        TextView fansTxt = new TextView(this);
+        fansTxt.setText("15 Fans    ");
+        fansTxt.setTextColor(Color.LIGHTGRAY);
+        fansTxt.setTextSize(13);
+        statsRow.addView(fansTxt);
+
+        TextView visitorTxt = new TextView(this);
+        visitorTxt.setText("1.2K Visitor");
+        visitorTxt.setTextColor(Color.LIGHTGRAY);
+        visitorTxt.setTextSize(13);
+        statsRow.addView(visitorTxt);
+
+        infoCard.addView(statsRow);
+        layout.addView(infoCard);
+
+        // লেভেল ও কান্ট্রি ডিটেইলস
+        LinearLayout detailsLayout = new LinearLayout(this);
+        detailsLayout.setOrientation(LinearLayout.VERTICAL);
+        detailsLayout.setPadding(10, 20, 10, 20);
+
+        TextView levelTxt = new TextView(this);
+        levelTxt.setText("⭐ Level: Lv. 7");
+        levelTxt.setTextColor(Color.parseColor("#FFD700"));
+        levelTxt.setTextSize(14);
+        levelTxt.setPadding(0, 8, 0, 8);
+        detailsLayout.addView(levelTxt);
+
+        TextView countryTxt = new TextView(this);
+        countryTxt.setText("🌍 Country: Bangladesh");
+        countryTxt.setTextColor(Color.WHITE);
+        countryTxt.setTextSize(14);
+        countryTxt.setPadding(0, 8, 0, 8);
+        detailsLayout.addView(countryTxt);
+
+        layout.addView(detailsLayout);
+
+        // অ্যাকশন বাটন (Follow / Inbox)
+        LinearLayout actionRow = new LinearLayout(this);
+        actionRow.setOrientation(LinearLayout.HORIZONTAL);
+        actionRow.setGravity(Gravity.CENTER);
+        actionRow.setPadding(0, 20, 0, 10);
+
+        Button btnFollow = new Button(this);
+        btnFollow.setText("✨ Follow");
+        btnFollow.setBackgroundColor(Color.parseColor("#FFD700"));
+        btnFollow.setTextColor(Color.BLACK);
+        btnFollow.setTypeface(null, android.graphics.Typeface.BOLD);
+        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
+        btnParams.setMargins(0, 0, 10, 0);
+        btnFollow.setLayoutParams(btnParams);
+        btnFollow.setOnClickListener(v -> {
+            Toast.makeText(this, "Successfully Followed " + userName, Toast.LENGTH_SHORT).show();
+        });
+        actionRow.addView(btnFollow);
+
+        Button btnMessage = new Button(this);
+        btnMessage.setText("💬 Inbox");
+        btnMessage.setBackgroundColor(Color.parseColor("#00E676"));
+        btnMessage.setTextColor(Color.BLACK);
+        btnMessage.setTypeface(null, android.graphics.Typeface.BOLD);
+        LinearLayout.LayoutParams btnParams2 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
+        btnParams2.setMargins(10, 0, 0, 0);
+        btnMessage.setLayoutParams(btnParams2);
+        btnMessage.setOnClickListener(v -> {
+            Toast.makeText(this, "Opening Inbox with " + userName, Toast.LENGTH_SHORT).show();
+        });
+        actionRow.addView(btnMessage);
+
+        layout.addView(actionRow);
 
         profileDialog.setContentView(layout);
         Window window = profileDialog.getWindow();
