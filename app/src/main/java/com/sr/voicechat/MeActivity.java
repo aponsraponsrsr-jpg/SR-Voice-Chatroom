@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -30,7 +31,7 @@ public class MeActivity extends AppCompatActivity {
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
 
         // Binding UI elements
-        imgMeProfile = findViewById(R.id.imgMeProfile);
+        imgMeProfile = findViewById(imgMeProfile);
         textMeName = findViewById(R.id.textMeName);
         textMeId = findViewById(R.id.textMeId);
         btnEditProfile = findViewById(R.id.btnEditProfile);
@@ -49,17 +50,17 @@ public class MeActivity extends AppCompatActivity {
             });
         }
 
-        // VIP Status Click -> Custom Dialog with VIP 1 to VIP 7 List
+        // VIP Status Click
         if (btnVipStatus != null) {
             btnVipStatus.setOnClickListener(v -> showVipDialog());
         }
 
-        // Wallet & Recharge Click -> Full Screen Premium Dialog
+        // Wallet & Recharge Click
         if (btnWalletRecharge != null) {
             btnWalletRecharge.setOnClickListener(v -> showWalletRechargeDialog());
         }
 
-        // Host Center Click -> Dialog
+        // Host Center Click
         if (btnHostCenter != null) {
             btnHostCenter.setOnClickListener(v -> {
                 new AlertDialog.Builder(MeActivity.this)
@@ -70,18 +71,34 @@ public class MeActivity extends AppCompatActivity {
             });
         }
 
-        // Host Policy Click -> Opens Green-Black Policy & Salary Dialog
+        // Host Policy Click -> Opens Dynamic Policy Dialog
         if (btnHostPolicy != null) {
             btnHostPolicy.setOnClickListener(v -> showPolicyDialog());
         }
     }
 
-    // Green & Black Theme Policy Dialog with Level 1-22 Salary Table
+    // Role-Based Dynamic Policy Dialog Method
     private void showPolicyDialog() {
         final Dialog policyDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         policyDialog.setContentView(R.layout.dialog_policy);
 
         TextView btnClosePolicy = policyDialog.findViewById(R.id.btnClosePolicy);
+        TextView textPolicyRoleBanner = policyDialog.findViewById(R.id.textPolicyRoleBanner);
+        TextView headerAgency = policyDialog.findViewById(R.id.headerAgency);
+        TextView headerTotal = policyDialog.findViewById(R.id.headerTotal);
+
+        // Check if current user is an Agency/Admin or regular Host
+        boolean isAgencyUser = prefs.getBoolean("IS_AGENCY_ROLE", true); // Default true for demo/owner view
+
+        if (!isAgencyUser) {
+            // Regular Host View: Hide Agency commission and Total payout columns description
+            if (headerAgency != null) headerAgency.setVisibility(View.GONE);
+            if (headerTotal != null) headerTotal.setVisibility(View.GONE);
+            if (textPolicyRoleBanner != null) {
+                textPolicyRoleBanner.setText("🎙️ Host Salary Target Chart (Level 1-22)");
+            }
+        }
+
         if (btnClosePolicy != null) {
             btnClosePolicy.setOnClickListener(v -> policyDialog.dismiss());
         }
@@ -97,7 +114,6 @@ public class MeActivity extends AppCompatActivity {
         TextView textUserBalance = rechargeDialog.findViewById(R.id.textUserBalance);
         TextView btnCloseRecharge = rechargeDialog.findViewById(R.id.btnCloseRecharge);
 
-        // Default balance set to 0 Coins
         String currentCoins = prefs.getString("USER_COINS", "0");
         if (textUserBalance != null) {
             textUserBalance.setText(currentCoins + " Coins");
@@ -107,8 +123,7 @@ public class MeActivity extends AppCompatActivity {
             btnCloseRecharge.setOnClickListener(v -> rechargeDialog.dismiss());
         }
 
-        // Short popup message when clicking recharge packages
-        android.view.View.OnClickListener packageClick = v -> {
+        View.OnClickListener packageClick = v -> {
             new AlertDialog.Builder(MeActivity.this)
                 .setTitle("💎 Coin Recharge")
                 .setMessage("Please contact SR Voice Chat Room CEO for coin recharge.")
@@ -131,7 +146,7 @@ public class MeActivity extends AppCompatActivity {
 
     // VIP 1 to VIP 7 Privileges Dialog Method
     private void showVipDialog() {
-        android.app.Dialog dialog = new android.app.Dialog(this);
+        Dialog dialog = new Dialog(this);
         dialog.setContentView(R.layout.dialog_vip_status);
         dialog.getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT));
 
