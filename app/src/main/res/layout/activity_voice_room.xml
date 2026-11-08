@@ -7,7 +7,7 @@
     android:fitsSystemWindows="true"
     android:background="@drawable/voice_room_bg">
 
-    <!-- Top Bar: Clean & Premium Compact Banner Header -->
+    <!-- Top Bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -16,7 +16,6 @@
         android:gravity="center_vertical"
         android:background="#33000000">
 
-        <!-- Header Profile Picture -->
         <androidx.cardview.widget.CardView
             android:layout_width="38dp"
             android:layout_height="38dp"
@@ -32,7 +31,6 @@
                 android:src="@android:drawable/ic_menu_my_calendar"/>
         </androidx.cardview.widget.CardView>
 
-        <!-- Room Name & ID -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -61,7 +59,6 @@
                 android:ellipsize="end"/>
         </LinearLayout>
 
-        <!-- 🌟 Room Tools / Owner Control Panel Icon (Four-Leaves / Menu Icon) -->
         <ImageView
             android:id="@+id/btnRoomTools"
             android:layout_width="28dp"
@@ -71,7 +68,6 @@
             android:layout_marginEnd="8dp"
             android:contentDescription="Room Tools"/>
 
-        <!-- 🌟 Golden Cup Icon with "Rank" Text -->
         <LinearLayout
             android:id="@+id/btnInRoomRanking"
             android:layout_width="wrap_content"
@@ -100,7 +96,6 @@
                 android:textStyle="bold"/>
         </LinearLayout>
 
-        <!-- Online Member Count & Icon -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -127,7 +122,6 @@
                 android:layout_marginStart="2dp"/>
         </LinearLayout>
 
-        <!-- Power / Exit Button -->
         <ImageButton
             android:id="@+id/btnPower"
             android:layout_width="34dp"
@@ -163,12 +157,12 @@
         android:gravity="center">
 
         <!-- Seat 1: Host -->
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
             <androidx.cardview.widget.CardView
                 android:id="@+id/seatCard1"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                app:cardCornerRadius="30dp"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                app:cardCornerRadius="28dp"
                 app:cardElevation="6dp"
                 app:cardBackgroundColor="#22000000"
                 app:cardPreventCornerOverlap="false">
@@ -187,16 +181,18 @@
                         android:padding="8dp"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-            <TextView android:id="@+id/seatTxt1" android:layout_width="65dp" android:layout_height="wrap_content" android:text="Host" android:textColor="#00E676" android:textSize="10sp" android:textStyle="bold" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatTxt1" android:layout_width="65dp" android:layout_height="wrap_content" android:text="Host" android:textColor="#00E676" android:textSize="10sp" android:textStyle="bold" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
+            <!-- 🌟 Seat Live Gift Counter -->
+            <TextView android:id="@+id/seatGiftTxt1" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFD700" android:textSize="9sp" android:textStyle="bold" android:gravity="center" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
 
         <!-- Seat 2 -->
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
             <androidx.cardview.widget.CardView
                 android:id="@+id/seatCard2"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                app:cardCornerRadius="30dp"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                app:cardCornerRadius="28dp"
                 app:cardElevation="6dp"
                 app:cardBackgroundColor="#22000000"
                 app:cardPreventCornerOverlap="false">
@@ -215,16 +211,17 @@
                         android:padding="8dp"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-            <TextView android:id="@+id/seatTxt2" android:layout_width="65dp" android:layout_height="wrap_content" android:text="2" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatTxt2" android:layout_width="65dp" android:layout_height="wrap_content" android:text="2" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatGiftTxt2" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFD700" android:textSize="9sp" android:textStyle="bold" android:gravity="center" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
 
         <!-- Seat 3 -->
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
             <androidx.cardview.widget.CardView
                 android:id="@+id/seatCard3"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                app:cardCornerRadius="30dp"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                app:cardCornerRadius="28dp"
                 app:cardElevation="6dp"
                 app:cardBackgroundColor="#22000000">
                 <LinearLayout
@@ -242,16 +239,17 @@
                         android:padding="8dp"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-            <TextView android:id="@+id/seatTxt3" android:layout_width="65dp" android:layout_height="wrap_content" android:text="3" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatTxt3" android:layout_width="65dp" android:layout_height="wrap_content" android:text="3" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatGiftTxt3" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFD700" android:textSize="9sp" android:textStyle="bold" android:gravity="center" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
 
         <!-- Seat 4 -->
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
             <androidx.cardview.widget.CardView
                 android:id="@+id/seatCard4"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                app:cardCornerRadius="30dp"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                app:cardCornerRadius="28dp"
                 app:cardElevation="6dp"
                 app:cardBackgroundColor="#22000000">
                 <LinearLayout
@@ -269,16 +267,17 @@
                         android:padding="8dp"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-            <TextView android:id="@+id/seatTxt4" android:layout_width="65dp" android:layout_height="wrap_content" android:text="4" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatTxt4" android:layout_width="65dp" android:layout_height="wrap_content" android:text="4" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatGiftTxt4" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFD700" android:textSize="9sp" android:textStyle="bold" android:gravity="center" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
 
         <!-- Seat 5 -->
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
             <androidx.cardview.widget.CardView
                 android:id="@+id/seatCard5"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                app:cardCornerRadius="30dp"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                app:cardCornerRadius="28dp"
                 app:cardElevation="6dp"
                 app:cardBackgroundColor="#22000000">
                 <LinearLayout
@@ -296,16 +295,17 @@
                         android:padding="8dp"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-            <TextView android:id="@+id/seatTxt5" android:layout_width="65dp" android:layout_height="wrap_content" android:text="5" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatTxt5" android:layout_width="65dp" android:layout_height="wrap_content" android:text="5" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatGiftTxt5" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFD700" android:textSize="9sp" android:textStyle="bold" android:gravity="center" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
 
         <!-- Seat 6 -->
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
             <androidx.cardview.widget.CardView
                 android:id="@+id/seatCard6"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                app:cardCornerRadius="30dp"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                app:cardCornerRadius="28dp"
                 app:cardElevation="6dp"
                 app:cardBackgroundColor="#22000000">
                 <LinearLayout
@@ -323,16 +323,17 @@
                         android:padding="8dp"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-            <TextView android:id="@+id/seatTxt6" android:layout_width="65dp" android:layout_height="wrap_content" android:text="6" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatTxt6" android:layout_width="65dp" android:layout_height="wrap_content" android:text="6" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatGiftTxt6" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFD700" android:textSize="9sp" android:textStyle="bold" android:gravity="center" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
 
         <!-- Seat 7 -->
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
             <androidx.cardview.widget.CardView
                 android:id="@+id/seatCard7"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                app:cardCornerRadius="30dp"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                app:cardCornerRadius="28dp"
                 app:cardElevation="6dp"
                 app:cardBackgroundColor="#22000000">
                 <LinearLayout
@@ -350,16 +351,17 @@
                         android:padding="8dp"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-            <TextView android:id="@+id/seatTxt7" android:layout_width="65dp" android:layout_height="wrap_content" android:text="7" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatTxt7" android:layout_width="65dp" android:layout_height="wrap_content" android:text="7" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatGiftTxt7" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFD700" android:textSize="9sp" android:textStyle="bold" android:gravity="center" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
 
         <!-- Seat 8 -->
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
             <androidx.cardview.widget.CardView
                 android:id="@+id/seatCard8"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                app:cardCornerRadius="30dp"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                app:cardCornerRadius="28dp"
                 app:cardElevation="6dp"
                 app:cardBackgroundColor="#22000000">
                 <LinearLayout
@@ -377,16 +379,17 @@
                         android:padding="8dp"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-            <TextView android:id="@+id/seatTxt8" android:layout_width="65dp" android:layout_height="wrap_content" android:text="8" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatTxt8" android:layout_width="65dp" android:layout_height="wrap_content" android:text="8" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatGiftTxt8" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFD700" android:textSize="9sp" android:textStyle="bold" android:gravity="center" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
 
         <!-- Seat 9 -->
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
             <androidx.cardview.widget.CardView
                 android:id="@+id/seatCard9"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                app:cardCornerRadius="30dp"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                app:cardCornerRadius="28dp"
                 app:cardElevation="6dp"
                 app:cardBackgroundColor="#22000000">
                 <LinearLayout
@@ -404,16 +407,17 @@
                         android:padding="8dp"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-            <TextView android:id="@+id/seatTxt9" android:layout_width="65dp" android:layout_height="wrap_content" android:text="9" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatTxt9" android:layout_width="65dp" android:layout_height="wrap_content" android:text="9" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatGiftTxt9" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFD700" android:textSize="9sp" android:textStyle="bold" android:gravity="center" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
 
         <!-- Seat 10 -->
-        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="6dp">
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
             <androidx.cardview.widget.CardView
                 android:id="@+id/seatCard10"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                app:cardCornerRadius="30dp"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                app:cardCornerRadius="28dp"
                 app:cardElevation="6dp"
                 app:cardBackgroundColor="#22000000">
                 <LinearLayout
@@ -431,12 +435,13 @@
                         android:padding="8dp"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
-            <TextView android:id="@+id/seatTxt10" android:layout_width="65dp" android:layout_height="wrap_content" android:text="10" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatTxt10" android:layout_width="65dp" android:layout_height="wrap_content" android:text="10" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="2dp" android:maxLines="1" android:ellipsize="end"/>
+            <TextView android:id="@+id/seatGiftTxt10" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFD700" android:textSize="9sp" android:textStyle="bold" android:gravity="center" android:maxLines="1" android:ellipsize="end"/>
         </LinearLayout>
 
     </GridLayout>
 
-    <!-- Screen Chat Messages List (Properly positioned above action bar) -->
+    <!-- Chat Messages List -->
     <ListView
         android:id="@+id/chatListView"
         android:layout_width="match_parent"
@@ -449,7 +454,7 @@
         android:paddingTop="8dp"
         android:layout_marginBottom="8dp"/>
 
-    <!-- 🌟 Lifted & Fully Visible Ultra Premium Bottom Action Bar -->
+    <!-- Bottom Action Bar -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="72dp"
@@ -460,7 +465,6 @@
         android:paddingTop="8dp"
         android:paddingBottom="14dp">
 
-        <!-- Mic Button -->
         <Button
             android:id="@+id/btnMicToggle"
             android:layout_width="0dp"
@@ -474,7 +478,6 @@
             android:textStyle="bold"
             android:elevation="6dp"/>
 
-        <!-- Chat Button -->
         <Button
             android:id="@+id/btnChatOption"
             android:layout_width="0dp"
@@ -488,7 +491,6 @@
             android:textStyle="bold"
             android:elevation="6dp"/>
 
-        <!-- Gift Button -->
         <Button
             android:id="@+id/btnGiftBox"
             android:layout_width="0dp"
@@ -502,7 +504,6 @@
             android:textStyle="bold"
             android:elevation="6dp"/>
 
-        <!-- Game Button -->
         <Button
             android:id="@+id/btnGameBox"
             android:layout_width="0dp"
