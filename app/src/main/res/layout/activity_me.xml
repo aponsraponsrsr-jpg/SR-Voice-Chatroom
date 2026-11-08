@@ -35,7 +35,7 @@
                     android:layout_centerHorizontal="true"
                     android:scaleType="centerCrop"
                     android:src="@android:drawable/ic_menu_my_calendar"
-                    android:background="@drawable/bg_circle_border"
+                    android:background="@drawable/circle_shape"
                     android:padding="2dp"/>
 
                 <!-- পেন্সিল এডিট বাটন (ছবির ঠিক ডানপাশে উপরে বসানো) -->
@@ -46,7 +46,7 @@
                     android:layout_toEndOf="@id/imgMeProfile"
                     android:layout_marginStart="-25dp"
                     android:layout_marginTop="5dp"
-                    android:background="@drawable/bg_circle_gold"
+                    android:background="@drawable/circle_gold"
                     android:src="@android:drawable/ic_menu_edit"
                     android:padding="6dp"
                     android:clickable="true"
@@ -72,7 +72,7 @@
                 android:orientation="horizontal"
                 android:gravity="center"
                 android:layout_marginTop="4dp"
-                android:background="@drawable/bg_badge_rounded"
+                android:background="@drawable/rounded_bg"
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="4dp">
                 <TextView
@@ -91,7 +91,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginTop="15dp"
-                android:background="@drawable/bg_card_glass"
+                android:background="@drawable/rounded_bg"
                 android:padding="12dp"
                 android:gravity="center">
                 
@@ -132,7 +132,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginTop="12dp"
-                android:background="@drawable/bg_card_glass"
+                android:background="@drawable/rounded_bg"
                 android:padding="10dp"
                 android:gravity="center">
                 <TextView
@@ -166,7 +166,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                    android:background="@drawable/bg_vip_card"
+                    android:background="@drawable/rounded_bg"
                     android:padding="12dp"
                     android:gravity="center"
                     android:layout_marginEnd="6dp"
@@ -182,7 +182,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                    android:background="@drawable/bg_wallet_card"
+                    android:background="@drawable/rounded_bg"
                     android:padding="12dp"
                     android:gravity="center"
                     android:clickable="true"
@@ -206,7 +206,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                    android:background="@drawable/bg_host_card"
+                    android:background="@drawable/rounded_bg"
                     android:padding="12dp"
                     android:gravity="center"
                     android:layout_marginEnd="6dp"
@@ -222,7 +222,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                    android:background="@drawable/bg_policy_card"
+                    android:background="@drawable/rounded_bg"
                     android:padding="12dp"
                     android:gravity="center"
                     android:clickable="true"
