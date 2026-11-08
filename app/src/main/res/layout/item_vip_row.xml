@@ -37,7 +37,7 @@
             android:id="@+id/textVipLevel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Exclusive Frame & Bubble"
+            android:text="Exclusive Frame &amp; Bubble"
             android:textColor="#CCCCCC"
             android:textSize="12sp"
             android:layout_marginTop="2dp" />
