@@ -311,48 +311,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    private int calculateUserLevel(long totalCoins) {
-        if (totalCoins < 3000000L) {
-            return 1;
-        }
-
-        long currentRequirement = 3000000L;
-        int level = 1;
-
-        for (int i = 2; i <= 150; i++) {
-            if (i <= 20) {
-                currentRequirement += 5000000L; 
-            } else if (i <= 50) {
-                currentRequirement += 20000000L; 
-            } else if (i <= 100) {
-                currentRequirement += 25000000L; 
-            } else {
-                currentRequirement += 35000000L; 
-            }
-
-            if (totalCoins >= currentRequirement) {
-                level = i;
-            } else {
-                break;
-            }
-        }
-        return Math.min(level, 150);
-    }
-
-    private int getLevelColor(int level) {
-        if (level <= 10) {
-            return Color.parseColor("#C0C0C0"); 
-        } else if (level <= 20) {
-            return Color.parseColor("#29B6F6"); 
-        } else if (level <= 50) {
-            return Color.parseColor("#AB47BC"); 
-        } else if (level <= 100) {
-            return Color.parseColor("#FF4081"); 
-        } else {
-            return Color.parseColor("#FFD700"); 
-        }
-    }
-
     private void listenToRoomAdmins() {
         adminsRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -565,7 +523,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         container.addView(row);
     }
 
-    // 🌟 গিফট প্যানেল (সিটে গিফট সেন্ড করার সময় সিটের কয়েন কাউন্ট যোগ হবে)
     private void showGiftPanel() {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         View sheetView = getLayoutInflater().inflate(R.layout.dialog_gift_panel, null);
@@ -583,7 +540,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         allGifts.add(new GiftModel("", "30,000 Coins", R.drawable.ic_gift_castle, "lady"));
 
         List<GiftModel> displayedGifts = new ArrayList<>(allGifts);
-
         final GiftModel[] selectedGiftHolder = {displayedGifts.get(0)};
 
         GiftAdapter adapter = new GiftAdapter(displayedGifts, gift -> {
@@ -597,7 +553,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             String priceStr = selectedGiftHolder[0].getGiftPrice().replaceAll("[^0-9]", "");
             long giftCoins = priceStr.isEmpty() ? 5000L : Long.parseLong(priceStr);
 
-            // সিটের গিফট কাউন্ট আপডেট করার জন্য ডেটাবেসে ট্রিগার পাঠানো
             databaseReference.child("seats").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -607,7 +562,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             Long currentGiftTotal = snapshot.child(seatKey).child("giftTotal").getValue(Long.class);
                             long newTotal = (currentGiftTotal != null ? currentGiftTotal : 0L) + giftCoins;
                             databaseReference.child("seats").child(seatKey).child("giftTotal").setValue(newTotal);
-                            break; // প্রথম সিটে বা হোস্টে আপাতত যোগ হবে
+                            break;
                         }
                     }
                 }
@@ -802,7 +757,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         sheetDialog.show();
     }
 
-    // 🌟 ফায়ারবেস সিট লিসেনার (সিটে গিফট কাউন্ট এবং ইউজার লিভ নিলে কাউন্ট ০ হয়ে যাওয়ার লজিক সহ)
     private void listenToFirebaseSeats() {
         int[] seatImgIds = {
             R.id.seatImg1, R.id.seatImg2, R.id.seatImg3, R.id.seatImg4, R.id.seatImg5,
@@ -840,12 +794,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             seatTxt.setText(roleIcon + displayName);
                         }
 
-                        // সিটের নিচে লাইভ কয়েন কাউন্ট শো করবে
                         if (seatGiftTxt != null) {
                             if (giftTotal != null && giftTotal > 0) {
                                 seatGiftTxt.setText(giftTotal + " Coins");
                             } else {
-                                seatGiftTxt.setText(""); // খালি থাকলে কিছু দেখাবে না
+                                seatGiftTxt.setText("");
                             }
                         }
 
@@ -864,7 +817,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             }
                         }
                     } else {
-                        // ইউজার সিট থেকে চলে গেলে বা খালি হলে নাম ও কয়েন কাউন্ট সাথে সাথে রিসেট হয়ে যাবে
                         if (seatTxt != null) seatTxt.setText(i == 0 ? "Host" : String.valueOf(i + 1));
                         if (seatGiftTxt != null) seatGiftTxt.setText(""); 
                         if (seatImg != null) {
@@ -916,7 +868,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 if (selectedOption.contains("Take Mic")) {
                                     takeSeat(seatIndex, seatKey);
                                 } else if (selectedOption.contains("Leave Mic")) {
-                                    // সিট ছাড়ার সাথে সাথে গিফট কাউন্টও মুছে যাবে (রিসেট)
                                     databaseReference.child("seats").child(seatKey).removeValue();
                                     Toast.makeText(VoiceRoomActivity.this, "Left seat & counter reset", Toast.LENGTH_SHORT).show();
                                 }
@@ -937,14 +888,17 @@ public class VoiceRoomActivity extends AppCompatActivity {
         databaseReference.child("seats").child(seatKey).child("userId").setValue(currentUserId);
         databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
         databaseReference.child("seats").child(seatKey).child("userImage").setValue(userImageUriStr);
-        databaseReference.child("seats").child(seatKey).child("giftTotal").setValue(0L); // নতুন বসলে কাউন্ট ০ থেকে শুরু হবে
+        databaseReference.child("seats").child(seatKey).child("giftTotal").setValue(0L);
         databaseReference.child("seats").child(seatKey).onDisconnect().removeValue();
         Toast.makeText(VoiceRoomActivity.this, "Joined seat successfully!", Toast.LENGTH_SHORT).show();
     }
 
     private void leaveRoomAndFinish() {
         databaseReference.child("online_users").child(currentUserId).removeValue();
-        for (int i = 0; i < 10; i++) {
+        
+        // 🌟 ফিক্সড লুপ (final ভেরিয়েবল ব্যবহার করা হয়েছে যাতে বিল্ড এরর না আসে)
+        for (int index = 0; index < 10; index++) {
+            final int i = index;
             databaseReference.child("seats").child("seat_" + i).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
