@@ -91,7 +91,7 @@ public class MeActivity extends AppCompatActivity {
         }
     }
 
-    // VIP 1 to VIP 7 Privileges Dialog Method
+    // VIP 1 to VIP 7 Privileges Dialog Method with Updated Coin Amounts
     private void showVipDialog() {
         android.app.Dialog dialog = new android.app.Dialog(this);
         dialog.setContentView(R.layout.dialog_vip_status);
@@ -102,15 +102,15 @@ public class MeActivity extends AppCompatActivity {
 
         recyclerVipList.setLayoutManager(new androidx.recyclerview.widget.LinearLayoutManager(this));
 
-        // VIP 1 to VIP 7 Demo Data List
+        // VIP 1 to VIP 7 Data with High Coin Amounts
         java.util.List<VipModel> vipList = new java.util.ArrayList<>();
-        vipList.add(new VipModel("VIP 1", "Level 1 Privileges", 0, 0, 0, "Basic Sparkle"));
-        vipList.add(new VipModel("VIP 2", "Level 2 Privileges", 0, 0, 0, "Glow Ring"));
-        vipList.add(new VipModel("VIP 3", "Level 3 Privileges", 0, 0, 0, "Silver Wings"));
-        vipList.add(new VipModel("VIP 4", "Level 4 Privileges", 0, 0, 0, "Golden Crown"));
-        vipList.add(new VipModel("VIP 5", "Level 5 Privileges", 0, 0, 0, "Fire Tiger Entry"));
-        vipList.add(new VipModel("VIP 6", "Level 6 Privileges", 0, 0, 0, "Royal Dragon"));
-        vipList.add(new VipModel("VIP 7", "Level 7 Privileges", 0, 0, 0, "Supreme Lord Effect"));
+        vipList.add(new VipModel("VIP 1", "2,000,000 Coins", 0, 0, 0, "Basic Sparkle"));
+        vipList.add(new VipModel("VIP 2", "5,000,000 Coins", 0, 0, 0, "Glow Ring"));
+        vipList.add(new VipModel("VIP 3", "8,000,000 Coins", 0, 0, 0, "Silver Wings"));
+        vipList.add(new VipModel("VIP 4", "15,000,000 Coins", 0, 0, 0, "Golden Crown"));
+        vipList.add(new VipModel("VIP 5", "20,000,000 Coins", 0, 0, 0, "Fire Tiger Entry"));
+        vipList.add(new VipModel("VIP 6", "30,000,000 Coins", 0, 0, 0, "Royal Dragon"));
+        vipList.add(new VipModel("VIP 7", "50,000,000 Coins", 0, 0, 0, "Supreme Lord Effect"));
 
         VipAdapter adapter = new VipAdapter(this, vipList);
         recyclerVipList.setAdapter(adapter);
