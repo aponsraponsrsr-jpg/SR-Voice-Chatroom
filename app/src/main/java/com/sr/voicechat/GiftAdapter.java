@@ -1,4 +1,4 @@
-package com.sr.voicechat.adapters; // তোমার প্রজেক্টের সঠিক প্যাকেজ নাম এখানে দিয়ে দিও
+package com.sr.voicechat.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,9 +35,10 @@ public class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder
     @Override
     public void onBindViewHolder(@NonNull GiftViewHolder holder, int position) {
         GiftModel gift = giftList.get(position);
-        holder.tvGiftName.setText(gift.getGiftName());
-        holder.tvGiftPrice.setText(gift.getGiftPrice());
+        
+        // শুধু ছবি এবং কয়েন প্রাইস সেট করা হচ্ছে (নাম বাদ দেওয়া হয়েছে)
         holder.ivGiftIcon.setImageResource(gift.getGiftIconResId());
+        holder.tvGiftPrice.setText(gift.getGiftPrice());
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) {
@@ -53,12 +54,11 @@ public class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder
 
     public static class GiftViewHolder extends RecyclerView.ViewHolder {
         ImageView ivGiftIcon;
-        TextView tvGiftName, tvGiftPrice;
+        TextView tvGiftPrice;
 
         public GiftViewHolder(@NonNull View itemView) {
             super(itemView);
             ivGiftIcon = itemView.findViewById(R.id.ivGiftIcon);
-            tvGiftName = itemView.findViewById(R.id.tvGiftName);
             tvGiftPrice = itemView.findViewById(R.id.tvGiftPrice);
         }
     }
