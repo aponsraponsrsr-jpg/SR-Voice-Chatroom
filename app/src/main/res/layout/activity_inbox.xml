@@ -10,20 +10,71 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Inbox &amp; Messages"
+        android:text="📥 Inbox &amp; Messages"
         android:textColor="#00E676"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="12dp" />
 
-    <!-- Content Container -->
+    <!-- 1. System Notifications Section (For Official Notices & Agency/Host Invites) -->
     <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="📢 System &amp; Official Notices"
+        android:textColor="#FFD700"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="6dp" />
+
+    <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="No new messages or hosting invitations."
-        android:textColor="#AAAAAA"
+        android:layout_marginBottom="16dp"
+        app:cardBackgroundColor="#142214"
+        app:cardCornerRadius="8dp"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp">
+
+            <TextView
+                android:id="@+id/txtSystemTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="SR Voice Chatroom Official"
+                android:textColor="#00E676"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txtSystemMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Welcome to SR Voice Chat. Stay tuned for official updates and agency announcements."
+                android:textColor="#CCCCCC"
+                android:textSize="12sp"
+                android:layout_marginTop="4dp" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <!-- 2. Chat List Section (For Friends & Direct Messages) -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="💬 Friend Chat Circle"
+        android:textColor="#FFD700"
         android:textSize="14sp"
-        android:gravity="center"
-        android:layout_marginTop="50dp" />
+        android:textStyle="bold"
+        android:layout_marginBottom="6dp" />
+
+    <ListView
+        android:id="@+id/chatListView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="6dp" />
 
 </LinearLayout>
