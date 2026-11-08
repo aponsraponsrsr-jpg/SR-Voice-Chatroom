@@ -137,7 +137,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
-        // 🌟 প্রিমিয়াম ৪-পাতা বা আইকন মেনু স্টাইলের রুম টুলস পপআপ (Entry Effects, Room Settings, Lock, Admin List ইত্যাদি)
+        // 🌟 প্রিমিয়াম গ্রিড স্টাইল রুম টুলস পপআপ (Entry Effects, Room Settings, Lock, Admin List ইত্যাদি)
         if (btnRoomTools != null) {
             btnRoomTools.setOnClickListener(v -> {
                 boolean isOwner = currentUserId.equals(roomOwnerId);
@@ -176,7 +176,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 LinearLayout container = new LinearLayout(VoiceRoomActivity.this);
                 container.setOrientation(LinearLayout.VERTICAL);
 
-                // ১. Room Settings (রুম প্রোফাইল পিক ও নাম চেঞ্জ)
+                // ১. Room Settings
                 container.addView(createToolButton("⚙️ Room Settings & Profile", "Change room name, bio & cover image", view -> {
                     toolsSheet.dismiss();
                     if (isOwner) {
@@ -186,23 +186,23 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     }
                 }));
 
-                // ২. Room Lock (রুম পাসওয়ার্ড প্রটেকশন)
+                // ২. Room Lock
                 container.addView(createToolButton("🔒 Room Lock Protection", "Set or remove room security password", view -> {
                     toolsSheet.dismiss();
                     showRoomLockPasswordDialog();
                 }));
 
-                // ৩. Entry Effects (এন্ট্রি এফেক্টস কন্ট্রোল)
+                // ৩. Entry Effects
                 container.addView(createToolButton("✨ Entry Effects & Animations", "Manage luxury car & VIP entry effects", view -> {
                     Toast.makeText(this, "Entry Effects settings opened!", Toast.LENGTH_SHORT).show();
                 }));
 
-                // ৪. Admin List (এডমিন লিস্ট ও ম্যানেজমেন্ট)
+                // ৪. Admin List
                 container.addView(createToolButton("🛡️ Admin List & Management", "View and manage room moderators", view -> {
                     Toast.makeText(this, "Admin List panel is active!", Toast.LENGTH_SHORT).show();
                 }));
 
-                // ৫. Clean Chat (চ্যাট হিস্ট্রি ক্লিয়ার)
+                // ৫. Clean Chat
                 container.addView(createToolButton("🧹 Clean Global Chat", "Clear all live messages from room", view -> {
                     messagesRef.removeValue().addOnCompleteListener(task -> {
                         chatMessages.clear();
@@ -230,7 +230,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             btnInRoomRanking.setOnClickListener(v -> showPremiumRankingBottomSheet());
         }
 
-        // 📋 রুম টাইটেল ও হেডার ক্লিক (মেম্বার ও এডমিন লিস্ট পপআপ সহ)
+        // 📋 রুম টাইটেল ও হেডার ক্লিক
         if (roomTitleText != null) {
             roomTitleText.setOnClickListener(v -> showRoomInfoAndMembersBottomSheet());
         }
@@ -335,7 +335,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // টুলস অপশনের জন্য সুন্দর বাটন রো তৈরি করার হেল্পার মেথড
     private View createToolButton(String title, String subtitle, View.OnClickListener listener) {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.VERTICAL);
@@ -877,10 +876,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
         mainLayout.addView(title);
 
         TextView info = new TextView(this);
-        info.setText("Welcome to SR Voice Chat Room. Here you can view active admins, members, and room details.");
+        info.setText("Welcome to SR Voice Chat Room. Enjoy high quality voice streaming and live interactions!");
         info.setTextColor(Color.WHITE);
         info.setTextSize(14);
-        info.setPadding(0, 0, 0, 20);
         mainLayout.addView(info);
 
         sheetDialog.setContentView(mainLayout);
@@ -1164,6 +1162,22 @@ public class VoiceRoomActivity extends AppCompatActivity {
         final String userName = prefs.getString("USER_NAME", "User");
         final String userImageUriStr = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
 
+        // প্রথমে চেক করা যাক ইউজার আগে থেকেই অন্য কোনো সিটে আছে কি না, থাকলে সেটা রিমুভ করব
+        for (int i = 0; i < 10; i++) {
+            final int oldIndex = i;
+            databaseReference.child("seats").child("seat_" + i).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    String sUserId = snapshot.child("userId").getValue(String.class);
+                    if (sUserId != null && sUserId.equals(currentUserId)) {
+                        databaseReference.child("seats").child("seat_" + oldIndex).removeValue();
+                    }
+                }
+                @Override public void onCancelled(@NonNull DatabaseError error) {}
+            });
+        }
+
+        // নতুন সিটে জয়েন করা
         databaseReference.child("seats").child(seatKey).child("userId").setValue(currentUserId);
         databaseReference.child("seats").child(seatKey).child("userName").setValue(userName);
         databaseReference.child("seats").child(seatKey).child("userImage").setValue(userImageUriStr);
