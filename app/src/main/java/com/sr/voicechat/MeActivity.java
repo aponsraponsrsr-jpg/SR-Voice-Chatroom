@@ -13,6 +13,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageView; // 👈 এই ImageView ইম্পোর্টটি যুক্ত করা হয়েছে
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -68,7 +70,7 @@ public class MeActivity extends AppCompatActivity {
 
             loadUserData();
             syncUserLevelFromFirebase();
-            checkSuperAdminAccess(); // সুপার অ্যাডমিন স্ট্যাটাস চেক করার লজিক এখানে কল করা হলো
+            checkSuperAdminAccessAndShowPanel();
 
             if (btnEditProfile != null) {
                 btnEditProfile.setOnClickListener(v -> {
@@ -118,8 +120,7 @@ public class MeActivity extends AppCompatActivity {
         }
     }
 
-    // সুপার অ্যাডমিন স্ট্যাটাস চেক করার মেথড
-    private void checkSuperAdminAccess() {
+    private void checkSuperAdminAccessAndShowPanel() {
         if (currentUserId == null || currentUserId.isEmpty() || userDatabaseRef == null) return;
         try {
             userDatabaseRef.child(currentUserId).child("isSuperAdmin").addListenerForSingleValueEvent(new ValueEventListener() {
@@ -131,13 +132,69 @@ public class MeActivity extends AppCompatActivity {
                     }
 
                     if (isSuperAdmin) {
-                        // ইউজার সুপার অ্যাডমিন হলে এখানে টোস্ট বা অ্যাডমিন প্যানেল এনেবল হবে
-                        Toast.makeText(MeActivity.this, "Welcome Super Admin!", Toast.LENGTH_SHORT).show();
+                        if (textMeName != null) {
+                            textMeName.setOnClickListener(v -> showSuperAdminAgencyCreationDialog());
+                        }
                     }
                 }
                 @Override public void onCancelled(@NonNull DatabaseError error) {}
             });
         } catch (Exception ignored) {}
+    }
+
+    private void showSuperAdminAgencyCreationDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("👑 Super Admin - Agency Creation Panel");
+
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(40, 30, 40, 30);
+
+        final EditText inputOwnerId = new EditText(this);
+        inputOwnerId.setHint("Enter Owner ID (Any Digit ID)...");
+        layout.addView(inputOwnerId);
+
+        final EditText inputAgencyName = new EditText(this);
+        inputAgencyName.setHint("Enter Agency Name...");
+        layout.addView(inputAgencyName);
+
+        builder.setView(layout);
+
+        builder.setPositiveButton("Create Agency", (dialog, which) -> {
+            String ownerId = inputOwnerId.getText().toString().trim();
+            String agencyName = inputAgencyName.getText().toString().trim();
+
+            if (!ownerId.isEmpty() && !agencyName.isEmpty()) {
+                createAgencyInFirebase(ownerId, agencyName);
+            } else {
+                Toast.makeText(this, "Owner ID and Agency Name cannot be empty!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+        builder.show();
+    }
+
+    private void createAgencyInFirebase(String ownerUserId, String agencyName) {
+        DatabaseReference agencyRef = FirebaseDatabase.getInstance().getReference("agencies").child(ownerUserId);
+        
+        java.util.Map<String, Object> agencyMap = new java.util.HashMap<>();
+        agencyMap.put("agencyOwnerId", ownerUserId);
+        agencyMap.put("agencyName", agencyName);
+        agencyMap.put("createdAt", System.currentTimeMillis());
+        agencyMap.put("status", "Active");
+
+        agencyRef.setValue(agencyMap).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(ownerUserId);
+                userRef.child("isAgencyOwner").setValue(true);
+                userRef.child("agencyName").setValue(agencyName);
+
+                Toast.makeText(this, "Agency '" + agencyName + "' Created Successfully for ID: " + ownerUserId, Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this, "Failed to create agency!", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void syncUserLevelFromFirebase() {
