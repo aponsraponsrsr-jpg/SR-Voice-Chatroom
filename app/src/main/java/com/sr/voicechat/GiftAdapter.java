@@ -32,7 +32,8 @@ public class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder
     @NonNull
     @Override
     public GiftViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_gift_grid, parent, false);
+        // এখানে item_gift_grid এর পরিবর্তে সঠিক ফাইল নাম item_gift_card ব্যবহার করা হয়েছে
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_gift_card, parent, false);
         return new GiftViewHolder(view);
     }
 
