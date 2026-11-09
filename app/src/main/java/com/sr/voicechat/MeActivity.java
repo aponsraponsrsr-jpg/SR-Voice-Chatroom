@@ -291,33 +291,73 @@ public class MeActivity extends AppCompatActivity {
     }
 
     private void updateUserShortIdInFirebase(String oldUserId, String newShortId) {
+        if (oldUserId == null || oldUserId.trim().isEmpty() || newShortId == null || newShortId.trim().isEmpty()) {
+            Toast.makeText(this, "Old ID and New ID cannot be empty!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        if (oldUserId.equals(newShortId)) {
+            Toast.makeText(this, "Old ID and New ID cannot be the same!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         DatabaseReference oldUserRef = userDatabaseRef.child(oldUserId);
-        oldUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        DatabaseReference newUserRef = userDatabaseRef.child(newShortId);
+
+        newUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    Object userData = snapshot.getValue();
-                    userDatabaseRef.child(newShortId).setValue(userData).addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            userDatabaseRef.child(newShortId).child("userId").setValue(newShortId);
-                            oldUserRef.removeValue();
+            public void onDataChange(@NonNull DataSnapshot newSnapshot) {
+                if (newSnapshot.exists()) {
+                    Toast.makeText(MeActivity.this, "Error: New Short ID (" + newShortId + ") already exists!", Toast.LENGTH_LONG).show();
+                } else {
+                    oldUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot oldSnapshot) {
+                            if (oldSnapshot.exists()) {
+                                java.util.Map<String, Object> userDataMap = new java.util.HashMap<>();
+                                for (DataSnapshot child : oldSnapshot.getChildren()) {
+                                    userDataMap.put(child.getKey(), child.getValue());
+                                }
+                                
+                                userDataMap.put("userId", newShortId);
 
-                            if (oldUserId.equals(currentUserId)) {
-                                prefs.edit().putString("MY_9_DIGIT_ID", newShortId).apply();
-                                currentUserId = newShortId;
+                                newUserRef.setValue(userDataMap).addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        oldUserRef.removeValue().addOnCompleteListener(removeTask -> {
+                                            if (removeTask.isSuccessful()) {
+                                                if (oldUserId.equals(currentUserId)) {
+                                                    prefs.edit().putString("MY_9_DIGIT_ID", newShortId).apply();
+                                                    currentUserId = newShortId;
+                                                }
+
+                                                Toast.makeText(MeActivity.this, "Success! ID Shortened to: " + newShortId, Toast.LENGTH_LONG).show();
+                                                loadUserData();
+                                            } else {
+                                                Toast.makeText(MeActivity.this, "New ID created, but old ID removal failed!", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                                    } else {
+                                        String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
+                                        Toast.makeText(MeActivity.this, "Failed to create New ID: " + errorMsg, Toast.LENGTH_LONG).show();
+                                    }
+                                });
+                            } else {
+                                Toast.makeText(MeActivity.this, "Target Old ID (" + oldUserId + ") not found in database!", Toast.LENGTH_LONG).show();
                             }
+                        }
 
-                            Toast.makeText(MeActivity.this, "ID Successfully Shortened to: " + newShortId, Toast.LENGTH_LONG).show();
-                            loadUserData();
-                        } else {
-                            Toast.makeText(MeActivity.this, "Failed to update Short ID!", Toast.LENGTH_SHORT).show();
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError error) {
+                            Toast.makeText(MeActivity.this, "Database Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
-                } else {
-                    Toast.makeText(MeActivity.this, "Target User ID not found in database!", Toast.LENGTH_SHORT).show();
                 }
             }
-            @Override public void onCancelled(@NonNull DatabaseError error) {}
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(MeActivity.this, "Database Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
