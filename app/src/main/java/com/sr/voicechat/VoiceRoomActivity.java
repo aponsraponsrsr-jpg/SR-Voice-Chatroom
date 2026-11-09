@@ -1393,7 +1393,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         return badge;
     }
 
-    // নিখুঁত LevelUtils কানেক্টেড লেভেল সেন্টার ডায়ালগ (এখন আর স্ক্রিন খালি থাকবে না!)
     private void showFullLevelCenterDialog() {
         BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout root = new LinearLayout(this);
@@ -1491,7 +1490,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             textStack.addView(targetTxt);
 
             row.addView(textStack);
-            listContainer.add(row); // fixed add to view
             listContainer.addView(row);
         }
 
