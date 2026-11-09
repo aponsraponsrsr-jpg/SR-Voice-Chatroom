@@ -20,7 +20,6 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
@@ -196,71 +195,104 @@ public class MeActivity extends AppCompatActivity {
         }
     }
 
+    // 👑 কাস্টম মাস্টার কন্ট্রোল ডায়ালগ (ফুলপ্রুফ আইডি শর্ট ও এজেন্সি ক্রিয়েট)
     private void showSuperAdminMasterControlDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("👑 Super Admin - Master Control Panel");
+        final Dialog customDialog = new Dialog(this);
+        customDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        
+        LinearLayout rootLayout = new LinearLayout(this);
+        rootLayout.setOrientation(LinearLayout.VERTICAL);
+        rootLayout.setPadding(45, 45, 45, 45);
+        rootLayout.setBackgroundColor(Color.parseColor("#2A2A2A"));
 
-        LinearLayout layout = new LinearLayout(this);
-        layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(40, 30, 40, 30);
+        TextView title = new TextView(this);
+        title.setText("👑 Super Admin - Master Control Panel");
+        title.setTextColor(Color.parseColor("#FFD700"));
+        title.setTextSize(16);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setPadding(0, 0, 0, 25);
+        rootLayout.addView(title);
 
+        // এজেন্সি ক্রিয়েট সেকশন
         final EditText inputOwnerId = new EditText(this);
         inputOwnerId.setHint("Enter Owner ID for Agency...");
-        layout.addView(inputOwnerId);
+        inputOwnerId.setHintTextColor(Color.parseColor("#AAAAAA"));
+        inputOwnerId.setTextColor(Color.WHITE);
+        rootLayout.addView(inputOwnerId);
 
         final EditText inputAgencyName = new EditText(this);
         inputAgencyName.setHint("Enter Agency Name...");
-        layout.addView(inputAgencyName);
+        inputAgencyName.setHintTextColor(Color.parseColor("#AAAAAA"));
+        inputAgencyName.setTextColor(Color.WHITE);
+        rootLayout.addView(inputAgencyName);
 
+        Button btnCreateAgency = new Button(this);
+        btnCreateAgency.setText("Create Agency");
+        btnCreateAgency.setBackgroundColor(Color.parseColor("#FF4081"));
+        btnCreateAgency.setTextColor(Color.WHITE);
+        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        btnParams.setMargins(0, 15, 0, 30);
+        btnCreateAgency.setLayoutParams(btnParams);
+        rootLayout.addView(btnCreateAgency);
+
+        // ডিভাইডার লাইন
         View divider = new View(this);
-        divider.setMinimumHeight(15);
-        layout.addView(divider);
+        divider.setMinimumHeight(3);
+        divider.setBackgroundColor(Color.parseColor("#555555"));
+        LinearLayout.LayoutParams divParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 3);
+        divParams.setMargins(0, 10, 0, 20);
+        divider.setLayoutParams(divParams);
+        rootLayout.addView(divider);
 
+        // আইডি শর্ট করার সেকশন
         final EditText inputTargetUser = new EditText(this);
         inputTargetUser.setHint("Target User ID (Old ID)...");
-        layout.addView(inputTargetUser);
+        inputTargetUser.setHintTextColor(Color.parseColor("#AAAAAA"));
+        inputTargetUser.setTextColor(Color.WHITE);
+        rootLayout.addView(inputTargetUser);
 
         final EditText inputNewShortId = new EditText(this);
-        inputNewShortId.setHint("New Short/Unique ID (e.g. 10)...");
-        layout.addView(inputNewShortId);
+        inputNewShortId.setHint("New Short ID (e.g. 10)...");
+        inputNewShortId.setHintTextColor(Color.parseColor("#AAAAAA"));
+        inputNewShortId.setTextColor(Color.WHITE);
+        rootLayout.addView(inputNewShortId);
 
-        builder.setView(layout);
+        Button btnMakeShortId = new Button(this);
+        btnMakeShortId.setText("Make Short ID");
+        btnMakeShortId.setBackgroundColor(Color.parseColor("#00E676"));
+        btnMakeShortId.setTextColor(Color.BLACK);
+        LinearLayout.LayoutParams btnParams2 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        btnParams2.setMargins(0, 15, 0, 10);
+        btnMakeShortId.setLayoutParams(btnParams2);
+        rootLayout.addView(btnMakeShortId);
 
-        builder.setPositiveButton("Create Agency", null);
-        builder.setNeutralButton("Make Short ID", null);
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+        customDialog.setContentView(rootLayout);
+        
+        btnCreateAgency.setOnClickListener(v -> {
+            String ownerId = inputOwnerId.getText().toString().trim();
+            String agencyName = inputAgencyName.getText().toString().trim();
 
-        AlertDialog dialog = builder.create();
-        dialog.setOnShowListener(dialogInterface -> {
-            Button btnCreateAgency = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-            Button btnMakeShortId = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
-
-            btnCreateAgency.setOnClickListener(v -> {
-                String ownerId = inputOwnerId.getText().toString().trim();
-                String agencyName = inputAgencyName.getText().toString().trim();
-
-                if (!ownerId.isEmpty() && !agencyName.isEmpty()) {
-                    createAgencyInFirebase(ownerId, agencyName);
-                    dialog.dismiss();
-                } else {
-                    Toast.makeText(this, "Owner ID and Agency Name required!", Toast.LENGTH_SHORT).show();
-                }
-            });
-
-            btnMakeShortId.setOnClickListener(v -> {
-                String targetUser = inputTargetUser.getText().toString().trim();
-                String newId = inputNewShortId.getText().toString().trim();
-
-                if (!targetUser.isEmpty() && !newId.isEmpty()) {
-                    updateUserShortIdInFirebase(targetUser, newId);
-                    dialog.dismiss();
-                } else {
-                    Toast.makeText(this, "Target ID and New Short ID required!", Toast.LENGTH_SHORT).show();
-                }
-            });
+            if (!ownerId.isEmpty() && !agencyName.isEmpty()) {
+                createAgencyInFirebase(ownerId, agencyName);
+                customDialog.dismiss();
+            } else {
+                Toast.makeText(this, "Owner ID and Agency Name required!", Toast.LENGTH_SHORT).show();
+            }
         });
 
-        dialog.show();
+        btnMakeShortId.setOnClickListener(v -> {
+            String targetUser = inputTargetUser.getText().toString().trim();
+            String newId = inputNewShortId.getText().toString().trim();
+
+            if (!targetUser.isEmpty() && !newId.isEmpty()) {
+                updateUserShortIdInFirebase(targetUser, newId);
+                customDialog.dismiss();
+            } else {
+                Toast.makeText(this, "Target ID and New Short ID required!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        customDialog.show();
     }
 
     private void createAgencyInFirebase(String ownerUserId, String agencyName) {
