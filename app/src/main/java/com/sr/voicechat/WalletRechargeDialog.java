@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
@@ -21,7 +22,7 @@ import com.google.firebase.database.ValueEventListener;
 public class WalletRechargeDialog extends BottomSheetDialogFragment {
 
     private TextView tvCoinBalance;
-    private View btnOnlineRecharge; // অনলাইন রিচার্জ / ক্রেডিট কার্ড বাটন
+    private View btnOnlineRecharge;
     private DatabaseReference userRef;
     private ValueEventListener coinEventListener;
     private SharedPreferences prefs;
@@ -33,23 +34,19 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
         View view = inflater.inflate(R.layout.dialog_wallet_recharge, container, false);
 
         tvCoinBalance = view.findViewById(R.id.tvCoinBalance);
-        
-        // ওয়ালেট লেআউটের অনলাইন রিচার্জ বা ক্রেডিট কার্ড আইকন/বাটন আইডি (তোমার এক্সএমএল অনুযায়ী আইডি মিলবে)
         btnOnlineRecharge = view.findViewById(R.id.btnOnlineRecharge);
 
-        // কাস্টম ইউজার আইডি ফেচ করা (যাতে অ্যাডমিন প্যানেলের পাঠানো কয়েনের পাথ নিখুঁতভাবে মিলে যায়)
+        // কাস্টম ইউজার আইডি ফেচ করা
         prefs = requireActivity().getSharedPreferences("SR_USER", Context.MODE_PRIVATE);
         currentUserId = prefs.getString("MY_9_DIGIT_ID", "493859069");
 
         if (currentUserId != null && !currentUserId.isEmpty()) {
-            // সঠিক কাস্টম ইউজার আইডি পাথ বাইন্ডিং
             userRef = FirebaseDatabase.getInstance().getReference().child("users").child(currentUserId);
             
             coinEventListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists() && isAdded()) {
-                        // অ্যাডমিন প্যানেল থেকে পাঠানো কয়েন সরাসরি রিড করা (লেভেলের থেকে সম্পূর্ণ আলাদা)
                         Long coins = snapshot.child("sendingCoins").getValue(Long.class);
                         if (coins == null) {
                             coins = snapshot.child("coins").getValue(Long.class);
@@ -67,13 +64,12 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
-                    // প্রফেশনাল এরর হ্যান্ডেলিং
                 }
             };
             userRef.addValueEventListener(coinEventListener);
         }
 
-        // অনলাইন রিচার্জ বা ক্রেডিট কার্ড অপশনে ক্লিক করলে কয়েন প্যাকেজ ডায়ালগ ওপেন হবে
+        // অনলাইন রিচার্জ বা ক্রেডিট কার্ড অপশনে ক্লিক করলে প্রিমিয়াম প্যাকেজ পেজ ওপেন হবে
         if (btnOnlineRecharge != null) {
             btnOnlineRecharge.setOnClickListener(v -> {
                 showCoinPackagesDialog();
@@ -83,7 +79,7 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
         return view;
     }
 
-    // কয়েন প্যাকেজ এবং ডলার রেটযুক্ত প্রিমিয়াম ডায়ালগ খোলার মেথড
+    // প্রিমিয়াম কয়েন প্যাকেজ ডায়ালগ খোলার মেথড (রিচার্জে ক্লিক করলে Coming Soon দেখাবে)
     private void showCoinPackagesDialog() {
         final Dialog packageDialog = new Dialog(requireContext());
         packageDialog.setContentView(R.layout.dialog_online_recharge);
@@ -95,8 +91,8 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
         Button btnCharge = packageDialog.findViewById(R.id.btnCharge);
         if (btnCharge != null) {
             btnCharge.setOnClickListener(view -> {
-                // পেমেন্ট বা রিচার্জ অ্যাকশন
-                packageDialog.dismiss();
+                // ইউজার ভেতরে প্রবেশ করে রিচার্জ বা চার্জ করতে চাইলে কামিং সুন দেখাবে
+                Toast.makeText(requireContext(), "Coming Soon! Recharge feature is coming shortly.", Toast.LENGTH_SHORT).show();
             });
         }
 
