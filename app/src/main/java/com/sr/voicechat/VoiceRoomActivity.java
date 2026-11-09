@@ -1015,8 +1015,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         tabMembersBtn.setOnClickListener(v -> {
             tabMembersBtn.setBackgroundColor(Color.parseColor("#FFD700"));
             tabMembersBtn.setTextColor(Color.BLACK);
-            tabInfoBtn.setBackgroundColor(Color.parseColor("#FFD700"));
-            tabInfoBtn.setTextColor(Color.BLACK);
+            tabInfoBtn.setBackgroundColor(Color.parseColor("#2A1B4E"));
+            tabInfoBtn.setTextColor(Color.WHITE);
             infoLayout.setVisibility(View.GONE);
             membersLayout.setVisibility(View.VISIBLE);
         });
@@ -1186,7 +1186,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // 🌟 সফট কালার ব্যাজসহ পার্মানেন্ট ও প্রফেশনাল ইউজার প্রোফাইল কার্ড
     private void showUserProfileDialog(String userName, String userId, String userImage, long sendingCoins, long receivingCoins) {
         BottomSheetDialog profileDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout layout = new LinearLayout(this);
@@ -1231,7 +1230,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         idText.setPadding(0, 4, 0, 14);
         infoCard.addView(idText);
 
-        // 🌟 ডায়নামিক লেভেল ও কালার হিসাব
         int sendLevel = calculateLevel(sendingCoins);
         int recvLevel = calculateLevel(receivingCoins);
 
@@ -1239,11 +1237,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
         levelRow.setOrientation(LinearLayout.HORIZONTAL);
         levelRow.setPadding(0, 4, 0, 14);
 
-        // সফট ঘর স্টাইল ব্যাজ (Sending)
         View sendBadgeView = createSoftBadgeView("⭐ Send Lv." + sendLevel + " (" + formatCoins(sendingCoins) + ")", getLevelColorHex(sendLevel));
         levelRow.addView(sendBadgeView);
 
-        // সফট ঘর স্টাইল ব্যাজ (Receiving)
         View recvBadgeView = createSoftBadgeView("👑 Recv Lv." + recvLevel + " (" + formatCoins(receivingCoins) + ")", getLevelColorHex(recvLevel));
         levelRow.addView(recvBadgeView);
 
@@ -1355,7 +1351,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         profileDialog.show();
     }
 
-    // 🌟 সফট গোলাকার শ্যাডো ব্যাজ ভিউ তৈরির হেলপার
     private View createSoftBadgeView(String text, String colorHex) {
         TextView badge = new TextView(this);
         badge.setText(text);
@@ -1376,7 +1371,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         return badge;
     }
 
-    // 🌟 ফুল স্ক্রিন লেভেল সেন্টার (ভিডিওর হুবহু ১ থেকে ১৫০ লেভেলের কালার ও ডিজাইন)
     private void showFullLevelCenterDialog() {
         BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout root = new LinearLayout(this);
@@ -1514,7 +1508,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         container.addView(row);
     }
 
-    // 🌟 ১ থেকে ১৫০ লেভেলের টার্গেট কয়েন নির্ধারণ (ভিডিওর স্পেসিফিকেশন অনুযায়ী)
     private String getLevelTargetCoinsFormatted(int level) {
         long coins;
         if (level <= 10) coins = level * 150000L;
@@ -1527,20 +1520,18 @@ public class VoiceRoomActivity extends AppCompatActivity {
         return formatCoins(coins);
     }
 
-    // 🌟 ভিডিও অনুযায়ী হুবহু কালার ম্যাপিং লজিক
     private String getLevelColorHex(int level) {
-        if (level <= 10) return "#C0C0C0";      // Silver (1-10)
-        else if (level <= 20) return "#78909C"; // Slate / Light Deep Silver (11-20)
-        else if (level <= 30) return "#00E676"; // Vivid Green (21-30)
-        else if (level <= 40) return "#18FFFF"; // Cyan / Paste (31-40)
-        else if (level <= 50) return "#E040FB"; // Deep Purple (41-50)
-        else if (level <= 60) return "#2979FF"; // Royal Blue (51-60)
-        else if (level <= 75) return "#FF4081"; // Gorgeous Pink (61-75)
-        else if (level <= 100) return "#FFD700";// Golden (76-100)
-        else return "#8D6E63";                  // Coffee / Legendary (101-150+)
+        if (level <= 10) return "#C0C0C0";
+        else if (level <= 20) return "#78909C";
+        else if (level <= 30) return "#00E676";
+        else if (level <= 40) return "#18FFFF";
+        else if (level <= 50) return "#E040FB";
+        else if (level <= 60) return "#2979FF";
+        else if (level <= 75) return "#FF4081";
+        else if (level <= 100) return "#FFD700";
+        else return "#8D6E63";
     }
 
-    // 🌟 লেভেল আপ ক্যালকুলেশন ফর্মুলা (কয়েনের পরিমাণ দেখে লেভেল নির্ধারণ)
     private int calculateLevel(long coins) {
         if (coins < 150000L) return 1;
         else if (coins < 500000L) return 2;
@@ -1584,7 +1575,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         databaseReference.child("seats").child(seatKey).child("userImage").setValue(userImageUriStr);
         databaseReference.child("seats").child(seatKey).child("giftTotal").setValue(0L);
         databaseReference.child("seats").child(seatKey).onDisconnect().removeValue();
-        Toast.makeText(VoiceRoomActivity.java.this, "Joined seat successfully!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(VoiceRoomActivity.this, "Joined seat successfully!", Toast.LENGTH_SHORT).show();
     }
 
     private void leaveRoomAndFinish() {
