@@ -223,8 +223,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
+        // 🏆 ফুল-স্ক্রিন প্রিমিয়াম র‍্যাঙ্কিং পপআপ ওপেন করার লজিক
         if (btnInRoomRanking != null) {
-            btnInRoomRanking.setOnClickListener(v -> showPremiumRankingBottomSheet());
+            btnInRoomRanking.setOnClickListener(v -> showFullScrRoomRankingDialog());
         }
 
         View.OnClickListener headerClickListener = v -> showPremiumRoomInfoAndMembersDialog();
@@ -325,7 +326,110 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // 👑 প্রিমিয়াম হাই-ভ্যালু গিফট প্যানেল (৫,০০০ কয়েন থেকে শুরু করে ৩০ লাখ কয়েন পর্যন্ত পশু-পাখি, কার ও ক্রাউন কালেকশন)
+    // 🏆 ফুল-স্ক্রিন প্রিমিয়াম র‍্যাঙ্কিং পপআপ মেথড (Daily, Weekly, Monthly ট্যাবসহ)
+    private void showFullScrRoomRankingDialog() {
+        final Dialog rankDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        rankDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        rankDialog.setContentView(R.layout.dialog_room_ranking);
+
+        TextView btnClose = rankDialog.findViewById(R.id.btnCloseRanking);
+        if (btnClose != null) {
+            btnClose.setOnClickListener(v -> rankDialog.dismiss());
+        }
+
+        Button btnTabDaily = rankDialog.findViewById(R.id.btnTabDaily);
+        Button btnTabWeekly = rankDialog.findViewById(R.id.btnTabWeekly);
+        Button btnTabMonthly = rankDialog.findViewById(R.id.btnTabMonthly);
+        LinearLayout listContainer = rankDialog.findViewById(R.id.rankingListContainer);
+
+        if (btnTabDaily != null && btnTabWeekly != null && btnTabMonthly != null) {
+            btnTabDaily.setOnClickListener(v -> {
+                btnTabDaily.setBackgroundColor(Color.parseColor("#FFD700"));
+                btnTabDaily.setTextColor(Color.BLACK);
+                btnTabWeekly.setBackgroundColor(Color.parseColor("#2A1B4E"));
+                btnTabWeekly.setTextColor(Color.WHITE);
+                btnTabMonthly.setBackgroundColor(Color.parseColor("#2A1B4E"));
+                btnTabMonthly.setTextColor(Color.WHITE);
+                Toast.makeText(this, "Showing Daily Ranking", Toast.LENGTH_SHORT).show();
+            });
+
+            btnTabWeekly.setOnClickListener(v -> {
+                btnTabWeekly.setBackgroundColor(Color.parseColor("#FFD700"));
+                btnTabWeekly.setTextColor(Color.BLACK);
+                btnTabDaily.setBackgroundColor(Color.parseColor("#2A1B4E"));
+                btnTabDaily.setTextColor(Color.WHITE);
+                btnTabMonthly.setBackgroundColor(Color.parseColor("#2A1B4E"));
+                btnTabMonthly.setTextColor(Color.WHITE);
+                Toast.makeText(this, "Showing Weekly Ranking", Toast.LENGTH_SHORT).show();
+            });
+
+            btnTabMonthly.setOnClickListener(v -> {
+                btnTabMonthly.setBackgroundColor(Color.parseColor("#FFD700"));
+                btnTabMonthly.setTextColor(Color.BLACK);
+                btnTabDaily.setBackgroundColor(Color.parseColor("#2A1B4E"));
+                btnTabDaily.setTextColor(Color.WHITE);
+                btnTabWeekly.setBackgroundColor(Color.parseColor("#2A1B4E"));
+                btnTabWeekly.setTextColor(Color.WHITE);
+                Toast.makeText(this, "Showing Monthly Ranking", Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        if (listContainer != null) {
+            listContainer.removeAllViews();
+            addRankUserRow(listContainer, "1", "🏆 Top Contributor #1", "0 Coins", "#FFD700");
+            addRankUserRow(listContainer, "2", "🥈 Top Contributor #2", "0 Coins", "#C0C0C0");
+            addRankUserRow(listContainer, "3", "🥉 Top Contributor #3", "0 Coins", "#CD7F32");
+        }
+
+        rankDialog.show();
+    }
+
+    private void addRankUserRow(LinearLayout container, String rank, String name, String score, String badgeColorHex) {
+        Context context = container.getContext();
+        LinearLayout row = new LinearLayout(context);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setPadding(20, 20, 20, 20);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+
+        GradientDrawable rBg = new GradientDrawable();
+        rBg.setColor(Color.parseColor("#1B1035"));
+        rBg.setCornerRadius(16);
+        row.setBackground(rBg);
+
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        p.setMargins(0, 0, 0, 12);
+        row.setLayoutParams(p);
+
+        TextView rankTxt = new TextView(context);
+        rankTxt.setText("Top " + rank);
+        rankTxt.setTextColor(Color.parseColor(badgeColorHex));
+        rankTxt.setTextSize(14);
+        rankTxt.setTypeface(null, android.graphics.Typeface.BOLD);
+        rankTxt.setMinWidth(90);
+        row.addView(rankTxt);
+
+        LinearLayout textStack = new LinearLayout(context);
+        textStack.setOrientation(LinearLayout.VERTICAL);
+        LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
+        textStack.setLayoutParams(tp);
+
+        TextView nameTxt = new TextView(context);
+        nameTxt.setText(name);
+        nameTxt.setTextColor(Color.WHITE);
+        nameTxt.setTextSize(15);
+        textStack.addView(nameTxt);
+
+        TextView scoreTxt = new TextView(context);
+        scoreTxt.setText(score);
+        scoreTxt.setTextColor(Color.parseColor("#00E676"));
+        scoreTxt.setTextSize(12);
+        textStack.addView(scoreTxt);
+
+        row.addView(textStack);
+        container.addView(row);
+    }
+
+    // 🎁 প্রিমিয়াম লাক্সারি গিফট প্যানেল ও রিসিভিং/সেন্ডিং লেভেল আপডেট লজিক
     private void showPremiumGiftPanel() {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout rootLayout = new LinearLayout(this);
@@ -347,12 +451,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
         title.setPadding(0, 0, 0, 20);
         rootLayout.addView(title);
 
-        // সিট সিলেকশন অপশন (Single বা All সিট)
         final EditText inputTargetSeat = new EditText(this);
         inputTargetSeat.setHint("Target Seat (0 to 9 or type 'All')...");
         inputTargetSeat.setHintTextColor(Color.parseColor("#AAAAAA"));
         inputTargetSeat.setTextColor(Color.WHITE);
-        inputTargetSeat.setText("All"); // ডিফল্টভাবে All সিট সিলেক্ট থাকবে
+        inputTargetSeat.setText("All");
         rootLayout.addView(inputTargetSeat);
 
         RecyclerView rvGifts = new RecyclerView(this);
@@ -361,7 +464,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         rootLayout.addView(rvGifts);
 
         List<GiftModel> luxuryGifts = new ArrayList<>();
-        // প্রিমিয়াম পশু-পাখি ও কার কালেকশন (৫ হাজার থেকে ৩০ লাখ কয়েন পর্যন্ত হাই-ভ্যালু)
         luxuryGifts.add(new GiftModel("g1", "White Tiger", "50,000", R.drawable.ic_gift_flower, "Animal"));
         luxuryGifts.add(new GiftModel("g2", "Golden Lion", "100,000", R.drawable.ic_gift_ring, "Animal"));
         luxuryGifts.add(new GiftModel("g3", "Royal Dragon", "250,000", R.drawable.ic_gift_diamond, "Animal"));
@@ -396,11 +498,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
             String priceStr = selectedGiftHolder[0].getGiftPrice().replaceAll("[^0-9]", "");
             long giftCoins = priceStr.isEmpty() ? 50000L : Long.parseLong(priceStr);
 
-            // ফ্লাইং অ্যানিমেশন ট্রিগার করা
             triggerFlyingGiftAnimation(selectedGiftHolder[0].getGiftName());
 
             if (targetVal.equalsIgnoreCase("All")) {
-                // সব সিটে একসাথে কয়েন আপডেট করা
                 databaseReference.child("seats").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -410,6 +510,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 Long currentTotal = snapshot.child(seatKey).child("giftTotal").getValue(Long.class);
                                 long newTotal = (currentTotal != null ? currentTotal : 0L) + giftCoins;
                                 databaseReference.child("seats").child(seatKey).child("giftTotal").setValue(newTotal);
+
+                                String seatUserId = snapshot.child(seatKey).child("userId").getValue(String.class);
+                                if (seatUserId != null && !seatUserId.isEmpty()) {
+                                    updateReceivingCoinsForUser(seatUserId, giftCoins);
+                                }
                             }
                         }
                     }
@@ -426,16 +531,21 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 Long currentTotal = snapshot.child("giftTotal").getValue(Long.class);
                                 long newTotal = (currentTotal != null ? currentTotal : 0L) + giftCoins;
                                 databaseReference.child("seats").child(seatKey).child("giftTotal").setValue(newTotal);
+
+                                String seatUserId = snapshot.child("userId").getValue(String.class);
+                                if (seatUserId != null && !seatUserId.isEmpty()) {
+                                    updateReceivingCoinsForUser(seatUserId, giftCoins);
+                                }
                             }
                             @Override public void onCancelled(@NonNull DatabaseError error) {}
                         });
                     }
                 } catch (Exception e) {
-                    Toast.makeText(this, "Invalid seat number! Defaulting to All seats.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Invalid seat! Updating all seats.", Toast.LENGTH_SHORT).show();
                 }
             }
 
-            // সেন্ডারের সেন্ডিং লেভেল (Sending Level) এবং কয়েন আপডেট করা
+            // সেন্ডারের সেন্ডিং লেভেল (Sending Level) আপডেট করা
             if (!currentUserId.isEmpty()) {
                 userDatabaseRef.child(currentUserId).child("sendingCoins").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
@@ -448,7 +558,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 });
             }
 
-            // গ্লোবাল চ্যাটে গিফট নোটিফিকেশন পাঠানো
             long msgTimestamp = System.currentTimeMillis();
             String msgId = messagesRef.push().getKey();
             if (msgId != null) {
@@ -472,7 +581,19 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // 🚀 প্রিমিয়াম ফ্লাইং গিফট অ্যানিমেশন (নিচ থেকে উড়ে ইউজারের দিকে যাওয়া)
+    // ইউজারের রিসিভিং লেভেল ও কয়েন রিয়েল-টাইমে আপডেট করার মেথড
+    private void updateReceivingCoinsForUser(String targetUserId, long giftCoins) {
+        userDatabaseRef.child(targetUserId).child("receivingCoins").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Long currentRecv = snapshot.getValue(Long.class);
+                long updatedRecv = (currentRecv != null ? currentRecv : 0L) + giftCoins;
+                userDatabaseRef.child(targetUserId).child("receivingCoins").setValue(updatedRecv);
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
     private void triggerFlyingGiftAnimation(String giftName) {
         try {
             ViewGroup rootView = findViewById(android.R.id.content);
@@ -495,14 +616,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
             params.setMargins(0, 0, 0, 300);
             rootView.addView(flyingView, params);
 
-            // নিচ থেকে সোজা ওপরের দিকে উড়ে যাওয়ার অ্যানিমেশন
             TranslateAnimation animation = new TranslateAnimation(
                 Animation.ABSOLUTE, 0f,
                 Animation.ABSOLUTE, 0f,
                 Animation.ABSOLUTE, 0f,
                 Animation.ABSOLUTE, -1000f
             );
-            animation.setDuration(2000); // ২ সেকেন্ড স্থায়ী হবে
+            animation.setDuration(2000);
             animation.setFillAfter(true);
 
             animation.setAnimationListener(new Animation.AnimationListener() {
@@ -720,96 +840,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             window.setGravity(Gravity.BOTTOM);
         }
         dialog.show();
-    }
-
-    private void showPremiumRankingBottomSheet() {
-        BottomSheetDialog rankSheet = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
-        
-        LinearLayout rankLayout = new LinearLayout(this);
-        rankLayout.setOrientation(LinearLayout.VERTICAL);
-        rankLayout.setPadding(40, 40, 40, 40);
-
-        GradientDrawable bg = new GradientDrawable(
-            GradientDrawable.Orientation.TOP_BOTTOM,
-            new int[]{Color.parseColor("#2A1B4E"), Color.parseColor("#120A2A")}
-        );
-        bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
-        rankLayout.setBackground(bg);
-
-        TextView title = new TextView(this);
-        title.setText("🏆 Room Contribution Ranking");
-        title.setTextColor(Color.parseColor("#FFD700"));
-        title.setTextSize(18);
-        title.setTypeface(null, android.graphics.Typeface.BOLD);
-        title.setGravity(Gravity.CENTER);
-        title.setPadding(0, 0, 0, 20);
-        rankLayout.addView(title);
-
-        ScrollView rankScrollView = new ScrollView(this);
-        rankScrollView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1.0f));
-        rankScrollView.setFillViewport(true);
-
-        LinearLayout listContainer = new LinearLayout(this);
-        listContainer.setOrientation(LinearLayout.VERTICAL);
-
-        addRankUserRow(listContainer, "1", "Top Contributor #1", "0 Coins", "#FFD700");
-        addRankUserRow(listContainer, "2", "Top Contributor #2", "0 Coins", "#C0C0C0");
-        addRankUserRow(listContainer, "3", "Top Contributor #3", "0 Coins", "#CD7F32");
-
-        rankScrollView.addView(listContainer);
-        rankLayout.addView(rankScrollView);
-
-        rankSheet.setContentView(rankLayout);
-        Window w = rankSheet.getWindow();
-        if (w != null) {
-            w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1900);
-            w.setGravity(Gravity.BOTTOM);
-        }
-        rankSheet.show();
-    }
-
-    private void addRankUserRow(LinearLayout container, String rank, String name, String score, String badgeColorHex) {
-        LinearLayout row = new LinearLayout(container.getContext());
-        row.setOrientation(LinearLayout.HORIZONTAL);
-        row.setPadding(20, 20, 20, 20);
-        row.setGravity(Gravity.CENTER_VERTICAL);
-
-        GradientDrawable rBg = new GradientDrawable();
-        rBg.setColor(Color.parseColor("#1B1035"));
-        rBg.setCornerRadius(16);
-        row.setBackground(rBg);
-
-        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        p.setMargins(0, 0, 0, 12);
-        row.setLayoutParams(p);
-
-        TextView rankTxt = new TextView(container.getContext());
-        rankTxt.setText("Top " + rank);
-        rankTxt.setTextColor(Color.parseColor(badgeColorHex));
-        rankTxt.setTextSize(14);
-        rankTxt.setTypeface(null, android.graphics.Typeface.BOLD);
-        rankTxt.setMinWidth(80);
-        row.addView(rankTxt);
-
-        LinearLayout textStack = new LinearLayout(container.getContext());
-        textStack.setOrientation(LinearLayout.VERTICAL);
-        LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
-        textStack.setLayoutParams(tp);
-
-        TextView nameTxt = new TextView(container.getContext());
-        nameTxt.setText(name);
-        nameTxt.setTextColor(Color.WHITE);
-        nameTxt.setTextSize(15);
-        textStack.addView(nameTxt);
-
-        TextView scoreTxt = new TextView(container.getContext());
-        scoreTxt.setText(score);
-        scoreTxt.setTextColor(Color.parseColor("#00E676"));
-        scoreTxt.setTextSize(12);
-        textStack.addView(scoreTxt);
-
-        row.addView(textStack);
-        container.addView(row);
     }
 
     private void syncLatestUserProfile() {
