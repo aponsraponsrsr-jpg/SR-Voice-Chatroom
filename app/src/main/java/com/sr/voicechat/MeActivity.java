@@ -13,7 +13,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -69,6 +68,7 @@ public class MeActivity extends AppCompatActivity {
 
             loadUserData();
             syncUserLevelFromFirebase();
+            checkSuperAdminAccess(); // সুপার অ্যাডমিন স্ট্যাটাস চেক করার লজিক এখানে কল করা হলো
 
             if (btnEditProfile != null) {
                 btnEditProfile.setOnClickListener(v -> {
@@ -118,6 +118,28 @@ public class MeActivity extends AppCompatActivity {
         }
     }
 
+    // সুপার অ্যাডমিন স্ট্যাটাস চেক করার মেথড
+    private void checkSuperAdminAccess() {
+        if (currentUserId == null || currentUserId.isEmpty() || userDatabaseRef == null) return;
+        try {
+            userDatabaseRef.child(currentUserId).child("isSuperAdmin").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    boolean isSuperAdmin = false;
+                    if (snapshot.exists() && snapshot.getValue(Boolean.class) != null) {
+                        isSuperAdmin = snapshot.getValue(Boolean.class);
+                    }
+
+                    if (isSuperAdmin) {
+                        // ইউজার সুপার অ্যাডমিন হলে এখানে টোস্ট বা অ্যাডমিন প্যানেল এনেবল হবে
+                        Toast.makeText(MeActivity.this, "Welcome Super Admin!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                @Override public void onCancelled(@NonNull DatabaseError error) {}
+            });
+        } catch (Exception ignored) {}
+    }
+
     private void syncUserLevelFromFirebase() {
         if (currentUserId != null && !currentUserId.isEmpty() && userDatabaseRef != null) {
             try {
@@ -164,7 +186,6 @@ public class MeActivity extends AppCompatActivity {
         } catch (Exception ignored) {}
     }
 
-    // নিখুঁত লেভেল সেন্টার ডায়ালগ (এখন জেনারেল স্টোরের লেভেল আইকনে ক্লিক করলেই ১ থেকে ১৫০ লেভেলের লিস্ট শো করবে)
     private void showLevelCenterDialog() {
         try {
             BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
@@ -209,7 +230,6 @@ public class MeActivity extends AppCompatActivity {
             LinearLayout listContainer = new LinearLayout(this);
             listContainer.setOrientation(LinearLayout.VERTICAL);
 
-            // ১ থেকে ১৫০ লেভেলের ডাইনামিক রো জেনারেশন
             for (int lvl = 1; lvl <= 150; lvl++) {
                 LinearLayout row = new LinearLayout(this);
                 row.setOrientation(LinearLayout.HORIZONTAL);
