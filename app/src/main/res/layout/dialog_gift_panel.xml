@@ -1,79 +1,68 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/bg_bottom_sheet_rounded"
-    android:padding="16dp">
+    android:background="@drawable/bg_bottom_sheet_gradient"
+    android:padding="20dp">
 
-    <!-- Top Indicator Bar -->
-    <View
-        android:layout_width="40dp"
-        android:layout_height="4dp"
-        android:layout_gravity="center_horizontal"
-        android:background="#4A4560"
-        android:layout_marginBottom="12dp"/>
-
-    <!-- Category Tabs -->
+    <!-- প্যানেল টাইটেল ও হেডার -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_marginBottom="16dp">
+        android:gravity="center_vertical"
+        android:paddingBottom="12dp">
 
         <TextView
-            android:id="@+id/tabGift"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Gift"
-            android:textColor="@color/gift_tab_selected"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:gravity="center"/>
+            android:text="🎁 SR Luxury Gift Center"
+            android:textColor="#FFD700"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/tabCpGift"
-            android:layout_width="0dp"
+            android:id="@+id/txtUserCoinBalance"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="CP Gift"
-            android:textColor="@color/gift_tab_unselected"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:gravity="center"/>
-
-        <TextView
-            android:id="@+id/tabLuckyGift"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Lucky Gift"
-            android:textColor="@color/gift_tab_unselected"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:gravity="center"/>
+            android:text="💰 999,999 Coins"
+            android:textColor="#00E676"
+            android:textSize="14sp"
+            android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- Gift Items Grid -->
+    <!-- টার্গেট সিট বা ইউজার সিলেকশন ঘর -->
+    <EditText
+        android:id="@+id/editTargetSeat"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:background="#2A1B4E"
+        android:textColor="#FFFFFF"
+        android:textColorHint="#AAAAAA"
+        android:hint="Target Seat (0 to 9 or type 'All')..."
+        android:textSize="14sp"
+        android:paddingHorizontal="15dp"
+        android:layout_marginBottom="12dp" />
+
+    <!-- গিফট গ্রিড লিস্ট (RecyclerView) -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvGifts"
         android:layout_width="match_parent"
-        android:layout_height="240dp"
-        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        app:spanCount="4"/>
+        android:layout_height="320dp"
+        android:scrollbars="vertical"
+        android:layout_marginBottom="15dp" />
 
-    <!-- Send Button Footer -->
+    <!-- সেন্ড বাটন -->
     <Button
         android:id="@+id/btnSendGift"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:layout_marginTop="12dp"
-        android:text="✨ Send Gift"
+        android:text="🚀 Send Luxury Gift"
         android:textColor="#FFFFFF"
         android:textSize="16sp"
         android:textStyle="bold"
-        android:backgroundTint="#FF007A"/>
+        android:backgroundTint="#FF4081" />
+
 </LinearLayout>
