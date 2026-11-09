@@ -526,7 +526,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    // প্রিমিয়াম ও ফুল স্ক্রিন লেভেল/ট্যাব সচল র‍্যাঙ্কিং পপআপ (ভিডিও নির্দেশ অনুযায়ী আপডেট)
     private void showPremiumRankingBottomSheet() {
         BottomSheetDialog rankSheet = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         
@@ -550,7 +549,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         title.setPadding(0, 0, 0, 20);
         rankLayout.addView(title);
 
-        // সচল ট্যাব লেআউট (Daily, Weekly, Monthly)
         LinearLayout tabLayout = new LinearLayout(this);
         tabLayout.setOrientation(LinearLayout.HORIZONTAL);
         tabLayout.setGravity(Gravity.CENTER);
@@ -616,7 +614,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         LinearLayout listContainer = new LinearLayout(this);
         listContainer.setOrientation(LinearLayout.VERTICAL);
 
-        // ভিডিও নির্দেশনা অনুযায়ী শুধুমাত্র ক্লিন Top 1, Top 2, Top 3 রো
         addRankUserRow(listContainer, "1", "Top Contributor #1", "0 Coins", "#FFD700");
         addRankUserRow(listContainer, "2", "Top Contributor #2", "0 Coins", "#C0C0C0");
         addRankUserRow(listContainer, "3", "Top Contributor #3", "0 Coins", "#CD7F32");
@@ -627,7 +624,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         rankSheet.setContentView(rankLayout);
         Window w = rankSheet.getWindow();
         if (w != null) {
-            w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1900); // পপআপ বড় ও ফুল স্ক্রিন সদৃশ করা হলো
+            w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1900);
             w.setGravity(Gravity.BOTTOM);
         }
         rankSheet.show();
@@ -1197,9 +1194,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
+    // গ্লোবাল সব ইউজারের জন্য রিয়েল-টাইম জেন্ডার ও ডেটা ফেচিং (ছেলেদের জন্য ♂ নীল এবং মেয়েদের জন্য ♀ গোলাপি)
     private void fetchUserDataAndShowProfile(String userName, String userId, String userImage) {
         if (userId == null || userId.isEmpty()) {
-            showUserProfileDialog(userName, userId, userImage, 0L, 0L, "👦", "🇧🇩");
+            showUserProfileDialog(userName, userId, userImage, 0L, 0L, "♂", "🇧🇩");
             return;
         }
 
@@ -1208,7 +1206,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 long sendingCoins = 0L;
                 long receivingCoins = 0L;
-                String gender = "👦"; // ডিফল্ট জেন্ডার আইকন
+                String gender = "♂"; 
                 String country = "🇧🇩";
 
                 if (snapshot.exists()) {
@@ -1219,12 +1217,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
                     if (send != null) sendingCoins = send;
                     if (recv != null) receivingCoins = recv;
+                    
                     if (dbGender != null) {
-                        // ইউজার জেন্ডার অনুযায়ী আইকন সেট করা (ফিমেল হলে 👧, মেইল হলে 👦)
-                        if (dbGender.toLowerCase().contains("female") || dbGender.contains("মেয়ে") || dbGender.contains("👧")) {
-                            gender = "👧";
+                        String lowerGender = dbGender.toLowerCase();
+                        if (lowerGender.contains("female") || lowerGender.contains("girl") || lowerGender.contains("মেয়ে") || lowerGender.contains("♀")) {
+                            gender = "♀"; // মেয়েদের জন্য প্রিমিয়াম গোলাপি জেন্ডার আইকন
                         } else {
-                            gender = "👦";
+                            gender = "♂"; // ছেলেদের জন্য প্রিমিয়াম নীল জেন্ডার আইকন
                         }
                     }
                     if (dbCountry != null && !dbCountry.isEmpty()) country = dbCountry;
@@ -1232,12 +1231,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 showUserProfileDialog(userName, userId, userImage, sendingCoins, receivingCoins, gender, country);
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {
-                showUserProfileDialog(userName, userId, userImage, 0L, 0L, "👦", "🇧🇩");
+                showUserProfileDialog(userName, userId, userImage, 0L, 0L, "♂", "🇧🇩");
             }
         });
     }
 
-    // প্রিমিয়াম ও বড় প্রোফাইল পপআপ (~৬৫-৭০% উচ্চতা এবং জেন্ডার আইকন সহ)
+    // গ্লোবাল সব ইউজারের জন্য বড় ও প্রিমিয়াম প্রোফাইল পপআপ ডায়ালগ
     private void showUserProfileDialog(String userName, String userId, String userImage, long sendingCoins, long receivingCoins, String gender, String country) {
         BottomSheetDialog profileDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout layout = new LinearLayout(this);
@@ -1248,11 +1247,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
             GradientDrawable.Orientation.TOP_BOTTOM,
             new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")}
         );
-        bg.setCornerRadii(new float[]{50, 50, 50, 50, 0, 0, 0, 0});
+        bg.setCornerRadii(new float[]{60, 60, 60, 60, 0, 0, 0, 0});
         layout.setBackground(bg);
 
         ImageView imgProfileBig = new ImageView(this);
-        LinearLayout.LayoutParams imgParams = new LinearLayout.LayoutParams(220, 220);
+        LinearLayout.LayoutParams imgParams = new LinearLayout.LayoutParams(240, 240);
         imgParams.gravity = Gravity.CENTER_HORIZONTAL;
         imgParams.setMargins(0, 0, 0, 20);
         imgProfileBig.setLayoutParams(imgParams);
@@ -1289,10 +1288,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
         nameText.setTypeface(null, android.graphics.Typeface.BOLD);
         nameRow.addView(nameText);
 
-        // টেক্সট ছাড়া শুধু জেন্ডার আইকন ও কান্ট্রি ফ্ল্যাগ
         TextView genderFlagText = new TextView(this);
         genderFlagText.setText(" " + gender + " " + country);
         genderFlagText.setTextSize(18);
+        if (gender.equals("♀")) {
+            genderFlagText.setTextColor(Color.parseColor("#FF4081")); // মেয়েদের জন্য প্রিমিয়াম গোলাপি কালার
+        } else {
+            genderFlagText.setTextColor(Color.parseColor("#00B0FF")); // ছেলেদের জন্য প্রিমিয়াম নীল কালার
+        }
         nameRow.addView(genderFlagText);
 
         layout.addView(nameRow);
@@ -1360,6 +1363,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         LinearLayout.LayoutParams statsParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         statsParams.setMargins(0, 0, 0, 30);
+        statsParams.gravity = Gravity.CENTER_HORIZONTAL;
         statsCard.setLayoutParams(statsParams);
         layout.addView(statsCard);
 
@@ -1409,7 +1413,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         profileDialog.setContentView(layout);
         Window window = profileDialog.getWindow();
         if (window != null) {
-            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1350); // পপআপ স্ক্রিনের প্রায় ৬৫-৭০% উচ্চতা নিশ্চিত করা হলো
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1450); // বড় ও প্রিমিয়াম সাইজ
             window.setGravity(Gravity.BOTTOM);
         }
         profileDialog.show();
