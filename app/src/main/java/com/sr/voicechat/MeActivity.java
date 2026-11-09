@@ -6,12 +6,16 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -20,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -116,8 +121,7 @@ public class MeActivity extends AppCompatActivity {
     private void syncUserLevelFromFirebase() {
         if (currentUserId != null && !currentUserId.isEmpty() && userDatabaseRef != null) {
             try {
-                // লেভেলের জন্য শুধু totalSpentCoins ট্র্যাক করা হবে, কয়েনের সাথে যেন মিশে না যায়
-                userDatabaseRef.child(currentUserId).child("totalSpentCoins").addValueEventListener(new ValueEventListener() {
+                userDatabaseRef.child(currentUserId).child("sendingCoins").addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
                         try {
@@ -125,10 +129,10 @@ public class MeActivity extends AppCompatActivity {
                             if (snapshot.exists() && snapshot.getValue(Long.class) != null) {
                                 spentCoins = snapshot.getValue(Long.class);
                             }
-                            int currentLevel = calculateUserLevel(spentCoins);
+                            int currentLevel = LevelUtils.calculateLevel(spentCoins);
                             if (txtProfileLevel != null) {
                                 txtProfileLevel.setText("  |  ⭐ Lv." + currentLevel);
-                                txtProfileLevel.setTextColor(getLevelColor(currentLevel));
+                                txtProfileLevel.setTextColor(LevelUtils.getLevelColor(currentLevel));
                             }
                         } catch (Exception ignored) {}
                     }
@@ -136,28 +140,6 @@ public class MeActivity extends AppCompatActivity {
                 });
             } catch (Exception ignored) {}
         }
-    }
-
-    private int calculateUserLevel(long totalCoins) {
-        if (totalCoins < 3000000L) return 1;
-        long currentRequirement = 3000000L;
-        int level = 1;
-        for (int i = 2; i <= 50; i++) {
-            currentRequirement += 10000000L;
-            if (totalCoins >= currentRequirement) {
-                level = i;
-            } else {
-                break;
-            }
-        }
-        return Math.min(level, 50);
-    }
-
-    private int getLevelColor(int level) {
-        if (level <= 10) return Color.parseColor("#C0C0C0");
-        else if (level <= 20) return Color.parseColor("#29B6F6");
-        else if (level <= 35) return Color.parseColor("#AB47BC");
-        else return Color.parseColor("#FFD700");
     }
 
     private void loadUserData() {
@@ -182,29 +164,119 @@ public class MeActivity extends AppCompatActivity {
         } catch (Exception ignored) {}
     }
 
+    // নিখুঁত লেভেল সেন্টার ডায়ালগ (এখন জেনারেল স্টোরের লেভেল আইকনে ক্লিক করলেই ১ থেকে ১৫০ লেভেলের লিস্ট শো করবে)
     private void showLevelCenterDialog() {
         try {
-            final Dialog levelDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
-            LinearLayout layout = new LinearLayout(this);
-            layout.setOrientation(LinearLayout.VERTICAL);
-            layout.setPadding(40, 60, 40, 60);
-            layout.setBackgroundColor(Color.parseColor("#120A2A"));
+            BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
+            LinearLayout root = new LinearLayout(this);
+            root.setOrientation(LinearLayout.VERTICAL);
+            root.setPadding(35, 35, 35, 35);
+
+            GradientDrawable bg = new GradientDrawable(
+                GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")}
+            );
+            bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
+            root.setBackground(bg);
+
+            LinearLayout topBar = new LinearLayout(this);
+            topBar.setOrientation(LinearLayout.HORIZONTAL);
+            topBar.setGravity(Gravity.CENTER_VERTICAL);
+            topBar.setPadding(0, 0, 0, 20);
 
             TextView title = new TextView(this);
-            title.setText("🏆 SR Voice Chat - Level Center");
+            title.setText("🏆 SR Level Center (Lv.1 - Lv.150)");
             title.setTextColor(Color.parseColor("#FFD700"));
             title.setTextSize(18);
-            title.setGravity(Gravity.CENTER);
-            title.setPadding(0, 0, 0, 30);
-            layout.addView(title);
+            title.setTypeface(null, android.graphics.Typeface.BOLD);
+            title.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
+            topBar.addView(title);
 
             Button btnClose = new Button(this);
-            btnClose.setText("Close");
-            btnClose.setOnClickListener(v -> levelDialog.dismiss());
-            layout.addView(btnClose);
+            btnClose.setText("✕");
+            btnClose.setBackgroundColor(Color.TRANSPARENT);
+            btnClose.setTextColor(Color.WHITE);
+            btnClose.setTextSize(16);
+            btnClose.setOnClickListener(v -> dialog.dismiss());
+            topBar.addView(btnClose);
 
-            levelDialog.setContentView(layout);
-            levelDialog.show();
+            root.addView(topBar);
+
+            ScrollView scrollView = new ScrollView(this);
+            scrollView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1400));
+            scrollView.setFillViewport(true);
+
+            LinearLayout listContainer = new LinearLayout(this);
+            listContainer.setOrientation(LinearLayout.VERTICAL);
+
+            // ১ থেকে ১৫০ লেভেলের ডাইনামিক রো জেনারেশন
+            for (int lvl = 1; lvl <= 150; lvl++) {
+                LinearLayout row = new LinearLayout(this);
+                row.setOrientation(LinearLayout.HORIZONTAL);
+                row.setPadding(25, 20, 25, 20);
+                row.setGravity(Gravity.CENTER_VERTICAL);
+
+                GradientDrawable rBg = new GradientDrawable();
+                rBg.setColor(Color.parseColor("#2A1B4E"));
+                rBg.setCornerRadius(20);
+                row.setBackground(rBg);
+
+                LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                p.setMargins(0, 0, 0, 14);
+                row.setLayoutParams(p);
+
+                int levelColor = LevelUtils.getLevelColor(lvl);
+                String badgeText = LevelUtils.getLevelBadgeText(lvl);
+                String targetCoins = LevelUtils.getLevelTargetCoinsFormatted(lvl);
+
+                TextView badge = new TextView(this);
+                badge.setText(badgeText);
+                badge.setTextColor(Color.WHITE);
+                badge.setTextSize(14);
+                badge.setTypeface(null, android.graphics.Typeface.BOLD);
+                badge.setGravity(Gravity.CENTER);
+                badge.setPadding(20, 12, 20, 12);
+
+                GradientDrawable bBg = new GradientDrawable();
+                bBg.setColor(levelColor);
+                bBg.setCornerRadius(25);
+                badge.setBackground(bBg);
+                badge.setMinWidth(110);
+                row.addView(badge);
+
+                LinearLayout textStack = new LinearLayout(this);
+                textStack.setOrientation(LinearLayout.VERTICAL);
+                textStack.setPadding(20, 0, 0, 0);
+                LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
+                textStack.setLayoutParams(tp);
+
+                TextView titleTxt = new TextView(this);
+                titleTxt.setText("Level Badge Tier " + lvl);
+                titleTxt.setTextColor(Color.WHITE);
+                titleTxt.setTextSize(15);
+                titleTxt.setTypeface(null, android.graphics.Typeface.BOLD);
+                textStack.addView(titleTxt);
+
+                TextView targetTxt = new TextView(this);
+                targetTxt.setText("Target: " + targetCoins);
+                targetTxt.setTextColor(Color.parseColor("#00E676"));
+                targetTxt.setTextSize(12);
+                textStack.addView(targetTxt);
+
+                row.addView(textStack);
+                listContainer.addView(row);
+            }
+
+            scrollView.addView(listContainer);
+            root.addView(scrollView);
+
+            dialog.setContentView(root);
+            Window window = dialog.getWindow();
+            if (window != null) {
+                window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1600);
+                window.setGravity(Gravity.BOTTOM);
+            }
+            dialog.show();
         } catch (Exception ignored) {}
     }
 
