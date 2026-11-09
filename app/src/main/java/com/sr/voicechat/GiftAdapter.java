@@ -1,18 +1,33 @@
 package com.sr.voicechat.adapters;
 
-// ... other imports ...
+import android.graphics.Color;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.sr.voicechat.R;
 import com.sr.voicechat.models.GiftModel;
 
+import java.util.List;
+
 public class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder> {
 
-    // ... variables ...
+    private List<GiftModel> giftList;
     private OnGiftSelectedListener listener;
-    private int selectedPosition = 0; // ডিফল্টভাবে প্রথম গিফট সিলেক্ট থাকবে
+    private int selectedPosition = 0;
 
-    // ... interface OnGiftSelectedListener ...
+    public interface OnGiftSelectedListener {
+        void onGiftSelected(GiftModel gift);
+    }
 
-    // ... Constructor ...
+    public GiftAdapter(List<GiftModel> giftList, OnGiftSelectedListener listener) {
+        this.giftList = giftList;
+        this.listener = listener;
+    }
 
     @NonNull
     @Override
@@ -25,22 +40,25 @@ public class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder
     public void onBindViewHolder(@NonNull GiftViewHolder holder, int position) {
         GiftModel gift = giftList.get(position);
         holder.txtGiftName.setText(gift.getGiftName());
-        holder.txtGiftPrice.setText(gift.getGiftPrice() + " Coins"); // গর্জিয়াস কয়েন টেক্সট
-        holder.imgGiftIcon.setImageResource(gift.getGiftImageRes()); // গর্জিয়াস আইকন
+        holder.txtGiftPrice.setText(gift.getGiftPrice() + " Coins");
+        holder.imgGiftIcon.setImageResource(gift.getGiftImageRes());
 
-        // সিলেক্টেড গিফটের হাইলাইট কালার (ভিডিওর মতো গর্জিয়াস নীল/গোল্ডেন)
         if (selectedPosition == position) {
-            holder.itemView.setBackgroundColor(Color.parseColor("#44FFD700")); // গোল্ডেন হাইলাইট
+            holder.itemView.setBackgroundColor(Color.parseColor("#44FFD700"));
         } else {
-            holder.itemView.setBackgroundColor(Color.parseColor("#2A1B4E")); // ডিফল্ট ব্যাকগ্রাউন্ড
+            holder.itemView.setBackgroundColor(Color.parseColor("#2A1B4E"));
         }
 
-        // টাচ লজিক
         holder.itemView.setOnClickListener(v -> {
             int previousPosition = selectedPosition;
             selectedPosition = holder.getAdapterPosition();
-            notifyItemChanged(previousPosition); // আগেরটিকে ডি-সিলেক্ট করা
-            notifyItemChanged(selectedPosition); // বর্তমানটিকে সিলেক্ট করা
+            
+            if (previousPosition != RecyclerView.NO_POSITION) {
+                notifyItemChanged(previousPosition);
+            }
+            if (selectedPosition != RecyclerView.NO_POSITION) {
+                notifyItemChanged(selectedPosition);
+            }
 
             if (listener != null) {
                 listener.onGiftSelected(gift);
@@ -48,5 +66,20 @@ public class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder
         });
     }
 
-    // ... getItemCount & ViewHolder class ...
+    @Override
+    public int getItemCount() {
+        return giftList.size();
+    }
+
+    public static class GiftViewHolder extends RecyclerView.ViewHolder {
+        ImageView imgGiftIcon;
+        TextView txtGiftName, txtGiftPrice;
+
+        public GiftViewHolder(@NonNull View itemView) {
+            super(itemView);
+            imgGiftIcon = itemView.findViewById(R.id.imgGiftIcon);
+            txtGiftName = itemView.findViewById(R.id.txtGiftName);
+            txtGiftPrice = itemView.findViewById(R.id.txtGiftPrice);
+        }
+    }
 }
