@@ -3,38 +3,37 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="#1B1035"
-    android:padding="24dp">
+    android:background="@drawable/bg_plus_btn"
+    android:padding="24dp"
+    android:gravity="center">
 
-    <!-- ডায়ালগের টাইটেল -->
+    <!-- Title: My Wallet -->
     <TextView
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="My Wallet"
-        android:textColor="#FFFFFF"
+        android:text="💰 My Wallet"
+        android:textColor="#FFD700"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:gravity="center"
-        android:layout_marginBottom="20dp"/>
+        android:layout_marginBottom="16dp"/>
 
-    <!-- কয়েন ব্যালেন্স দেখানোর মেইন জায়গা (যেখানে আইডি বাধ্যতামূলক) -->
+    <!-- Coin Balance Card -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:background="#2A1B4E"
+        android:orientation="vertical"
+        android:background="#22000000"
         android:padding="16dp"
-        android:layout_marginBottom="20dp"
-        android:backgroundTint="#2A1B4E">
+        android:gravity="center"
+        android:layout_marginBottom="20dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Coins: "
-            android:textColor="#FFD700"
-            android:textSize="18sp"
-            android:textStyle="bold"/>
+            android:text="Available Balance"
+            android:textColor="#AAAAAA"
+            android:textSize="14sp"
+            android:layout_marginBottom="6dp"/>
 
         <TextView
             android:id="@+id/tvCoinBalance"
@@ -42,8 +41,18 @@
             android:layout_height="wrap_content"
             android:text="0"
             android:textColor="#FFFFFF"
-            android:textSize="18sp"
+            android:textSize="28sp"
             android:textStyle="bold"/>
     </LinearLayout>
+
+    <!-- Online Recharge Button (Locked/Info for now) -->
+    <Button
+        android:id="@+id/btnOnlineRecharge"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:text="💳 Online Recharge"
+        android:textColor="#000000"
+        android:textStyle="bold"
+        android:backgroundTint="#FFD700"/>
 
 </LinearLayout>
