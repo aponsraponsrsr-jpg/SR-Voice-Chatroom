@@ -75,7 +75,7 @@ public class MeActivity extends AppCompatActivity {
             loadUserData();
             syncUserLevelFromFirebase();
             checkUserBadgesAndAgencyStatus();
-            checkSuperAdminAccessAndShowPanel(); // সুপার অ্যাডমিন জিমেইল সিকিউরিটি চেক
+            checkSuperAdminAccessAndShowPanel();
 
             if (btnEditProfile != null) {
                 btnEditProfile.setOnClickListener(v -> {
@@ -167,39 +167,23 @@ public class MeActivity extends AppCompatActivity {
         });
     }
 
-    // 👑 সুপার অ্যাডমিন জিমেইল সিকিউরিটি চেক (সম্পূর্ণ ছোট হাতের অক্ষরে)
     private void checkSuperAdminAccessAndShowPanel() {
         if (prefs == null) return;
-        
-        String ownerGmail = "aponsraponsrsr@gmail.com"; // সম্পূর্ণ ছোট হাতের জিমেইল
-        
+        String ownerGmail = "aponsraponsrsr@gmail.com";
         String loggedInEmail = prefs.getString("USER_EMAIL", "");
-        if (loggedInEmail.isEmpty()) {
-            loggedInEmail = prefs.getString("email", "");
-        }
-        if (loggedInEmail.isEmpty()) {
-            loggedInEmail = prefs.getString("GOOGLE_EMAIL", "");
-        }
-
-        // ছোট হাতের অক্ষরে রূপান্তর করে নিখুঁতভাবে ম্যাচিং করা
+        if (loggedInEmail.isEmpty()) loggedInEmail = prefs.getString("email", "");
+        if (loggedInEmail.isEmpty()) loggedInEmail = prefs.getString("GOOGLE_EMAIL", "");
         boolean isOwnerOrSuperAdmin = loggedInEmail.trim().toLowerCase().equals(ownerGmail);
-
         if (isOwnerOrSuperAdmin) {
-            if (textMeName != null) {
-                textMeName.setOnClickListener(v -> showSuperAdminMasterControlDialog());
-            }
+            if (textMeName != null) textMeName.setOnClickListener(v -> showSuperAdminMasterControlDialog());
         } else {
-            if (textMeName != null) {
-                textMeName.setOnClickListener(null);
-            }
+            if (textMeName != null) textMeName.setOnClickListener(null);
         }
     }
 
-    // 👑 কাস্টম মাস্টার কন্ট্রোল ডায়ালগ (ফুলপ্রুফ আইডি শর্ট ও এজেন্সি ক্রিয়েট)
     private void showSuperAdminMasterControlDialog() {
         final Dialog customDialog = new Dialog(this);
         customDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        
         LinearLayout rootLayout = new LinearLayout(this);
         rootLayout.setOrientation(LinearLayout.VERTICAL);
         rootLayout.setPadding(45, 45, 45, 45);
@@ -213,7 +197,6 @@ public class MeActivity extends AppCompatActivity {
         title.setPadding(0, 0, 0, 25);
         rootLayout.addView(title);
 
-        // এজেন্সি ক্রিয়েট সেকশন
         final EditText inputOwnerId = new EditText(this);
         inputOwnerId.setHint("Enter Owner ID for Agency...");
         inputOwnerId.setHintTextColor(Color.parseColor("#AAAAAA"));
@@ -235,7 +218,6 @@ public class MeActivity extends AppCompatActivity {
         btnCreateAgency.setLayoutParams(btnParams);
         rootLayout.addView(btnCreateAgency);
 
-        // ডিভাইডার লাইন
         View divider = new View(this);
         divider.setMinimumHeight(3);
         divider.setBackgroundColor(Color.parseColor("#555555"));
@@ -244,7 +226,6 @@ public class MeActivity extends AppCompatActivity {
         divider.setLayoutParams(divParams);
         rootLayout.addView(divider);
 
-        // আইডি শর্ট করার সেকশন
         final EditText inputTargetUser = new EditText(this);
         inputTargetUser.setHint("Target User ID (Old ID)...");
         inputTargetUser.setHintTextColor(Color.parseColor("#AAAAAA"));
@@ -267,11 +248,9 @@ public class MeActivity extends AppCompatActivity {
         rootLayout.addView(btnMakeShortId);
 
         customDialog.setContentView(rootLayout);
-        
         btnCreateAgency.setOnClickListener(v -> {
             String ownerId = inputOwnerId.getText().toString().trim();
             String agencyName = inputAgencyName.getText().toString().trim();
-
             if (!ownerId.isEmpty() && !agencyName.isEmpty()) {
                 createAgencyInFirebase(ownerId, agencyName);
                 customDialog.dismiss();
@@ -279,11 +258,9 @@ public class MeActivity extends AppCompatActivity {
                 Toast.makeText(this, "Owner ID and Agency Name required!", Toast.LENGTH_SHORT).show();
             }
         });
-
         btnMakeShortId.setOnClickListener(v -> {
             String targetUser = inputTargetUser.getText().toString().trim();
             String newId = inputNewShortId.getText().toString().trim();
-
             if (!targetUser.isEmpty() && !newId.isEmpty()) {
                 updateUserShortIdInFirebase(targetUser, newId);
                 customDialog.dismiss();
@@ -291,27 +268,22 @@ public class MeActivity extends AppCompatActivity {
                 Toast.makeText(this, "Target ID and New Short ID required!", Toast.LENGTH_SHORT).show();
             }
         });
-
         customDialog.show();
     }
 
     private void createAgencyInFirebase(String ownerUserId, String agencyName) {
         DatabaseReference targetAgencyRef = agencyRef.child(ownerUserId);
-        
         java.util.Map<String, Object> agencyMap = new java.util.HashMap<>();
         agencyMap.put("agencyOwnerId", ownerUserId);
         agencyMap.put("agencyName", agencyName);
         agencyMap.put("createdAt", System.currentTimeMillis());
         agencyMap.put("status", "Active");
-
         targetAgencyRef.setValue(agencyMap).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DatabaseReference userRef = userDatabaseRef.child(ownerUserId);
                 userRef.child("isAgencyOwner").setValue(true);
                 userRef.child("agencyName").setValue(agencyName);
-
                 Toast.makeText(this, "Agency '" + agencyName + "' Created Successfully!", Toast.LENGTH_LONG).show();
-                
                 Intent intent = new Intent(MeActivity.this, AgencyDashboardActivity.class);
                 intent.putExtra("AGENCY_OWNER_ID", ownerUserId);
                 intent.putExtra("AGENCY_NAME", agencyName);
@@ -327,15 +299,12 @@ public class MeActivity extends AppCompatActivity {
             Toast.makeText(this, "Old ID and New ID cannot be empty!", Toast.LENGTH_SHORT).show();
             return;
         }
-
         if (oldUserId.equals(newShortId)) {
             Toast.makeText(this, "Old ID and New ID cannot be the same!", Toast.LENGTH_SHORT).show();
             return;
         }
-
         DatabaseReference oldUserRef = userDatabaseRef.child(oldUserId);
         DatabaseReference newUserRef = userDatabaseRef.child(newShortId);
-
         newUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot newSnapshot) {
@@ -350,9 +319,7 @@ public class MeActivity extends AppCompatActivity {
                                 for (DataSnapshot child : oldSnapshot.getChildren()) {
                                     userDataMap.put(child.getKey(), child.getValue());
                                 }
-                                
                                 userDataMap.put("userId", newShortId);
-
                                 newUserRef.setValue(userDataMap).addOnCompleteListener(task -> {
                                     if (task.isSuccessful()) {
                                         oldUserRef.removeValue().addOnCompleteListener(removeTask -> {
@@ -361,7 +328,6 @@ public class MeActivity extends AppCompatActivity {
                                                     prefs.edit().putString("MY_9_DIGIT_ID", newShortId).apply();
                                                     currentUserId = newShortId;
                                                 }
-
                                                 Toast.makeText(MeActivity.this, "Success! ID Shortened to: " + newShortId, Toast.LENGTH_LONG).show();
                                                 loadUserData();
                                             } else {
@@ -377,17 +343,13 @@ public class MeActivity extends AppCompatActivity {
                                 Toast.makeText(MeActivity.this, "Target Old ID (" + oldUserId + ") not found in database!", Toast.LENGTH_LONG).show();
                             }
                         }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
+                        @Override public void onCancelled(@NonNull DatabaseError error) {
                             Toast.makeText(MeActivity.this, "Database Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
                 }
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+            @Override public void onCancelled(@NonNull DatabaseError error) {
                 Toast.makeText(MeActivity.this, "Database Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
@@ -423,10 +385,8 @@ public class MeActivity extends AppCompatActivity {
             String name = prefs.getString("USER_NAME", "Sr-Apon");
             String userId = prefs.getString("MY_9_DIGIT_ID", "493859069");
             String encodedImage = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
-
             if (textMeName != null) textMeName.setText(name);
             if (textMeId != null) textMeId.setText("ID: " + userId);
-
             if (imgMeProfile != null && encodedImage != null && !encodedImage.isEmpty()) {
                 byte[] decodedString = android.util.Base64.decode(encodedImage, android.util.Base64.DEFAULT);
                 Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
@@ -445,19 +405,16 @@ public class MeActivity extends AppCompatActivity {
             LinearLayout root = new LinearLayout(this);
             root.setOrientation(LinearLayout.VERTICAL);
             root.setPadding(35, 35, 35, 35);
-
             GradientDrawable bg = new GradientDrawable(
                 GradientDrawable.Orientation.TOP_BOTTOM,
                 new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")}
             );
             bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
             root.setBackground(bg);
-
             LinearLayout topBar = new LinearLayout(this);
             topBar.setOrientation(LinearLayout.HORIZONTAL);
             topBar.setGravity(Gravity.CENTER_VERTICAL);
             topBar.setPadding(0, 0, 0, 20);
-
             TextView title = new TextView(this);
             title.setText("🏆 SR Level Center (Lv.1 - Lv.150)");
             title.setTextColor(Color.parseColor("#FFD700"));
@@ -465,7 +422,6 @@ public class MeActivity extends AppCompatActivity {
             title.setTypeface(null, android.graphics.Typeface.BOLD);
             title.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
             topBar.addView(title);
-
             Button btnClose = new Button(this);
             btnClose.setText("✕");
             btnClose.setBackgroundColor(Color.TRANSPARENT);
@@ -473,35 +429,27 @@ public class MeActivity extends AppCompatActivity {
             btnClose.setTextSize(16);
             btnClose.setOnClickListener(v -> dialog.dismiss());
             topBar.addView(btnClose);
-
             root.addView(topBar);
-
             ScrollView scrollView = new ScrollView(this);
             scrollView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1400));
             scrollView.setFillViewport(true);
-
             LinearLayout listContainer = new LinearLayout(this);
             listContainer.setOrientation(LinearLayout.VERTICAL);
-
             for (int lvl = 1; lvl <= 150; lvl++) {
                 LinearLayout row = new LinearLayout(this);
                 row.setOrientation(LinearLayout.HORIZONTAL);
                 row.setPadding(25, 20, 25, 20);
                 row.setGravity(Gravity.CENTER_VERTICAL);
-
                 GradientDrawable rBg = new GradientDrawable();
                 rBg.setColor(Color.parseColor("#2A1B4E"));
                 rBg.setCornerRadius(20);
                 row.setBackground(rBg);
-
                 LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
                 p.setMargins(0, 0, 0, 14);
                 row.setLayoutParams(p);
-
                 int levelColor = LevelUtils.getLevelColor(lvl);
                 String badgeText = LevelUtils.getLevelBadgeText(lvl);
                 String targetCoins = LevelUtils.getLevelTargetCoinsFormatted(lvl);
-
                 TextView badge = new TextView(this);
                 badge.setText(badgeText);
                 badge.setTextColor(Color.WHITE);
@@ -509,40 +457,33 @@ public class MeActivity extends AppCompatActivity {
                 badge.setTypeface(null, android.graphics.Typeface.BOLD);
                 badge.setGravity(Gravity.CENTER);
                 badge.setPadding(20, 12, 20, 12);
-
                 GradientDrawable bBg = new GradientDrawable();
                 bBg.setColor(levelColor);
                 bBg.setCornerRadius(25);
                 badge.setBackground(bBg);
                 badge.setMinWidth(110);
                 row.addView(badge);
-
                 LinearLayout textStack = new LinearLayout(this);
                 textStack.setOrientation(LinearLayout.VERTICAL);
                 textStack.setPadding(20, 0, 0, 0);
                 LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
                 textStack.setLayoutParams(tp);
-
                 TextView titleTxt = new TextView(this);
                 titleTxt.setText("Level Badge Tier " + lvl);
                 titleTxt.setTextColor(Color.WHITE);
                 titleTxt.setTextSize(15);
                 titleTxt.setTypeface(null, android.graphics.Typeface.BOLD);
                 textStack.addView(titleTxt);
-
                 TextView targetTxt = new TextView(this);
                 targetTxt.setText("Target: " + targetCoins);
                 targetTxt.setTextColor(Color.parseColor("#00E676"));
                 targetTxt.setTextSize(12);
                 textStack.addView(targetTxt);
-
                 row.addView(textStack);
                 listContainer.addView(row);
             }
-
             scrollView.addView(listContainer);
             root.addView(scrollView);
-
             dialog.setContentView(root);
             Window window = dialog.getWindow();
             if (window != null) {
@@ -568,12 +509,115 @@ public class MeActivity extends AppCompatActivity {
         } catch (Exception ignored) {}
     }
 
+    // 👑 PREMIUM VIP 1 TO 7 - FULL LIST
     private void showVipDialog() {
         try {
-            Dialog dialog = new Dialog(this);
-            dialog.setContentView(R.layout.dialog_vip_status);
+            BottomSheetDialog dialog = new BottomSheetDialog(this);
+            LinearLayout root = new LinearLayout(this);
+            root.setOrientation(LinearLayout.VERTICAL);
+            root.setPadding(35, 30, 35, 35);
+            GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{Color.parseColor("#2A1052"), Color.parseColor("#0A0518")});
+            bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
+            root.setBackground(bg);
+
+            TextView title = new TextView(this);
+            title.setText("👑 VIP Privileges");
+            title.setTextColor(Color.parseColor("#FFD700"));
+            title.setTextSize(21);
+            title.setTypeface(null, android.graphics.Typeface.BOLD);
+            title.setGravity(Gravity.CENTER);
+            root.addView(title);
+
+            TextView sub = new TextView(this);
+            sub.setText("Premium • Exclusive • Royal  |  VIP 1 to VIP 7");
+            sub.setTextColor(Color.parseColor("#FF4081"));
+            sub.setTextSize(12);
+            sub.setTypeface(null, android.graphics.Typeface.BOLD);
+            sub.setGravity(Gravity.CENTER);
+            sub.setPadding(0, 8, 0, 20);
+            root.addView(sub);
+
+            ScrollView scroll = new ScrollView(this);
+            scroll.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1150));
+            LinearLayout list = new LinearLayout(this);
+            list.setOrientation(LinearLayout.VERTICAL);
+
+            addVipCard(list, "👑 VIP 1", "2,000,000 Coins", "#FFD700",
+                "✨ Premium Frame", "🚀 Premium Entry Effect");
+            addVipCard(list, "👑 VIP 2", "5,000,000 Coins", "#FF9800",
+                "✨ Premium Frame", "🚀 Premium Entry Effect", "🏅 VIP Badge");
+            addVipCard(list, "👑 VIP 3", "8,000,000 Coins", "#FF4081",
+                "✨ Premium Frame", "🚀 Premium Entry Effect", "🏅 VIP Badge", "💬 Premium Chat Bubble");
+            addVipCard(list, "👑 VIP 4", "15,000,000 Coins", "#9C27B0",
+                "🌟 Royal Frame", "🔥 Royal Entry Effect", "🏅 Royal Badge", "💬 Royal Chat Bubble");
+            addVipCard(list, "👑 VIP 5", "20,000,000 Coins", "#00BCD4",
+                "🌟 Royal Frame", "🔥 Royal Entry Effect", "🏅 Royal Badge", "💬 Royal Chat Bubble", "🎆 Special Room Effect");
+            addVipCard(list, "💎 VIP 6", "30,000,000 Coins", "#00E676",
+                "💎 Diamond Frame", "⚡ Diamond Entry Effect", "🏅 Diamond Badge", "💬 Diamond Chat Bubble", "🎆 Special Room Effect", "🎁 Exclusive Gift");
+            addVipCard(list, "👑 VIP 7 - KING", "50,000,000 Coins", "#FFD700",
+                "👑 KING Frame", "🔥 KING Entry Effect", "🏅 KING Badge", "💬 KING Chat Bubble", "🎆 KING Room Effect", "🎁 Exclusive Gift", "⭐ All VIP Privileges Unlocked");
+
+            scroll.addView(list);
+            root.addView(scroll);
+
+            Button btnClose = new Button(this);
+            btnClose.setText("Close");
+            btnClose.setTextColor(Color.WHITE);
+            btnClose.setBackgroundColor(Color.parseColor("#FF4081"));
+            LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            cp.setMargins(0, 20, 0, 0);
+            btnClose.setLayoutParams(cp);
+            btnClose.setOnClickListener(v -> dialog.dismiss());
+            root.addView(btnClose);
+
+            dialog.setContentView(root);
             dialog.show();
-        } catch (Exception ignored) {}
+        } catch (Exception e) { e.printStackTrace(); }
+    }
+
+    private void addVipCard(LinearLayout parent, String vipName, String price, String colorHex, String... privileges) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(28, 22, 28, 22);
+        GradientDrawable cardBg = new GradientDrawable();
+        cardBg.setColor(Color.parseColor("#2A1B4E"));
+        cardBg.setCornerRadius(24);
+        cardBg.setStroke(3, Color.parseColor(colorHex));
+        card.setBackground(cardBg);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(0, 0, 0, 16);
+        card.setLayoutParams(lp);
+
+        LinearLayout top = new LinearLayout(this);
+        top.setOrientation(LinearLayout.HORIZONTAL);
+        top.setGravity(Gravity.CENTER_VERTICAL);
+
+        TextView name = new TextView(this);
+        name.setText(vipName);
+        name.setTextColor(Color.parseColor(colorHex));
+        name.setTextSize(17);
+        name.setTypeface(null, android.graphics.Typeface.BOLD);
+        name.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        top.addView(name);
+
+        TextView priceTxt = new TextView(this);
+        priceTxt.setText(price);
+        priceTxt.setTextColor(Color.parseColor("#00E676"));
+        priceTxt.setTextSize(13);
+        priceTxt.setTypeface(null, android.graphics.Typeface.BOLD);
+        top.addView(priceTxt);
+        card.addView(top);
+
+        for (String p : privileges) {
+            TextView t = new TextView(this);
+            t.setText("  •  " + p);
+            t.setTextColor(Color.WHITE);
+            t.setTextSize(13);
+            t.setPadding(0, 6, 0, 0);
+            card.addView(t);
+        }
+        parent.addView(card);
     }
 
     @Override
