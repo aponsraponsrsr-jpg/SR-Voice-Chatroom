@@ -223,7 +223,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             btnInRoomRanking.setOnClickListener(v -> showPremiumRankingBottomSheet());
         }
 
-        // 🌟 হেডার ক্লিক করলে প্রিমিয়াম গ্রুপ ইনফো ও মেম্বার ড্যাশবোর্ড পপআপ ওপেন হবে
         View.OnClickListener headerClickListener = v -> showPremiumRoomInfoAndMembersDialog();
         if (roomTitleText != null) roomTitleText.setOnClickListener(headerClickListener);
         if (roomHeaderProfileImg != null) roomHeaderProfileImg.setOnClickListener(headerClickListener);
@@ -320,192 +319,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 builder.show();
             });
         }
-    }
-
-    // 🌟 হেডারে ক্লিক করলে বড় প্রিমিয়াম গ্রুপ ইনফো ও মেম্বার ড্যাশবোর্ড (Info & Members Tabs + Event Banner)
-    private void showPremiumRoomInfoAndMembersDialog() {
-        BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(40, 40, 40, 40);
-
-        GradientDrawable bg = new GradientDrawable(
-            GradientDrawable.Orientation.TOP_BOTTOM,
-            new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")}
-        );
-        bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
-        root.setBackground(bg);
-
-        // ২-ট্যাব হেডার (Info & Members)
-        LinearLayout tabHeader = new LinearLayout(this);
-        tabHeader.setOrientation(LinearLayout.HORIZONTAL);
-        tabHeader.setGravity(Gravity.CENTER);
-        tabHeader.setPadding(0, 0, 0, 20);
-
-        Button tabInfoBtn = new Button(this);
-        tabInfoBtn.setText("ℹ️ Room Info");
-        tabInfoBtn.setBackgroundColor(Color.parseColor("#FFD700"));
-        tabInfoBtn.setTextColor(Color.BLACK);
-        tabInfoBtn.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
-
-        Button tabMembersBtn = new Button(this);
-        tabMembersBtn.setText("👥 Members");
-        tabMembersBtn.setBackgroundColor(Color.parseColor("#2A1B4E"));
-        tabMembersBtn.setTextColor(Color.WHITE);
-        tabMembersBtn.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
-
-        tabHeader.addView(tabInfoBtn);
-        tabHeader.addView(tabMembersBtn);
-        root.addView(tabHeader);
-
-        // কন্টেন্ট প্যানেল
-        ScrollView contentScrollView = new ScrollView(this);
-        contentScrollView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1200));
-        contentScrollView.setFillViewport(true);
-
-        LinearLayout mainContainer = new LinearLayout(this);
-        mainContainer.setOrientation(LinearLayout.VERTICAL);
-
-        // --- Info Layout ---
-        LinearLayout infoLayout = new LinearLayout(this);
-        infoLayout.setOrientation(LinearLayout.VERTICAL);
-
-        // ওনার ইনফো কার্ড
-        LinearLayout ownerCard = new LinearLayout(this);
-        ownerCard.setOrientation(LinearLayout.VERTICAL);
-        ownerCard.setPadding(25, 25, 25, 25);
-        GradientDrawable cardBg = new GradientDrawable();
-        cardBg.setColor(Color.parseColor("#2A1B4E"));
-        cardBg.setCornerRadius(20);
-        ownerCard.setBackground(cardBg);
-
-        TextView ownerTitle = new TextView(this);
-        ownerTitle.setText("👑 Room Owner: SR Official");
-        ownerTitle.setTextColor(Color.parseColor("#FFD700"));
-        ownerTitle.setTextSize(16);
-        ownerTitle.setTypeface(null, android.graphics.Typeface.BOLD);
-        ownerCard.addView(ownerTitle);
-
-        TextView ownerIdTxt = new TextView(this);
-        ownerIdTxt.setText("ID: " + roomOwnerId);
-        ownerIdTxt.setTextColor(Color.parseColor("#00E676"));
-        ownerIdTxt.setTextSize(13);
-        ownerIdTxt.setPadding(0, 4, 0, 10);
-        ownerCard.addView(ownerIdTxt);
-
-        TextView noticeTxt = new TextView(this);
-        noticeTxt.setText("📢 Welcome to SR Voice Chat Room! Enjoy live stream & luxury gifts.");
-        noticeTxt.setTextColor(Color.WHITE);
-        noticeTxt.setTextSize(13);
-        ownerCard.addView(noticeTxt);
-
-        infoLayout.addView(ownerCard);
-
-        // 🌟 ইভেন্ট / রিওয়ার্ড ব্যানার কার্ড
-        LinearLayout bannerCard = new LinearLayout(this);
-        bannerCard.setOrientation(LinearLayout.VERTICAL);
-        bannerCard.setPadding(30, 30, 30, 30);
-        LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        bp.setMargins(0, 20, 0, 0);
-        bannerCard.setLayoutParams(bp);
-
-        GradientDrawable bannerBg = new GradientDrawable(
-            GradientDrawable.Orientation.LEFT_RIGHT,
-            new int[]{Color.parseColor("#8E24AA"), Color.parseColor("#D81B60")}
-        );
-        bannerBg.setCornerRadius(20);
-        bannerCard.setBackground(bannerBg);
-
-        TextView bannerTitle = new TextView(this);
-        bannerTitle.setText("🎁 Room Reward Event");
-        bannerTitle.setTextColor(Color.WHITE);
-        bannerTitle.setTextSize(16);
-        bannerTitle.setTypeface(null, android.graphics.Typeface.BOLD);
-        bannerCard.addView(bannerTitle);
-
-        TextView bannerSub = new TextView(this);
-        bannerSub.setText("Weekly Top Sender Reward system (Coming Soon!)");
-        bannerSub.setTextColor(Color.parseColor("#FFEB3B"));
-        bannerSub.setTextSize(12);
-        bannerCard.addView(bannerSub);
-
-        infoLayout.addView(bannerCard);
-        mainContainer.addView(infoLayout);
-
-        // --- Members Layout (Hidden initially) ---
-        LinearLayout membersLayout = new LinearLayout(this);
-        membersLayout.setOrientation(LinearLayout.VERTICAL);
-        membersLayout.setVisibility(View.GONE);
-
-        databaseReference.child("online_users").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                membersLayout.removeAllViews();
-                for (DataSnapshot ds : snapshot.getChildren()) {
-                    String uName = ds.getValue(String.class);
-                    String uId = ds.getKey();
-                    if (uName != null) {
-                        LinearLayout row = new LinearLayout(VoiceRoomActivity.this);
-                        row.setOrientation(LinearLayout.HORIZONTAL);
-                        row.setPadding(20, 20, 20, 20);
-                        row.setGravity(Gravity.CENTER_VERTICAL);
-
-                        GradientDrawable rBg = new GradientDrawable();
-                        rBg.setColor(Color.parseColor("#2A1B4E"));
-                        rBg.setCornerRadius(16);
-                        row.setBackground(rBg);
-
-                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                        lp.setMargins(0, 0, 0, 10);
-                        row.setLayoutParams(lp);
-
-                        String roleBadge = (uId != null && uId.equals(roomOwnerId)) ? "👑 Owner " : (roomAdminList.contains(uId) ? "🛡️ Admin " : "🟢 Member ");
-
-                        TextView nameTxt = new TextView(VoiceRoomActivity.this);
-                        nameTxt.setText(roleBadge + uName + " (ID: " + uId + ")");
-                        nameTxt.setTextColor(Color.WHITE);
-                        nameTxt.setTextSize(14);
-                        nameTxt.setTypeface(null, android.graphics.Typeface.BOLD);
-                        row.addView(nameTxt);
-
-                        membersLayout.addView(row);
-                    }
-                }
-            }
-            @Override public void onCancelled(@NonNull DatabaseError error) {}
-        });
-
-        mainContainer.addView(membersLayout);
-
-        // ট্যাব সুইচিং লজিক
-        tabInfoBtn.setOnClickListener(v -> {
-            tabInfoBtn.setBackgroundColor(Color.parseColor("#FFD700"));
-            tabInfoBtn.setTextColor(Color.BLACK);
-            tabMembersBtn.setBackgroundColor(Color.parseColor("#2A1B4E"));
-            tabMembersBtn.setTextColor(Color.WHITE);
-            infoLayout.setVisibility(View.VISIBLE);
-            membersLayout.setVisibility(View.GONE);
-        });
-
-        tabMembersBtn.setOnClickListener(v -> {
-            tabMembersBtn.setBackgroundColor(Color.parseColor("#FFD700"));
-            tabMembersBtn.setTextColor(Color.BLACK);
-            tabInfoBtn.setBackgroundColor(Color.parseColor("#2A1B4E"));
-            tabInfoBtn.setTextColor(Color.WHITE);
-            infoLayout.setVisibility(View.GONE);
-            membersLayout.setVisibility(View.VISIBLE);
-        });
-
-        contentScrollView.addView(mainContainer);
-        root.addView(contentScrollView);
-
-        dialog.setContentView(root);
-        Window window = dialog.getWindow();
-        if (window != null) {
-            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1500);
-            window.setGravity(Gravity.BOTTOM);
-        }
-        dialog.show();
     }
 
     private View createToolButton(String title, String subtitle, View.OnClickListener listener) {
@@ -872,6 +685,19 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 @Override public void onCancelled(@NonNull DatabaseError error) {}
             });
 
+            // ইউজারের সেন্ডিং কয়েন সার্ভারে আপডেট করা (রিয়েল-টাইম লেভেলের জন্য)
+            if (!currentUserId.isEmpty()) {
+                userDatabaseRef.child(currentUserId).child("sendingCoins").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        Long currentSend = snapshot.getValue(Long.class);
+                        long updatedSend = (currentSend != null ? currentSend : 0L) + giftCoins;
+                        userDatabaseRef.child(currentUserId).child("sendingCoins").setValue(updatedSend);
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError error) {}
+                });
+            }
+
             long msgTimestamp = System.currentTimeMillis();
             String msgId = messagesRef.push().getKey();
             if (msgId != null) {
@@ -1033,6 +859,184 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
+    private void showPremiumRoomInfoAndMembersDialog() {
+        BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(40, 40, 40, 40);
+
+        GradientDrawable bg = new GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")}
+        );
+        bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
+        root.setBackground(bg);
+
+        LinearLayout tabHeader = new LinearLayout(this);
+        tabHeader.setOrientation(LinearLayout.HORIZONTAL);
+        tabHeader.setGravity(Gravity.CENTER);
+        tabHeader.setPadding(0, 0, 0, 20);
+
+        Button tabInfoBtn = new Button(this);
+        tabInfoBtn.setText("ℹ️ Room Info");
+        tabInfoBtn.setBackgroundColor(Color.parseColor("#FFD700"));
+        tabInfoBtn.setTextColor(Color.BLACK);
+        tabInfoBtn.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
+
+        Button tabMembersBtn = new Button(this);
+        tabMembersBtn.setText("👥 Members");
+        tabMembersBtn.setBackgroundColor(Color.parseColor("#2A1B4E"));
+        tabMembersBtn.setTextColor(Color.WHITE);
+        tabMembersBtn.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
+
+        tabHeader.addView(tabInfoBtn);
+        tabHeader.addView(tabMembersBtn);
+        root.addView(tabHeader);
+
+        ScrollView contentScrollView = new ScrollView(this);
+        contentScrollView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1200));
+        contentScrollView.setFillViewport(true);
+
+        LinearLayout mainContainer = new LinearLayout(this);
+        mainContainer.setOrientation(LinearLayout.VERTICAL);
+
+        LinearLayout infoLayout = new LinearLayout(this);
+        infoLayout.setOrientation(LinearLayout.VERTICAL);
+
+        LinearLayout ownerCard = new LinearLayout(this);
+        ownerCard.setOrientation(LinearLayout.VERTICAL);
+        ownerCard.setPadding(25, 25, 25, 25);
+        GradientDrawable cardBg = new GradientDrawable();
+        cardBg.setColor(Color.parseColor("#2A1B4E"));
+        cardBg.setCornerRadius(20);
+        ownerCard.setBackground(cardBg);
+
+        TextView ownerTitle = new TextView(this);
+        ownerTitle.setText("👑 Room Owner: SR Official");
+        ownerTitle.setTextColor(Color.parseColor("#FFD700"));
+        ownerTitle.setTextSize(16);
+        ownerTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        ownerCard.addView(ownerTitle);
+
+        TextView ownerIdTxt = new TextView(this);
+        ownerIdTxt.setText("ID: " + roomOwnerId);
+        ownerIdTxt.setTextColor(Color.parseColor("#00E676"));
+        ownerIdTxt.setTextSize(13);
+        ownerIdTxt.setPadding(0, 4, 0, 10);
+        ownerCard.addView(ownerIdTxt);
+
+        TextView noticeTxt = new TextView(this);
+        noticeTxt.setText("📢 Welcome to SR Voice Chat Room! Enjoy live stream & luxury gifts.");
+        noticeTxt.setTextColor(Color.WHITE);
+        noticeTxt.setTextSize(13);
+        ownerCard.addView(noticeTxt);
+
+        infoLayout.addView(ownerCard);
+
+        LinearLayout bannerCard = new LinearLayout(this);
+        bannerCard.setOrientation(LinearLayout.VERTICAL);
+        bannerCard.setPadding(30, 30, 30, 30);
+        LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        bp.setMargins(0, 20, 0, 0);
+        bannerCard.setLayoutParams(bp);
+
+        GradientDrawable bannerBg = new GradientDrawable(
+            GradientDrawable.Orientation.LEFT_RIGHT,
+            new int[]{Color.parseColor("#8E24AA"), Color.parseColor("#D81B60")}
+        );
+        bannerBg.setCornerRadius(20);
+        bannerCard.setBackground(bannerBg);
+
+        TextView bannerTitle = new TextView(this);
+        bannerTitle.setText("🎁 Room Reward Event");
+        bannerTitle.setTextColor(Color.WHITE);
+        bannerTitle.setTextSize(16);
+        bannerTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        bannerCard.addView(bannerTitle);
+
+        TextView bannerSub = new TextView(this);
+        bannerSub.setText("Weekly Top Sender Reward system (Coming Soon!)");
+        bannerSub.setTextColor(Color.parseColor("#FFEB3B"));
+        bannerSub.setTextSize(12);
+        bannerCard.addView(bannerSub);
+
+        infoLayout.addView(bannerCard);
+        mainContainer.addView(infoLayout);
+
+        LinearLayout membersLayout = new LinearLayout(this);
+        membersLayout.setOrientation(LinearLayout.VERTICAL);
+        membersLayout.setVisibility(View.GONE);
+
+        databaseReference.child("online_users").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                membersLayout.removeAllViews();
+                for (DataSnapshot ds : snapshot.getChildren()) {
+                    String uName = ds.getValue(String.class);
+                    String uId = ds.getKey();
+                    if (uName != null) {
+                        LinearLayout row = new LinearLayout(VoiceRoomActivity.this);
+                        row.setOrientation(LinearLayout.HORIZONTAL);
+                        row.setPadding(20, 20, 20, 20);
+                        row.setGravity(Gravity.CENTER_VERTICAL);
+
+                        GradientDrawable rBg = new GradientDrawable();
+                        rBg.setColor(Color.parseColor("#2A1B4E"));
+                        rBg.setCornerRadius(16);
+                        row.setBackground(rBg);
+
+                        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+                        lp.setMargins(0, 0, 0, 10);
+                        row.setLayoutParams(lp);
+
+                        String roleBadge = (uId != null && uId.equals(roomOwnerId)) ? "👑 Owner " : (roomAdminList.contains(uId) ? "🛡️ Admin " : "🟢 Member ");
+
+                        TextView nameTxt = new TextView(VoiceRoomActivity.this);
+                        nameTxt.setText(roleBadge + uName + " (ID: " + uId + ")");
+                        nameTxt.setTextColor(Color.WHITE);
+                        nameTxt.setTextSize(14);
+                        nameTxt.setTypeface(null, android.graphics.Typeface.BOLD);
+                        row.addView(nameTxt);
+
+                        membersLayout.addView(row);
+                    }
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+
+        mainContainer.addView(membersLayout);
+
+        tabInfoBtn.setOnClickListener(v -> {
+            tabInfoBtn.setBackgroundColor(Color.parseColor("#FFD700"));
+            tabInfoBtn.setTextColor(Color.BLACK);
+            tabMembersBtn.setBackgroundColor(Color.parseColor("#2A1B4E"));
+            tabMembersBtn.setTextColor(Color.WHITE);
+            infoLayout.setVisibility(View.VISIBLE);
+            membersLayout.setVisibility(View.GONE);
+        });
+
+        tabMembersBtn.setOnClickListener(v -> {
+            tabMembersBtn.setBackgroundColor(Color.parseColor("#FFD700"));
+            tabMembersBtn.setTextColor(Color.BLACK);
+            tabInfoBtn.setBackgroundColor(Color.parseColor("#2A1B4E"));
+            tabInfoBtn.setTextColor(Color.WHITE);
+            infoLayout.setVisibility(View.GONE);
+            membersLayout.setVisibility(View.VISIBLE);
+        });
+
+        contentScrollView.addView(mainContainer);
+        root.addView(contentScrollView);
+
+        dialog.setContentView(root);
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1500);
+            window.setGravity(Gravity.BOTTOM);
+        }
+        dialog.show();
+    }
+
     private void listenToFirebaseSeats() {
         int[] seatImgIds = {
             R.id.seatImg1, R.id.seatImg2, R.id.seatImg3, R.id.seatImg4, R.id.seatImg5,
@@ -1146,7 +1150,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                     takeSeat(seatIndex, seatKey);
                                 } else if (selectedOption.contains("View Profile")) {
                                     String imgUri = seatSnap.child("userImage").getValue(String.class);
-                                    showUserProfileDialog(occupantName, occupantUid, imgUri);
+                                    // ফায়ারবেস থেকে ইউজারের রিয়েল কয়েন ফেচ করে প্রোফাইল কার্ড ওপেন করা
+                                    fetchUserCoinsAndShowProfile(occupantName, occupantUid, imgUri);
                                 } else if (selectedOption.contains("Leave Mic")) {
                                     databaseReference.child("seats").child(seatKey).removeValue();
                                     Toast.makeText(VoiceRoomActivity.this, "Left seat & counter reset", Toast.LENGTH_SHORT).show();
@@ -1161,7 +1166,34 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    private void showUserProfileDialog(String userName, String userId, String userImage) {
+    // 🌟 ফায়ারবেস ডেটাবেজ থেকে ইউজারের কয়েন ফেচ করে ডায়নামিক লেভেল হিসাব করার মেথড
+    private void fetchUserCoinsAndShowProfile(String userName, String userId, String userImage) {
+        if (userId == null || userId.isEmpty()) {
+            showUserProfileDialog(userName, userId, userImage, 0L, 0L);
+            return;
+        }
+
+        userDatabaseRef.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                long sendingCoins = 0L;
+                long receivingCoins = 0L;
+                if (snapshot.exists()) {
+                    Long send = snapshot.child("sendingCoins").getValue(Long.class);
+                    Long recv = snapshot.child("receivingCoins").getValue(Long.class);
+                    if (send != null) sendingCoins = send;
+                    if (recv != null) receivingCoins = recv;
+                }
+                showUserProfileDialog(userName, userId, userImage, sendingCoins, receivingCoins);
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {
+                showUserProfileDialog(userName, userId, userImage, 0L, 0L);
+            }
+        });
+    }
+
+    // 🌟 পার্মানেন্ট সার্ভার-কানেক্টেড ডাবল লেভেল এবং ওয়ালেট/চার্ম অপশনসহ প্রিমিয়াম ইউজার প্রোফাইল কার্ড
+    private void showUserProfileDialog(String userName, String userId, String userImage, long sendingCoins, long receivingCoins) {
         BottomSheetDialog profileDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
@@ -1174,23 +1206,26 @@ public class VoiceRoomActivity extends AppCompatActivity {
         bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
         layout.setBackground(bg);
 
+        // টপ টাইটেল
         TextView title = new TextView(this);
         title.setText("✨ User Profile Card");
         title.setTextColor(Color.parseColor("#FFD700"));
         title.setTextSize(17);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
         title.setGravity(Gravity.CENTER);
-        title.setPadding(0, 0, 0, 25);
+        title.setPadding(0, 0, 0, 20);
         layout.addView(title);
 
+        // ইউজার ইনফো কার্ড
         LinearLayout infoCard = new LinearLayout(this);
         infoCard.setOrientation(LinearLayout.VERTICAL);
-        infoCard.setPadding(30, 30, 30, 30);
+        infoCard.setPadding(30, 25, 30, 25);
         GradientDrawable cardBg = new GradientDrawable();
         cardBg.setColor(Color.parseColor("#2A1B4E"));
         cardBg.setCornerRadius(24);
         infoCard.setBackground(cardBg);
 
+        // নাম ও আইডি
         TextView nameText = new TextView(this);
         nameText.setText(userName != null ? userName : "SR User");
         nameText.setTextColor(Color.WHITE);
@@ -1202,12 +1237,41 @@ public class VoiceRoomActivity extends AppCompatActivity {
         idText.setText("ID: " + (userId != null ? userId : "493859069"));
         idText.setTextColor(Color.parseColor("#00E676"));
         idText.setTextSize(14);
-        idText.setPadding(0, 5, 0, 15);
+        idText.setPadding(0, 4, 0, 12);
         infoCard.addView(idText);
 
+        // 🌟 সার্ভার কয়েন অনুযায়ী ডায়নামিক লেভেল ও কালার ক্যালকুলেশন
+        int sendLevel = calculateLevel(sendingCoins);
+        int recvLevel = calculateLevel(receivingCoins);
+        String sendColorHex = getLevelColorHex(sendLevel);
+        String recvColorHex = getLevelColorHex(recvLevel);
+
+        // লেভেল রো (Sending & Receiving Level Badges)
+        LinearLayout levelRow = new LinearLayout(this);
+        levelRow.setOrientation(LinearLayout.HORIZONTAL);
+        levelRow.setPadding(0, 4, 0, 12);
+
+        TextView sendingLevel = new TextView(this);
+        sendingLevel.setText("⭐ Send Lv. " + sendLevel + " (" + sendingCoins + " Coins)");
+        sendingLevel.setTextColor(Color.parseColor(sendColorHex));
+        sendingLevel.setTextSize(13);
+        sendingLevel.setTypeface(null, android.graphics.Typeface.BOLD);
+        sendingLevel.setPadding(0, 0, 20, 0);
+        levelRow.addView(sendingLevel);
+
+        TextView receivingLevel = new TextView(this);
+        receivingLevel.setText("👑 Recv Lv. " + recvLevel + " (" + receivingCoins + " Coins)");
+        receivingLevel.setTextColor(Color.parseColor(recvColorHex));
+        receivingLevel.setTextSize(13);
+        receivingLevel.setTypeface(null, android.graphics.Typeface.BOLD);
+        levelRow.addView(receivingLevel);
+
+        infoCard.addView(levelRow);
+
+        // ফলো, ফ্যান্স ও ভিজিটর কাউন্ট
         LinearLayout statsRow = new LinearLayout(this);
         statsRow.setOrientation(LinearLayout.HORIZONTAL);
-        statsRow.setPadding(0, 10, 0, 15);
+        statsRow.setPadding(0, 8, 0, 10);
 
         TextView followingTxt = new TextView(this);
         followingTxt.setText("2 Following    ");
@@ -1230,30 +1294,41 @@ public class VoiceRoomActivity extends AppCompatActivity {
         infoCard.addView(statsRow);
         layout.addView(infoCard);
 
-        LinearLayout detailsLayout = new LinearLayout(this);
-        detailsLayout.setOrientation(LinearLayout.VERTICAL);
-        detailsLayout.setPadding(10, 20, 10, 20);
+        // 🌟 ওয়ালেট (Wallet) এবং চার্ম (Charm) অপশন বার (ভিডিওর চাহিদা অনুযায়ী)
+        LinearLayout extraFeaturesRow = new LinearLayout(this);
+        extraFeaturesRow.setOrientation(LinearLayout.HORIZONTAL);
+        extraFeaturesRow.setGravity(Gravity.CENTER);
+        extraFeaturesRow.setPadding(0, 15, 0, 10);
 
-        TextView levelTxt = new TextView(this);
-        levelTxt.setText("⭐ Level: Lv. 7 (VIP)");
-        levelTxt.setTextColor(Color.parseColor("#FFD700"));
-        levelTxt.setTextSize(14);
-        levelTxt.setPadding(0, 8, 0, 8);
-        detailsLayout.addView(levelTxt);
+        Button btnWallet = new Button(this);
+        btnWallet.setText("💰 Wallet");
+        btnWallet.setBackgroundColor(Color.parseColor("#3F51B5"));
+        btnWallet.setTextColor(Color.WHITE);
+        btnWallet.setTypeface(null, android.graphics.Typeface.BOLD);
+        LinearLayout.LayoutParams wp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
+        wp.setMargins(0, 0, 6, 0);
+        btnWallet.setLayoutParams(wp);
+        btnWallet.setOnClickListener(v -> Toast.makeText(this, "Wallet balance: 50,000 Coins", Toast.LENGTH_SHORT).show());
+        extraFeaturesRow.addView(btnWallet);
 
-        TextView countryTxt = new TextView(this);
-        countryTxt.setText("🌍 Country: Bangladesh");
-        countryTxt.setTextColor(Color.WHITE);
-        countryTxt.setTextSize(14);
-        countryTxt.setPadding(0, 8, 0, 8);
-        detailsLayout.addView(countryTxt);
+        Button btnCharm = new Button(this);
+        btnCharm.setText("💎 Charm");
+        btnCharm.setBackgroundColor(Color.parseColor("#9C27B0"));
+        btnCharm.setTextColor(Color.WHITE);
+        btnCharm.setTypeface(null, android.graphics.Typeface.BOLD);
+        LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
+        cp.setMargins(6, 0, 0, 0);
+        btnCharm.setLayoutParams(cp);
+        btnCharm.setOnClickListener(v -> Toast.makeText(this, "Charm level status active!", Toast.LENGTH_SHORT).show());
+        extraFeaturesRow.addView(btnCharm);
 
-        layout.addView(detailsLayout);
+        layout.addView(extraFeaturesRow);
 
+        // অ্যাকশন বাটন: Follow, Gift, Add Friend
         LinearLayout actionRow = new LinearLayout(this);
         actionRow.setOrientation(LinearLayout.HORIZONTAL);
         actionRow.setGravity(Gravity.CENTER);
-        actionRow.setPadding(0, 25, 0, 10);
+        actionRow.setPadding(0, 15, 0, 10);
 
         Button btnFollow = new Button(this);
         btnFollow.setText("✨ Follow");
@@ -1263,9 +1338,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         LinearLayout.LayoutParams p1 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
         p1.setMargins(0, 0, 6, 0);
         btnFollow.setLayoutParams(p1);
-        btnFollow.setOnClickListener(v -> {
-            Toast.makeText(this, "Successfully Followed " + userName, Toast.LENGTH_SHORT).show();
-        });
+        btnFollow.setOnClickListener(v -> Toast.makeText(this, "Successfully Followed " + userName, Toast.LENGTH_SHORT).show());
         actionRow.addView(btnFollow);
 
         Button btnPopupGift = new Button(this);
@@ -1290,9 +1363,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         LinearLayout.LayoutParams p3 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
         p3.setMargins(6, 0, 0, 0);
         btnAddFriend.setLayoutParams(p3);
-        btnAddFriend.setOnClickListener(v -> {
-            Toast.makeText(this, "Friend Request Sent to " + userName, Toast.LENGTH_SHORT).show();
-        });
+        btnAddFriend.setOnClickListener(v -> Toast.makeText(this, "Friend Request Sent to " + userName, Toast.LENGTH_SHORT).show());
         actionRow.addView(btnAddFriend);
 
         layout.addView(actionRow);
@@ -1304,6 +1375,32 @@ public class VoiceRoomActivity extends AppCompatActivity {
             window.setGravity(Gravity.BOTTOM);
         }
         profileDialog.show();
+    }
+
+    // 🌟 লেভেল ক্যালকুলেশন ফর্মুলা (ভিডিওর চাহিদা অনুযায়ী বড় অ্যামাউন্ট টার্গেট)
+    private int calculateLevel(long coins) {
+        if (coins < 200000L) return 1;          // Lv 1 (< 2 Lakh)
+        else if (coins < 500000L) return 2;     // Lv 2 (2 - 5 Lakh)
+        else if (coins < 1500000L) return 3;    // Lv 3 (5 - 15 Lakh)
+        else if (coins < 3000000L) return 4;    // Lv 4 (15 - 30 Lakh)
+        else if (coins < 5000000L) return 5;    // Lv 5 (30 - 50 Lakh)
+        else if (coins < 10000000L) return 10;  // Lv 10
+        else if (coins < 20000000L) return 20;  // Lv 20
+        else if (coins < 50000000L) return 30;  // Lv 30
+        else if (coins < 100000000L) return 40; // Lv 40
+        else return 50;                         // Lv 50+ (Elite)
+    }
+
+    // 🌟 লেভেলের রেঞ্জ অনুযায়ী প্রিমিয়াম কালার కోড রিটার্ন করার মেথড
+    private String getLevelColorHex(int level) {
+        if (level <= 10) return "#C0C0C0";      // Silver (1-10)
+        else if (level <= 20) return "#78909C"; // Dark Silver / Slate (11-20)
+        else if (level <= 30) return "#00E676"; // Green (21-30)
+        else if (level <= 40) return "#18FFFF"; // Cyan / Paste (31-40)
+        else if (level <= 50) return "#E040FB"; // Purple (41-50)
+        else if (level <= 60) return "#2979FF"; // Royal Blue (51-60)
+        else if (level <= 70) return "#FF4081"; // Pink (70+)
+        else return "#8D6E63";                  // Coffee / Elite (100+)
     }
 
     private void takeSeat(int seatIndex, String seatKey) {
