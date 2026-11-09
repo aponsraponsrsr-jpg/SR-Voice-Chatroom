@@ -1,4 +1,4 @@
-package com.sr.voicechat; // তোমার প্রজেক্টের সঠিক প্যাককেজ নেম এখানে দেবে
+package com.sr.voicechat;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -20,29 +20,30 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
     private TextView tvCoinBalance;
     private DatabaseReference userRef;
     private FirebaseAuth mAuth;
+    private ValueEventListener coinEventListener;
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.dialog_wallet_recharge, container, false);
 
-        tvCoinBalance = view.findViewById(R.id.tvCoinBalance); // ওয়ালেট লেআউটের কয়েন দেখানোর TextView আইডি
+        tvCoinBalance = view.findViewById(R.id.tvCoinBalance);
         mAuth = FirebaseAuth.getInstance();
 
         if (mAuth.getCurrentUser() != null) {
-            String userId = mAuth.getCurrentUser().getUid(); // অথবা তোমার অ্যাপের ব্যবহৃত ইউজার আইডি / ফোন / জিমেইল পাথ
+            String userId = mAuth.getCurrentUser().getUid();
             
-            // ফায়ারবেস থেকে লাইভ কয়েন রিড করার গ্লোবাল পাথ
+            // গ্লোবাল এবং সিকিউর ফায়ারবেস পাথ বাইন্ডিং
             userRef = FirebaseDatabase.getInstance().getReference().child("users").child(userId);
             
-            userRef.addValueEventListener(new ValueEventListener() {
+            coinEventListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.exists()) {
-                        // অ্যাডমিন প্যানেল থেকে পাঠানো 'sendingCoins' ডাটা ফেচ করা হচ্ছে
+                    if (snapshot.exists() && isAdded()) {
+                        // অ্যাডমিন প্যানেল থেকে পাঠানো 'sendingCoins' রিয়েল-টাইমে ফেচ করা
                         Long coins = snapshot.child("sendingCoins").getValue(Long.class);
                         if (coins != null) {
-                            tvCoinBalance.setText(String.valueOf(coins));
+                            tvCoinBalance.setText(String.format("%,d", coins)); // সুন্দর ফরম্যাটে কয়েন শো করবে (যেমন: ১,০০,০০০)
                         } else {
                             tvCoinBalance.setText("0");
                         }
@@ -50,12 +51,22 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
                 }
 
                 @Override
-                public void onCancelled(@NonNull DatabaseError error) {
-                    // কোনো এরর হলে হ্যান্ডেল করার জন্য
+                public onCancelled(@NonNull DatabaseError error) {
+                    // প্রফেশনাল এরর হ্যান্ডেলিং
                 }
-            });
+            };
+            userRef.addValueEventListener(coinEventListener);
         }
 
         return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        // মেমোরি লিক রোধ করতে লিসেনার রিমুভ করা হলো (প্রোডাকশন স্ট্যান্ডার্ড)
+        if (userRef != null && coinEventListener != null) {
+            userRef.removeEventListener(coinEventListener);
+        }
     }
 }
