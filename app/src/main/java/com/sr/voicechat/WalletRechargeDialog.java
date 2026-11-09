@@ -7,7 +7,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
@@ -32,7 +31,7 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
 
         tvCoinBalance = view.findViewById(R.id.tvCoinBalance);
 
-        // কাস্টম ইউজার আইডি ফেচ করা (যাতে অ্যাডমিন প্যানেলের পাঠানো কয়েনের সাথে পাথ হুবহু মিলে যায়)
+        // কাস্টম ইউজার আইডি ফেচ করা (যাতে অ্যাডমিন প্যানেলের পাঠানো কয়েনের পাথ নিখুঁতভাবে মিলে যায়)
         prefs = requireActivity().getSharedPreferences("SR_USER", Context.MODE_PRIVATE);
         currentUserId = prefs.getString("MY_9_DIGIT_ID", "493859069");
 
@@ -66,14 +65,6 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
                 }
             };
             userRef.addValueEventListener(coinEventListener);
-        }
-
-        // অনলাইন রিচার্জ বা কার্ড পেমেন্ট অপশনগুলোর ক্লিক লিসেনার (যদি লেআউটে থাকে)
-        View btnOnlineRecharge = view.findViewById(R.id.btnOnlineRecharge); // লেআউটে আইডি থাকলে কাজ করবে
-        if (btnOnlineRecharge != null) {
-            btnOnlineRecharge.setOnClickListener(v -> {
-                Toast.makeText(getContext(), "💳 Online Recharge Gateway Opening...", Toast.LENGTH_SHORT).show();
-            });
         }
 
         return view;
