@@ -18,9 +18,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.Animation;
+import android.view.animation.TranslateAnimation;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -36,6 +39,7 @@ import androidx.core.graphics.drawable.RoundedBitmapDrawable;
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -304,7 +308,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         btnGiftBox = findViewById(R.id.btnGiftBox);
         if (btnGiftBox != null) {
-            btnGiftBox.setOnClickListener(v -> showGiftPanel());
+            btnGiftBox.setOnClickListener(v -> showPremiumGiftPanel());
         }
 
         btnGameBox = findViewById(R.id.btnGameBox);
@@ -319,6 +323,198 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 builder.show();
             });
         }
+    }
+
+    // 👑 প্রিমিয়াম হাই-ভ্যালু গিফট প্যানেল (৫,০০০ কয়েন থেকে শুরু করে ৩০ লাখ কয়েন পর্যন্ত পশু-পাখি, কার ও ক্রাউন কালেকশন)
+    private void showPremiumGiftPanel() {
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
+        LinearLayout rootLayout = new LinearLayout(this);
+        rootLayout.setOrientation(LinearLayout.VERTICAL);
+        rootLayout.setPadding(35, 35, 35, 35);
+
+        GradientDrawable bg = new GradientDrawable(
+            GradientDrawable.Orientation.TOP_BOTTOM,
+            new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")}
+        );
+        bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
+        rootLayout.setBackground(bg);
+
+        TextView title = new TextView(this);
+        title.setText("🎁 SR VIP Luxury Gift Center");
+        title.setTextColor(Color.parseColor("#FFD700"));
+        title.setTextSize(18);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setPadding(0, 0, 0, 20);
+        rootLayout.addView(title);
+
+        // সিট সিলেকশন অপশন (Single বা All সিট)
+        final EditText inputTargetSeat = new EditText(this);
+        inputTargetSeat.setHint("Target Seat (0 to 9 or type 'All')...");
+        inputTargetSeat.setHintTextColor(Color.parseColor("#AAAAAA"));
+        inputTargetSeat.setTextColor(Color.WHITE);
+        inputTargetSeat.setText("All"); // ডিফল্টভাবে All সিট সিলেক্ট থাকবে
+        rootLayout.addView(inputTargetSeat);
+
+        RecyclerView rvGifts = new RecyclerView(this);
+        rvGifts.setLayoutManager(new GridLayoutManager(this, 3));
+        rvGifts.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 900));
+        rootLayout.addView(rvGifts);
+
+        List<GiftModel> luxuryGifts = new ArrayList<>();
+        // প্রিমিয়াম পশু-পাখি ও কার কালেকশন (৫ হাজার থেকে ৩০ লাখ কয়েন পর্যন্ত হাই-ভ্যালু)
+        luxuryGifts.add(new GiftModel("g1", "White Tiger", "50,000", R.drawable.ic_gift_flower, "Animal"));
+        luxuryGifts.add(new GiftModel("g2", "Golden Lion", "100,000", R.drawable.ic_gift_ring, "Animal"));
+        luxuryGifts.add(new GiftModel("g3", "Royal Dragon", "250,000", R.drawable.ic_gift_diamond, "Animal"));
+        luxuryGifts.add(new GiftModel("g4", "Super Sports Car", "500,000", R.drawable.ic_gift_car, "Vehicle"));
+        luxuryGifts.add(new GiftModel("g5", "VIP Helicopter", "750,000", R.drawable.ic_gift_car, "Vehicle"));
+        luxuryGifts.add(new GiftModel("g6", "Royal Crown", "1,000,000", R.drawable.ic_gift_crown, "Crown"));
+        luxuryGifts.add(new GiftModel("g7", "Diamond Castle", "1,250,000", R.drawable.ic_gift_castle, "Castle"));
+        luxuryGifts.add(new GiftModel("g8", "Luxury Jet Plane", "1,500,000", R.drawable.ic_gift_car, "Vehicle"));
+        luxuryGifts.add(new GiftModel("g9", "Golden Empire", "1,800,000", R.drawable.ic_gift_castle, "Castle"));
+        luxuryGifts.add(new GiftModel("g10", "Mega Titan Dragon", "2,200,000", R.drawable.ic_gift_diamond, "Animal"));
+        luxuryGifts.add(new GiftModel("g11", "Ultimate Supreme", "2,500,000", R.drawable.ic_gift_crown, "Crown"));
+        luxuryGifts.add(new GiftModel("g12", "SR Universe King", "3,000,000", R.drawable.ic_gift_castle, "Crown"));
+
+        final GiftModel[] selectedGiftHolder = {luxuryGifts.get(0)};
+        GiftAdapter adapter = new GiftAdapter(luxuryGifts, gift -> selectedGiftHolder[0] = gift);
+        rvGifts.setAdapter(adapter);
+
+        Button btnSendGiftAction = new Button(this);
+        btnSendGiftAction.setText("🚀 Send Luxury Gift");
+        btnSendGiftAction.setBackgroundColor(Color.parseColor("#FF4081"));
+        btnSendGiftAction.setTextColor(Color.WHITE);
+        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 120);
+        btnParams.setMargins(0, 20, 0, 10);
+        btnSendGiftAction.setLayoutParams(btnParams);
+        rootLayout.addView(btnSendGiftAction);
+
+        bottomSheetDialog.setContentView(rootLayout);
+
+        btnSendGiftAction.setOnClickListener(v -> {
+            String targetVal = inputTargetSeat.getText().toString().trim();
+            String userName = prefs.getString("USER_NAME", "User");
+            String priceStr = selectedGiftHolder[0].getGiftPrice().replaceAll("[^0-9]", "");
+            long giftCoins = priceStr.isEmpty() ? 50000L : Long.parseLong(priceStr);
+
+            // ফ্লাইং অ্যানিমেশন ট্রিগার করা
+            triggerFlyingGiftAnimation(selectedGiftHolder[0].getGiftName());
+
+            if (targetVal.equalsIgnoreCase("All")) {
+                // সব সিটে একসাথে কয়েন আপডেট করা
+                databaseReference.child("seats").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        for (int i = 0; i < 10; i++) {
+                            String seatKey = "seat_" + i;
+                            if (snapshot.hasChild(seatKey)) {
+                                Long currentTotal = snapshot.child(seatKey).child("giftTotal").getValue(Long.class);
+                                long newTotal = (currentTotal != null ? currentTotal : 0L) + giftCoins;
+                                databaseReference.child("seats").child(seatKey).child("giftTotal").setValue(newTotal);
+                            }
+                        }
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError error) {}
+                });
+            } else {
+                try {
+                    int seatIdx = Integer.parseInt(targetVal);
+                    if (seatIdx >= 0 && seatIdx <= 9) {
+                        String seatKey = "seat_" + seatIdx;
+                        databaseReference.child("seats").child(seatKey).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                                Long currentTotal = snapshot.child("giftTotal").getValue(Long.class);
+                                long newTotal = (currentTotal != null ? currentTotal : 0L) + giftCoins;
+                                databaseReference.child("seats").child(seatKey).child("giftTotal").setValue(newTotal);
+                            }
+                            @Override public void onCancelled(@NonNull DatabaseError error) {}
+                        });
+                    }
+                } catch (Exception e) {
+                    Toast.makeText(this, "Invalid seat number! Defaulting to All seats.", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            // সেন্ডারের সেন্ডিং লেভেল (Sending Level) এবং কয়েন আপডেট করা
+            if (!currentUserId.isEmpty()) {
+                userDatabaseRef.child(currentUserId).child("sendingCoins").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        Long currentSend = snapshot.getValue(Long.class);
+                        long updatedSend = (currentSend != null ? currentSend : 0L) + giftCoins;
+                        userDatabaseRef.child(currentUserId).child("sendingCoins").setValue(updatedSend);
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError error) {}
+                });
+            }
+
+            // গ্লোবাল চ্যাটে গিফট নোটিফিকেশন পাঠানো
+            long msgTimestamp = System.currentTimeMillis();
+            String msgId = messagesRef.push().getKey();
+            if (msgId != null) {
+                String roleBadge = getCorrectBadgeIcon(currentUserId);
+                java.util.Map<String, Object> msgMap = new java.util.HashMap<>();
+                msgMap.put("senderName", roleBadge + "🎁 " + userName);
+                msgMap.put("message", "sent luxury gift [" + selectedGiftHolder[0].getGiftName() + " - " + selectedGiftHolder[0].getGiftPrice() + " Coins]");
+                msgMap.put("timestamp", msgTimestamp);
+                messagesRef.child(msgId).setValue(msgMap);
+            }
+
+            Toast.makeText(this, "Luxury Gift Sent Successfully!", Toast.LENGTH_SHORT).show();
+            bottomSheetDialog.dismiss();
+        });
+
+        bottomSheetDialog.show();
+        Window window = bottomSheetDialog.getWindow();
+        if (window != null) {
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1500);
+            window.setGravity(Gravity.BOTTOM);
+        }
+    }
+
+    // 🚀 প্রিমিয়াম ফ্লাইং গিফট অ্যানিমেশন (নিচ থেকে উড়ে ইউজারের দিকে যাওয়া)
+    private void triggerFlyingGiftAnimation(String giftName) {
+        try {
+            ViewGroup rootView = findViewById(android.R.id.content);
+            if (rootView == null) return;
+
+            final TextView flyingView = new TextView(this);
+            flyingView.setText("🎁 " + giftName + " 🚀");
+            flyingView.setTextColor(Color.parseColor("#FFD700"));
+            flyingView.setTextSize(20);
+            flyingView.setTypeface(null, android.graphics.Typeface.BOLD);
+            flyingView.setGravity(Gravity.CENTER);
+            flyingView.setBackgroundColor(Color.parseColor("#88000000"));
+            flyingView.setPadding(30, 20, 30, 20);
+
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            params.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
+            params.setMargins(0, 0, 0, 300);
+            rootView.addView(flyingView, params);
+
+            // নিচ থেকে সোজা ওপরের দিকে উড়ে যাওয়ার অ্যানিমেশন
+            TranslateAnimation animation = new TranslateAnimation(
+                Animation.ABSOLUTE, 0f,
+                Animation.ABSOLUTE, 0f,
+                Animation.ABSOLUTE, 0f,
+                Animation.ABSOLUTE, -1000f
+            );
+            animation.setDuration(2000); // ২ সেকেন্ড স্থায়ী হবে
+            animation.setFillAfter(true);
+
+            animation.setAnimationListener(new Animation.AnimationListener() {
+                @Override public void onAnimationStart(Animation animation) {}
+                @Override public void onAnimationEnd(Animation animation) {
+                    rootView.removeView(flyingView);
+                }
+                @Override public void onAnimationRepeat(Animation animation) {}
+            });
+
+            flyingView.startAnimation(animation);
+        } catch (Exception ignored) {}
     }
 
     private View createToolButton(String title, String subtitle, View.OnClickListener listener) {
@@ -549,64 +745,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         title.setPadding(0, 0, 0, 20);
         rankLayout.addView(title);
 
-        LinearLayout tabLayout = new LinearLayout(this);
-        tabLayout.setOrientation(LinearLayout.HORIZONTAL);
-        tabLayout.setGravity(Gravity.CENTER);
-        tabLayout.setPadding(0, 0, 0, 20);
-
-        Button btnDaily = new Button(this);
-        btnDaily.setText("Daily");
-        btnDaily.setBackgroundColor(Color.parseColor("#FFD700"));
-        btnDaily.setTextColor(Color.BLACK);
-        btnDaily.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
-
-        Button btnWeekly = new Button(this);
-        btnWeekly.setText("Weekly");
-        btnWeekly.setBackgroundColor(Color.parseColor("#441B1035"));
-        btnWeekly.setTextColor(Color.WHITE);
-        btnWeekly.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
-
-        Button btnMonthly = new Button(this);
-        btnMonthly.setText("Monthly");
-        btnMonthly.setBackgroundColor(Color.parseColor("#441B1035"));
-        btnMonthly.setTextColor(Color.WHITE);
-        btnMonthly.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
-
-        tabLayout.addView(btnDaily);
-        tabLayout.addView(btnWeekly);
-        tabLayout.addView(btnMonthly);
-        rankLayout.addView(tabLayout);
-
-        btnDaily.setOnClickListener(v -> {
-            btnDaily.setBackgroundColor(Color.parseColor("#FFD700"));
-            btnDaily.setTextColor(Color.BLACK);
-            btnWeekly.setBackgroundColor(Color.parseColor("#441B1035"));
-            btnWeekly.setTextColor(Color.WHITE);
-            btnMonthly.setBackgroundColor(Color.parseColor("#441B1035"));
-            btnMonthly.setTextColor(Color.WHITE);
-            Toast.makeText(this, "Daily Ranking Active", Toast.LENGTH_SHORT).show();
-        });
-
-        btnWeekly.setOnClickListener(v -> {
-            btnWeekly.setBackgroundColor(Color.parseColor("#FFD700"));
-            btnWeekly.setTextColor(Color.BLACK);
-            btnDaily.setBackgroundColor(Color.parseColor("#441B1035"));
-            btnDaily.setTextColor(Color.WHITE);
-            btnMonthly.setBackgroundColor(Color.parseColor("#441B1035"));
-            btnMonthly.setTextColor(Color.WHITE);
-            Toast.makeText(this, "Weekly Ranking Active", Toast.LENGTH_SHORT).show();
-        });
-
-        btnMonthly.setOnClickListener(v -> {
-            btnMonthly.setBackgroundColor(Color.parseColor("#FFD700"));
-            btnMonthly.setTextColor(Color.BLACK);
-            btnDaily.setBackgroundColor(Color.parseColor("#441B1035"));
-            btnDaily.setTextColor(Color.WHITE);
-            btnWeekly.setBackgroundColor(Color.parseColor("#441B1035"));
-            btnWeekly.setTextColor(Color.WHITE);
-            Toast.makeText(this, "Monthly Ranking Active", Toast.LENGTH_SHORT).show();
-        });
-
         ScrollView rankScrollView = new ScrollView(this);
         rankScrollView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1.0f));
         rankScrollView.setFillViewport(true);
@@ -672,81 +810,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         row.addView(textStack);
         container.addView(row);
-    }
-
-    private void showGiftPanel() {
-        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
-        View sheetView = getLayoutInflater().inflate(R.layout.dialog_gift_panel, null);
-        bottomSheetDialog.setContentView(sheetView);
-
-        RecyclerView rvGifts = sheetView.findViewById(R.id.rvGifts);
-        Button btnSendGift = sheetView.findViewById(R.id.btnSendGift);
-
-        List<GiftModel> allGifts = new ArrayList<>();
-        allGifts.add(new GiftModel("", "5,000 Coins", R.drawable.ic_gift_flower, "gift"));
-        allGifts.add(new GiftModel("", "8,000 Coins", R.drawable.ic_gift_ring, "gift"));
-        allGifts.add(new GiftModel("", "10,000 Coins", R.drawable.ic_gift_diamond, "gift"));
-        allGifts.add(new GiftModel("", "12,000 Coins", R.drawable.ic_gift_car, "gift"));
-        allGifts.add(new GiftModel("", "20,000 Coins", R.drawable.ic_gift_crown, "gift"));
-        allGifts.add(new GiftModel("", "30,000 Coins", R.drawable.ic_gift_castle, "lady"));
-
-        final GiftModel[] selectedGiftHolder = {allGifts.get(0)};
-        GiftAdapter adapter = new GiftAdapter(allGifts, gift -> selectedGiftHolder[0] = gift);
-        rvGifts.setAdapter(adapter);
-
-        btnSendGift.setOnClickListener(v -> {
-            String userName = prefs.getString("USER_NAME", "User");
-            String priceStr = selectedGiftHolder[0].getGiftPrice().replaceAll("[^0-9]", "");
-            long giftCoins = priceStr.isEmpty() ? 5000L : Long.parseLong(priceStr);
-
-            databaseReference.child("seats").addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    for (int i = 0; i < 10; i++) {
-                        String seatKey = "seat_" + i;
-                        if (snapshot.hasChild(seatKey)) {
-                            Long currentGiftTotal = snapshot.child(seatKey).child("giftTotal").getValue(Long.class);
-                            long newTotal = (currentGiftTotal != null ? currentGiftTotal : 0L) + giftCoins;
-                            databaseReference.child("seats").child(seatKey).child("giftTotal").setValue(newTotal);
-                            break;
-                        }
-                    }
-                }
-                @Override public void onCancelled(@NonNull DatabaseError error) {}
-            });
-
-            if (!currentUserId.isEmpty()) {
-                userDatabaseRef.child(currentUserId).child("sendingCoins").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        Long currentSend = snapshot.getValue(Long.class);
-                        long updatedSend = (currentSend != null ? currentSend : 0L) + giftCoins;
-                        userDatabaseRef.child(currentUserId).child("sendingCoins").setValue(updatedSend);
-                    }
-                    @Override public void onCancelled(@NonNull DatabaseError error) {}
-                });
-            }
-
-            long msgTimestamp = System.currentTimeMillis();
-            String msgId = messagesRef.push().getKey();
-            if (msgId != null) {
-                String roleBadge = getCorrectBadgeIcon(currentUserId);
-                java.util.Map<String, Object> msgMap = new java.util.HashMap<>();
-                msgMap.put("senderName", roleBadge + "🎁 " + userName);
-                msgMap.put("message", "sent a luxury gift (" + selectedGiftHolder[0].getGiftPrice() + ")");
-                msgMap.put("timestamp", msgTimestamp);
-                messagesRef.child(msgId).setValue(msgMap);
-            }
-            Toast.makeText(this, "Luxury Gift Sent Successfully!", Toast.LENGTH_SHORT).show();
-            bottomSheetDialog.dismiss();
-        });
-
-        bottomSheetDialog.show();
-        Window window = bottomSheetDialog.getWindow();
-        if (window != null) {
-            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1300);
-            window.setGravity(Gravity.BOTTOM);
-        }
     }
 
     private void syncLatestUserProfile() {
@@ -961,35 +1024,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         ownerCard.addView(noticeTxt);
 
         infoLayout.addView(ownerCard);
-
-        LinearLayout bannerCard = new LinearLayout(this);
-        bannerCard.setOrientation(LinearLayout.VERTICAL);
-        bannerCard.setPadding(30, 30, 30, 30);
-        LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        bp.setMargins(0, 20, 0, 0);
-        bannerCard.setLayoutParams(bp);
-
-        GradientDrawable bannerBg = new GradientDrawable(
-            GradientDrawable.Orientation.LEFT_RIGHT,
-            new int[]{Color.parseColor("#8E24AA"), Color.parseColor("#D81B60")}
-        );
-        bannerBg.setCornerRadius(20);
-        bannerCard.setBackground(bannerBg);
-
-        TextView bannerTitle = new TextView(this);
-        bannerTitle.setText("🎁 Room Reward Event");
-        bannerTitle.setTextColor(Color.WHITE);
-        bannerTitle.setTextSize(16);
-        bannerTitle.setTypeface(null, android.graphics.Typeface.BOLD);
-        bannerCard.addView(bannerTitle);
-
-        TextView bannerSub = new TextView(this);
-        bannerSub.setText("Weekly Top Sender Reward system (Coming Soon!)");
-        bannerSub.setTextColor(Color.parseColor("#FFEB3B"));
-        bannerSub.setTextSize(12);
-        bannerCard.addView(bannerSub);
-
-        infoLayout.addView(bannerCard);
         mainContainer.addView(infoLayout);
 
         LinearLayout membersLayout = new LinearLayout(this);
@@ -1194,7 +1228,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // গ্লোবাল সব ইউজারের জন্য রিয়েল-টাইম জেন্ডার ও ডেটা ফেচিং (ছেলেদের জন্য ♂ নীল এবং মেয়েদের জন্য ♀ গোলাপি)
     private void fetchUserDataAndShowProfile(String userName, String userId, String userImage) {
         if (userId == null || userId.isEmpty()) {
             showUserProfileDialog(userName, userId, userImage, 0L, 0L, "♂", "🇧🇩");
@@ -1221,9 +1254,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     if (dbGender != null) {
                         String lowerGender = dbGender.toLowerCase();
                         if (lowerGender.contains("female") || lowerGender.contains("girl") || lowerGender.contains("মেয়ে") || lowerGender.contains("♀")) {
-                            gender = "♀"; // মেয়েদের জন্য প্রিমিয়াম গোলাপি জেন্ডার আইকন
+                            gender = "♀";
                         } else {
-                            gender = "♂"; // ছেলেদের জন্য প্রিমিয়াম নীল জেন্ডার আইকন
+                            gender = "♂";
                         }
                     }
                     if (dbCountry != null && !dbCountry.isEmpty()) country = dbCountry;
@@ -1236,7 +1269,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // গ্লোবাল সব ইউজারের জন্য বড় ও প্রিমিয়াম প্রোফাইল পপআপ ডায়ালগ
     private void showUserProfileDialog(String userName, String userId, String userImage, long sendingCoins, long receivingCoins, String gender, String country) {
         BottomSheetDialog profileDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout layout = new LinearLayout(this);
@@ -1292,9 +1324,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
         genderFlagText.setText(" " + gender + " " + country);
         genderFlagText.setTextSize(18);
         if (gender.equals("♀")) {
-            genderFlagText.setTextColor(Color.parseColor("#FF4081")); // মেয়েদের জন্য প্রিমিয়াম গোলাপি কালার
+            genderFlagText.setTextColor(Color.parseColor("#FF4081"));
         } else {
-            genderFlagText.setTextColor(Color.parseColor("#00B0FF")); // ছেলেদের জন্য প্রিমিয়াম নীল কালার
+            genderFlagText.setTextColor(Color.parseColor("#00B0FF"));
         }
         nameRow.addView(genderFlagText);
 
@@ -1334,39 +1366,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         layout.addView(levelRow);
 
-        LinearLayout statsCard = new LinearLayout(this);
-        statsCard.setOrientation(LinearLayout.HORIZONTAL);
-        statsCard.setGravity(Gravity.CENTER);
-        statsCard.setPadding(25, 20, 25, 20);
-        GradientDrawable cardBg = new GradientDrawable();
-        cardBg.setColor(Color.parseColor("#2A1B4E"));
-        cardBg.setCornerRadius(20);
-        statsCard.setBackground(cardBg);
-
-        TextView followingTxt = new TextView(this);
-        followingTxt.setText("2 Following    |    ");
-        followingTxt.setTextColor(Color.parseColor("#CCCCCC"));
-        followingTxt.setTextSize(13);
-        statsCard.addView(followingTxt);
-
-        TextView fansTxt = new TextView(this);
-        fansTxt.setText("15 Fans    |    ");
-        fansTxt.setTextColor(Color.parseColor("#CCCCCC"));
-        fansTxt.setTextSize(13);
-        statsCard.addView(fansTxt);
-
-        TextView visitorTxt = new TextView(this);
-        visitorTxt.setText("1.2K Visitor");
-        visitorTxt.setTextColor(Color.parseColor("#CCCCCC"));
-        visitorTxt.setTextSize(13);
-        statsCard.addView(visitorTxt);
-
-        LinearLayout.LayoutParams statsParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        statsParams.setMargins(0, 0, 0, 30);
-        statsParams.gravity = Gravity.CENTER_HORIZONTAL;
-        statsCard.setLayoutParams(statsParams);
-        layout.addView(statsCard);
-
         LinearLayout actionRow = new LinearLayout(this);
         actionRow.setOrientation(LinearLayout.HORIZONTAL);
         actionRow.setGravity(Gravity.CENTER);
@@ -1393,27 +1392,16 @@ public class VoiceRoomActivity extends AppCompatActivity {
         btnPopupGift.setLayoutParams(p2);
         btnPopupGift.setOnClickListener(v -> {
             profileDialog.dismiss();
-            showGiftPanel();
+            showPremiumGiftPanel();
         });
         actionRow.addView(btnPopupGift);
-
-        Button btnAddFriend = new Button(this);
-        btnAddFriend.setText("🤝 Add Friend");
-        btnAddFriend.setBackgroundColor(Color.parseColor("#00E676"));
-        btnAddFriend.setTextColor(Color.BLACK);
-        btnAddFriend.setTypeface(null, android.graphics.Typeface.BOLD);
-        LinearLayout.LayoutParams p3 = new LinearLayout.LayoutParams(0, 120, 1.0f);
-        p3.setMargins(8, 0, 0, 0);
-        btnAddFriend.setLayoutParams(p3);
-        btnAddFriend.setOnClickListener(v -> Toast.makeText(this, "Friend Request Sent to " + userName, Toast.LENGTH_SHORT).show());
-        actionRow.addView(btnAddFriend);
 
         layout.addView(actionRow);
 
         profileDialog.setContentView(layout);
         Window window = profileDialog.getWindow();
         if (window != null) {
-            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1450); // বড় ও প্রিমিয়াম সাইজ
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1450);
             window.setGravity(Gravity.BOTTOM);
         }
         profileDialog.show();
