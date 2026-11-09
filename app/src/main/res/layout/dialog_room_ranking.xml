@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#120A2A"
+    android:padding="20dp">
+
+    <!-- হেডার ও ক্লোজ বাটন -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="15dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="🏆 Room Contribution Ranking"
+            android:textColor="#FFD700"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/btnCloseRanking"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✕"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:padding="5dp" />
+    </LinearLayout>
+
+    <!-- ডেইলি, উইকলি, মান্থলি ট্যাব -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#2A1B4E"
+        android:padding="4dp"
+        android:layout_marginBottom="15dp">
+
+        <Button
+            android:id="@+id/btnTabDaily"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="Daily"
+            android:textColor="#000000"
+            android:backgroundTint="#FFD700"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnTabWeekly"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="Weekly"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#2A1B4E" />
+
+        <Button
+            android:id="@+id/btnTabMonthly"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="Monthly"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#2A1B4E" />
+    </LinearLayout>
+
+    <!-- র‍্যাঙ্কিং লিস্ট কন্টেইনার -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:id="@+id/rankingListContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+
+</LinearLayout>
