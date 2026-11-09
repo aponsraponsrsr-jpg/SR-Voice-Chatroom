@@ -1,38 +1,22 @@
 package com.sr.voicechat.adapters;
 
-import android.graphics.Color;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
-
+// ... other imports ...
 import com.sr.voicechat.R;
 import com.sr.voicechat.models.GiftModel;
 
-import java.util.List;
-
 public class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder> {
 
-    private List<GiftModel> giftList;
+    // ... variables ...
     private OnGiftSelectedListener listener;
-    private int selectedPosition = 0;
+    private int selectedPosition = 0; // ডিফল্টভাবে প্রথম গিফট সিলেক্ট থাকবে
 
-    public interface OnGiftSelectedListener {
-        void onGiftSelected(GiftModel gift);
-    }
+    // ... interface OnGiftSelectedListener ...
 
-    public GiftAdapter(List<GiftModel> giftList, OnGiftSelectedListener listener) {
-        this.giftList = giftList;
-        this.listener = listener;
-    }
+    // ... Constructor ...
 
     @NonNull
     @Override
     public GiftViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        // এখানে item_gift_grid এর পরিবর্তে সঠিক ফাইল নাম item_gift_card ব্যবহার করা হয়েছে
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_gift_card, parent, false);
         return new GiftViewHolder(view);
     }
@@ -41,20 +25,22 @@ public class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder
     public void onBindViewHolder(@NonNull GiftViewHolder holder, int position) {
         GiftModel gift = giftList.get(position);
         holder.txtGiftName.setText(gift.getGiftName());
-        holder.txtGiftPrice.setText(gift.getGiftPrice() + " Coins");
-        holder.imgGiftIcon.setImageResource(gift.getGiftImageRes());
+        holder.txtGiftPrice.setText(gift.getGiftPrice() + " Coins"); // গর্জিয়াস কয়েন টেক্সট
+        holder.imgGiftIcon.setImageResource(gift.getGiftImageRes()); // গর্জিয়াস আইকন
 
+        // সিলেক্টেড গিফটের হাইলাইট কালার (ভিডিওর মতো গর্জিয়াস নীল/গোল্ডেন)
         if (selectedPosition == position) {
-            holder.itemView.setBackgroundColor(Color.parseColor("#44FFD700"));
+            holder.itemView.setBackgroundColor(Color.parseColor("#44FFD700")); // গোল্ডেন হাইলাইট
         } else {
-            holder.itemView.setBackgroundColor(Color.parseColor("#2A1B4E"));
+            holder.itemView.setBackgroundColor(Color.parseColor("#2A1B4E")); // ডিফল্ট ব্যাকগ্রাউন্ড
         }
 
+        // টাচ লজিক
         holder.itemView.setOnClickListener(v -> {
             int previousPosition = selectedPosition;
             selectedPosition = holder.getAdapterPosition();
-            notifyItemChanged(previousPosition);
-            notifyItemChanged(selectedPosition);
+            notifyItemChanged(previousPosition); // আগেরটিকে ডি-সিলেক্ট করা
+            notifyItemChanged(selectedPosition); // বর্তমানটিকে সিলেক্ট করা
 
             if (listener != null) {
                 listener.onGiftSelected(gift);
@@ -62,20 +48,5 @@ public class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder
         });
     }
 
-    @Override
-    public int getItemCount() {
-        return giftList.size();
-    }
-
-    public static class GiftViewHolder extends RecyclerView.ViewHolder {
-        ImageView imgGiftIcon;
-        TextView txtGiftName, txtGiftPrice;
-
-        public GiftViewHolder(@NonNull View itemView) {
-            super(itemView);
-            imgGiftIcon = itemView.findViewById(R.id.imgGiftIcon);
-            txtGiftName = itemView.findViewById(R.id.txtGiftName);
-            txtGiftPrice = itemView.findViewById(R.id.txtGiftPrice);
-        }
-    }
+    // ... getItemCount & ViewHolder class ...
 }
