@@ -35,7 +35,7 @@
     <!-- Coin Topup Section -->
     <div class="section">
         <h3>💰 Coin & Seller Top-up</h3>
-        <input type="text" id="targetUserId" placeholder="Enter User ID (Any Digits)">
+        <input type="text" id="targetUserId" placeholder="Enter User ID (e.g., 493859069)">
         <input type="number" id="coinAmount" placeholder="Enter Coin Amount (e.g., 50000)">
         <button onclick="addCoins()">Add Coins to User</button>
     </div>
@@ -43,7 +43,7 @@
     <!-- User Ban/Unban Section -->
     <div class="section">
         <h3>🚫 User Control (Ban / Unban)</h3>
-        <input type="text" id="banUserId" placeholder="Enter User ID (Any Digits)">
+        <input type="text" id="banUserId" placeholder="Enter User ID">
         <button class="btn-ban" onclick="banUser(true)">Ban User</button>
         <button onclick="banUser(false)" style="background:#2979FF; color:#fff;">Unban User</button>
     </div>
@@ -63,7 +63,6 @@
         const email = document.getElementById('adminEmail').value.trim();
         const pass = document.getElementById('adminPass').value.trim();
 
-        // 🌟 অ্যাডমিন জিমেইল এবং পাসওয়ার্ড
         if (email === "aponsraponsrsr@gmail.com" && pass === "aa123456") {
             document.getElementById('loginBox').style.display = 'none';
             document.getElementById('panelBox').style.display = 'block';
@@ -84,7 +83,7 @@
         const userRef = db.ref('users/' + uid);
         userRef.once('value').then(snapshot => {
             let userData = snapshot.val() || {};
-            let currentCoins = userData.sendingCoins || 0;
+            let currentCoins = Number(userData.sendingCoins) || 0;
             let updatedCoins = currentCoins + coins;
 
             userRef.update({ sendingCoins: updatedCoins }, (error) => {
@@ -113,6 +112,4 @@
         });
     }
 </script>
-
-</body>
 </html>
