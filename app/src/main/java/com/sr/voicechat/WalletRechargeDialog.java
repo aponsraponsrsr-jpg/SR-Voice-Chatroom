@@ -40,10 +40,9 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists() && isAdded()) {
-                        // অ্যাডমিন প্যানেল থেকে পাঠানো 'sendingCoins' রিয়েল-টাইমে ফেচ করা
                         Long coins = snapshot.child("sendingCoins").getValue(Long.class);
                         if (coins != null) {
-                            tvCoinBalance.setText(String.format("%,d", coins)); // সুন্দর ফরম্যাটে কয়েন শো করবে (যেমন: ১,০০,০০০)
+                            tvCoinBalance.setText(String.format("%,d", coins));
                         } else {
                             tvCoinBalance.setText("0");
                         }
@@ -51,7 +50,7 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
                 }
 
                 @Override
-                public onCancelled(@NonNull DatabaseError error) {
+                public void onCancelled(@NonNull DatabaseError error) {
                     // প্রফেশনাল এরর হ্যান্ডেলিং
                 }
             };
@@ -64,7 +63,6 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        // মেমোরি লিক রোধ করতে লিসেনার রিমুভ করা হলো (প্রোডাকশন স্ট্যান্ডার্ড)
         if (userRef != null && coinEventListener != null) {
             userRef.removeEventListener(coinEventListener);
         }
