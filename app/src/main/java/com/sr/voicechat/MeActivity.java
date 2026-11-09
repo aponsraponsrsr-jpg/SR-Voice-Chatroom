@@ -59,7 +59,6 @@ public class MeActivity extends AppCompatActivity {
             textMeId = findViewById(R.id.textMeId);
             txtProfileLevel = findViewById(R.id.txtProfileLevel); 
             
-            // XML লেআউট থেকে এজেন্সি ও হোস্ট ব্যাজ ইনিশিয়ালাইজেশন
             txtAgencyBadge = findViewById(R.id.txtAgencyBadge);
             txtHostBadge = findViewById(R.id.txtHostBadge);
 
@@ -76,8 +75,8 @@ public class MeActivity extends AppCompatActivity {
 
             loadUserData();
             syncUserLevelFromFirebase();
-            checkUserBadgesAndAgencyStatus(); // প্রোফাইলে ব্যাজ চেক করার লজিক
-            checkSuperAdminAccessAndShowPanel();
+            checkUserBadgesAndAgencyStatus();
+            checkSuperAdminAccessAndShowPanel(); // সুপার অ্যাডমিন জিমেইল সিকিউরিটি চেক
 
             if (btnEditProfile != null) {
                 btnEditProfile.setOnClickListener(v -> {
@@ -126,11 +125,9 @@ public class MeActivity extends AppCompatActivity {
         }
     }
 
-    // ইউজার কি এজেন্সি ওনার নাকি অফিশিয়াল হোস্ট—তা রিয়েল-টাইমে চেক করে ব্যাজ শো করার লজিক
     private void checkUserBadgesAndAgencyStatus() {
         if (currentUserId == null || currentUserId.isEmpty()) return;
 
-        // এজেন্সি ওনার চেক
         agencyRef.child(currentUserId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -147,7 +144,6 @@ public class MeActivity extends AppCompatActivity {
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
 
-        // হোস্ট চেক
         agencyRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -172,19 +168,34 @@ public class MeActivity extends AppCompatActivity {
         });
     }
 
-    // সুপার অ্যাডমিন স্ট্যাটাস চেক এবং মাস্টার প্যানেল ওপেন করার লজিক
+    // 👑 সুপার অ্যাডমিন জিমেইল সিকিউরিটি চেক (সম্পূর্ণ ছোট হাতের অক্ষরে)
     private void checkSuperAdminAccessAndShowPanel() {
-        if (currentUserId == null || currentUserId.isEmpty()) return;
-        boolean isOwnerOrSuperAdmin = true; 
+        if (prefs == null) return;
+        
+        String ownerGmail = "aponsraponsrsr@gmail.com"; // সম্পূর্ণ ছোট হাতের জিমেইল
+        
+        String loggedInEmail = prefs.getString("USER_EMAIL", "");
+        if (loggedInEmail.isEmpty()) {
+            loggedInEmail = prefs.getString("email", "");
+        }
+        if (loggedInEmail.isEmpty()) {
+            loggedInEmail = prefs.getString("GOOGLE_EMAIL", "");
+        }
+
+        // ছোট হাতের অক্ষরে রূপান্তর করে নিখুঁতভাবে ম্যাচিং করা
+        boolean isOwnerOrSuperAdmin = loggedInEmail.trim().toLowerCase().equals(ownerGmail);
 
         if (isOwnerOrSuperAdmin) {
             if (textMeName != null) {
                 textMeName.setOnClickListener(v -> showSuperAdminMasterControlDialog());
             }
+        } else {
+            if (textMeName != null) {
+                textMeName.setOnClickListener(null);
+            }
         }
     }
 
-    // সুপার অ্যাডমিন মাস্টার কন্ট্রোল প্যানেল (এজেন্সি ক্রিয়েট এবং আইডি শর্ট করার অপশনসহ)
     private void showSuperAdminMasterControlDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("👑 Super Admin - Master Control Panel");
