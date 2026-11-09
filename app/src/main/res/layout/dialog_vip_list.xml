@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#1E1233"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/textVipTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="👑 VIP 1 to VIP 7 Privileges"
+        android:textColor="#FFD700"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="5dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Premium • Exclusive • Royal"
+        android:textColor="#FF4081"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="15dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerVipList"
+        android:layout_width="match_parent"
+        android:layout_height="350dp"
+        android:scrollbars="vertical" />
+
+    <Button
+        android:id="@+id/btnCloseVipDialog"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Close"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#FF4081"
+        android:layout_marginTop="15dp" />
+
+</LinearLayout>
