@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SR Voice Chat - Super Admin Panel</title>
-    <!-- Firebase SDK -->
+    <title>SR Voice Chat - Global Super Admin Panel</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
@@ -16,7 +15,6 @@
         input { background: #120A2A; color: #FFFFFF; border: 1px solid #441B1035; }
         button { background: #00E676; color: #000; font-weight: bold; cursor: pointer; }
         button:hover { background: #00C853; }
-        .btn-ban { background: #FF4081; color: #fff; }
         .log-box { font-size: 14px; color: #00E676; text-align: center; margin-top: 10px; }
     </style>
 </head>
@@ -30,29 +28,19 @@
 </div>
 
 <div class="container" id="panelBox" style="display:none;">
-    <h2>👑 SR Super Admin Dashboard</h2>
+    <h2>👑 Global Super Admin Dashboard</h2>
 
-    <!-- Coin Topup Section -->
     <div class="section">
-        <h3>💰 Coin & Seller Top-up</h3>
+        <h3>💰 Global Coin Top-up (All Users)</h3>
         <input type="text" id="targetUserId" placeholder="Enter User ID (e.g., 493859069)">
-        <input type="number" id="coinAmount" placeholder="Enter Coin Amount (e.g., 50000)">
-        <button onclick="addCoins()">Add Coins to User</button>
-    </div>
-
-    <!-- User Ban/Unban Section -->
-    <div class="section">
-        <h3>🚫 User Control (Ban / Unban)</h3>
-        <input type="text" id="banUserId" placeholder="Enter User ID">
-        <button class="btn-ban" onclick="banUser(true)">Ban User</button>
-        <button onclick="banUser(false)" style="background:#2979FF; color:#fff;">Unban User</button>
+        <input type="number" id="coinAmount" placeholder="Enter Coin Amount">
+        <button onclick="addCoinsToAnyUser()">Add Coins Globally</button>
     </div>
 
     <div class="log-box" id="statusLog"></div>
 </div>
 
 <script>
-    // 🌟 ফায়ারবেস কনফিগারেশন
     const firebaseConfig = {
         databaseURL: "https://sr-voice-default-rtdb.firebaseio.com"
     };
@@ -67,16 +55,16 @@
             document.getElementById('loginBox').style.display = 'none';
             document.getElementById('panelBox').style.display = 'block';
         } else {
-            alert("Access Denied! Incorrect Gmail or Password.");
+            alert("Access Denied! Incorrect Credentials.");
         }
     }
 
-    function addCoins() {
+    function addCoinsToAnyUser() {
         const uid = document.getElementById('targetUserId').value.trim();
         const coins = parseInt(document.getElementById('coinAmount').value);
 
         if (!uid || isNaN(coins)) {
-            alert("Please enter valid User ID and Coin amount!");
+            alert("Please enter a valid User ID and Coin amount!");
             return;
         }
 
@@ -88,27 +76,11 @@
 
             userRef.update({ sendingCoins: updatedCoins }, (error) => {
                 if (!error) {
-                    document.getElementById('statusLog').innerText = `Successfully added ${coins} coins to ID: ${uid}`;
+                    document.getElementById('statusLog').innerText = `Success! Added ${coins} coins to ID: ${uid}`;
                 } else {
                     alert("Failed to update coins.");
                 }
             });
-        });
-    }
-
-    function banUser(isBanned) {
-        const uid = document.getElementById('banUserId').value.trim();
-        if (!uid) {
-            alert("Please enter User ID!");
-            return;
-        }
-
-        db.ref('users/' + uid).update({ isBanned: isBanned }, (error) => {
-            if (!error) {
-                document.getElementById('statusLog').innerText = isBanned ? `User ${uid} has been Banned!` : `User ${uid} Unbanned!`;
-            } else {
-                alert("Failed to update user ban status.");
-            }
         });
     }
 </script>
