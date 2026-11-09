@@ -1237,10 +1237,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
         levelRow.setOrientation(LinearLayout.HORIZONTAL);
         levelRow.setPadding(0, 4, 0, 14);
 
-        View sendBadgeView = createSoftBadgeView("⭐ Send Lv." + sendLevel + " (" + formatCoins(sendingCoins) + ")", getLevelColorHex(sendLevel));
+        View sendBadgeView = createSoftBadgeView("⭐ Send Lv." + sendLevel, getLevelColorHex(sendLevel));
         levelRow.addView(sendBadgeView);
 
-        View recvBadgeView = createSoftBadgeView("👑 Recv Lv." + recvLevel + " (" + formatCoins(receivingCoins) + ")", getLevelColorHex(recvLevel));
+        View recvBadgeView = createSoftBadgeView("👑 Recv Lv." + recvLevel, getLevelColorHex(recvLevel));
         levelRow.addView(recvBadgeView);
 
         infoCard.addView(levelRow);
@@ -1270,39 +1270,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
         infoCard.addView(statsRow);
         layout.addView(infoCard);
 
-        LinearLayout extraFeaturesRow = new LinearLayout(this);
-        extraFeaturesRow.setOrientation(LinearLayout.HORIZONTAL);
-        extraFeaturesRow.setGravity(Gravity.CENTER);
-        extraFeaturesRow.setPadding(0, 15, 0, 10);
-
-        Button btnWallet = new Button(this);
-        btnWallet.setText("💰 Wallet");
-        btnWallet.setBackgroundColor(Color.parseColor("#3F51B5"));
-        btnWallet.setTextColor(Color.WHITE);
-        btnWallet.setTypeface(null, android.graphics.Typeface.BOLD);
-        LinearLayout.LayoutParams wp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
-        wp.setMargins(0, 0, 6, 0);
-        btnWallet.setLayoutParams(wp);
-        btnWallet.setOnClickListener(v -> Toast.makeText(this, "Wallet balance: 50,000 Coins", Toast.LENGTH_SHORT).show());
-        extraFeaturesRow.addView(btnWallet);
-
-        Button btnCharm = new Button(this);
-        btnCharm.setText("💎 Charm");
-        btnCharm.setBackgroundColor(Color.parseColor("#9C27B0"));
-        btnCharm.setTextColor(Color.WHITE);
-        btnCharm.setTypeface(null, android.graphics.Typeface.BOLD);
-        LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
-        cp.setMargins(6, 0, 0, 0);
-        btnCharm.setLayoutParams(cp);
-        btnCharm.setOnClickListener(v -> Toast.makeText(this, "Charm level status active!", Toast.LENGTH_SHORT).show());
-        extraFeaturesRow.addView(btnCharm);
-
-        layout.addView(extraFeaturesRow);
-
         LinearLayout actionRow = new LinearLayout(this);
         actionRow.setOrientation(LinearLayout.HORIZONTAL);
         actionRow.setGravity(Gravity.CENTER);
-        actionRow.setPadding(0, 15, 0, 10);
+        actionRow.setPadding(0, 20, 0, 10);
 
         Button btnFollow = new Button(this);
         btnFollow.setText("✨ Follow");
