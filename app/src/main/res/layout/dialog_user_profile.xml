@@ -4,18 +4,18 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="@drawable/bg_plus_btn" 
-    android:padding="20dp"
-    android:gravity="center">
+    android:padding="24dp"
+    android:gravity="center"
+    android:layout_gravity="center">
 
     <!-- User Profile Picture (Circular) -->
     <ImageView
         android:id="@+id/imgUserProfile"
-        android:layout_width="90dp"
-        android:layout_height="90dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:scaleType="centerCrop"
         android:src="@android:drawable/ic_menu_myplaces"
-        android:background="@drawable/bg_plus_btn"
-        android:layout_marginBottom="10dp"/>
+        android:layout_marginBottom="12dp"/>
 
     <!-- User Name -->
     <TextView
@@ -24,38 +24,44 @@
         android:layout_height="wrap_content"
         android:text="User Name"
         android:textColor="#FFFFFF"
-        android:textSize="18sp"
+        android:textSize="20sp"
         android:textStyle="bold" />
 
-    <!-- ID & Level Badges -->
+    <!-- ID & Level Badges (Click to Copy ID feature support) -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="12dp">
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="16dp"
+        android:background="#22000000"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp">
 
         <TextView
             android:id="@+id/txtUserId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="ID: 123456789"
-            android:textColor="#AAAAAA"
-            android:textSize="12sp"
-            android:layout_marginEnd="10dp"/>
+            android:text="ID: 123456789 📋"
+            android:textColor="#FFD700"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginEnd="12dp"
+            android:clickable="true"
+            android:focusable="true"/>
 
         <TextView
             android:id="@+id/txtUserLevel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="⭐ Level 15"
-            android:textColor="#FFD700"
-            android:textSize="12sp"
+            android:textColor="#00E676"
+            android:textSize="13sp"
             android:textStyle="bold"/>
     </LinearLayout>
 
-    <!-- Action Buttons (Follow, Chat, Gift Box) -->
+    <!-- Action Buttons (Follow, Add Friend, Gift) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -67,33 +73,35 @@
         <Button
             android:id="@+id/btnFollow"
             android:layout_width="0dp"
-            android:layout_height="45dp"
-            android:layout_weight="1.5"
+            android:layout_height="48dp"
+            android:layout_weight="1.3"
             android:text="➕ Follow"
             android:textColor="#000000"
             android:textStyle="bold"
             android:backgroundTint="#00E676"
-            android:layout_marginEnd="8dp"/>
+            android:layout_marginEnd="6dp"/>
 
-        <!-- Chat Button -->
+        <!-- Add Friend Button -->
         <Button
-            android:id="@+id/btnChat"
+            android:id="@+id/btnAddFriend"
             android:layout_width="0dp"
-            android:layout_height="45dp"
-            android:layout_weight="1.5"
-            android:text="💬 Chat"
+            android:layout_height="48dp"
+            android:layout_weight="1.3"
+            android:text="👥 Add Friend"
             android:textColor="#FFFFFF"
             android:textStyle="bold"
             android:backgroundTint="#00B0FF"
-            android:layout_marginEnd="8dp"/>
+            android:layout_marginEnd="6dp"/>
 
-        <!-- Gift Box Button -->
+        <!-- Gift Button -->
         <Button
             android:id="@+id/btnGift"
-            android:layout_width="45dp"
-            android:layout_height="45dp"
-            android:text="🎁"
-            android:textSize="18sp"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="🎁 Gift"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
             android:backgroundTint="#FF4081"/>
 
     </LinearLayout>
