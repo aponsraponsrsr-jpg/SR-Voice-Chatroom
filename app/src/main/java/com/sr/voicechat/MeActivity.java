@@ -59,7 +59,7 @@ public class MeActivity extends AppCompatActivity {
             textMeId = findViewById(R.id.textMeId);
             txtProfileLevel = findViewById(R.id.txtProfileLevel); 
             
-            // নতুন এজেন্সি ও হোস্ট ব্যাজ ইনিশিয়ালাইজেশন (যদি লেআউটে যোগ করা থাকে)
+            // XML লেআউট থেকে এজেন্সি ও হোস্ট ব্যাজ ইনিশিয়ালাইজেশন
             txtAgencyBadge = findViewById(R.id.txtAgencyBadge);
             txtHostBadge = findViewById(R.id.txtHostBadge);
 
@@ -76,7 +76,7 @@ public class MeActivity extends AppCompatActivity {
 
             loadUserData();
             syncUserLevelFromFirebase();
-            checkUserBadgesAndAgencyStatus(); // এজেন্সি ও হোস্ট ব্যাজ চেক করার লজিক
+            checkUserBadgesAndAgencyStatus(); // প্রোফাইলে ব্যাজ চেক করার লজিক
             checkSuperAdminAccessAndShowPanel();
 
             if (btnEditProfile != null) {
@@ -126,11 +126,11 @@ public class MeActivity extends AppCompatActivity {
         }
     }
 
-    // ইউজার কি এজেন্সি ওনার নাকি হোস্ট—তা চেক করে প্রোফাইলে ব্যাজ শো করার লজিক
+    // ইউজার কি এজেন্সি ওনার নাকি অফিশিয়াল হোস্ট—তা রিয়েল-টাইমে চেক করে ব্যাজ শো করার লজিক
     private void checkUserBadgesAndAgencyStatus() {
         if (currentUserId == null || currentUserId.isEmpty()) return;
 
-        // চেক করা ইউজার নিজেই কোনো এজেন্সির ওনার কি না
+        // এজেন্সি ওনার চেক
         agencyRef.child(currentUserId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -147,8 +147,7 @@ public class MeActivity extends AppCompatActivity {
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
 
-        // চেক করা ইউজার অন্য কোনো এজেন্সির আন্ডারে অফিশিয়াল হোস্ট কি না
-        // (আমরা ফায়ারবেসের সব এজেন্সির হোস্ট লিস্ট চেক করব)
+        // হোস্ট চেক
         agencyRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -173,32 +172,46 @@ public class MeActivity extends AppCompatActivity {
         });
     }
 
+    // সুপার অ্যাডমিন স্ট্যাটাস চেক এবং মাস্টার প্যানেল ওপেন করার লজিক
     private void checkSuperAdminAccessAndShowPanel() {
         if (currentUserId == null || currentUserId.isEmpty()) return;
         boolean isOwnerOrSuperAdmin = true; 
 
         if (isOwnerOrSuperAdmin) {
             if (textMeName != null) {
-                textMeName.setOnClickListener(v -> showSuperAdminAgencyCreationDialog());
+                textMeName.setOnClickListener(v -> showSuperAdminMasterControlDialog());
             }
         }
     }
 
-    private void showSuperAdminAgencyCreationDialog() {
+    // সুপার অ্যাডমিন মাস্টার কন্ট্রোল প্যানেল (এজেন্সি ক্রিয়েট এবং আইডি শর্ট করার অপশনসহ)
+    private void showSuperAdminMasterControlDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("👑 Super Admin - Agency Creation Panel");
+        builder.setTitle("👑 Super Admin - Master Control Panel");
 
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(40, 30, 40, 30);
 
         final EditText inputOwnerId = new EditText(this);
-        inputOwnerId.setHint("Enter Owner ID (Any Digit ID)...");
+        inputOwnerId.setHint("Enter Owner ID for Agency...");
         layout.addView(inputOwnerId);
 
         final EditText inputAgencyName = new EditText(this);
         inputAgencyName.setHint("Enter Agency Name...");
         layout.addView(inputAgencyName);
+
+        View divider = new View(this);
+        divider.setMinimumHeight(15);
+        layout.addView(divider);
+
+        final EditText inputTargetUser = new EditText(this);
+        inputTargetUser.setHint("Target User ID (Old ID)...");
+        layout.addView(inputTargetUser);
+
+        final EditText inputNewShortId = new EditText(this);
+        inputNewShortId.setHint("New Short/Unique ID (e.g. 1001)...");
+        layout.addView(inputNewShortId);
 
         builder.setView(layout);
 
@@ -209,11 +222,22 @@ public class MeActivity extends AppCompatActivity {
             if (!ownerId.isEmpty() && !agencyName.isEmpty()) {
                 createAgencyInFirebase(ownerId, agencyName);
             } else {
-                Toast.makeText(this, "Owner ID and Agency Name cannot be empty!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Owner ID and Agency Name required!", Toast.LENGTH_SHORT).show();
             }
         });
 
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+        builder.setNeutralButton("Make Short ID", (dialog, which) -> {
+            String targetUser = inputTargetUser.getText().toString().trim();
+            String newId = inputNewShortId.getText().toString().trim();
+
+            if (!targetUser.isEmpty() && !newId.isEmpty()) {
+                updateUserShortIdInFirebase(targetUser, newId);
+            } else {
+                Toast.makeText(this, "Target ID and New Short ID required!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
         builder.show();
     }
 
@@ -232,7 +256,7 @@ public class MeActivity extends AppCompatActivity {
                 userRef.child("isAgencyOwner").setValue(true);
                 userRef.child("agencyName").setValue(agencyName);
 
-                Toast.makeText(this, "Agency '" + agencyName + "' Created Successfully for ID: " + ownerUserId, Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Agency '" + agencyName + "' Created Successfully!", Toast.LENGTH_LONG).show();
                 
                 Intent intent = new Intent(MeActivity.this, AgencyDashboardActivity.class);
                 intent.putExtra("AGENCY_OWNER_ID", ownerUserId);
@@ -241,6 +265,37 @@ public class MeActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "Failed to create agency!", Toast.LENGTH_SHORT).show();
             }
+        });
+    }
+
+    private void updateUserShortIdInFirebase(String oldUserId, String newShortId) {
+        DatabaseReference oldUserRef = userDatabaseRef.child(oldUserId);
+        oldUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    Object userData = snapshot.getValue();
+                    userDatabaseRef.child(newShortId).setValue(userData).addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            userDatabaseRef.child(newShortId).child("userId").setValue(newShortId);
+                            oldUserRef.removeValue();
+
+                            if (oldUserId.equals(currentUserId)) {
+                                prefs.edit().putString("MY_9_DIGIT_ID", newShortId).apply();
+                                currentUserId = newShortId;
+                            }
+
+                            Toast.makeText(MeActivity.this, "ID Successfully Shortened to: " + newShortId, Toast.LENGTH_LONG).show();
+                            loadUserData();
+                        } else {
+                            Toast.makeText(MeActivity.this, "Failed to update Short ID!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    Toast.makeText(MeActivity.this, "Target User ID not found in database!", Toast.LENGTH_SHORT).show();
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
     }
 
