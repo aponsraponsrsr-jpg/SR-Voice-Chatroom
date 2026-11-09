@@ -5,6 +5,7 @@ import android.view.Gravity;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -19,26 +20,30 @@ import com.google.firebase.database.ValueEventListener;
 
 public class AgencyDashboardActivity extends AppCompatActivity {
 
-    private TextView txtAgencyTitle, txtTotalHosts, txtTotalEarnings;
+    private TextView txtAgencyTitle, txtTotalHosts, txtTotalEarnings, txtHostListHeader;
     private Button btnOpenInviteDialog;
+    private LinearLayout hostListContainer;
     private String agencyOwnerId = "";
     private String agencyName = "";
-    private DatabaseReference agencyRef, invitationRef;
+    private DatabaseReference agencyRef, invitationRef, usersRef;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        // ড্যাশবোর্ডের লেআউট ইনিশিয়ালাইজেশন
+
+        // প্রিমিয়াম ড্যাশবোর্ড লেআউট
+        ScrollView scrollView = new ScrollView(this);
+        scrollView.setFillViewport(true);
+        scrollView.setBackgroundColor(android.graphics.Color.parseColor("#120A2A"));
+
         LinearLayout rootLayout = new LinearLayout(this);
         rootLayout.setOrientation(LinearLayout.VERTICAL);
         rootLayout.setPadding(40, 40, 40, 40);
-        rootLayout.setBackgroundColor(android.graphics.Color.parseColor("#120A2A"));
 
         txtAgencyTitle = new TextView(this);
         txtAgencyTitle.setText("🏛️ Agency Dashboard");
         txtAgencyTitle.setTextColor(android.graphics.Color.parseColor("#FFD700"));
-        txtAgencyTitle.setTextSize(20);
+        txtAgencyTitle.setTextSize(22);
         txtAgencyTitle.setTypeface(null, android.graphics.Typeface.BOLD);
         rootLayout.addView(txtAgencyTitle);
 
@@ -46,27 +51,40 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         txtTotalHosts.setText("👥 Active Hosts: 0");
         txtTotalHosts.setTextColor(android.graphics.Color.WHITE);
         txtTotalHosts.setTextSize(16);
-        txtTotalHosts.setPadding(0, 20, 0, 10);
+        txtTotalHosts.setPadding(0, 20, 0, 5);
         rootLayout.addView(txtTotalHosts);
 
         txtTotalEarnings = new TextView(this);
-        txtTotalEarnings.setText("💰 Total Earnings: 0 Coins ($0.00)");
+        txtTotalEarnings.setText("💰 Total Agency Earnings: $0.00");
         txtTotalEarnings.setTextColor(android.graphics.Color.parseColor("#00E676"));
         txtTotalEarnings.setTextSize(16);
-        txtTotalEarnings.setPadding(0, 0, 0, 40);
+        txtTotalEarnings.setPadding(0, 0, 0, 30);
         rootLayout.addView(txtTotalEarnings);
 
-        // হোস্ট ইনভাইট পাঠানোর প্রিমিয়াম বাটন ("Invite" অপশন)
+        // হোস্ট ইনভাইট পাঠানোর প্রিমিয়াম বাটন
         btnOpenInviteDialog = new Button(this);
-        btnOpenInviteDialog.setText("➕ Invite New Host");
+        btnOpenInviteDialog.setText("➕ Invite New Host (Any Digit ID)");
         btnOpenInviteDialog.setBackgroundColor(android.graphics.Color.parseColor("#FF4081"));
         btnOpenInviteDialog.setTextColor(android.graphics.Color.WHITE);
         btnOpenInviteDialog.setTypeface(null, android.graphics.Typeface.BOLD);
         rootLayout.addView(btnOpenInviteDialog);
 
-        setContentView(rootLayout);
+        txtHostListHeader = new TextView(this);
+        txtHostListHeader.setText("\n📋 Agency Host Performance & Targets:");
+        txtHostListHeader.setTextColor(android.graphics.Color.parseColor("#00B0FF"));
+        txtHostListHeader.setTextSize(18);
+        txtHostListHeader.setTypeface(null, android.graphics.Typeface.BOLD);
+        rootLayout.addView(txtHostListHeader);
 
-        // ইনটেন্ট থেকে এজেন্সি ওনারের আইডি এবং নাম রিসিভ করা
+        // হোস্টদের তালিকা দেখানোর কন্টেইনার
+        hostListContainer = new LinearLayout(this);
+        hostListContainer.setOrientation(LinearLayout.VERTICAL);
+        rootLayout.addView(hostListContainer);
+
+        scrollView.addView(rootLayout);
+        setContentView(scrollView);
+
+        // ইনটেন্ট থেকে ডাটা রিসিভ
         agencyOwnerId = getIntent().getStringExtra("AGENCY_OWNER_ID");
         agencyName = getIntent().getStringExtra("AGENCY_NAME");
 
@@ -79,14 +97,15 @@ public class AgencyDashboardActivity extends AppCompatActivity {
 
         agencyRef = FirebaseDatabase.getInstance().getReference("agencies").child(agencyOwnerId);
         invitationRef = FirebaseDatabase.getInstance().getReference("agency_invitations");
+        usersRef = FirebaseDatabase.getInstance().getReference("users");
 
-        loadAgencyStats();
+        loadAgencyDataAndHosts();
 
-        // ইনভাইট বাটনে ক্লিক করলে আইডি ইনপুট ডায়ালগ ওপেন হবে
+        // ইনভাইট বাটনে ক্লিক ইভেন্ট
         btnOpenInviteDialog.setOnClickListener(v -> showHostInviteInputDialog());
     }
 
-    // হোস্টের আইডি দিয়ে ইনভাইট পাঠানোর পপআপ ডায়ালগ
+    // হোস্ট ইনভাইট পাঠানোর পপআপ (যেখানে যেকোনো ডিজিটের আইডি দেওয়া যাবে)
     private void showHostInviteInputDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("📨 Send Host Invitation");
@@ -97,6 +116,7 @@ public class AgencyDashboardActivity extends AppCompatActivity {
 
         final EditText inputTargetId = new EditText(this);
         inputTargetId.setHint("Enter Host ID (Any Digit ID)...");
+        inputTargetId.setTextColor(android.graphics.Color.WHITE);
         layout.addView(inputTargetId);
 
         builder.setView(layout);
@@ -114,7 +134,7 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         builder.show();
     }
 
-    // রিয়েল-টাইমে ইউজারের কাছে ডাইনামিক এজেন্সি নামসহ ইনভাইট পাঠানোর লজিক
+    // রিয়েল-টাইমে ডাইনামিক এজেন্সি নামসহ ইনভাইট পাঠানোর লজিক
     private void sendRealtimeHostInvitation(String targetUserId) {
         String inviteKey = invitationRef.child(targetUserId).push().getKey();
         if (inviteKey == null) return;
@@ -123,7 +143,7 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         inviteMap.put("agencyId", agencyOwnerId);
         inviteMap.put("agencyName", agencyName); // ডাইনামিক এজেন্সি নাম
         inviteMap.put("inviterId", agencyOwnerId);
-        inviteMap.put("status", "Pending"); // Pending, Accepted, Refused
+        inviteMap.put("status", "Pending"); 
         inviteMap.put("timestamp", System.currentTimeMillis());
 
         invitationRef.child(targetUserId).child(inviteKey).setValue(inviteMap).addOnCompleteListener(task -> {
@@ -135,8 +155,8 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         });
     }
 
-    // এজেন্সির হোস্ট সংখ্যা এবং ডাটা লোড করার মেথড
-    private void loadAgencyStats() {
+    // এজেন্সির হোস্ট এবং তাদের টার্গেট/আর্নিং লোড করার মেথড
+    private void loadAgencyDataAndHosts() {
         agencyRef.child("hosts").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -144,6 +164,72 @@ public class AgencyDashboardActivity extends AppCompatActivity {
                 if (txtTotalHosts != null) {
                     txtTotalHosts.setText("👥 Active Hosts: " + hostCount);
                 }
+
+                hostListContainer.removeAllViews();
+
+                for (DataSnapshot hostSnap : snapshot.getChildren()) {
+                    String hostUserId = hostSnap.getKey();
+                    if (hostUserId != null) {
+                        fetchHostDetailsAndDisplay(hostUserId);
+                    }
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    // প্রতিটি হোস্টের কয়েন টার্গেট ও ডলার হিসাব করে ড্যাশবোর্ডে শো করার লজিক
+    private void fetchHostDetailsAndDisplay(String hostUserId) {
+        usersRef.child(hostUserId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                String hostName = snapshot.child("name").getValue(String.class);
+                if (hostName == null) hostName = "Host ID: " + hostUserId;
+
+                long hostCoins = 0;
+                if (snapshot.child("receivedCoins").exists() && snapshot.child("receivedCoins").getValue(Long.class) != null) {
+                    hostCoins = snapshot.child("receivedCoins").getValue(Long.class);
+                }
+
+                // পলিসি অনুযায়ী কয়েন থেকে ডলারে রূপান্তর (যেমন: ১০,০০০ কয়েন = ১ ডলার বা পলিসি রেট)
+                double hostEarnings = hostCoins / 10000.0; 
+
+                LinearLayout card = new LinearLayout(AgencyDashboardActivity.this);
+                card.setOrientation(LinearLayout.VERTICAL);
+                card.setPadding(25, 20, 25, 20);
+                
+                android.graphics.drawable.GradientDrawable cardBg = new android.graphics.drawable.GradientDrawable();
+                cardBg.setColor(android.graphics.Color.parseColor("#2A1B4E"));
+                cardBg.setCornerRadius(15);
+                card.setBackground(cardBg);
+
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, 
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+                params.setMargins(0, 0, 0, 15);
+                card.setLayoutParams(params);
+
+                TextView tvName = new TextView(AgencyDashboardActivity.this);
+                tvName.setText("👤 " + hostName + " (ID: " + hostUserId + ")");
+                tvName.setTextColor(android.graphics.Color.WHITE);
+                tvName.setTextSize(15);
+                tvName.setTypeface(null, android.graphics.Typeface.BOLD);
+                card.addView(tvName);
+
+                TextView tvTarget = new TextView(AgencyDashboardActivity.this);
+                tvTarget.setText("🎯 Target Coins: " + hostCoins + " Coins");
+                tvTarget.setTextColor(android.graphics.Color.parseColor("#00E676"));
+                tvTarget.setTextSize(13);
+                card.addView(tvTarget);
+
+                TextView tvDollar = new TextView(AgencyDashboardActivity.this);
+                tvDollar.setText("💵 Host Earnings: $" + String.format("%.2f", hostEarnings));
+                tvDollar.setTextColor(android.graphics.Color.parseColor("#FFD700"));
+                tvDollar.setTextSize(13);
+                card.addView(tvDollar);
+
+                hostListContainer.addView(card);
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
