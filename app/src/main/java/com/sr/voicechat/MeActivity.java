@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -117,6 +116,7 @@ public class MeActivity extends AppCompatActivity {
     private void syncUserLevelFromFirebase() {
         if (currentUserId != null && !currentUserId.isEmpty() && userDatabaseRef != null) {
             try {
+                // লেভেলের জন্য শুধু totalSpentCoins ট্র্যাক করা হবে, কয়েনের সাথে যেন মিশে না যায়
                 userDatabaseRef.child(currentUserId).child("totalSpentCoins").addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -218,9 +218,8 @@ public class MeActivity extends AppCompatActivity {
 
     private void showWalletRechargeDialog() {
         try {
-            final Dialog rechargeDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
-            rechargeDialog.setContentView(R.layout.dialog_wallet_recharge);
-            rechargeDialog.show();
+            WalletRechargeDialog rechargeDialog = new WalletRechargeDialog();
+            rechargeDialog.show(getSupportFragmentManager(), "WalletRechargeDialog");
         } catch (Exception ignored) {}
     }
 
