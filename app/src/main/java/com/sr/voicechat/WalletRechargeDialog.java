@@ -31,27 +31,35 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
         mAuth = FirebaseAuth.getInstance();
 
         if (mAuth.getCurrentUser() != null) {
-            String userId = mAuth.getCurrentUser().getUid();
+            String authUid = mAuth.getCurrentUser().getUid();
             
-            // গ্লোবাল এবং সিকিউর ফায়ারবেস পাথ বাইন্ডিং
-            userRef = FirebaseDatabase.getInstance().getReference().child("users").child(userId);
+            // প্রফেশনাল পাথ বাইন্ডিং: প্রথমে মূল ইউজার নোড থেকে ডেটা ফেচ করা
+            userRef = FirebaseDatabase.getInstance().getReference().child("users").child(authUid);
             
             coinEventListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot snapshot) {
                     if (snapshot.exists() && isAdded()) {
+                        // অ্যাডমিন প্যানেল থেকে পাঠানো কয়েন বা ব্যালেন্স রিয়েল-টাইমে রিড করা
                         Long coins = snapshot.child("sendingCoins").getValue(Long.class);
+                        if (coins == null) {
+                            // যদি sendingCoins না থাকে, বিকল্প পাথ বা ব্যালেন্স চেক করা
+                            coins = snapshot.child("coins").getValue(Long.class);
+                        }
+                        
                         if (coins != null) {
-                            tvCoinBalance.setText(String.format("%,d", coins));
+                            tvCoinBalance.setText(String.format("%,d", coins)); // কমা ফরম্যাটে সুন্দর দেখাবে
                         } else {
                             tvCoinBalance.setText("0");
                         }
+                    } else if (isAdded()) {
+                        tvCoinBalance.setText("0");
                     }
                 }
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError error) {
-                    // প্রফেশনাল এরর হ্যান্ডেলিং
+                    // প্রফেশনাল এরর লগ বা হ্যান্ডেলিং
                 }
             };
             userRef.addValueEventListener(coinEventListener);
@@ -63,6 +71,7 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
+        // মেমোরি লিক রোধ করতে লিসেনার রিমুভ করা হলো
         if (userRef != null && coinEventListener != null) {
             userRef.removeEventListener(coinEventListener);
         }
