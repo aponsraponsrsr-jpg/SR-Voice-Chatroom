@@ -526,6 +526,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         dialog.show();
     }
 
+    // প্রিমিয়াম ও ফুল স্ক্রিন লেভেল/ট্যাব সচল র‍্যাঙ্কিং পপআপ (ভিডিও নির্দেশ অনুযায়ী আপডেট)
     private void showPremiumRankingBottomSheet() {
         BottomSheetDialog rankSheet = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         
@@ -549,6 +550,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         title.setPadding(0, 0, 0, 20);
         rankLayout.addView(title);
 
+        // সচল ট্যাব লেআউট (Daily, Weekly, Monthly)
         LinearLayout tabLayout = new LinearLayout(this);
         tabLayout.setOrientation(LinearLayout.HORIZONTAL);
         tabLayout.setGravity(Gravity.CENTER);
@@ -577,6 +579,36 @@ public class VoiceRoomActivity extends AppCompatActivity {
         tabLayout.addView(btnMonthly);
         rankLayout.addView(tabLayout);
 
+        btnDaily.setOnClickListener(v -> {
+            btnDaily.setBackgroundColor(Color.parseColor("#FFD700"));
+            btnDaily.setTextColor(Color.BLACK);
+            btnWeekly.setBackgroundColor(Color.parseColor("#441B1035"));
+            btnWeekly.setTextColor(Color.WHITE);
+            btnMonthly.setBackgroundColor(Color.parseColor("#441B1035"));
+            btnMonthly.setTextColor(Color.WHITE);
+            Toast.makeText(this, "Daily Ranking Active", Toast.LENGTH_SHORT).show();
+        });
+
+        btnWeekly.setOnClickListener(v -> {
+            btnWeekly.setBackgroundColor(Color.parseColor("#FFD700"));
+            btnWeekly.setTextColor(Color.BLACK);
+            btnDaily.setBackgroundColor(Color.parseColor("#441B1035"));
+            btnDaily.setTextColor(Color.WHITE);
+            btnMonthly.setBackgroundColor(Color.parseColor("#441B1035"));
+            btnMonthly.setTextColor(Color.WHITE);
+            Toast.makeText(this, "Weekly Ranking Active", Toast.LENGTH_SHORT).show();
+        });
+
+        btnMonthly.setOnClickListener(v -> {
+            btnMonthly.setBackgroundColor(Color.parseColor("#FFD700"));
+            btnMonthly.setTextColor(Color.BLACK);
+            btnDaily.setBackgroundColor(Color.parseColor("#441B1035"));
+            btnDaily.setTextColor(Color.WHITE);
+            btnWeekly.setBackgroundColor(Color.parseColor("#441B1035"));
+            btnWeekly.setTextColor(Color.WHITE);
+            Toast.makeText(this, "Monthly Ranking Active", Toast.LENGTH_SHORT).show();
+        });
+
         ScrollView rankScrollView = new ScrollView(this);
         rankScrollView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 0, 1.0f));
         rankScrollView.setFillViewport(true);
@@ -584,9 +616,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
         LinearLayout listContainer = new LinearLayout(this);
         listContainer.setOrientation(LinearLayout.VERTICAL);
 
-        addRankUserRow(listContainer, "1", "SR Apon (Owner)", "1,500,000 Coins", "#FFD700");
-        addRankUserRow(listContainer, "2", "Top Supporter", "950,000 Coins", "#C0C0C0");
-        addRankUserRow(listContainer, "3", "Active Member", "500,000 Coins", "#CD7F32");
+        // ভিডিও নির্দেশনা অনুযায়ী শুধুমাত্র ক্লিন Top 1, Top 2, Top 3 রো
+        addRankUserRow(listContainer, "1", "Top Contributor #1", "0 Coins", "#FFD700");
+        addRankUserRow(listContainer, "2", "Top Contributor #2", "0 Coins", "#C0C0C0");
+        addRankUserRow(listContainer, "3", "Top Contributor #3", "0 Coins", "#CD7F32");
 
         rankScrollView.addView(listContainer);
         rankLayout.addView(rankScrollView);
@@ -594,7 +627,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         rankSheet.setContentView(rankLayout);
         Window w = rankSheet.getWindow();
         if (w != null) {
-            w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1500);
+            w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1900); // পপআপ বড় ও ফুল স্ক্রিন সদৃশ করা হলো
             w.setGravity(Gravity.BOTTOM);
         }
         rankSheet.show();
@@ -1175,7 +1208,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 long sendingCoins = 0L;
                 long receivingCoins = 0L;
-                String gender = "👦";
+                String gender = "👦"; // ডিফল্ট জেন্ডার আইকন
                 String country = "🇧🇩";
 
                 if (snapshot.exists()) {
@@ -1186,7 +1219,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
                     if (send != null) sendingCoins = send;
                     if (recv != null) receivingCoins = recv;
-                    if (dbGender != null && !dbGender.isEmpty()) gender = dbGender;
+                    if (dbGender != null) {
+                        // ইউজার জেন্ডার অনুযায়ী আইকন সেট করা (ফিমেল হলে 👧, মেইল হলে 👦)
+                        if (dbGender.toLowerCase().contains("female") || dbGender.contains("মেয়ে") || dbGender.contains("👧")) {
+                            gender = "👧";
+                        } else {
+                            gender = "👦";
+                        }
+                    }
                     if (dbCountry != null && !dbCountry.isEmpty()) country = dbCountry;
                 }
                 showUserProfileDialog(userName, userId, userImage, sendingCoins, receivingCoins, gender, country);
@@ -1197,6 +1237,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
+    // প্রিমিয়াম ও বড় প্রোফাইল পপআপ (~৬৫-৭০% উচ্চতা এবং জেন্ডার আইকন সহ)
     private void showUserProfileDialog(String userName, String userId, String userImage, long sendingCoins, long receivingCoins, String gender, String country) {
         BottomSheetDialog profileDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout layout = new LinearLayout(this);
@@ -1248,6 +1289,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         nameText.setTypeface(null, android.graphics.Typeface.BOLD);
         nameRow.addView(nameText);
 
+        // টেক্সট ছাড়া শুধু জেন্ডার আইকন ও কান্ট্রি ফ্ল্যাগ
         TextView genderFlagText = new TextView(this);
         genderFlagText.setText(" " + gender + " " + country);
         genderFlagText.setTextSize(18);
@@ -1367,7 +1409,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         profileDialog.setContentView(layout);
         Window window = profileDialog.getWindow();
         if (window != null) {
-            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1150);
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1350); // পপআপ স্ক্রিনের প্রায় ৬৫-৭০% উচ্চতা নিশ্চিত করা হলো
             window.setGravity(Gravity.BOTTOM);
         }
         profileDialog.show();
