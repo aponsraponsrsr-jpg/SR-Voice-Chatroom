@@ -14,7 +14,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView; // 👈 এই ImageView ইম্পোর্টটি যুক্ত করা হয়েছে
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -35,12 +35,12 @@ import com.google.firebase.database.ValueEventListener;
 public class MeActivity extends AppCompatActivity {
 
     private ImageView imgMeProfile, btnEditProfile;
-    private TextView textMeName, textMeId, txtProfileLevel;
+    private TextView textMeName, textMeId, txtProfileLevel, txtAgencyBadge, txtHostBadge;
     private LinearLayout btnVipStatus, btnWalletRecharge, btnHostCenter, btnHostPolicy, btnLevelCenter;
     private LinearLayout toolStore, toolDress, toolBirthday;
     
     private SharedPreferences prefs;
-    private DatabaseReference userDatabaseRef;
+    private DatabaseReference userDatabaseRef, agencyRef;
     private String currentUserId = "";
 
     @Override
@@ -52,11 +52,17 @@ public class MeActivity extends AppCompatActivity {
             prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
             currentUserId = prefs.getString("MY_9_DIGIT_ID", "493859069");
             userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
+            agencyRef = FirebaseDatabase.getInstance().getReference("agencies");
 
             imgMeProfile = findViewById(R.id.imgMeProfile);
             textMeName = findViewById(R.id.textMeName);
             textMeId = findViewById(R.id.textMeId);
             txtProfileLevel = findViewById(R.id.txtProfileLevel); 
+            
+            // নতুন এজেন্সি ও হোস্ট ব্যাজ ইনিশিয়ালাইজেশন (যদি লেআউটে যোগ করা থাকে)
+            txtAgencyBadge = findViewById(R.id.txtAgencyBadge);
+            txtHostBadge = findViewById(R.id.txtHostBadge);
+
             btnEditProfile = findViewById(R.id.btnEditProfile);
             btnVipStatus = findViewById(R.id.btnVipStatus);
             btnWalletRecharge = findViewById(R.id.btnWalletRecharge);
@@ -70,6 +76,7 @@ public class MeActivity extends AppCompatActivity {
 
             loadUserData();
             syncUserLevelFromFirebase();
+            checkUserBadgesAndAgencyStatus(); // এজেন্সি ও হোস্ট ব্যাজ চেক করার লজিক
             checkSuperAdminAccessAndShowPanel();
 
             if (btnEditProfile != null) {
@@ -103,11 +110,10 @@ public class MeActivity extends AppCompatActivity {
 
             if (btnHostCenter != null) {
                 btnHostCenter.setOnClickListener(v -> {
-                    new AlertDialog.Builder(MeActivity.this)
-                        .setTitle("🎙️ Host Center")
-                        .setMessage("Check your streaming targets, live duration, and daily earnings.")
-                        .setPositiveButton("OK", (dialog, which) -> dialog.dismiss())
-                        .show();
+                    Intent intent = new Intent(MeActivity.this, AgencyDashboardActivity.class);
+                    intent.putExtra("AGENCY_OWNER_ID", currentUserId);
+                    intent.putExtra("AGENCY_NAME", "SR Agency");
+                    startActivity(intent);
                 });
             }
 
@@ -120,26 +126,62 @@ public class MeActivity extends AppCompatActivity {
         }
     }
 
-    private void checkSuperAdminAccessAndShowPanel() {
-        if (currentUserId == null || currentUserId.isEmpty() || userDatabaseRef == null) return;
-        try {
-            userDatabaseRef.child(currentUserId).child("isSuperAdmin").addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    boolean isSuperAdmin = false;
-                    if (snapshot.exists() && snapshot.getValue(Boolean.class) != null) {
-                        isSuperAdmin = snapshot.getValue(Boolean.class);
-                    }
+    // ইউজার কি এজেন্সি ওনার নাকি হোস্ট—তা চেক করে প্রোফাইলে ব্যাজ শো করার লজিক
+    private void checkUserBadgesAndAgencyStatus() {
+        if (currentUserId == null || currentUserId.isEmpty()) return;
 
-                    if (isSuperAdmin) {
-                        if (textMeName != null) {
-                            textMeName.setOnClickListener(v -> showSuperAdminAgencyCreationDialog());
-                        }
+        // চেক করা ইউজার নিজেই কোনো এজেন্সির ওনার কি না
+        agencyRef.child(currentUserId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String agencyName = snapshot.child("agencyName").getValue(String.class);
+                    if (txtAgencyBadge != null) {
+                        txtAgencyBadge.setVisibility(View.VISIBLE);
+                        txtAgencyBadge.setText(" 🏛️ " + (agencyName != null ? agencyName : "Agency Owner") + " ");
+                    }
+                } else {
+                    if (txtAgencyBadge != null) txtAgencyBadge.setVisibility(View.GONE);
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+
+        // চেক করা ইউজার অন্য কোনো এজেন্সির আন্ডারে অফিশিয়াল হোস্ট কি না
+        // (আমরা ফায়ারবেসের সব এজেন্সির হোস্ট লিস্ট চেক করব)
+        agencyRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                boolean isHost = false;
+                for (DataSnapshot agencySnap : snapshot.getChildren()) {
+                    if (agencySnap.child("hosts").child(currentUserId).exists()) {
+                        isHost = true;
+                        break;
                     }
                 }
-                @Override public void onCancelled(@NonNull DatabaseError error) {}
-            });
-        } catch (Exception ignored) {}
+
+                if (isHost) {
+                    if (txtHostBadge != null) {
+                        txtHostBadge.setVisibility(View.VISIBLE);
+                        txtHostBadge.setText(" ⭐ Official Host ");
+                    }
+                } else {
+                    if (txtHostBadge != null) txtHostBadge.setVisibility(View.GONE);
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error) {}
+        });
+    }
+
+    private void checkSuperAdminAccessAndShowPanel() {
+        if (currentUserId == null || currentUserId.isEmpty()) return;
+        boolean isOwnerOrSuperAdmin = true; 
+
+        if (isOwnerOrSuperAdmin) {
+            if (textMeName != null) {
+                textMeName.setOnClickListener(v -> showSuperAdminAgencyCreationDialog());
+            }
+        }
     }
 
     private void showSuperAdminAgencyCreationDialog() {
@@ -176,7 +218,7 @@ public class MeActivity extends AppCompatActivity {
     }
 
     private void createAgencyInFirebase(String ownerUserId, String agencyName) {
-        DatabaseReference agencyRef = FirebaseDatabase.getInstance().getReference("agencies").child(ownerUserId);
+        DatabaseReference targetAgencyRef = agencyRef.child(ownerUserId);
         
         java.util.Map<String, Object> agencyMap = new java.util.HashMap<>();
         agencyMap.put("agencyOwnerId", ownerUserId);
@@ -184,13 +226,18 @@ public class MeActivity extends AppCompatActivity {
         agencyMap.put("createdAt", System.currentTimeMillis());
         agencyMap.put("status", "Active");
 
-        agencyRef.setValue(agencyMap).addOnCompleteListener(task -> {
+        targetAgencyRef.setValue(agencyMap).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-                DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(ownerUserId);
+                DatabaseReference userRef = userDatabaseRef.child(ownerUserId);
                 userRef.child("isAgencyOwner").setValue(true);
                 userRef.child("agencyName").setValue(agencyName);
 
                 Toast.makeText(this, "Agency '" + agencyName + "' Created Successfully for ID: " + ownerUserId, Toast.LENGTH_LONG).show();
+                
+                Intent intent = new Intent(MeActivity.this, AgencyDashboardActivity.class);
+                intent.putExtra("AGENCY_OWNER_ID", ownerUserId);
+                intent.putExtra("AGENCY_NAME", agencyName);
+                startActivity(intent);
             } else {
                 Toast.makeText(this, "Failed to create agency!", Toast.LENGTH_SHORT).show();
             }
