@@ -221,35 +221,46 @@ public class MeActivity extends AppCompatActivity {
         layout.addView(inputTargetUser);
 
         final EditText inputNewShortId = new EditText(this);
-        inputNewShortId.setHint("New Short/Unique ID (e.g. 1001)...");
+        inputNewShortId.setHint("New Short/Unique ID (e.g. 10)...");
         layout.addView(inputNewShortId);
 
         builder.setView(layout);
 
-        builder.setPositiveButton("Create Agency", (dialog, which) -> {
-            String ownerId = inputOwnerId.getText().toString().trim();
-            String agencyName = inputAgencyName.getText().toString().trim();
-
-            if (!ownerId.isEmpty() && !agencyName.isEmpty()) {
-                createAgencyInFirebase(ownerId, agencyName);
-            } else {
-                Toast.makeText(this, "Owner ID and Agency Name required!", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        builder.setNeutralButton("Make Short ID", (dialog, which) -> {
-            String targetUser = inputTargetUser.getText().toString().trim();
-            String newId = inputNewShortId.getText().toString().trim();
-
-            if (!targetUser.isEmpty() && !newId.isEmpty()) {
-                updateUserShortIdInFirebase(targetUser, newId);
-            } else {
-                Toast.makeText(this, "Target ID and New Short ID required!", Toast.LENGTH_SHORT).show();
-            }
-        });
-
+        builder.setPositiveButton("Create Agency", null);
+        builder.setNeutralButton("Make Short ID", null);
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
-        builder.show();
+
+        AlertDialog dialog = builder.create();
+        dialog.setOnShowListener(dialogInterface -> {
+            Button btnCreateAgency = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            Button btnMakeShortId = dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
+
+            btnCreateAgency.setOnClickListener(v -> {
+                String ownerId = inputOwnerId.getText().toString().trim();
+                String agencyName = inputAgencyName.getText().toString().trim();
+
+                if (!ownerId.isEmpty() && !agencyName.isEmpty()) {
+                    createAgencyInFirebase(ownerId, agencyName);
+                    dialog.dismiss();
+                } else {
+                    Toast.makeText(this, "Owner ID and Agency Name required!", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+            btnMakeShortId.setOnClickListener(v -> {
+                String targetUser = inputTargetUser.getText().toString().trim();
+                String newId = inputNewShortId.getText().toString().trim();
+
+                if (!targetUser.isEmpty() && !newId.isEmpty()) {
+                    updateUserShortIdInFirebase(targetUser, newId);
+                    dialog.dismiss();
+                } else {
+                    Toast.makeText(this, "Target ID and New Short ID required!", Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+
+        dialog.show();
     }
 
     private void createAgencyInFirebase(String ownerUserId, String agencyName) {
