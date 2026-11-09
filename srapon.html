@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SR Voice Chat - Super Admin Panel</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <style>
+        body { background: #0A0518; color: #FFFFFF; font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: auto; background: #1B1035; padding: 30px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.5); }
+        h2 { color: #FFD700; text-align: center; }
+        .section { background: #2A1B4E; padding: 20px; border-radius: 12px; margin-bottom: 20px; }
+        input, button { width: 100%; padding: 12px; margin-top: 10px; border-radius: 8px; border: none; font-size: 16px; box-sizing: border-box; }
+        input { background: #120A2A; color: #FFFFFF; border: 1px solid #441B1035; }
+        button { background: #00E676; color: #000; font-weight: bold; cursor: pointer; }
+        button:hover { background: #00C853; }
+        .btn-ban { background: #FF4081; color: #fff; }
+        .log-box { font-size: 14px; color: #00E676; text-align: center; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container" id="loginBox">
+    <h2>🔐 Admin Secure Login</h2>
+    <input type="email" id="adminEmail" placeholder="Enter Admin Gmail...">
+    <input type="password" id="adminPass" placeholder="Enter Secret Password...">
+    <button onclick="adminLogin()">Login to Panel</button>
+</div>
+
+<div class="container" id="panelBox" style="display:none;">
+    <h2>👑 SR Super Admin Dashboard</h2>
+
+    <!-- Coin Topup Section -->
+    <div class="section">
+        <h3>💰 Coin & Seller Top-up</h3>
+        <input type="text" id="targetUserId" placeholder="Enter User 9-Digit ID (e.g., 493859069)">
+        <input type="number" id="coinAmount" placeholder="Enter Coin Amount (e.g., 50000)">
+        <button onclick="addCoins()">Add Coins to User</button>
+    </div>
+
+    <!-- User Ban/Unban Section -->
+    <div class="section">
+        <h3>🚫 User Control (Ban / Unban)</h3>
+        <input type="text" id="banUserId" placeholder="Enter User 9-Digit ID">
+        <button class="btn-ban" onclick="banUser(true)">Ban User</button>
+        <button onclick="banUser(false)" style="background:#2979FF; color:#fff;">Unban User</button>
+    </div>
+
+    <div class="log-box" id="statusLog"></div>
+</div>
+
+<script>
+    // 🌟 ফায়ারবেস কনফিগারেশন (তোমার প্রজেক্ট অনুযায়ী)
+    const firebaseConfig = {
+        apiKey: "YOUR_FIREBASE_API_KEY",
+        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+        databaseURL: "https://sr-voice-default-rtdb.firebaseio.com",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_PROJECT_ID.appspot.com",
+        messagingSenderId: "SENDER_ID",
+        appId: "APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    function adminLogin() {
+        const email = document.getElementById('adminEmail').value.trim();
+        const pass = document.getElementById('adminPass').value.trim();
+
+        // 🌟 তোমার জিমেইল এবং সিক্রেট পাসওয়ার্ড এখানে সেট করা আছে
+        if (email === "Aponsraponsrsr@gmail.com" && pass === "aa123456") {
+            document.getElementById('loginBox').style.display = 'none';
+            document.getElementById('panelBox').style.display = 'block';
+        } else {
+            alert("Access Denied! Incorrect Gmail or Password.");
+        }
+    }
+
+    function addCoins() {
+        const uid = document.getElementById('targetUserId').value.trim();
+        const coins = parseInt(document.getElementById('coinAmount').value);
+
+        if (!uid || isNaN(coins)) {
+            alert("Please enter valid User ID and Coin amount!");
+            return;
+        }
+
+        const userRef = db.ref('users/' + uid);
+        userRef.child('sendingCoins').once('value').then(snapshot => {
+            let currentCoins = snapshot.val() || 0;
+            let updatedCoins = currentCoins + coins;
+
+            userRef.update({ sendingCoins: updatedCoins }, (error) => {
+                if (!error) {
+                    document.getElementById('statusLog').innerText = `Successfully added ${coins} coins to ID: ${uid}`;
+                } else {
+                    alert("Failed to update coins.");
+                }
+            });
+        });
+    }
+
+    function banUser(isBanned) {
+        const uid = document.getElementById('banUserId').value.trim();
+        if (!uid) {
+            alert("Please enter User ID!");
+            return;
+        }
+
+        db.ref('users/' + uid).update({ isBanned: isBanned }, (error) => {
+            if (!error) {
+                document.getElementById('statusLog').innerText = isBanned ? `User ${uid} has been Banned!` : `User ${uid} Unbanned!`;
+            }
+        });
+    }
+</script>
+
+</body>
+</html>
