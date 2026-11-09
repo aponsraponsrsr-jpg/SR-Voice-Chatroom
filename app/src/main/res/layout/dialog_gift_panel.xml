@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/bg_bottom_sheet_gradient"
+    android:background="#1B1035"
     android:padding="20dp">
 
     <!-- প্যানেল টাইটেল ও হেডার -->
