@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -18,21 +19,14 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import java.util.HashMap;
 public class MeActivity extends AppCompatActivity {
 private ImageView imgAvatar;
 private ImageView btnEditPencil;
-private TextView txtName;
-private TextView txtId;
-private TextView txtCopyId;
-private TextView txtGenderCountry;
-private TextView txtFollow;
-private TextView txtFans;
-private TextView txtVisitor;
+private TextView txtName, txtId, txtCopyId, txtGenderCountry, txtFollow, txtFans, txtVisitor;
 private SharedPreferences prefs;
-private DatabaseReference userRef;
 private String firebaseUid = "";
 private String my9DigitId = "";
+private DatabaseReference userRef;
 @Override protected void onCreate(Bundle savedInstanceState) {
 super.onCreate(savedInstanceState);
 setContentView(R.layout.activity_me);
@@ -47,28 +41,12 @@ txtFollow = findViewById(R.id.txtFollow);
 txtFans = findViewById(R.id.txtFans);
 txtVisitor = findViewById(R.id.txtVisitor);
 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-if (user != null) {
-firebaseUid = user.getUid();
-} else {
-firebaseUid = prefs.getString("FIREBASE_UID", "");
-}
-if (firebaseUid.isEmpty()) {
-Toast.makeText(this, "Login First", Toast.LENGTH_SHORT).show();
-finish();
-return;
-}
-prefs.edit().putString("FIREBASE_UID", firebaseUid).apply();
+if (user != null) firebaseUid = user.getUid();
+else firebaseUid = prefs.getString("FIREBASE_UID", "");
+my9DigitId = prefs.getString("MY_9_DIGIT_ID", "");
+if (firebaseUid.isEmpty()) { finish(); return; }
 userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
-loadPermanentUser();
-if (txtCopyId != null) {
-txtCopyId.setOnClickListener(v -> {
-if (!my9DigitId.isEmpty()) {
-ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-cm.setPrimaryClip(ClipData.newPlainText("SR ID", my9DigitId));
-Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
-}
-});
-}
+loadMeData();
 if (btnEditPencil != null) {
 btnEditPencil.setOnClickListener(v -> {
 Intent i = new Intent(MeActivity.this, EditProfileActivity.class);
@@ -81,102 +59,32 @@ Intent i = new Intent(MeActivity.this, EditProfileActivity.class);
 startActivity(i);
 });
 }
+if (txtCopyId != null) {
+txtCopyId.setOnClickListener(v -> {
+if (my9DigitId.isEmpty()) return;
+ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+ClipData clip = ClipData.newPlainText("ID", my9DigitId);
+cm.setPrimaryClip(clip);
+Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
+});
+}
 setupMenuClicks();
-}
-private void loadPermanentUser() {
-userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-@Override public void onDataChange(@NonNull DataSnapshot snap) {
-if (snap.exists() && snap.hasChild("my9DigitId")) {
-// OLD USER - Same Gmail, Same ID back - NEVER CHANGE
-my9DigitId = snap.child("my9DigitId").getValue(String.class);
-String n = getStringValue(snap, "name", "User");
-String g = getStringValue(snap, "gender", "");
-String c = getStringValue(snap, "country", "");
-String bio = getStringValue(snap, "bio", "Hello Friends!");
-String email = getStringValue(snap, "email", "");
-prefs.edit().putString("MY_9_DIGIT_ID", my9DigitId).apply();
-prefs.edit().putString("USER_NAME", n).apply();
-prefs.edit().putString("USER_GENDER", g).apply();
-prefs.edit().putString("USER_COUNTRY", c).apply();
-prefs.edit().putString("USER_BIO", bio).apply();
-prefs.edit().putString("USER_EMAIL", email).apply();
-showUI(n, my9DigitId, g, c);
-loadCounts(snap);
-} else {
-// NEW USER - Check if old local ID exists for migration, else create ONE TIME only
-String oldLocal = prefs.getString("MY_9_DIGIT_ID", "");
-if (!oldLocal.isEmpty() && oldLocal.length() >= 9) {
-my9DigitId = oldLocal;
-} else {
-my9DigitId = generate9Digit();
-}
-HashMap<String, Object> map = new HashMap<>();
-map.put("my9DigitId", my9DigitId);
-map.put("firebaseUid", firebaseUid);
-FirebaseUser fu = FirebaseAuth.getInstance().getCurrentUser();
-if (fu != null) {
-if (fu.getDisplayName() != null) map.put("name", fu.getDisplayName());
-if (fu.getEmail() != null) map.put("email", fu.getEmail());
-}
-map.put("coins", 0);
-map.put("dollars", 0);
-map.put("followCount", 0);
-map.put("fansCount", 0);
-map.put("visitorCount", 0);
-map.put("createdAt", System.currentTimeMillis());
-userRef.updateChildren(map);
-prefs.edit().putString("MY_9_DIGIT_ID", my9DigitId).apply();
-showUI(map.get("name") != null ? String.valueOf(map.get("name")) : "User", my9DigitId, "", "");
-}
-}
-@Override public void onCancelled(@NonNull DatabaseError e) {
-String local = prefs.getString("MY_9_DIGIT_ID", "");
-if (!local.isEmpty()) {
-my9DigitId = local;
-showUI(prefs.getString("USER_NAME", "User"), local, prefs.getString("USER_GENDER", ""), prefs.getString("USER_COUNTRY", ""));
-} else {
-Toast.makeText(MeActivity.this, "No Internet - Try Again", Toast.LENGTH_SHORT).show();
-}
-}
-});
-}
-private void showUI(String name, String id, String gender, String country) {
-if (txtName != null) txtName.setText(name);
-if (txtId != null) txtId.setText("ID: " + id);
-if (txtGenderCountry != null) {
-String gc = "";
-if (!gender.isEmpty()) gc += gender;
-if (!country.isEmpty()) {
-if (!gc.isEmpty()) gc += " • ";
-gc += country;
-}
-if (gc.isEmpty()) gc = "Complete Your Profile";
-txtGenderCountry.setText(gc);
-}
-}
-private void loadCounts(DataSnapshot snap) {
-long f1 = getLongValue(snap, "followCount", 0);
-long f2 = getLongValue(snap, "fansCount", 0);
-long f3 = getLongValue(snap, "visitorCount", 0);
-if (txtFollow != null) txtFollow.setText(String.valueOf(f1));
-if (txtFans != null) txtFans.setText(String.valueOf(f2));
-if (txtVisitor != null) txtVisitor.setText(String.valueOf(f3));
-}
-private void setupMenuClicks() {
-int[] ids = new int[]{R.id.menuStore, R.id.menuDress, R.id.menuBirthday, R.id.menuLevel, R.id.menuNewbie, R.id.menuInvite, R.id.menuMedal, R.id.menuFamily, R.id.menuHost, R.id.menuDaily, R.id.menuSetting, R.id.menuVip, R.id.menuRecharge};
-for (int id : ids) {
-LinearLayout l = findViewById(id);
-if (l != null) {
-l.setOnClickListener(v -> {
-Toast.makeText(MeActivity.this, "Coming Soon - Next Step", Toast.LENGTH_SHORT).show();
-});
-}
-}
-LinearLayout logout = findViewById(R.id.btnLogoutLayout);
-if (logout != null) {
-logout.setOnClickListener(v -> {
-// IMPORTANT - Logout e ID / Data CLEAR korbo na. Sudhu Auth signOut.
-try { FirebaseAuth.getInstance().signOut(); } catch (Exception ignored) {}
+LinearLayout btnLogout = findViewById(R.id.btnLogoutLayout);
+if (btnLogout != null) {
+btnLogout.setOnClickListener(v -> {
+SharedPreferences.Editor e = prefs.edit();
+e.putBoolean("IS_LOGGED_IN", false);
+e.putString("FIREBASE_UID", firebaseUid);
+e.putString("MY_9_DIGIT_ID", my9DigitId);
+e.putString("USER_NAME", txtName != null ? txtName.getText().toString() : "");
+e.putString("USER_COUNTRY", prefs.getString("USER_COUNTRY", ""));
+e.putString("USER_GENDER", prefs.getString("USER_GENDER", ""));
+e.putString("USER_BIO", prefs.getString("USER_BIO", ""));
+e.putString("USER_PHOTO", prefs.getString("USER_PHOTO", ""));
+e.putString("MY_ROOM_NAME", prefs.getString("MY_ROOM_NAME", ""));
+e.putBoolean("ROOM_SETUP_DONE", prefs.getBoolean("ROOM_SETUP_DONE", false));
+e.apply();
+FirebaseAuth.getInstance().signOut();
 Intent i = new Intent(MeActivity.this, LoginActivity.class);
 i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
 startActivity(i);
@@ -184,16 +92,55 @@ finish();
 });
 }
 }
-private String generate9Digit() {
-int r = (int) (Math.random() * 900000000) + 100000000;
-return String.valueOf(r);
+@Override protected void onResume() {
+super.onResume();
+loadMeData();
 }
-private String getStringValue(DataSnapshot s, String k, String def) {
+private void loadMeData() {
+if (userRef == null) return;
+userRef.addValueEventListener(new ValueEventListener() {
+@Override public void onDataChange(@NonNull DataSnapshot snap) {
+if (!snap.exists()) return;
+String name = getStr(snap, "name", prefs.getString("USER_NAME", "User"));
+String id = getStr(snap, "my9DigitId", my9DigitId);
+String country = getStr(snap, "country", prefs.getString("USER_COUNTRY", ""));
+String gender = getStr(snap, "gender", prefs.getString("USER_GENDER", ""));
+String bio = getStr(snap, "bio", prefs.getString("USER_BIO", ""));
+String follow = getStr(snap, "followCount", "0");
+String fans = getStr(snap, "fansCount", "0");
+String visitor = getStr(snap, "visitorCount", "0");
+if (!id.isEmpty()) {
+my9DigitId = id;
+prefs.edit().putString("MY_9_DIGIT_ID", id).apply();
+}
+if (txtName != null) txtName.setText(name);
+if (txtId != null) txtId.setText("ID: " + my9DigitId);
+if (txtGenderCountry != null) {
+if (!gender.isEmpty() && !country.isEmpty()) txtGenderCountry.setText(gender + " | " + country);
+else if (!country.isEmpty()) txtGenderCountry.setText(country);
+else if (!gender.isEmpty()) txtGenderCountry.setText(gender);
+else txtGenderCountry.setText("Complete Your Profile");
+}
+if (txtFollow != null) txtFollow.setText(follow);
+if (txtFans != null) txtFans.setText(fans);
+if (txtVisitor != null) txtVisitor.setText(visitor);
+}
+@Override public void onCancelled(@NonNull DatabaseError e) {}
+});
+}
+private void setupMenuClicks() {
+int[] ids = new int[]{R.id.menuSvip, R.id.menuVip, R.id.menuRecharge, R.id.menuStore, R.id.menuDress, R.id.menuBirthday, R.id.menuLevel, R.id.menuNewbie, R.id.menuInvite, R.id.menuMedal, R.id.menuFamily, R.id.menuHost, R.id.menuDaily, R.id.menuSetting};
+for (int id : ids) {
+View v = findViewById(id);
+if (v != null) {
+v.setOnClickListener(view -> {
+Toast.makeText(MeActivity.this, "Coming Soon!", Toast.LENGTH_SHORT).show();
+});
+}
+}
+}
+private String getStr(DataSnapshot s, String k, String def) {
 if (s.hasChild(k) && s.child(k).getValue() != null) return String.valueOf(s.child(k).getValue());
-return def;
-}
-private long getLongValue(DataSnapshot s, String k, long def) {
-try { if (s.hasChild(k) && s.child(k).getValue() != null) return Long.parseLong(String.valueOf(s.child(k).getValue())); } catch (Exception ignored) {}
 return def;
 }
 }
