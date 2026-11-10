@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -44,7 +43,6 @@ btnGoogle = findViewById(R.id.btnGoogle);
 btnGoRegister = findViewById(R.id.btnGoRegister);
 GoogleSignInOptions gso = new GoogleSignInOptions.Builder(
 GoogleSignInOptions.DEFAULT_SIGN_IN)
-.requestIdToken(getString(R.string.default_web_client_id))
 .requestEmail()
 .build();
 mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
@@ -62,13 +60,10 @@ startActivity(i);
 }
 FirebaseUser cur = mAuth.getCurrentUser();
 if (cur != null) {
-saveAndGoHome(cur);
+saveAndGoHome(cur.getUid(), cur.getDisplayName(), cur.getEmail());
 }
 }
 private void loginWithEmail() {
-if (editEmail == null || editPassword == null) {
-return;
-}
 String email = editEmail.getText().toString().trim();
 String pass = editPassword.getText().toString().trim();
 if (email.isEmpty() || pass.isEmpty()) {
@@ -81,7 +76,7 @@ mAuth.signInWithEmailAndPassword(email, pass)
 if (task.isSuccessful() && task.getResult() != null) {
 FirebaseUser u = task.getResult().getUser();
 if (u != null) {
-saveAndGoHome(u);
+saveAndGoHome(u.getUid(), u.getDisplayName(), u.getEmail());
 }
 } else {
 String msg = "Login Failed";
@@ -114,14 +109,23 @@ Toast.LENGTH_SHORT).show();
 }
 }
 private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
+String token = acct.getIdToken();
+if (token == null || token.isEmpty()) {
+String gName = acct.getDisplayName();
+String gEmail = acct.getEmail();
+String fakeUid = "google_";
+fakeUid += acct.getId();
+saveAndGoHome(fakeUid, gName, gEmail);
+return;
+}
 AuthCredential credential =
-GoogleAuthProvider.getCredential(acct.getIdToken(), null);
+GoogleAuthProvider.getCredential(token, null);
 mAuth.signInWithCredential(credential)
 .addOnCompleteListener(this, task -> {
 if (task.isSuccessful() && task.getResult() != null) {
 FirebaseUser u = task.getResult().getUser();
 if (u != null) {
-saveAndGoHome(u);
+saveAndGoHome(u.getUid(), u.getDisplayName(), u.getEmail());
 }
 } else {
 Toast.makeText(this, "Google Auth Failed",
@@ -129,13 +133,13 @@ Toast.LENGTH_SHORT).show();
 }
 });
 }
-private void saveAndGoHome(FirebaseUser user) {
-String uid = user.getUid();
-String email = user.getEmail();
+private void saveAndGoHome(String uid, String gName, String email) {
+if (uid == null || uid.isEmpty()) {
+return;
+}
 if (email == null) {
 email = "";
 }
-String gName = user.getDisplayName();
 String finalName = gName;
 if (finalName == null || finalName.isEmpty()) {
 finalName = prefs.getString("USER_NAME", "");
