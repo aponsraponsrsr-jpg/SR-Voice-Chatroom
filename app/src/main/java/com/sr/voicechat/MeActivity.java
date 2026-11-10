@@ -42,10 +42,19 @@ txtFans = findViewById(R.id.txtFans);
 txtVisitor = findViewById(R.id.txtVisitor);
 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 if (user != null) firebaseUid = user.getUid();
-else firebaseUid = prefs.getString("FIREBASE_UID", "");
+if (firebaseUid.isEmpty()) firebaseUid = prefs.getString("FIREBASE_UID", "");
+if (firebaseUid.isEmpty()) firebaseUid = prefs.getString("UID", "");
+if (firebaseUid.isEmpty()) firebaseUid = prefs.getString("USER_UID", "");
 my9DigitId = prefs.getString("MY_9_DIGIT_ID", "");
-if (firebaseUid.isEmpty()) { finish(); return; }
+if (my9DigitId.isEmpty()) my9DigitId = prefs.getString("USER_ID", "");
+// FIX: Age ekhane chilo - if (firebaseUid.isEmpty()) { finish(); return; }
+// Eitai Pencil / Me click korle Home e back korto. Ekhon finish() nai.
+// UID khali holeo Me page bondho hobe na, prefs theke ID diye khulbe.
+if (!firebaseUid.isEmpty()) {
 userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
+}
+// Age prefs theke data dekhai dei - jate Me page khali na lage
+showFromPrefs();
 loadMeData();
 if (btnEditPencil != null) {
 btnEditPencil.setOnClickListener(v -> {
@@ -94,7 +103,21 @@ finish();
 }
 @Override protected void onResume() {
 super.onResume();
+showFromPrefs();
 loadMeData();
+}
+private void showFromPrefs() {
+String name = prefs.getString("USER_NAME", "User");
+String country = prefs.getString("USER_COUNTRY", "");
+String gender = prefs.getString("USER_GENDER", "");
+if (txtName != null) txtName.setText(name);
+if (txtId != null) txtId.setText("ID: " + my9DigitId);
+if (txtGenderCountry != null) {
+if (!gender.isEmpty() && !country.isEmpty()) txtGenderCountry.setText(gender + " | " + country);
+else if (!country.isEmpty()) txtGenderCountry.setText(country);
+else if (!gender.isEmpty()) txtGenderCountry.setText(gender);
+else txtGenderCountry.setText("Complete Your Profile");
+}
 }
 private void loadMeData() {
 if (userRef == null) return;
@@ -113,6 +136,10 @@ if (!id.isEmpty()) {
 my9DigitId = id;
 prefs.edit().putString("MY_9_DIGIT_ID", id).apply();
 }
+prefs.edit().putString("USER_NAME", name).apply();
+prefs.edit().putString("USER_COUNTRY", country).apply();
+prefs.edit().putString("USER_GENDER", gender).apply();
+prefs.edit().putString("USER_BIO", bio).apply();
 if (txtName != null) txtName.setText(name);
 if (txtId != null) txtId.setText("ID: " + my9DigitId);
 if (txtGenderCountry != null) {
