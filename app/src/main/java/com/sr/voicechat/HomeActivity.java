@@ -87,6 +87,13 @@ public class HomeActivity extends AppCompatActivity {
             });
         }
 
+        if (btnHomeTab != null) {
+            btnHomeTab.setOnClickListener(v -> {
+                // Home ei thakbe, kothao jabe na
+                Toast.makeText(this, "Home", Toast.LENGTH_SHORT).show();
+            });
+        }
+
         if (btnInboxTab != null) {
             btnInboxTab.setOnClickListener(v -> {
                 Intent intent = new Intent(HomeActivity.this, InboxActivity.class);
