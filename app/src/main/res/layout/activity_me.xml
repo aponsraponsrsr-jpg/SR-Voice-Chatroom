@@ -1,363 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center_horizontal"
-    android:background="@drawable/bg_profile_gradient"
-    android:padding="16dp">
-
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scrollbars="none">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center_horizontal"
-            android:paddingBottom="20dp">
-
-            <!-- 🌟 টপ হেডার: প্রোফাইল পিকচার ও পেন্সিল এডিট বাটন -->
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:gravity="center">
-
-                <ImageView
-                    android:id="@+id/imgMeProfile"
-                    android:layout_width="100dp"
-                    android:layout_height="100dp"
-                    android:layout_centerHorizontal="true"
-                    android:scaleType="centerCrop"
-                    android:src="@android:drawable/ic_menu_my_calendar"
-                    android:background="@drawable/circle_shape"
-                    android:padding="2dp"/>
-
-                <ImageView
-                    android:id="@+id/btnEditProfile"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:layout_toEndOf="@id/imgMeProfile"
-                    android:layout_marginStart="-25dp"
-                    android:layout_marginTop="5dp"
-                    android:background="@drawable/circle_gold"
-                    android:src="@android:drawable/ic_menu_edit"
-                    android:padding="6dp"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:contentDescription="Edit Profile"/>
-            </RelativeLayout>
-
-            <!-- ইউজার নেম -->
-            <TextView
-                android:id="@+id/textMeName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Sr-Apon"
-                android:textColor="#FFFFFF"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:layout_marginTop="8dp"/>
-
-            <!-- SR আইডি ও লেভেল ব্যাজ -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:layout_marginTop="4dp"
-                android:background="@drawable/rounded_bg"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="6dp">
-                
-                <TextView
-                    android:id="@+id/textMeId"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="ID: 493859069"
-                    android:textColor="#FFD700"
-                    android:textSize="13sp"
-                    android:textStyle="bold"/>
-
-                <TextView
-                    android:id="@+id/txtProfileLevel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="  |  ⭐ Lv.1"
-                    android:textColor="#00E676"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:layout_marginStart="8dp"/>
-            </LinearLayout>
-
-            <!-- 🏛️ এজেন্সি ও হোস্ট ব্যাজ (নতুন প্রিমিয়াম সংযোজন) -->
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:layout_marginTop="6dp">
-
-                <TextView
-                    android:id="@+id/txtAgencyBadge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=" 🏛️ Agency Owner "
-                    android:textColor="#FFFFFF"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:background="@drawable/rounded_bg"
-                    android:paddingHorizontal="10dp"
-                    android:paddingVertical="4dp"
-                    android:visibility="gone"/>
-
-                <TextView
-                    android:id="@+id/txtHostBadge"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text=" ⭐ Official Host "
-                    android:textColor="#FFFFFF"
-                    android:textSize="11sp"
-                    android:textStyle="bold"
-                    android:background="@drawable/rounded_bg"
-                    android:paddingHorizontal="10dp"
-                    android:paddingVertical="4dp"
-                    android:layout_marginStart="8dp"
-                    android:visibility="gone"/>
-            </LinearLayout>
-
-            <!-- ফলোয়ার্স / ফ্যান্স / ভিজিটরস কাউন্ট কার্ড -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="15dp"
-                android:background="@drawable/rounded_bg"
-                android:padding="12dp"
-                android:gravity="center">
-                
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Followers" android:textColor="#B0BEC5" android:textSize="11sp"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Fans" android:textColor="#B0BEC5" android:textSize="11sp"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:gravity="center">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Visitors" android:textColor="#B0BEC5" android:textSize="11sp"/>
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- SVIP Center Banner -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/rounded_bg"
-                android:padding="14dp">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="👑 SVIP Center"
-                    android:textColor="#FFD700"
-                    android:textSize="15sp"
-                    android:textStyle="bold"/>
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Get SVIP and enjoy various privileges >"
-                    android:textColor="#E0E0E0"
-                    android:textSize="12sp"
-                    android:layout_marginTop="2dp"/>
-            </LinearLayout>
-
-            <!-- ভিআইপি এবং ওয়ালেট বাটন -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="12dp"
-                android:gravity="center">
-                
-                <LinearLayout
-                    android:id="@+id/btnVipStatus"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:background="@drawable/rounded_bg"
-                    android:padding="12dp"
-                    android:gravity="center"
-                    android:layout_marginEnd="6dp"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👑 VIP Status" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="(Locked)" android:textColor="#FFD700" android:textSize="10sp"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/btnWalletRecharge"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:background="@drawable/rounded_bg"
-                    android:padding="12dp"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💰 Wallet / Recharge" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="(Locked)" android:textColor="#00E676" android:textSize="10sp"/>
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- 🌟 General Tools Section (Store, Dress, Birthday gift, Level) -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_marginTop="15dp"
-                android:background="@drawable/rounded_bg"
-                android:padding="14dp">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="General Tools"
-                    android:textColor="#FFFFFF"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:layout_marginBottom="12dp"/>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center">
-
-                    <!-- Store -->
-                    <LinearLayout
-                        android:id="@+id/toolStore"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🛍️" android:textSize="24sp"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Store" android:textColor="#FFFFFF" android:textSize="12sp" android:layout_marginTop="4dp"/>
-                    </LinearLayout>
-
-                    <!-- Dress -->
-                    <LinearLayout
-                        android:id="@+id/toolDress"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👕" android:textSize="24sp"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dress" android:textColor="#FFFFFF" android:textSize="12sp" android:layout_marginTop="4dp"/>
-                    </LinearLayout>
-
-                    <!-- Birthday Gift -->
-                    <LinearLayout
-                        android:id="@+id/toolBirthday"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎂" android:textSize="24sp"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Birthday gift" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_marginTop="4dp"/>
-                    </LinearLayout>
-
-                    <!-- Level Center -->
-                    <LinearLayout
-                        android:id="@+id/btnLevelCenter"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:clickable="true"
-                        android:focusable="true">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⭐" android:textSize="24sp"/>
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Level" android:textColor="#FFFFFF" android:textSize="12sp" android:layout_marginTop="4dp"/>
-                    </LinearLayout>
-
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- হোস্ট সেন্টার ও পলিসি সেকশন -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="12dp"
-                android:gravity="center">
-                
-                <LinearLayout
-                    android:id="@+id/btnHostCenter"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:background="@drawable/rounded_bg"
-                    android:padding="12dp"
-                    android:gravity="center"
-                    android:layout_marginEnd="6dp"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎙️ Host Center" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Target &amp; Earnings" android:textColor="#B9F6CA" android:textSize="10sp"/>
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/btnHostPolicy"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:background="@drawable/rounded_bg"
-                    android:padding="12dp"
-                    android:gravity="center"
-                    android:clickable="true"
-                    android:focusable="true">
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📜 Host Policy" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold"/>
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rules &amp; Guidelines" android:textColor="#F8BBD0" android:textSize="10sp"/>
-                </LinearLayout>
-            </LinearLayout>
-
-        </LinearLayout>
-    </ScrollView>
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:orientation="vertical"
+android:padding="30dp"
+android:gravity="center"
+android:background="#0A0518">
+<TextView
+android:id="@+id/txtName"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="User"
+android:textColor="#FFD700"
+android:textSize="24sp"
+android:textStyle="bold"
+android:layout_marginBottom="10dp" />
+<TextView
+android:id="@+id/txtId"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="ID: "
+android:textColor="#FFFFFF"
+android:textSize="14sp"
+android:layout_marginBottom="5dp" />
+<TextView
+android:id="@+id/txtEmail"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text=""
+android:textColor="#AAAAAA"
+android:textSize="13sp"
+android:layout_marginBottom="10dp" />
+<TextView
+android:id="@+id/txtBio"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Hello Friends!"
+android:textColor="#FFFFFF"
+android:textSize="14sp"
+android:layout_marginBottom="25dp" />
+<Button
+android:id="@+id/btnEditProfile"
+android:layout_width="match_parent"
+android:layout_height="55dp"
+android:text="Edit Profile"
+android:textColor="#000000"
+android:background="#FFD700"
+android:layout_marginBottom="12dp" />
+<Button
+android:id="@+id/btnLogout"
+android:layout_width="match_parent"
+android:layout_height="55dp"
+android:text="Logout"
+android:textColor="#FFFFFF"
+android:background="#FF4081" />
 </LinearLayout>
