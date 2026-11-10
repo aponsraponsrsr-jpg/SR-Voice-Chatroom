@@ -63,21 +63,25 @@ btnSaveProfile = findViewById(R.id.btnSaveProfile);
 txtShowId = findViewById(R.id.txtShowId);
 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 if (user != null) firebaseUid = user.getUid();
-else firebaseUid = prefs.getString("FIREBASE_UID", "");
-if (firebaseUid.isEmpty()) { finish(); return; }
+if (firebaseUid.isEmpty()) firebaseUid = prefs.getString("FIREBASE_UID", "");
+if (firebaseUid.isEmpty()) firebaseUid = prefs.getString("UID", "");
+if (firebaseUid.isEmpty()) firebaseUid = prefs.getString("USER_UID", "");
 my9DigitId = prefs.getString("MY_9_DIGIT_ID", "");
+if (my9DigitId.isEmpty()) my9DigitId = prefs.getString("USER_ID", "");
+// FIX: UID khali holeo finish() korbo na. Age ei finish() er karonei Pencil click korle Home e back korto.
+// Edit page khola thakbe, prefs theke ID, Name diye khulbe.
+if (!firebaseUid.isEmpty()) {
 userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
+}
 if (!my9DigitId.isEmpty()) {
 roomMetaRef = FirebaseDatabase.getInstance().getReference("rooms").child("room_" + my9DigitId).child("meta");
 }
-// Country
 List<String> countries = new ArrayList<>();
 countries.add("Select Country / Location");
 countries.addAll(Arrays.asList("Bangladesh","India","Pakistan","Nepal","Sri Lanka","Myanmar","Thailand","Vietnam","Indonesia","Malaysia","Singapore","Philippines","China","Japan","South Korea","Saudi Arabia","United Arab Emirates","Qatar","Kuwait","Oman","Bahrain","Jordan","Iraq","Iran","Turkey","Egypt","Nigeria","Kenya","South Africa","United States","Canada","United Kingdom","Germany","France","Italy","Spain","Portugal","Netherlands","Belgium","Switzerland","Austria","Sweden","Norway","Denmark","Finland","Russia","Ukraine","Poland","Australia","New Zealand","Brazil","Argentina","Mexico","Chile","Colombia","Peru","Morocco","Algeria","Tunisia","Ethiopia","Ghana","Other"));
 ArrayAdapter<String> countryAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, countries);
 countryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-spinnerCountry.setAdapter(countryAdapter);
-// Gender
+if (spinnerCountry != null) spinnerCountry.setAdapter(countryAdapter);
 List<String> genders = new ArrayList<>();
 genders.add("Select Gender");
 genders.add("Male");
@@ -85,7 +89,9 @@ genders.add("Female");
 genders.add("Other");
 ArrayAdapter<String> genderAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, genders);
 genderAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-spinnerGender.setAdapter(genderAdapter);
+if (spinnerGender != null) spinnerGender.setAdapter(genderAdapter);
+// Age prefs theke data dekhai dei - jate Edit page khali na lage
+showFromPrefs(countries, genders);
 loadUserData(countries, genders);
 if (imgEditAvatar != null) {
 imgEditAvatar.setOnClickListener(v -> {
@@ -105,7 +111,24 @@ if (btnSaveProfile != null) {
 btnSaveProfile.setOnClickListener(v -> savePermanentProfile(countries));
 }
 }
+private void showFromPrefs(List<String> countries, List<String> genders) {
+String name = prefs.getString("USER_NAME", "");
+String bio = prefs.getString("USER_BIO", "Hello Friends!");
+String country = prefs.getString("USER_COUNTRY", "");
+String gender = prefs.getString("USER_GENDER", "");
+savedProfilePhotoPath = prefs.getString("USER_PHOTO_PATH", "");
+if (savedProfilePhotoPath.isEmpty()) savedProfilePhotoPath = prefs.getString("USER_PHOTO", "");
+savedRoomPhotoPath = prefs.getString("USER_ROOM_PHOTO_PATH", "");
+if (edtName != null) edtName.setText(name);
+if (edtBio != null) edtBio.setText(bio);
+if (txtShowId != null) txtShowId.setText("ID: " + my9DigitId + " (Permanent - Never Change)");
+if (spinnerCountry != null && !country.isEmpty() && countries.contains(country)) spinnerCountry.setSelection(countries.indexOf(country));
+if (spinnerGender != null && !gender.isEmpty() && genders.contains(gender)) spinnerGender.setSelection(genders.indexOf(gender));
+showLocalImage(savedProfilePhotoPath, imgEditAvatar);
+showLocalImage(savedRoomPhotoPath, imgRoomPhoto);
+}
 private void loadUserData(List<String> countries, List<String> genders) {
+if (userRef == null) return;
 userRef.addListenerForSingleValueEvent(new ValueEventListener() {
 @Override public void onDataChange(@NonNull DataSnapshot snap) {
 if (!snap.exists()) return;
@@ -114,18 +137,14 @@ String name = getStr(snap, "name", prefs.getString("USER_NAME", ""));
 String bio = getStr(snap, "bio", prefs.getString("USER_BIO", "Hello Friends!"));
 String country = getStr(snap, "country", prefs.getString("USER_COUNTRY", ""));
 String gender = getStr(snap, "gender", prefs.getString("USER_GENDER", ""));
-// 1. NIJER ID ER PHOTO - ALADA
 savedProfilePhotoPath = getStr(snap, "photoPath", prefs.getString("USER_PHOTO_PATH", ""));
 if (savedProfilePhotoPath.isEmpty()) savedProfilePhotoPath = getStr(snap, "photoUri", "");
-// 2. GROUP / ROOM ER PHOTO - ALADA
 savedRoomPhotoPath = getStr(snap, "roomPhotoPath", prefs.getString("USER_ROOM_PHOTO_PATH", ""));
 if (edtName != null) edtName.setText(name);
 if (edtBio != null) edtBio.setText(bio);
 if (txtShowId != null) txtShowId.setText("ID: " + my9DigitId + " (Permanent - Never Change)");
-if (country != null && !country.isEmpty() && countries.contains(country)) spinnerCountry.setSelection(countries.indexOf(country));
-else spinnerCountry.setSelection(0);
-if (gender != null && !gender.isEmpty() && genders.contains(gender)) spinnerGender.setSelection(genders.indexOf(gender));
-else spinnerGender.setSelection(0);
+if (spinnerCountry != null && !country.isEmpty() && countries.contains(country)) spinnerCountry.setSelection(countries.indexOf(country));
+if (spinnerGender != null && !gender.isEmpty() && genders.contains(gender)) spinnerGender.setSelection(genders.indexOf(gender));
 showLocalImage(savedProfilePhotoPath, imgEditAvatar);
 showLocalImage(savedRoomPhotoPath, imgRoomPhoto);
 }
@@ -143,22 +162,21 @@ if (genderPos == 0) { Toast.makeText(this, "Select Gender", Toast.LENGTH_SHORT).
 String country = countries.get(countryPos);
 String gender = spinnerGender.getSelectedItem().toString();
 if (bio.isEmpty()) bio = "Hello Friends!";
-// Final photo path - notun ta thakle notun, na thakle ager ta
 String finalProfilePath = !newProfilePhotoPath.isEmpty() ? newProfilePhotoPath : savedProfilePhotoPath;
 String finalRoomPath = !newRoomPhotoPath.isEmpty() ? newRoomPhotoPath : savedRoomPhotoPath;
+if (userRef != null) {
 HashMap<String, Object> map = new HashMap<>();
 map.put("name", name);
 map.put("bio", bio);
 map.put("country", country);
 map.put("gender", gender);
 map.put("profileUpdatedAt", System.currentTimeMillis());
-// ID, coins, dollars ekhane pathai nai - kokhono change hobe na
 map.put("photoPath", finalProfilePath);
 map.put("photoUri", finalProfilePath);
 map.put("roomPhotoPath", finalRoomPath);
 map.put("roomPhotoUri", finalRoomPath);
 userRef.updateChildren(map);
-// Room er meta teo alada kore room photo save
+}
 if (roomMetaRef != null) {
 roomMetaRef.child("roomPhotoPath").setValue(finalRoomPath);
 roomMetaRef.child("roomPhotoUri").setValue(finalRoomPath);
@@ -189,7 +207,6 @@ String p = copyImageToInternal(uri, "my_room_photo.jpg");
 if (!p.isEmpty()) { newRoomPhotoPath = p; showLocalImage(p, imgRoomPhoto); }
 }
 }
-// Gallery er chobi ke app er vitore copy kore rakhi - tahole logout / restart eo thakbe
 private String copyImageToInternal(Uri uri, String fileName) {
 try {
 InputStream in = getContentResolver().openInputStream(uri);
