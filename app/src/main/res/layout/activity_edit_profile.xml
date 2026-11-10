@@ -1,100 +1,123 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/bg_profile_gradient"
-    android:fillViewport="true">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp"
-        android:gravity="center_horizontal">
-
-        <!-- Top Title -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="✏️ Edit Profile"
-            android:textColor="#FFFFFF"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="24dp"/>
-
-        <!-- Profile Picture with Camera Icon -->
-        <FrameLayout
-            android:layout_width="110dp"
-            android:layout_height="110dp"
-            android:layout_marginBottom="24dp">
-
-            <ImageView
-                android:id="@+id/imgEditProfilePic"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="#44FFFFFF"
-                android:scaleType="centerCrop"
-                android:elevation="4dp"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="📷"
-                android:textSize="24sp"
-                android:layout_gravity="bottom|end"
-                android:background="#9C27B0"
-                android:padding="4dp"
-                android:elevation="6dp"/>
-        </FrameLayout>
-
-        <!-- Name Input Field -->
-        <EditText
-            android:id="@+id/editUserName"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:background="#33000000"
-            android:hint="Enter your stylish name..."
-            android:textColor="#FFFFFF"
-            android:textColorHint="#DDDDDD"
-            android:textSize="16sp"
-            android:paddingHorizontal="16dp"
-            android:layout_marginBottom="16dp"
-            android:singleLine="true"/>
-
-        <!-- Location Input Field -->
-        <EditText
-            android:id="@+id/editUserLocation"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:background="#33000000"
-            android:hint="Enter your country/location..."
-            android:textColor="#FFFFFF"
-            android:textColorHint="#DDDDDD"
-            android:textSize="16sp"
-            android:paddingHorizontal="16dp"
-            android:layout_marginBottom="16dp"
-            android:singleLine="true"/>
-
-        <!-- Gender Selection Spinner -->
-        <Spinner
-            android:id="@+id/spinnerGender"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:background="#33000000"
-            android:paddingHorizontal="12dp"
-            android:layout_marginBottom="24dp"/>
-
-        <!-- Save Button -->
-        <Button
-            android:id="@+id/btnSaveProfile"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:text="✨ Save Profile"
-            android:textColor="#FFFFFF"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:backgroundTint="#E91E63"
-            android:elevation="4dp"/>
-
-    </LinearLayout>
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:background="#FFF8E1"
+android:fillViewport="true">
+<LinearLayout
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:orientation="vertical"
+android:padding="20dp">
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Edit Profile"
+android:textSize="22sp"
+android:textStyle="bold"
+android:textColor="#000000"
+android:layout_gravity="center"
+android:layout_marginBottom="20dp" />
+<ImageView
+android:id="@+id/imgEditAvatar"
+android:layout_width="100dp"
+android:layout_height="100dp"
+android:src="@android:drawable/sym_def_app_icon"
+android:background="#FFFFFF"
+android:layout_gravity="center" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Tap Photo To Change"
+android:textSize="12sp"
+android:textColor="#888888"
+android:layout_gravity="center"
+android:layout_marginTop="6dp"
+android:layout_marginBottom="16dp" />
+<TextView
+android:id="@+id/txtShowId"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:text="ID: (Permanent - Never Change)"
+android:textSize="13sp"
+android:textStyle="bold"
+android:textColor="#FF0000"
+android:background="#FFE0E0"
+android:padding="12dp"
+android:gravity="center"
+android:layout_marginBottom="20dp" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Your Name"
+android:textSize="13sp"
+android:textStyle="bold" />
+<EditText
+android:id="@+id/edtName"
+android:layout_width="match_parent"
+android:layout_height="50dp"
+android:hint="Enter Your Name"
+android:background="#FFFFFF"
+android:padding="12dp"
+android:layout_marginTop="4dp"
+android:layout_marginBottom="14dp" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Bio"
+android:textSize="13sp"
+android:textStyle="bold" />
+<EditText
+android:id="@+id/edtBio"
+android:layout_width="match_parent"
+android:layout_height="60dp"
+android:hint="Ex: I love music and friends"
+android:background="#FFFFFF"
+android:padding="12dp"
+android:layout_marginTop="4dp"
+android:layout_marginBottom="14dp" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Country / Location"
+android:textSize="13sp"
+android:textStyle="bold" />
+<Spinner
+android:id="@+id/spinnerCountry"
+android:layout_width="match_parent"
+android:layout_height="50dp"
+android:background="#FFFFFF"
+android:layout_marginTop="4dp"
+android:layout_marginBottom="14dp" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Gender"
+android:textSize="13sp"
+android:textStyle="bold" />
+<Spinner
+android:id="@+id/spinnerGender"
+android:layout_width="match_parent"
+android:layout_height="50dp"
+android:background="#FFFFFF"
+android:layout_marginTop="4dp"
+android:layout_marginBottom="20dp" />
+<Button
+android:id="@+id/btnSaveProfile"
+android:layout_width="match_parent"
+android:layout_height="55dp"
+android:text="Save Profile"
+android:textColor="#FFFFFF"
+android:background="#FF4081"
+android:textStyle="bold"
+android:textSize="16sp" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Note: ID, Coins, Dollars never change on Edit."
+android:textSize="11sp"
+android:textColor="#888888"
+android:layout_gravity="center"
+android:layout_marginTop="10dp" />
+</LinearLayout>
 </ScrollView>
