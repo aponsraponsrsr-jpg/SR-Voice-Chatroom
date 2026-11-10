@@ -1,47 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#FFFFFF"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:padding="24dp">
-
-    <TextView
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:text="SR"
-        android:textSize="32sp"
-        android:textStyle="bold"
-        android:gravity="center"
-        android:background="#000000"
-        android:textColor="#FFFFFF"
-        android:layout_marginBottom="20dp"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="SR Voice Chat"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:textColor="#000000"/>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Real People, Real Voice"
-        android:textSize="14sp"
-        android:textColor="#888888"
-        android:layout_marginTop="4dp"
-        android:layout_marginBottom="40dp"/>
-
-    <Button
-        android:id="@+id/btnGoogleSignIn"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="Sign in with Google"
-        android:textSize="16sp"
-        android:textColor="#FFFFFF"
-        android:backgroundTint="#DB4437"/>
-
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+android:orientation="vertical"
+android:padding="30dp"
+android:gravity="center"
+android:background="#0A0518">
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="SR Voice Chat"
+android:textColor="#FFD700"
+android:textSize="28sp"
+android:textStyle="bold"
+android:layout_marginBottom="30dp" />
+<EditText
+android:id="@+id/editEmail"
+android:layout_width="match_parent"
+android:layout_height="55dp"
+android:hint="Email"
+android:inputType="textEmailAddress"
+android:textColor="#FFFFFF"
+android:textColorHint="#AAAAAA"
+android:background="#2A1B4E"
+android:padding="12dp"
+android:layout_marginBottom="12dp" />
+<EditText
+android:id="@+id/editPassword"
+android:layout_width="match_parent"
+android:layout_height="55dp"
+android:hint="Password"
+android:inputType="textPassword"
+android:textColor="#FFFFFF"
+android:textColorHint="#AAAAAA"
+android:background="#2A1B4E"
+android:padding="12dp"
+android:layout_marginBottom="20dp" />
+<Button
+android:id="@+id/btnLogin"
+android:layout_width="match_parent"
+android:layout_height="55dp"
+android:text="LOGIN"
+android:textColor="#000000"
+android:background="#FFD700"
+android:layout_marginBottom="12dp" />
+<Button
+android:id="@+id/btnGoogle"
+android:layout_width="match_parent"
+android:layout_height="55dp"
+android:text="Login with Google"
+android:textColor="#000000"
+android:background="#FFFFFF"
+android:layout_marginBottom="12dp" />
+<Button
+android:id="@+id/btnGoRegister"
+android:layout_width="match_parent"
+android:layout_height="55dp"
+android:text="Create New Account"
+android:textColor="#FFD700"
+android:background="#2A1B4E" />
 </LinearLayout>
