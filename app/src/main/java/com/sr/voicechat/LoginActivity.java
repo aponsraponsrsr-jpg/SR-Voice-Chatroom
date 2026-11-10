@@ -1,13 +1,13 @@
 package com.sr.voicechat;
-
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -16,157 +16,153 @@ import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
 public class LoginActivity extends AppCompatActivity {
-
-    private GoogleSignInClient mGoogleSignInClient;
-    private static final int RC_SIGN_IN = 9001;
-    private FirebaseAuth mAuth;
-    private SharedPreferences prefs;
-    private DatabaseReference userDatabaseRef;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
-
-        mAuth = FirebaseAuth.getInstance();
-        prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
-        userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
-
-        // যদি অলরেডি লগইন করা থাকে এবং পার্মানেন্ট আইডি থাকে, তবে সরাসরি হোম পেজে পাঠিয়ে দেব
-        boolean isLoggedIn = prefs.getBoolean("IS_LOGGED_IN", false);
-        String savedPermanentId = prefs.getString("MY_9_DIGIT_ID", "");
-        if (isLoggedIn && !savedPermanentId.isEmpty()) {
-            startActivity(new Intent(LoginActivity.this, HomeActivity.class));
-            finish();
-            return;
-        }
-
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build();
-
-        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
-
-        Button btnGoogleSignIn = findViewById(R.id.btnGoogleSignIn);
-        if (btnGoogleSignIn != null) {
-            btnGoogleSignIn.setOnClickListener(v -> signIn());
-        }
-    }
-
-    private void signIn() {
-        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
-        startActivityForResult(signInIntent, RC_SIGN_IN);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == RC_SIGN_IN) {
-            Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
-            try {
-                GoogleSignInAccount account = task.getResult(ApiException.class);
-                if (account != null) {
-                    firebaseAuthWithGoogle(account.getIdToken(), account.getEmail());
-                }
-            } catch (ApiException e) {
-                Toast.makeText(this, "Google Sign-In failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    private void firebaseAuthWithGoogle(String idToken, String email) {
-        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, task -> {
-                    if (task.isSuccessful()) {
-                        checkExistingUserInDatabase(email);
-                    } else {
-                        Toast.makeText(LoginActivity.this, "Authentication Failed.", Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
-
-    // জিমেইল চেক করে পুরাতন পার্মানেন্ট আইডি এবং সমস্ত প্রোফাইল ডাটা নিখুঁতভাবে রিকভার করার লজিক
-    private void checkExistingUserInDatabase(String email) {
-        if (email == null) return;
-        String safeEmailKey = email.replace(".", "_").replace("@", "_");
-
-        userDatabaseRef.child(safeEmailKey).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                SharedPreferences.Editor editor = prefs.edit();
-                editor.putString("USER_EMAIL", email);
-
-                if (snapshot.exists()) {
-                    // পুরাতন ইউজার! ডাটাবেস থেকে পার্মানেন্ট আইডি, নাম, ছবি ও অন্যান্য তথ্য উদ্ধার করা হচ্ছে
-                    String existingId = snapshot.child("userId").getValue(String.class);
-                    String existingName = snapshot.child("name").getValue(String.class);
-                    String existingImage = snapshot.child("profileImage").getValue(String.class);
-                    String existingLocation = snapshot.child("location").getValue(String.class);
-                    String existingGender = snapshot.child("gender").getValue(String.class);
-
-                    if (existingId != null && !existingId.isEmpty()) {
-                        editor.putString("MY_9_DIGIT_ID", existingId);
-                        editor.putString("USER_ID", existingId);
-                    }
-                    if (existingName != null && !existingName.isEmpty()) {
-                        editor.putString("USER_NAME", existingName);
-                    }
-                    // প্রোফাইল পিকচার রিকভারি
-                    if (existingImage != null && !existingImage.isEmpty()) {
-                        editor.putString("USER_PROFILE_IMAGE", existingImage);
-                        editor.putString("USER_IMAGE", existingImage);
-                    }
-                    if (existingLocation != null && !existingLocation.isEmpty()) {
-                        editor.putString("USER_LOCATION", existingLocation);
-                    }
-                    if (existingGender != null && !existingGender.isEmpty()) {
-                        editor.putString("USER_GENDER", existingGender);
-                    }
-
-                    editor.putBoolean("IS_LOGGED_IN", true);
-                    editor.putBoolean("IS_PROFILE_LOCKED", true);
-                    editor.apply();
-
-                    Toast.makeText(LoginActivity.this, "Welcome Back! ID: " + existingId, Toast.LENGTH_SHORT).show();
-                    
-                    // সরাসরি হোম পেজে চলে যাবে, আর ছবি বা ডেটা হারাবে না
-                    Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                    finish();
-
-                } else {
-                    // একদম নতুন ইউজার হলে তবেই প্রথমবার প্রোফাইল সেটআপ পেজে পাঠাবে
-                    editor.putBoolean("IS_LOGGED_IN", false);
-                    editor.apply();
-
-                    String deviceId = android.provider.Settings.Secure.getString(
-                            getContentResolver(), android.provider.Settings.Secure.ANDROID_ID);
-
-                    Intent intent = new Intent(LoginActivity.this, EditProfileActivity.class);
-                    intent.putExtra("USER_EMAIL", email);
-                    intent.putExtra("DEVICE_ID", deviceId);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(intent);
-                    finish();
-                }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(LoginActivity.this, "Database Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
+private EditText editEmail;
+private EditText editPassword;
+private Button btnLogin;
+private Button btnGoogle;
+private Button btnGoRegister;
+private FirebaseAuth mAuth;
+private GoogleSignInClient mGoogleSignInClient;
+private static final int RC_SIGN_IN = 9001;
+private SharedPreferences prefs;
+private DatabaseReference usersRef;
+@Override protected void onCreate(Bundle savedInstanceState) {
+super.onCreate(savedInstanceState);
+setContentView(R.layout.activity_login);
+prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
+mAuth = FirebaseAuth.getInstance();
+usersRef = FirebaseDatabase.getInstance().getReference("users");
+editEmail = findViewById(R.id.editEmail);
+editPassword = findViewById(R.id.editPassword);
+btnLogin = findViewById(R.id.btnLogin);
+btnGoogle = findViewById(R.id.btnGoogle);
+btnGoRegister = findViewById(R.id.btnGoRegister);
+GoogleSignInOptions gso = new GoogleSignInOptions.Builder(
+GoogleSignInOptions.DEFAULT_SIGN_IN)
+.requestIdToken(getString(R.string.default_web_client_id))
+.requestEmail()
+.build();
+mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
+if (btnLogin != null) {
+btnLogin.setOnClickListener(v -> loginWithEmail());
+}
+if (btnGoogle != null) {
+btnGoogle.setOnClickListener(v -> signInWithGoogle());
+}
+if (btnGoRegister != null) {
+btnGoRegister.setOnClickListener(v -> {
+Intent i = new Intent(LoginActivity.this, RegisterActivity.class);
+startActivity(i);
+});
+}
+FirebaseUser cur = mAuth.getCurrentUser();
+if (cur != null) {
+saveAndGoHome(cur);
+}
+}
+private void loginWithEmail() {
+if (editEmail == null || editPassword == null) {
+return;
+}
+String email = editEmail.getText().toString().trim();
+String pass = editPassword.getText().toString().trim();
+if (email.isEmpty() || pass.isEmpty()) {
+Toast.makeText(this, "Enter Email and Password",
+Toast.LENGTH_SHORT).show();
+return;
+}
+mAuth.signInWithEmailAndPassword(email, pass)
+.addOnCompleteListener(task -> {
+if (task.isSuccessful() && task.getResult() != null) {
+FirebaseUser u = task.getResult().getUser();
+if (u != null) {
+saveAndGoHome(u);
+}
+} else {
+String msg = "Login Failed";
+if (task.getException() != null) {
+msg = task.getException().getMessage();
+}
+Toast.makeText(this, msg, Toast.LENGTH_LONG).show();
+}
+});
+}
+private void signInWithGoogle() {
+Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+startActivityForResult(signInIntent, RC_SIGN_IN);
+}
+@Override protected void onActivityResult(int requestCode,
+int resultCode, @Nullable Intent data) {
+super.onActivityResult(requestCode, resultCode, data);
+if (requestCode == RC_SIGN_IN && data != null) {
+Task<GoogleSignInAccount> task =
+GoogleSignIn.getSignedInAccountFromIntent(data);
+try {
+GoogleSignInAccount account = task.getResult(ApiException.class);
+if (account != null) {
+firebaseAuthWithGoogle(account);
+}
+} catch (ApiException e) {
+Toast.makeText(this, "Google Sign In Failed",
+Toast.LENGTH_SHORT).show();
+}
+}
+}
+private void firebaseAuthWithGoogle(GoogleSignInAccount acct) {
+AuthCredential credential =
+GoogleAuthProvider.getCredential(acct.getIdToken(), null);
+mAuth.signInWithCredential(credential)
+.addOnCompleteListener(this, task -> {
+if (task.isSuccessful() && task.getResult() != null) {
+FirebaseUser u = task.getResult().getUser();
+if (u != null) {
+saveAndGoHome(u);
+}
+} else {
+Toast.makeText(this, "Google Auth Failed",
+Toast.LENGTH_SHORT).show();
+}
+});
+}
+private void saveAndGoHome(FirebaseUser user) {
+String uid = user.getUid();
+String email = user.getEmail();
+if (email == null) {
+email = "";
+}
+String gName = user.getDisplayName();
+String finalName = gName;
+if (finalName == null || finalName.isEmpty()) {
+finalName = prefs.getString("USER_NAME", "");
+}
+if (finalName == null || finalName.isEmpty()) {
+finalName = "User";
+}
+final String saveName = finalName;
+final String saveEmail = email;
+usersRef.child(uid).child("email").setValue(saveEmail);
+usersRef.child(uid).child("name").setValue(saveName);
+usersRef.child(uid).child("uid").setValue(uid);
+String myId = prefs.getString("MY_9_DIGIT_ID", "");
+if (myId.isEmpty()) {
+int r = (int) (Math.random() * 900000000) + 100000000;
+myId = String.valueOf(r);
+}
+final String finalId = myId;
+usersRef.child(uid).child("my9Id").setValue(finalId);
+prefs.edit().putString("MY_9_DIGIT_ID", finalId).apply();
+prefs.edit().putString("USER_NAME", saveName).apply();
+prefs.edit().putString("USER_EMAIL", saveEmail).apply();
+prefs.edit().putString("FIREBASE_UID", uid).apply();
+Intent i = new Intent(LoginActivity.this, MainActivity.class);
+i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+| Intent.FLAG_ACTIVITY_CLEAR_TASK);
+startActivity(i);
+finish();
+}
 }
