@@ -1,57 +1,490 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
 android:layout_width="match_parent"
 android:layout_height="match_parent"
+android:background="#FFF8E1"
+android:fillViewport="true">
+<LinearLayout
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:orientation="vertical">
+<LinearLayout
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
 android:orientation="vertical"
-android:padding="30dp"
-android:gravity="center"
-android:background="#0A0518">
+android:background="#FFD700"
+android:padding="20dp">
+<LinearLayout
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:orientation="horizontal"
+android:gravity="center_vertical">
+<ImageView
+android:id="@+id/imgAvatar"
+android:layout_width="70dp"
+android:layout_height="70dp"
+android:src="@android:drawable/sym_def_app_icon"
+android:background="#FFFFFF" />
+<LinearLayout
+android:layout_width="0dp"
+android:layout_height="wrap_content"
+android:layout_weight="1"
+android:orientation="vertical"
+android:paddingLeft="14dp">
+<LinearLayout
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:orientation="horizontal"
+android:gravity="center_vertical">
 <TextView
 android:id="@+id/txtName"
 android:layout_width="wrap_content"
 android:layout_height="wrap_content"
 android:text="User"
-android:textColor="#FFD700"
-android:textSize="24sp"
-android:textStyle="bold"
-android:layout_marginBottom="10dp" />
+android:textColor="#000000"
+android:textSize="20sp"
+android:textStyle="bold" />
+<ImageView
+android:id="@+id/btnEditPencil"
+android:layout_width="24dp"
+android:layout_height="24dp"
+android:src="@android:drawable/ic_menu_edit"
+android:padding="2dp"
+android:layout_marginLeft="8dp" />
+</LinearLayout>
 <TextView
 android:id="@+id/txtId"
 android:layout_width="wrap_content"
 android:layout_height="wrap_content"
 android:text="ID: "
-android:textColor="#FFFFFF"
-android:textSize="14sp"
-android:layout_marginBottom="5dp" />
+android:textColor="#333333"
+android:textSize="13sp" />
 <TextView
-android:id="@+id/txtEmail"
+android:id="@+id/txtCopyId"
 android:layout_width="wrap_content"
 android:layout_height="wrap_content"
-android:text=""
-android:textColor="#AAAAAA"
-android:textSize="13sp"
-android:layout_marginBottom="10dp" />
+android:text="Copy ID"
+android:textColor="#0000FF"
+android:textSize="12sp"
+android:textStyle="bold"
+android:paddingTop="2dp" />
 <TextView
-android:id="@+id/txtBio"
+android:id="@+id/txtGenderCountry"
 android:layout_width="wrap_content"
 android:layout_height="wrap_content"
-android:text="Hello Friends!"
-android:textColor="#FFFFFF"
-android:textSize="14sp"
-android:layout_marginBottom="25dp" />
-<Button
-android:id="@+id/btnEditProfile"
+android:text="Complete Your Profile"
+android:textColor="#555555"
+android:textSize="12sp"
+android:paddingTop="2dp" />
+</LinearLayout>
+</LinearLayout>
+<LinearLayout
 android:layout_width="match_parent"
-android:layout_height="55dp"
-android:text="Edit Profile"
+android:layout_height="wrap_content"
+android:orientation="horizontal"
+android:layout_marginTop="16dp"
+android:background="#FFFFFF"
+android:padding="12dp">
+<LinearLayout
+android:layout_width="0dp"
+android:layout_height="wrap_content"
+android:layout_weight="1"
+android:orientation="vertical"
+android:gravity="center">
+<TextView
+android:id="@+id/txtFollow"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="0"
 android:textColor="#000000"
-android:background="#FFD700"
-android:layout_marginBottom="12dp" />
-<Button
-android:id="@+id/btnLogout"
+android:textSize="18sp"
+android:textStyle="bold" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Follow"
+android:textColor="#888888"
+android:textSize="12sp" />
+</LinearLayout>
+<LinearLayout
+android:layout_width="0dp"
+android:layout_height="wrap_content"
+android:layout_weight="1"
+android:orientation="vertical"
+android:gravity="center">
+<TextView
+android:id="@+id/txtFans"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="0"
+android:textColor="#000000"
+android:textSize="18sp"
+android:textStyle="bold" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Fans"
+android:textColor="#888888"
+android:textSize="12sp" />
+</LinearLayout>
+<LinearLayout
+android:layout_width="0dp"
+android:layout_height="wrap_content"
+android:layout_weight="1"
+android:orientation="vertical"
+android:gravity="center">
+<TextView
+android:id="@+id/txtVisitor"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="0"
+android:textColor="#000000"
+android:textSize="18sp"
+android:textStyle="bold" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Visitor"
+android:textColor="#888888"
+android:textSize="12sp" />
+</LinearLayout>
+</LinearLayout>
+</LinearLayout>
+<LinearLayout
+android:id="@+id/menuVip"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:orientation="horizontal"
+android:background="#000000"
+android:padding="16dp"
+android:layout_margin="14dp">
+<TextView
+android:layout_width="0dp"
+android:layout_height="wrap_content"
+android:layout_weight="1"
+android:text="SVIP Center - Get SVIP and enjoy various privileges >"
+android:textColor="#FFD700"
+android:textSize="14sp"
+android:textStyle="bold" />
+</LinearLayout>
+<LinearLayout
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:orientation="horizontal"
+android:layout_marginLeft="14dp"
+android:layout_marginRight="14dp">
+<LinearLayout
+android:id="@+id/menuVip"
+android:layout_width="0dp"
+android:layout_height="60dp"
+android:layout_weight="1"
+android:orientation="vertical"
+android:gravity="center"
+android:background="#FFE0B2"
+android:layout_marginRight="6dp">
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="VIP"
+android:textColor="#000000"
+android:textStyle="bold" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="check now"
+android:textSize="11sp" />
+</LinearLayout>
+<LinearLayout
+android:id="@+id/menuRecharge"
+android:layout_width="0dp"
+android:layout_height="60dp"
+android:layout_weight="1"
+android:orientation="vertical"
+android:gravity="center"
+android:background="#FFECB3"
+android:layout_marginLeft="6dp">
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Recharge"
+android:textColor="#000000"
+android:textStyle="bold" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Top up"
+android:textSize="11sp" />
+</LinearLayout>
+</LinearLayout>
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="General Tools"
+android:textColor="#000000"
+android:textSize="15sp"
+android:textStyle="bold"
+android:layout_marginLeft="14dp"
+android:layout_marginTop="18dp" />
+<LinearLayout
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:orientation="horizontal"
+android:layout_margin="14dp">
+<LinearLayout
+android:id="@+id/menuStore"
+android:layout_width="0dp"
+android:layout_height="wrap_content"
+android:layout_weight="1"
+android:orientation="vertical"
+android:gravity="center">
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="🛍️"
+android:textSize="26sp" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Store"
+android:textSize="12sp" />
+</LinearLayout>
+<LinearLayout
+android:id="@+id/menuDress"
+android:layout_width="0dp"
+android:layout_height="wrap_content"
+android:layout_weight="1"
+android:orientation="vertical"
+android:gravity="center">
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="👗"
+android:textSize="26sp" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Dress"
+android:textSize="12sp" />
+</LinearLayout>
+<LinearLayout
+android:id="@+id/menuBirthday"
+android:layout_width="0dp"
+android:layout_height="wrap_content"
+android:layout_weight="1"
+android:orientation="vertical"
+android:gravity="center">
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="🎂"
+android:textSize="26sp" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Birthday gift"
+android:textSize="12sp" />
+</LinearLayout>
+<LinearLayout
+android:id="@+id/menuLevel"
+android:layout_width="0dp"
+android:layout_height="wrap_content"
+android:layout_weight="1"
+android:orientation="vertical"
+android:gravity="center">
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="🏆"
+android:textSize="26sp" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text="Level"
+android:textSize="12sp" />
+</LinearLayout>
+</LinearLayout>
+<LinearLayout
+android:id="@+id/menuNewbie"
 android:layout_width="match_parent"
 android:layout_height="55dp"
+android:orientation="horizontal"
+android:gravity="center_vertical"
+android:background="#FFFFFF"
+android:paddingLeft="16dp"
+android:paddingRight="16dp"
+android:layout_marginLeft="14dp"
+android:layout_marginRight="14dp"
+android:layout_marginBottom="2dp">
+<TextView
+android:layout_width="0dp"
+android:layout_height="wrap_content"
+android:layout_weight="1"
+android:text="✨ Newbie mission"
+android:textSize="14sp" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text=">"
+android:textSize="18sp" />
+</LinearLayout>
+<LinearLayout
+android:id="@+id/menuInvite"
+android:layout_width="match_parent"
+android:layout_height="55dp"
+android:orientation="horizontal"
+android:gravity="center_vertical"
+android:background="#FFFFFF"
+android:paddingLeft="16dp"
+android:paddingRight="16dp"
+android:layout_marginLeft="14dp"
+android:layout_marginRight="14dp"
+android:layout_marginBottom="2dp">
+<TextView
+android:layout_width="0dp"
+android:layout_height="wrap_content"
+android:layout_weight="1"
+android:text="👥 Invite Friend"
+android:textSize="14sp" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text=">"
+android:textSize="18sp" />
+</LinearLayout>
+<LinearLayout
+android:id="@+id/menuMedal"
+android:layout_width="match_parent"
+android:layout_height="55dp"
+android:orientation="horizontal"
+android:gravity="center_vertical"
+android:background="#FFFFFF"
+android:paddingLeft="16dp"
+android:paddingRight="16dp"
+android:layout_marginLeft="14dp"
+android:layout_marginRight="14dp"
+android:layout_marginBottom="2dp">
+<TextView
+android:layout_width="0dp"
+android:layout_height="wrap_content"
+android:layout_weight="1"
+android:text="🏅 Medal"
+android:textSize="14sp" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text=">"
+android:textSize="18sp" />
+</LinearLayout>
+<LinearLayout
+android:id="@+id/menuFamily"
+android:layout_width="match_parent"
+android:layout_height="55dp"
+android:orientation="horizontal"
+android:gravity="center_vertical"
+android:background="#FFFFFF"
+android:paddingLeft="16dp"
+android:paddingRight="16dp"
+android:layout_marginLeft="14dp"
+android:layout_marginRight="14dp"
+android:layout_marginBottom="2dp">
+<TextView
+android:layout_width="0dp"
+android:layout_height="wrap_content"
+android:layout_weight="1"
+android:text="👨‍👩‍👧 Family"
+android:textSize="14sp" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text=">"
+android:textSize="18sp" />
+</LinearLayout>
+<LinearLayout
+android:id="@+id/menuHost"
+android:layout_width="match_parent"
+android:layout_height="55dp"
+android:orientation="horizontal"
+android:gravity="center_vertical"
+android:background="#FFFFFF"
+android:paddingLeft="16dp"
+android:paddingRight="16dp"
+android:layout_marginLeft="14dp"
+android:layout_marginRight="14dp"
+android:layout_marginBottom="2dp">
+<TextView
+android:layout_width="0dp"
+android:layout_height="wrap_content"
+android:layout_weight="1"
+android:text="🎤 Host Center"
+android:textSize="14sp" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text=">"
+android:textSize="18sp" />
+</LinearLayout>
+<LinearLayout
+android:id="@+id/menuDaily"
+android:layout_width="match_parent"
+android:layout_height="55dp"
+android:orientation="horizontal"
+android:gravity="center_vertical"
+android:background="#FFFFFF"
+android:paddingLeft="16dp"
+android:paddingRight="16dp"
+android:layout_marginLeft="14dp"
+android:layout_marginRight="14dp"
+android:layout_marginBottom="2dp">
+<TextView
+android:layout_width="0dp"
+android:layout_height="wrap_content"
+android:layout_weight="1"
+android:text="📅 Daily Tasks"
+android:textSize="14sp" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text=">"
+android:textSize="18sp" />
+</LinearLayout>
+<LinearLayout
+android:id="@+id/menuSetting"
+android:layout_width="match_parent"
+android:layout_height="55dp"
+android:orientation="horizontal"
+android:gravity="center_vertical"
+android:background="#FFFFFF"
+android:paddingLeft="16dp"
+android:paddingRight="16dp"
+android:layout_marginLeft="14dp"
+android:layout_marginRight="14dp"
+android:layout_marginBottom="2dp">
+<TextView
+android:layout_width="0dp"
+android:layout_height="wrap_content"
+android:layout_weight="1"
+android:text="⚙️ Setting"
+android:textSize="14sp" />
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:text=">"
+android:textSize="18sp" />
+</LinearLayout>
+<LinearLayout
+android:id="@+id/btnLogoutLayout"
+android:layout_width="match_parent"
+android:layout_height="55dp"
+android:orientation="horizontal"
+android:gravity="center"
+android:background="#FF4081"
+android:layout_margin="14dp">
+<TextView
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
 android:text="Logout"
 android:textColor="#FFFFFF"
-android:background="#FF4081" />
+android:textStyle="bold" />
 </LinearLayout>
+</LinearLayout>
+</ScrollView>
