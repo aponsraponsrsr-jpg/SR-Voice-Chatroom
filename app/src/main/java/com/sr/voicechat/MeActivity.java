@@ -1,628 +1,187 @@
 package com.sr.voicechat;
-
-import android.app.Dialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
-import android.view.Gravity;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.drawable.RoundedBitmapDrawable;
-import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
-
-import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
-public class MeActivity extends AppCompatActivity {
-
-    private ImageView imgMeProfile, btnEditProfile;
-    private TextView textMeName, textMeId, txtProfileLevel, txtAgencyBadge, txtHostBadge;
-    private LinearLayout btnVipStatus, btnWalletRecharge, btnHostCenter, btnHostPolicy, btnLevelCenter;
-    private LinearLayout toolStore, toolDress, toolBirthday;
-    
-    private SharedPreferences prefs;
-    private DatabaseReference userDatabaseRef, agencyRef;
-    private String currentUserId = "";
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_me);
-
-        try {
-            prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
-            currentUserId = prefs.getString("MY_9_DIGIT_ID", "493859069");
-            userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
-            agencyRef = FirebaseDatabase.getInstance().getReference("agencies");
-
-            imgMeProfile = findViewById(R.id.imgMeProfile);
-            textMeName = findViewById(R.id.textMeName);
-            textMeId = findViewById(R.id.textMeId);
-            txtProfileLevel = findViewById(R.id.txtProfileLevel); 
-            
-            txtAgencyBadge = findViewById(R.id.txtAgencyBadge);
-            txtHostBadge = findViewById(R.id.txtHostBadge);
-
-            btnEditProfile = findViewById(R.id.btnEditProfile);
-            btnVipStatus = findViewById(R.id.btnVipStatus);
-            btnWalletRecharge = findViewById(R.id.btnWalletRecharge);
-            btnHostCenter = findViewById(R.id.btnHostCenter);
-            btnHostPolicy = findViewById(R.id.btnHostPolicy);
-            btnLevelCenter = findViewById(R.id.btnLevelCenter); 
-
-            toolStore = findViewById(R.id.toolStore);
-            toolDress = findViewById(R.id.toolDress);
-            toolBirthday = findViewById(R.id.toolBirthday);
-
-            loadUserData();
-            syncUserLevelFromFirebase();
-            checkUserBadgesAndAgencyStatus();
-            checkSuperAdminAccessAndShowPanel();
-
-            if (btnEditProfile != null) {
-                btnEditProfile.setOnClickListener(v -> {
-                    Intent intent = new Intent(MeActivity.this, EditProfileActivity.class);
-                    startActivity(intent);
-                });
-            }
-
-            if (toolStore != null) {
-                toolStore.setOnClickListener(v -> Toast.makeText(this, "🛍️ Opening Store...", Toast.LENGTH_SHORT).show());
-            }
-            if (toolDress != null) {
-                toolDress.setOnClickListener(v -> Toast.makeText(this, "👕 Opening Dress & Frames...", Toast.LENGTH_SHORT).show());
-            }
-            if (toolBirthday != null) {
-                toolBirthday.setOnClickListener(v -> Toast.makeText(this, "🎂 Opening Birthday Gifts...", Toast.LENGTH_SHORT).show());
-            }
-
-            if (btnLevelCenter != null) {
-                btnLevelCenter.setOnClickListener(v -> showLevelCenterDialog());
-            }
-
-            if (btnVipStatus != null) {
-                btnVipStatus.setOnClickListener(v -> showVipDialog());
-            }
-
-            if (btnWalletRecharge != null) {
-                btnWalletRecharge.setOnClickListener(v -> showWalletRechargeDialog());
-            }
-
-            if (btnHostCenter != null) {
-                btnHostCenter.setOnClickListener(v -> {
-                    Intent intent = new Intent(MeActivity.this, AgencyDashboardActivity.class);
-                    intent.putExtra("AGENCY_OWNER_ID", currentUserId);
-                    intent.putExtra("AGENCY_NAME", "SR Agency");
-                    startActivity(intent);
-                });
-            }
-
-            if (btnHostPolicy != null) {
-                btnHostPolicy.setOnClickListener(v -> showPolicyDialog());
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void checkUserBadgesAndAgencyStatus() {
-        if (currentUserId == null || currentUserId.isEmpty()) return;
-
-        agencyRef.child(currentUserId).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    String agencyName = snapshot.child("agencyName").getValue(String.class);
-                    if (txtAgencyBadge != null) {
-                        txtAgencyBadge.setVisibility(View.VISIBLE);
-                        txtAgencyBadge.setText(" 🏛️ " + (agencyName != null ? agencyName : "Agency Owner") + " ");
-                    }
-                } else {
-                    if (txtAgencyBadge != null) txtAgencyBadge.setVisibility(View.GONE);
-                }
-            }
-            @Override public void onCancelled(@NonNull DatabaseError error) {}
-        });
-
-        agencyRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                boolean isHost = false;
-                for (DataSnapshot agencySnap : snapshot.getChildren()) {
-                    if (agencySnap.child("hosts").child(currentUserId).exists()) {
-                        isHost = true;
-                        break;
-                    }
-                }
-
-                if (isHost) {
-                    if (txtHostBadge != null) {
-                        txtHostBadge.setVisibility(View.VISIBLE);
-                        txtHostBadge.setText(" ⭐ Official Host ");
-                    }
-                } else {
-                    if (txtHostBadge != null) txtHostBadge.setVisibility(View.GONE);
-                }
-            }
-            @Override public void onCancelled(@NonNull DatabaseError error) {}
-        });
-    }
-
-    private void checkSuperAdminAccessAndShowPanel() {
-        if (prefs == null) return;
-        String ownerGmail = "aponsraponsrsr@gmail.com";
-        String loggedInEmail = prefs.getString("USER_EMAIL", "");
-        if (loggedInEmail.isEmpty()) loggedInEmail = prefs.getString("email", "");
-        if (loggedInEmail.isEmpty()) loggedInEmail = prefs.getString("GOOGLE_EMAIL", "");
-        boolean isOwnerOrSuperAdmin = loggedInEmail.trim().toLowerCase().equals(ownerGmail);
-        if (isOwnerOrSuperAdmin) {
-            if (textMeName != null) textMeName.setOnClickListener(v -> showSuperAdminMasterControlDialog());
-        } else {
-            if (textMeName != null) textMeName.setOnClickListener(null);
-        }
-    }
-
-    private void showSuperAdminMasterControlDialog() {
-        final Dialog customDialog = new Dialog(this);
-        customDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        LinearLayout rootLayout = new LinearLayout(this);
-        rootLayout.setOrientation(LinearLayout.VERTICAL);
-        rootLayout.setPadding(45, 45, 45, 45);
-        rootLayout.setBackgroundColor(Color.parseColor("#2A2A2A"));
-
-        TextView title = new TextView(this);
-        title.setText("👑 Super Admin - Master Control Panel");
-        title.setTextColor(Color.parseColor("#FFD700"));
-        title.setTextSize(16);
-        title.setTypeface(null, android.graphics.Typeface.BOLD);
-        title.setPadding(0, 0, 0, 25);
-        rootLayout.addView(title);
-
-        final EditText inputOwnerId = new EditText(this);
-        inputOwnerId.setHint("Enter Owner ID for Agency...");
-        inputOwnerId.setHintTextColor(Color.parseColor("#AAAAAA"));
-        inputOwnerId.setTextColor(Color.WHITE);
-        rootLayout.addView(inputOwnerId);
-
-        final EditText inputAgencyName = new EditText(this);
-        inputAgencyName.setHint("Enter Agency Name...");
-        inputAgencyName.setHintTextColor(Color.parseColor("#AAAAAA"));
-        inputAgencyName.setTextColor(Color.WHITE);
-        rootLayout.addView(inputAgencyName);
-
-        Button btnCreateAgency = new Button(this);
-        btnCreateAgency.setText("Create Agency");
-        btnCreateAgency.setBackgroundColor(Color.parseColor("#FF4081"));
-        btnCreateAgency.setTextColor(Color.WHITE);
-        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        btnParams.setMargins(0, 15, 0, 30);
-        btnCreateAgency.setLayoutParams(btnParams);
-        rootLayout.addView(btnCreateAgency);
-
-        View divider = new View(this);
-        divider.setMinimumHeight(3);
-        divider.setBackgroundColor(Color.parseColor("#555555"));
-        LinearLayout.LayoutParams divParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 3);
-        divParams.setMargins(0, 10, 0, 20);
-        divider.setLayoutParams(divParams);
-        rootLayout.addView(divider);
-
-        final EditText inputTargetUser = new EditText(this);
-        inputTargetUser.setHint("Target User ID (Old ID)...");
-        inputTargetUser.setHintTextColor(Color.parseColor("#AAAAAA"));
-        inputTargetUser.setTextColor(Color.WHITE);
-        rootLayout.addView(inputTargetUser);
-
-        final EditText inputNewShortId = new EditText(this);
-        inputNewShortId.setHint("New Short ID (e.g. 10)...");
-        inputNewShortId.setHintTextColor(Color.parseColor("#AAAAAA"));
-        inputNewShortId.setTextColor(Color.WHITE);
-        rootLayout.addView(inputNewShortId);
-
-        Button btnMakeShortId = new Button(this);
-        btnMakeShortId.setText("Make Short ID");
-        btnMakeShortId.setBackgroundColor(Color.parseColor("#00E676"));
-        btnMakeShortId.setTextColor(Color.BLACK);
-        LinearLayout.LayoutParams btnParams2 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        btnParams2.setMargins(0, 15, 0, 10);
-        btnMakeShortId.setLayoutParams(btnParams2);
-        rootLayout.addView(btnMakeShortId);
-
-        customDialog.setContentView(rootLayout);
-        btnCreateAgency.setOnClickListener(v -> {
-            String ownerId = inputOwnerId.getText().toString().trim();
-            String agencyName = inputAgencyName.getText().toString().trim();
-            if (!ownerId.isEmpty() && !agencyName.isEmpty()) {
-                createAgencyInFirebase(ownerId, agencyName);
-                customDialog.dismiss();
-            } else {
-                Toast.makeText(this, "Owner ID and Agency Name required!", Toast.LENGTH_SHORT).show();
-            }
-        });
-        btnMakeShortId.setOnClickListener(v -> {
-            String targetUser = inputTargetUser.getText().toString().trim();
-            String newId = inputNewShortId.getText().toString().trim();
-            if (!targetUser.isEmpty() && !newId.isEmpty()) {
-                updateUserShortIdInFirebase(targetUser, newId);
-                customDialog.dismiss();
-            } else {
-                Toast.makeText(this, "Target ID and New Short ID required!", Toast.LENGTH_SHORT).show();
-            }
-        });
-        customDialog.show();
-    }
-
-    private void createAgencyInFirebase(String ownerUserId, String agencyName) {
-        DatabaseReference targetAgencyRef = agencyRef.child(ownerUserId);
-        java.util.Map<String, Object> agencyMap = new java.util.HashMap<>();
-        agencyMap.put("agencyOwnerId", ownerUserId);
-        agencyMap.put("agencyName", agencyName);
-        agencyMap.put("createdAt", System.currentTimeMillis());
-        agencyMap.put("status", "Active");
-        targetAgencyRef.setValue(agencyMap).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                DatabaseReference userRef = userDatabaseRef.child(ownerUserId);
-                userRef.child("isAgencyOwner").setValue(true);
-                userRef.child("agencyName").setValue(agencyName);
-                Toast.makeText(this, "Agency '" + agencyName + "' Created Successfully!", Toast.LENGTH_LONG).show();
-                Intent intent = new Intent(MeActivity.this, AgencyDashboardActivity.class);
-                intent.putExtra("AGENCY_OWNER_ID", ownerUserId);
-                intent.putExtra("AGENCY_NAME", agencyName);
-                startActivity(intent);
-            } else {
-                Toast.makeText(this, "Failed to create agency!", Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void updateUserShortIdInFirebase(String oldUserId, String newShortId) {
-        if (oldUserId == null || oldUserId.trim().isEmpty() || newShortId == null || newShortId.trim().isEmpty()) {
-            Toast.makeText(this, "Old ID and New ID cannot be empty!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (oldUserId.equals(newShortId)) {
-            Toast.makeText(this, "Old ID and New ID cannot be the same!", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        DatabaseReference oldUserRef = userDatabaseRef.child(oldUserId);
-        DatabaseReference newUserRef = userDatabaseRef.child(newShortId);
-        newUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot newSnapshot) {
-                if (newSnapshot.exists()) {
-                    Toast.makeText(MeActivity.this, "Error: New Short ID (" + newShortId + ") already exists!", Toast.LENGTH_LONG).show();
-                } else {
-                    oldUserRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot oldSnapshot) {
-                            if (oldSnapshot.exists()) {
-                                java.util.Map<String, Object> userDataMap = new java.util.HashMap<>();
-                                for (DataSnapshot child : oldSnapshot.getChildren()) {
-                                    userDataMap.put(child.getKey(), child.getValue());
-                                }
-                                userDataMap.put("userId", newShortId);
-                                newUserRef.setValue(userDataMap).addOnCompleteListener(task -> {
-                                    if (task.isSuccessful()) {
-                                        oldUserRef.removeValue().addOnCompleteListener(removeTask -> {
-                                            if (removeTask.isSuccessful()) {
-                                                if (oldUserId.equals(currentUserId)) {
-                                                    prefs.edit().putString("MY_9_DIGIT_ID", newShortId).apply();
-                                                    currentUserId = newShortId;
-                                                }
-                                                Toast.makeText(MeActivity.this, "Success! ID Shortened to: " + newShortId, Toast.LENGTH_LONG).show();
-                                                loadUserData();
-                                            } else {
-                                                Toast.makeText(MeActivity.this, "New ID created, but old ID removal failed!", Toast.LENGTH_SHORT).show();
-                                            }
-                                        });
-                                    } else {
-                                        String errorMsg = task.getException() != null ? task.getException().getMessage() : "Unknown error";
-                                        Toast.makeText(MeActivity.this, "Failed to create New ID: " + errorMsg, Toast.LENGTH_LONG).show();
-                                    }
-                                });
-                            } else {
-                                Toast.makeText(MeActivity.this, "Target Old ID (" + oldUserId + ") not found in database!", Toast.LENGTH_LONG).show();
-                            }
-                        }
-                        @Override public void onCancelled(@NonNull DatabaseError error) {
-                            Toast.makeText(MeActivity.this, "Database Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
-            }
-            @Override public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(MeActivity.this, "Database Error: " + error.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
-    private void syncUserLevelFromFirebase() {
-        if (currentUserId != null && !currentUserId.isEmpty() && userDatabaseRef != null) {
-            try {
-                userDatabaseRef.child(currentUserId).child("sendingCoins").addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        try {
-                            long spentCoins = 0;
-                            if (snapshot.exists() && snapshot.getValue(Long.class) != null) {
-                                spentCoins = snapshot.getValue(Long.class);
-                            }
-                            int currentLevel = LevelUtils.calculateLevel(spentCoins);
-                            if (txtProfileLevel != null) {
-                                txtProfileLevel.setText("  |  ⭐ Lv." + currentLevel);
-                                txtProfileLevel.setTextColor(LevelUtils.getLevelColor(currentLevel));
-                            }
-                        } catch (Exception ignored) {}
-                    }
-                    @Override public void onCancelled(@NonNull DatabaseError error) {}
-                });
-            } catch (Exception ignored) {}
-        }
-    }
-
-    private void loadUserData() {
-        try {
-            if (prefs == null) return;
-            String name = prefs.getString("USER_NAME", "Sr-Apon");
-            String userId = prefs.getString("MY_9_DIGIT_ID", "493859069");
-            String encodedImage = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
-            if (textMeName != null) textMeName.setText(name);
-            if (textMeId != null) textMeId.setText("ID: " + userId);
-            if (imgMeProfile != null && encodedImage != null && !encodedImage.isEmpty()) {
-                byte[] decodedString = android.util.Base64.decode(encodedImage, android.util.Base64.DEFAULT);
-                Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                if (decodedByte != null) {
-                    RoundedBitmapDrawable circularBitmapDrawable = RoundedBitmapDrawableFactory.create(getResources(), decodedByte);
-                    circularBitmapDrawable.setCircular(true);
-                    imgMeProfile.setImageDrawable(circularBitmapDrawable);
-                }
-            }
-        } catch (Exception ignored) {}
-    }
-
-    private void showLevelCenterDialog() {
-        try {
-            BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
-            LinearLayout root = new LinearLayout(this);
-            root.setOrientation(LinearLayout.VERTICAL);
-            root.setPadding(35, 35, 35, 35);
-            GradientDrawable bg = new GradientDrawable(
-                GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")}
-            );
-            bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
-            root.setBackground(bg);
-            LinearLayout topBar = new LinearLayout(this);
-            topBar.setOrientation(LinearLayout.HORIZONTAL);
-            topBar.setGravity(Gravity.CENTER_VERTICAL);
-            topBar.setPadding(0, 0, 0, 20);
-            TextView title = new TextView(this);
-            title.setText("🏆 SR Level Center (Lv.1 - Lv.150)");
-            title.setTextColor(Color.parseColor("#FFD700"));
-            title.setTextSize(18);
-            title.setTypeface(null, android.graphics.Typeface.BOLD);
-            title.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f));
-            topBar.addView(title);
-            Button btnClose = new Button(this);
-            btnClose.setText("✕");
-            btnClose.setBackgroundColor(Color.TRANSPARENT);
-            btnClose.setTextColor(Color.WHITE);
-            btnClose.setTextSize(16);
-            btnClose.setOnClickListener(v -> dialog.dismiss());
-            topBar.addView(btnClose);
-            root.addView(topBar);
-            ScrollView scrollView = new ScrollView(this);
-            scrollView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1400));
-            scrollView.setFillViewport(true);
-            LinearLayout listContainer = new LinearLayout(this);
-            listContainer.setOrientation(LinearLayout.VERTICAL);
-            for (int lvl = 1; lvl <= 150; lvl++) {
-                LinearLayout row = new LinearLayout(this);
-                row.setOrientation(LinearLayout.HORIZONTAL);
-                row.setPadding(25, 20, 25, 20);
-                row.setGravity(Gravity.CENTER_VERTICAL);
-                GradientDrawable rBg = new GradientDrawable();
-                rBg.setColor(Color.parseColor("#2A1B4E"));
-                rBg.setCornerRadius(20);
-                row.setBackground(rBg);
-                LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-                p.setMargins(0, 0, 0, 14);
-                row.setLayoutParams(p);
-                int levelColor = LevelUtils.getLevelColor(lvl);
-                String badgeText = LevelUtils.getLevelBadgeText(lvl);
-                String targetCoins = LevelUtils.getLevelTargetCoinsFormatted(lvl);
-                TextView badge = new TextView(this);
-                badge.setText(badgeText);
-                badge.setTextColor(Color.WHITE);
-                badge.setTextSize(14);
-                badge.setTypeface(null, android.graphics.Typeface.BOLD);
-                badge.setGravity(Gravity.CENTER);
-                badge.setPadding(20, 12, 20, 12);
-                GradientDrawable bBg = new GradientDrawable();
-                bBg.setColor(levelColor);
-                bBg.setCornerRadius(25);
-                badge.setBackground(bBg);
-                badge.setMinWidth(110);
-                row.addView(badge);
-                LinearLayout textStack = new LinearLayout(this);
-                textStack.setOrientation(LinearLayout.VERTICAL);
-                textStack.setPadding(20, 0, 0, 0);
-                LinearLayout.LayoutParams tp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.0f);
-                textStack.setLayoutParams(tp);
-                TextView titleTxt = new TextView(this);
-                titleTxt.setText("Level Badge Tier " + lvl);
-                titleTxt.setTextColor(Color.WHITE);
-                titleTxt.setTextSize(15);
-                titleTxt.setTypeface(null, android.graphics.Typeface.BOLD);
-                textStack.addView(titleTxt);
-                TextView targetTxt = new TextView(this);
-                targetTxt.setText("Target: " + targetCoins);
-                targetTxt.setTextColor(Color.parseColor("#00E676"));
-                targetTxt.setTextSize(12);
-                textStack.addView(targetTxt);
-                row.addView(textStack);
-                listContainer.addView(row);
-            }
-            scrollView.addView(listContainer);
-            root.addView(scrollView);
-            dialog.setContentView(root);
-            Window window = dialog.getWindow();
-            if (window != null) {
-                window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1600);
-                window.setGravity(Gravity.BOTTOM);
-            }
-            dialog.show();
-        } catch (Exception ignored) {}
-    }
-
-    private void showPolicyDialog() {
-        try {
-            final Dialog policyDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
-            policyDialog.setContentView(R.layout.dialog_policy);
-            policyDialog.show();
-        } catch (Exception ignored) {}
-    }
-
-    private void showWalletRechargeDialog() {
-        try {
-            WalletRechargeDialog rechargeDialog = new WalletRechargeDialog();
-            rechargeDialog.show(getSupportFragmentManager(), "WalletRechargeDialog");
-        } catch (Exception ignored) {}
-    }
-
-    // 👑 PREMIUM VIP 1 TO 7 - FULL LIST
-    private void showVipDialog() {
-        try {
-            BottomSheetDialog dialog = new BottomSheetDialog(this);
-            LinearLayout root = new LinearLayout(this);
-            root.setOrientation(LinearLayout.VERTICAL);
-            root.setPadding(35, 30, 35, 35);
-            GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{Color.parseColor("#2A1052"), Color.parseColor("#0A0518")});
-            bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
-            root.setBackground(bg);
-
-            TextView title = new TextView(this);
-            title.setText("👑 VIP Privileges");
-            title.setTextColor(Color.parseColor("#FFD700"));
-            title.setTextSize(21);
-            title.setTypeface(null, android.graphics.Typeface.BOLD);
-            title.setGravity(Gravity.CENTER);
-            root.addView(title);
-
-            TextView sub = new TextView(this);
-            sub.setText("Premium • Exclusive • Royal  |  VIP 1 to VIP 7");
-            sub.setTextColor(Color.parseColor("#FF4081"));
-            sub.setTextSize(12);
-            sub.setTypeface(null, android.graphics.Typeface.BOLD);
-            sub.setGravity(Gravity.CENTER);
-            sub.setPadding(0, 8, 0, 20);
-            root.addView(sub);
-
-            ScrollView scroll = new ScrollView(this);
-            scroll.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1150));
-            LinearLayout list = new LinearLayout(this);
-            list.setOrientation(LinearLayout.VERTICAL);
-
-            addVipCard(list, "👑 VIP 1", "2,000,000 Coins", "#FFD700",
-                "✨ Premium Frame", "🚀 Premium Entry Effect");
-            addVipCard(list, "👑 VIP 2", "5,000,000 Coins", "#FF9800",
-                "✨ Premium Frame", "🚀 Premium Entry Effect", "🏅 VIP Badge");
-            addVipCard(list, "👑 VIP 3", "8,000,000 Coins", "#FF4081",
-                "✨ Premium Frame", "🚀 Premium Entry Effect", "🏅 VIP Badge", "💬 Premium Chat Bubble");
-            addVipCard(list, "👑 VIP 4", "15,000,000 Coins", "#9C27B0",
-                "🌟 Royal Frame", "🔥 Royal Entry Effect", "🏅 Royal Badge", "💬 Royal Chat Bubble");
-            addVipCard(list, "👑 VIP 5", "20,000,000 Coins", "#00BCD4",
-                "🌟 Royal Frame", "🔥 Royal Entry Effect", "🏅 Royal Badge", "💬 Royal Chat Bubble", "🎆 Special Room Effect");
-            addVipCard(list, "💎 VIP 6", "30,000,000 Coins", "#00E676",
-                "💎 Diamond Frame", "⚡ Diamond Entry Effect", "🏅 Diamond Badge", "💬 Diamond Chat Bubble", "🎆 Special Room Effect", "🎁 Exclusive Gift");
-            addVipCard(list, "👑 VIP 7 - KING", "50,000,000 Coins", "#FFD700",
-                "👑 KING Frame", "🔥 KING Entry Effect", "🏅 KING Badge", "💬 KING Chat Bubble", "🎆 KING Room Effect", "🎁 Exclusive Gift", "⭐ All VIP Privileges Unlocked");
-
-            scroll.addView(list);
-            root.addView(scroll);
-
-            Button btnClose = new Button(this);
-            btnClose.setText("Close");
-            btnClose.setTextColor(Color.WHITE);
-            btnClose.setBackgroundColor(Color.parseColor("#FF4081"));
-            LinearLayout.LayoutParams cp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            cp.setMargins(0, 20, 0, 0);
-            btnClose.setLayoutParams(cp);
-            btnClose.setOnClickListener(v -> dialog.dismiss());
-            root.addView(btnClose);
-
-            dialog.setContentView(root);
-            dialog.show();
-        } catch (Exception e) { e.printStackTrace(); }
-    }
-
-    private void addVipCard(LinearLayout parent, String vipName, String price, String colorHex, String... privileges) {
-        LinearLayout card = new LinearLayout(this);
-        card.setOrientation(LinearLayout.VERTICAL);
-        card.setPadding(28, 22, 28, 22);
-        GradientDrawable cardBg = new GradientDrawable();
-        cardBg.setColor(Color.parseColor("#2A1B4E"));
-        cardBg.setCornerRadius(24);
-        cardBg.setStroke(3, Color.parseColor(colorHex));
-        card.setBackground(cardBg);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        lp.setMargins(0, 0, 0, 16);
-        card.setLayoutParams(lp);
-
-        LinearLayout top = new LinearLayout(this);
-        top.setOrientation(LinearLayout.HORIZONTAL);
-        top.setGravity(Gravity.CENTER_VERTICAL);
-
-        TextView name = new TextView(this);
-        name.setText(vipName);
-        name.setTextColor(Color.parseColor(colorHex));
-        name.setTextSize(17);
-        name.setTypeface(null, android.graphics.Typeface.BOLD);
-        name.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        top.addView(name);
-
-        TextView priceTxt = new TextView(this);
-        priceTxt.setText(price);
-        priceTxt.setTextColor(Color.parseColor("#00E676"));
-        priceTxt.setTextSize(13);
-        priceTxt.setTypeface(null, android.graphics.Typeface.BOLD);
-        top.addView(priceTxt);
-        card.addView(top);
-
-        for (String p : privileges) {
-            TextView t = new TextView(this);
-            t.setText("  •  " + p);
-            t.setTextColor(Color.WHITE);
-            t.setTextSize(13);
-            t.setPadding(0, 6, 0, 0);
-            card.addView(t);
-        }
-        parent.addView(card);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        loadUserData();
-    }
+public class MainActivity extends AppCompatActivity {
+private ImageView btnPlus;
+private SharedPreferences prefs;
+private String currentUserId = "";
+private String myName = "User";
+private DatabaseReference roomsRef;
+private DatabaseReference usersRef;
+@Override protected void onCreate(Bundle savedInstanceState) {
+super.onCreate(savedInstanceState);
+setContentView(R.layout.activity_main);
+prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
+currentUserId = prefs.getString("MY_9_DIGIT_ID", "");
+if (currentUserId.isEmpty()) {
+currentUserId = prefs.getString("FIREBASE_UID", "");
+}
+if (currentUserId.isEmpty()) {
+int r = (int) (Math.random() * 900000000) + 100000000;
+currentUserId = String.valueOf(r);
+prefs.edit().putString("MY_9_DIGIT_ID", currentUserId).apply();
+}
+myName = prefs.getString("USER_NAME", "User");
+roomsRef = FirebaseDatabase.getInstance().getReference("rooms");
+usersRef = FirebaseDatabase.getInstance().getReference("users");
+btnPlus = findViewById(R.id.btnPlus);
+if (btnPlus != null) {
+btnPlus.setOnClickListener(v -> onPlusClicked());
+}
+LinearLayout navMe = findViewById(R.id.navMe);
+if (navMe != null) {
+navMe.setOnClickListener(v -> {
+Intent i = new Intent(MainActivity.this, MeActivity.class);
+startActivity(i);
+});
+}
+LinearLayout navHome = findViewById(R.id.navHome);
+if (navHome != null) {
+navHome.setOnClickListener(v -> {
+Toast.makeText(this, "Home", Toast.LENGTH_SHORT).show();
+});
+}
+}
+private void onPlusClicked() {
+boolean isDone = prefs.getBoolean("ROOM_SETUP_DONE", false);
+String savedRoom = prefs.getString("MY_ROOM_NAME", "");
+if (!isDone || savedRoom.isEmpty()) {
+showFirstTimeRoomSetupDialog();
+} else {
+createRoomAndOpen();
+}
+}
+private void showFirstTimeRoomSetupDialog() {
+AlertDialog.Builder b = new AlertDialog.Builder(this);
+b.setTitle("Setup Your Room - One Time Only");
+LinearLayout layout = new LinearLayout(this);
+layout.setOrientation(LinearLayout.VERTICAL);
+layout.setPadding(50, 30, 50, 10);
+TextView t1 = new TextView(this);
+t1.setText("Room Name");
+t1.setTextSize(13);
+layout.addView(t1);
+EditText inputRoomName = new EditText(this);
+inputRoomName.setHint("Ex: Apon SR Room");
+String oldRoom = prefs.getString("MY_ROOM_NAME", "");
+if (!oldRoom.isEmpty()) {
+inputRoomName.setText(oldRoom);
+} else {
+String def = myName;
+def += " Room";
+inputRoomName.setText(def);
+}
+inputRoomName.setPadding(25, 20, 25, 20);
+layout.addView(inputRoomName);
+TextView t2 = new TextView(this);
+t2.setText("Announcement / Notice");
+t2.setTextSize(13);
+t2.setPadding(0, 20, 0, 0);
+layout.addView(t2);
+EditText inputAnn = new EditText(this);
+inputAnn.setHint("Ex: Welcome to my voice room!");
+String oldAnn = prefs.getString("MY_ROOM_ANNOUNCEMENT", "");
+if (!oldAnn.isEmpty()) {
+inputAnn.setText(oldAnn);
+}
+inputAnn.setPadding(25, 20, 25, 20);
+layout.addView(inputAnn);
+TextView t3 = new TextView(this);
+t3.setText("Your Profile Bio");
+t3.setTextSize(13);
+t3.setPadding(0, 20, 0, 0);
+layout.addView(t3);
+EditText inputBio = new EditText(this);
+inputBio.setHint("Ex: I love music and friends");
+String oldBio = prefs.getString("USER_BIO", "");
+if (!oldBio.isEmpty()) {
+inputBio.setText(oldBio);
+}
+inputBio.setPadding(25, 20, 25, 20);
+layout.addView(inputBio);
+TextView note = new TextView(this);
+note.setText("One time only. After Save, permanent.");
+note.setTextSize(11);
+note.setPadding(0, 15, 0, 0);
+layout.addView(note);
+b.setView(layout);
+b.setCancelable(false);
+b.setPositiveButton("Save And Open Room", (d, w) -> {
+String roomName = inputRoomName.getText().toString().trim();
+String ann = inputAnn.getText().toString().trim();
+String bio = inputBio.getText().toString().trim();
+if (roomName.isEmpty()) {
+Toast.makeText(this, "Enter Room Name",
+Toast.LENGTH_SHORT).show();
+showFirstTimeRoomSetupDialog();
+return;
+}
+if (ann.isEmpty()) {
+ann = "Welcome to my voice room!";
+}
+if (bio.isEmpty()) {
+bio = "Hello Friends!";
+}
+saveRoomSetupPermanent(roomName, ann, bio);
+});
+b.setNegativeButton("Cancel", (d, w) -> d.dismiss());
+b.show();
+}
+private void saveRoomSetupPermanent(String roomName,
+String ann, String bio) {
+prefs.edit().putString("MY_ROOM_NAME", roomName).apply();
+prefs.edit().putString("MY_ROOM_ANNOUNCEMENT", ann).apply();
+prefs.edit().putString("USER_BIO", bio).apply();
+prefs.edit().putBoolean("ROOM_SETUP_DONE", true).apply();
+String roomKey = "room_";
+roomKey += currentUserId;
+DatabaseReference meta = roomsRef.child(roomKey).child("meta");
+meta.child("roomName").setValue(roomName);
+meta.child("roomBio").setValue(ann);
+meta.child("roomAnnouncement").setValue(ann);
+meta.child("roomOwnerId").setValue(currentUserId);
+meta.child("roomOwnerName").setValue(myName);
+meta.child("roomOwnerBio").setValue(bio);
+meta.child("isLocked").setValue(false);
+meta.child("createdAt").setValue(System.currentTimeMillis());
+usersRef.child(currentUserId).child("roomName").setValue(roomName);
+usersRef.child(currentUserId).child("roomAnnouncement").setValue(ann);
+usersRef.child(currentUserId).child("roomBio").setValue(bio);
+usersRef.child(currentUserId).child("bio").setValue(bio);
+usersRef.child(currentUserId).child("hasRoom").setValue(true);
+Toast.makeText(this, "Room Saved Successfully!",
+Toast.LENGTH_SHORT).show();
+createRoomAndOpen();
+}
+private void createRoomAndOpen() {
+String roomName = prefs.getString("MY_ROOM_NAME", "");
+if (roomName.isEmpty()) {
+roomName = myName;
+roomName += " Room";
+}
+String roomKey = "room_";
+roomKey += currentUserId;
+DatabaseReference meta = roomsRef.child(roomKey).child("meta");
+meta.child("roomName").setValue(roomName);
+meta.child("roomOwnerId").setValue(currentUserId);
+meta.child("roomOwnerName").setValue(myName);
+meta.child("isActive").setValue(true);
+meta.child("lastActive").setValue(System.currentTimeMillis());
+Toast.makeText(this, "Room Created Successfully!",
+Toast.LENGTH_SHORT).show();
+Intent i = new Intent(MainActivity.this, VoiceRoomActivity.class);
+i.putExtra("ROOM_OWNER_ID", currentUserId);
+i.putExtra("ROOM_NAME", roomName);
+startActivity(i);
+}
 }
