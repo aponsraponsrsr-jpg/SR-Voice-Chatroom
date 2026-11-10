@@ -47,9 +47,6 @@ finish();
 }
 }
 private void doRegister() {
-if (editName == null || editEmail == null || editPassword == null) {
-return;
-}
 String name = editName.getText().toString().trim();
 String email = editEmail.getText().toString().trim();
 String pass = editPassword.getText().toString().trim();
