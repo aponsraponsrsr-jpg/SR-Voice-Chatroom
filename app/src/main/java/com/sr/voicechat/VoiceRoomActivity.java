@@ -53,14 +53,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
 public class VoiceRoomActivity extends AppCompatActivity {
 
     private ImageButton btnPower;
     private Button btnMicToggle, btnChatOption, btnGiftBox, btnGameBox;
-    private TextView roomTitleText, roomInfoText, textOnlineCount, roomNoticeBarText;
+    private TextView roomTitleText, roomInfoText, textOnlineCount, roomNoticeBarText, roomThemeSceneryText;
     private ImageView btnOnlineList, roomHeaderProfileImg, btnRoomTools;
     private LinearLayout btnInRoomRanking;
     private boolean isMuted = false;
@@ -78,14 +77,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private FirebaseAuth mAuth;
     private String roomOwnerId = "";
     private String currentUserId = "";
+    private String currentThemeName = "🌙 Night Purple - Premium";
 
     private static final int PICK_IMAGE_REQUEST = 101;
     private EditText dialogInputName, dialogInputBio;
     private long roomJoinTimestamp = 0;
     private List<String> roomAdminList = new ArrayList<>();
 
-    // PREMIUM RANKING STATE
-    private String rankTab = "Wealth"; // Wealth = Sending, Charm = Receiving
+    private String rankTab = "Wealth";
     private String rankPeriod = "Day";
     private List<RankItem> rankCache = new ArrayList<>();
 
@@ -111,6 +110,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         syncLatestUserProfile();
         listenToRoomDetails();
         listenToRoomAdmins();
+        listenToRoomTheme();
 
         btnPower = findViewById(R.id.btnPower);
         roomTitleText = findViewById(R.id.roomTitleText);
@@ -121,6 +121,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         btnInRoomRanking = findViewById(R.id.btnInRoomRanking);
         roomNoticeBarText = findViewById(R.id.roomNoticeBarText);
         btnRoomTools = findViewById(R.id.btnRoomTools);
+        roomThemeSceneryText = findViewById(R.id.roomThemeSceneryText);
 
         if (btnPower != null) {
             btnPower.setOnClickListener(v -> {
@@ -237,7 +238,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         title.setTypeface(null, android.graphics.Typeface.BOLD); title.setGravity(Gravity.CENTER); title.setPadding(0,0,0,8);
         toolLayout.addView(title);
         TextView sub = new TextView(VoiceRoomActivity.this);
-        sub.setText("Global • সবার রুমে একই Tools আসবে");
+        sub.setText("Global • সবার রুমে একই Tools আসবে • Premium");
         sub.setTextColor(Color.parseColor("#00E676")); sub.setTextSize(12); sub.setGravity(Gravity.CENTER); sub.setPadding(0,0,0,25);
         toolLayout.addView(sub);
         ScrollView toolScroll = new ScrollView(VoiceRoomActivity.this);
@@ -251,9 +252,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }));
         container.addView(createToolButton("🔒 Room Lock Protection", "Set or remove room security password", view -> { toolsSheet.dismiss(); showRoomLockPasswordDialog(); }));
         container.addView(createToolButton("🏆 Level Center (1 to 150)", "View Wallet & Charm Level Badges", view -> { toolsSheet.dismiss(); showFullLevelCenterDialog(); }));
-        container.addView(createToolButton("🏆 Premium Ranking", "Wealth / Charm • Day / Week / Month", view -> { toolsSheet.dismiss(); showPremiumRankingDialog(); }));
+        container.addView(createToolButton("🏆 Premium Ranking", "Wealth / Charm • Day / Week / Month • Live", view -> { toolsSheet.dismiss(); showPremiumRankingDialog(); }));
         container.addView(createToolButton("👥 Members & Admins", "Manage members, make Admin / Kick", view -> { toolsSheet.dismiss(); showPremiumRoomInfoAndMembersDialog(); }));
-        container.addView(createToolButton("🎨 Room Theme", "Premium theme - Global for all rooms", view -> Toast.makeText(this, "Theme Applied - Global", Toast.LENGTH_SHORT).show()));
+        container.addView(createToolButton("🎨 Room Theme - Beautiful Scenery", "Couple • Sea • Mountain • Sunset • 10 Premium Scenery", view -> { toolsSheet.dismiss(); showRoomThemeDialog(); }));
         container.addView(createToolButton("🧹 Clean Global Chat", "Clear all live messages from room", view -> {
             messagesRef.removeValue().addOnCompleteListener(task -> { chatMessages.clear(); chatAdapter.notifyDataSetChanged(); Toast.makeText(VoiceRoomActivity.this, "Chat history cleaned globally!", Toast.LENGTH_SHORT).show(); });
             toolsSheet.dismiss();
@@ -264,7 +265,130 @@ public class VoiceRoomActivity extends AppCompatActivity {
         toolsSheet.show();
     }
 
-    // ================= PREMIUM RANKING - REAL FIREBASE =================
+    // ================= 🎨 ROOM THEME - BEAUTIFUL SCENERY - FULL PREMIUM =================
+    private void showRoomThemeDialog() {
+        BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(40, 40, 40, 50);
+        GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")});
+        bg.setCornerRadii(new float[]{45,45,45,45,0,0,0,0});
+        root.setBackground(bg);
+
+        TextView title = new TextView(this);
+        title.setText("🎨 Room Theme - Beautiful Scenery");
+        title.setTextColor(Color.parseColor("#FFD700")); title.setTextSize(19); title.setTypeface(null, android.graphics.Typeface.BOLD); title.setGravity(Gravity.CENTER); title.setPadding(0,0,0,8);
+        root.addView(title);
+        TextView sub = new TextView(this);
+        sub.setText("Couple Scene • Sea Scene • যত Beautiful Scenery আছে সব এখানে");
+        sub.setTextColor(Color.parseColor("#00E676")); sub.setTextSize(12); sub.setGravity(Gravity.CENTER); sub.setPadding(0,0,0,25);
+        root.addView(sub);
+
+        ScrollView scroll = new ScrollView(this);
+        scroll.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1200));
+        scroll.setFillViewport(true);
+        LinearLayout list = new LinearLayout(this);
+        list.setOrientation(LinearLayout.VERTICAL);
+
+        // Name, Emoji Scenery, Color1, Color2, Description
+        String[][] themes = {
+            {"💑 Couple Sunset Beach", "🌅 Couple Scene - সূর্য ডুবা সমুদ্রের পাড়ে কাপেল বসে আছে", "#FF6B35", "#2A1B4E"},
+            {"💏 Couple Style Night", "🌙 Couple Style - রাতের আলোয় কাপেল, Romantic Night", "#4A0E2E", "#FF4081"},
+            {"💖 Couple Love Garden", "🌸 Couple Garden - ফুলের বাগানে কাপেল হাঁটছে", "#FF4081", "#7B1FA2"},
+            {"🌊 Beautiful Sea Scene", "🌊 সৌন্দর্য সমুদ্র সিন - নীল সমুদ্র, ঢেউ, বালি", "#001F3F", "#0074D9"},
+            {"🏖️ Sea Beach Paradise", "🏖️ সমুদ্র সৈকত - সাদা বালি, নারকেল গাছ, নীল পানি", "#00BCD4", "#00695C"},
+            {"🏔️ Mountain Beauty", "🏔️ পাহাড়ের সিন - বরফের পাহাড়, মেঘ, সুন্দর ভিউ", "#37474F", "#78909C"},
+            {"🌅 Golden Sunset", "🌅 সূর্যাস্ত - আকাশ লাল সোনালী, সুন্দর সিনারি", "#FF5722", "#FFD700"},
+            {"🌌 Starry Sky Night", "🌌 তারার আকাশ - রাতের আকাশে হাজার তারা", "#0A0518", "#3F51B5"},
+            {"🌸 Cherry Blossom", "🌸 ফুলের সিন - জাপানি সাকুরা ফুল ঝরছে", "#F48FB1", "#AD1457"},
+            {"🏝️ Tropical Island", "🏝️ দ্বীপ - Tropical Island, পাম গাছ, নীল সমুদ্র", "#00695C", "#FFCA28"},
+            {"🌿 Natural Green", "🌿 প্রকৃতি - সবুজ বন, পাখির ডাক", "#0F3D2E", "#1B7A4D"},
+            {"🦁 Animal Kingdom", "🦁 পশু পাখি - সিংহ, হরিণ, পাখি, জঙ্গল", "#3E1B00", "#8B4513"},
+            {"🌙 Night Purple Premium", "🌙 আগের Premium Purple", "#1B1035", "#0A0518"},
+            {"🔥 Royal Gold", "👑 Royal Gold - রাজকীয় সোনালী", "#3B2A00", "#FFD700"},
+        };
+
+        for (String[] t : themes) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.VERTICAL);
+            row.setPadding(28, 22, 28, 22);
+            GradientDrawable rBg = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, new int[]{Color.parseColor(t[2]), Color.parseColor(t[3])});
+            rBg.setCornerRadius(22);
+            row.setBackground(rBg);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.setMargins(0,0,0,14);
+            row.setLayoutParams(lp);
+
+            TextView name = new TextView(this);
+            name.setText(t[0]);
+            name.setTextColor(Color.WHITE); name.setTextSize(16); name.setTypeface(null, android.graphics.Typeface.BOLD);
+            row.addView(name);
+
+            TextView desc = new TextView(this);
+            desc.setText(t[1]);
+            desc.setTextColor(Color.parseColor("#E0E0E0")); desc.setTextSize(12); desc.setPadding(0,4,0,10);
+            row.addView(desc);
+
+            Button btnApply = new Button(this);
+            btnApply.setText("✨ Apply This Scenery");
+            btnApply.setBackgroundColor(Color.parseColor("#FFD700")); btnApply.setTextColor(Color.BLACK); btnApply.setTypeface(null, android.graphics.Typeface.BOLD);
+            btnApply.setOnClickListener(v -> {
+                currentThemeName = t[0];
+                roomMetaRef.child("roomTheme").setValue(t[0]);
+                roomMetaRef.child("roomThemeDesc").setValue(t[1]);
+                roomMetaRef.child("roomThemeColor1").setValue(t[2]);
+                roomMetaRef.child("roomThemeColor2").setValue(t[3]);
+                prefs.edit().putString("ROOM_THEME_NAME", t[0]).putString("ROOM_THEME_DESC", t[1]).apply();
+                applyRoomTheme(t[2], t[3], t[0] + " - " + t[1]);
+                Toast.makeText(this, "Theme Applied: " + t[0], Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            });
+            row.addView(btnApply);
+            list.addView(row);
+        }
+
+        scroll.addView(list);
+        root.addView(scroll);
+        dialog.setContentView(root);
+        Window w = dialog.getWindow();
+        if (w != null) { w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1500); w.setGravity(Gravity.BOTTOM); }
+        dialog.show();
+    }
+
+    private void listenToRoomTheme() {
+        roomMetaRef.addValueEventListener(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot s) {
+                String n = s.child("roomTheme").getValue(String.class);
+                String d = s.child("roomThemeDesc").getValue(String.class);
+                String c1 = s.child("roomThemeColor1").getValue(String.class);
+                String c2 = s.child("roomThemeColor2").getValue(String.class);
+                if (n != null && !n.isEmpty()) {
+                    currentThemeName = n;
+                    if (c1 != null && c2 != null) applyRoomTheme(c1, c2, n + (d != null ? " - " + d : ""));
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
+    }
+
+    private void applyRoomTheme(String c1, String c2, String fullText) {
+        try {
+            View rootView = findViewById(android.R.id.content);
+            if (rootView != null) {
+                GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{Color.parseColor(c1), Color.parseColor(c2)});
+                rootView.setBackground(bg);
+            }
+            if (roomThemeSceneryText != null) {
+                roomThemeSceneryText.setText("🎨 " + fullText);
+                roomThemeSceneryText.setVisibility(View.VISIBLE);
+            } else {
+                // যদি layout এ TextView না থাকে, Toast দিয়ে দেখাবে
+                // কিন্তু লেআউটে id roomThemeSceneryText অ্যাড করলে উপরে দেখাবে
+            }
+        } catch (Exception ignored) {}
+    }
+
+    // ================= PREMIUM RANKING - LIVE / SACHOL =================
     private void showPremiumRankingDialog() {
         final Dialog rankDialog = new Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         rankDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -275,22 +399,21 @@ public class VoiceRoomActivity extends AppCompatActivity {
         Button btnTabWeekly = rankDialog.findViewById(R.id.btnTabWeekly);
         Button btnTabMonthly = rankDialog.findViewById(R.id.btnTabMonthly);
         LinearLayout listContainer = rankDialog.findViewById(R.id.rankingListContainer);
-        // Premium header - Wealth / Charm switch inside same dialog
         LinearLayout premiumTop = new LinearLayout(this);
         premiumTop.setOrientation(LinearLayout.HORIZONTAL); premiumTop.setGravity(Gravity.CENTER); premiumTop.setPadding(0,20,0,10);
         Button btnWealth = new Button(this); btnWealth.setText("💰 Wealth");
         Button btnCharm = new Button(this); btnCharm.setText("❤️ Charm");
         premiumTop.addView(btnWealth); premiumTop.addView(btnCharm);
-        // Load real ranking from users -> sendingCoins / receivingCoins
         Runnable loadRank = () -> {
             btnWealth.setBackgroundColor(rankTab.equals("Wealth") ? Color.parseColor("#FFD700") : Color.parseColor("#2A1B4E"));
             btnWealth.setTextColor(rankTab.equals("Wealth") ? Color.BLACK : Color.WHITE);
             btnCharm.setBackgroundColor(rankTab.equals("Charm") ? Color.parseColor("#FF4081") : Color.parseColor("#2A1B4E"));
-            btnCharm.setTextColor(rankTab.equals("Charm") ? Color.WHITE : Color.WHITE);
+            btnCharm.setTextColor(Color.WHITE);
             if (btnTabDaily != null) { btnTabDaily.setBackgroundColor(rankPeriod.equals("Day") ? Color.parseColor("#FFD700") : Color.parseColor("#2A1B4E")); btnTabDaily.setTextColor(rankPeriod.equals("Day") ? Color.BLACK : Color.WHITE); }
             if (btnTabWeekly != null) { btnTabWeekly.setBackgroundColor(rankPeriod.equals("Week") ? Color.parseColor("#FFD700") : Color.parseColor("#2A1B4E")); btnTabWeekly.setTextColor(rankPeriod.equals("Week") ? Color.BLACK : Color.WHITE); }
             if (btnTabMonthly != null) { btnTabMonthly.setBackgroundColor(rankPeriod.equals("Month") ? Color.parseColor("#FFD700") : Color.parseColor("#2A1B4E")); btnTabMonthly.setTextColor(rankPeriod.equals("Month") ? Color.BLACK : Color.WHITE); }
-            userDatabaseRef.orderByChild(rankTab.equals("Wealth") ? "sendingCoins" : "receivingCoins").limitToLast(20).addListenerForSingleValueEvent(new ValueEventListener() {
+            // LIVE - addValueEventListener, Single না
+            userDatabaseRef.orderByChild(rankTab.equals("Wealth") ? "sendingCoins" : "receivingCoins").limitToLast(20).addValueEventListener(new ValueEventListener() {
                 @Override public void onDataChange(@NonNull DataSnapshot snap) {
                     rankCache.clear();
                     for (DataSnapshot ds : snap.getChildren()) {
@@ -303,7 +426,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     Collections.sort(rankCache, (a,b) -> Long.compare(b.coins, a.coins));
                     if (listContainer != null) {
                         listContainer.removeAllViews();
-                        // Podium - Top 1,2,3 big
                         if (rankCache.size() >= 3) {
                             LinearLayout podium = new LinearLayout(VoiceRoomActivity.this);
                             podium.setOrientation(LinearLayout.HORIZONTAL); podium.setGravity(Gravity.BOTTOM | Gravity.CENTER); podium.setPadding(0,10,0,15);
@@ -328,7 +450,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (btnTabDaily != null) btnTabDaily.setOnClickListener(v -> { rankPeriod="Day"; loadRank.run(); Toast.makeText(this, "Showing Daily Ranking", Toast.LENGTH_SHORT).show(); });
         if (btnTabWeekly != null) btnTabWeekly.setOnClickListener(v -> { rankPeriod="Week"; loadRank.run(); Toast.makeText(this, "Showing Weekly Ranking", Toast.LENGTH_SHORT).show(); });
         if (btnTabMonthly != null) btnTabMonthly.setOnClickListener(v -> { rankPeriod="Month"; loadRank.run(); Toast.makeText(this, "Showing Monthly Ranking", Toast.LENGTH_SHORT).show(); });
-        // Insert premiumTop above list if parent exists
         try { ViewGroup parent = (ViewGroup) listContainer.getParent(); parent.addView(premiumTop, 0); } catch (Exception ignored) {}
         loadRank.run();
         rankDialog.show();
@@ -451,7 +572,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         TextView title=new TextView(this); title.setText("👥 Active Online Members"); title.setTextColor(Color.parseColor("#00E676")); title.setTextSize(18); title.setTypeface(null, android.graphics.Typeface.BOLD); title.setPadding(0,0,0,20); layout.addView(title);
         ScrollView scrollView=new ScrollView(this); scrollView.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1200)); scrollView.setFillViewport(true);
         LinearLayout memberListContainer=new LinearLayout(this); memberListContainer.setOrientation(LinearLayout.VERTICAL);
-        databaseReference.child("online_users").addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot snapshot){ memberListContainer.removeAllViews(); for(DataSnapshot ds:snapshot.getChildren()){ String memberName=ds.getValue(String.class); String memberUid=ds.getKey(); if(memberName!=null){ LinearLayout row=new LinearLayout(VoiceRoomActivity.this); row.setOrientation(LinearLayout.HORIZONTAL); row.setPadding(20,20,20,20); row.setGravity(Gravity.CENTER_VERTICAL); GradientDrawable rBg=new GradientDrawable(); rBg.setColor(Color.parseColor("#2A1B4E")); rBg.setCornerRadius(16); row.setBackground(rBg); LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT); lp.setMargins(0,0,0,10); row.setLayoutParams(lp); TextView nameTxt=new TextView(VoiceRoomActivity.this); nameTxt.setText("🟢  "+memberName+" (ID: "+memberUid+")"); nameTxt.setTextColor(Color.WHITE); nameTxt.setTextSize(15); nameTxt.setTypeface(null, android.graphics.Typeface.BOLD); row.addView(nameTxt); memberListContainer.addView(row); } } } @Override public void onCancelled(@NonNull DatabaseError e){} });
+        databaseReference.child("online_users").addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot snapshot){ memberListContainer.removeAllViews(); int serial=1; for(DataSnapshot ds:snapshot.getChildren()){ String memberName=ds.getValue(String.class); String memberUid=ds.getKey(); if(memberName!=null){ LinearLayout row=new LinearLayout(VoiceRoomActivity.this); row.setOrientation(LinearLayout.HORIZONTAL); row.setPadding(20,20,20,20); row.setGravity(Gravity.CENTER_VERTICAL); GradientDrawable rBg=new GradientDrawable(); rBg.setColor(Color.parseColor("#2A1B4E")); rBg.setCornerRadius(16); row.setBackground(rBg); LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT); lp.setMargins(0,0,0,10); row.setLayoutParams(lp); String roleBadge=(memberUid!=null && memberUid.equals(roomOwnerId))?"👑 Owner ":(roomAdminList.contains(memberUid)?"🛡️ Admin ":"🟢 Member "); TextView nameTxt=new TextView(VoiceRoomActivity.this); nameTxt.setText(serial+". "+roleBadge+memberName+" (ID: "+memberUid+")"); nameTxt.setTextColor(Color.WHITE); nameTxt.setTextSize(15); nameTxt.setTypeface(null, android.graphics.Typeface.BOLD); row.addView(nameTxt); final String fName=memberName; final String fUid=memberUid; row.setOnClickListener(v->{ dialog.dismiss(); fetchUserDataAndShowProfile(fName, fUid, null); }); memberListContainer.addView(row); serial++; } } } @Override public void onCancelled(@NonNull DatabaseError e){} });
         scrollView.addView(memberListContainer); layout.addView(scrollView); dialog.setContentView(layout);
         Window window=dialog.getWindow(); if(window!=null){ window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1400); window.setGravity(Gravity.BOTTOM); } dialog.show();
     }
@@ -493,9 +614,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
         TextView ownerTitle=new TextView(this); ownerTitle.setText("👑 Room Owner: SR Official"); ownerTitle.setTextColor(Color.parseColor("#FFD700")); ownerTitle.setTextSize(16); ownerTitle.setTypeface(null, android.graphics.Typeface.BOLD); ownerCard.addView(ownerTitle);
         TextView ownerIdTxt=new TextView(this); ownerIdTxt.setText("ID: "+roomOwnerId); ownerIdTxt.setTextColor(Color.parseColor("#00E676")); ownerIdTxt.setTextSize(13); ownerIdTxt.setPadding(0,4,0,10); ownerCard.addView(ownerIdTxt);
         TextView noticeTxt=new TextView(this); noticeTxt.setText("📢 Welcome to SR Voice Chat Room! Enjoy live stream & luxury gifts."); noticeTxt.setTextColor(Color.WHITE); noticeTxt.setTextSize(13); ownerCard.addView(noticeTxt);
+        TextView themeTxt=new TextView(this); themeTxt.setText("🎨 Current Theme: "+currentThemeName); themeTxt.setTextColor(Color.parseColor("#FFD700")); themeTxt.setTextSize(13); themeTxt.setPadding(0,10,0,0); ownerCard.addView(themeTxt);
         infoLayout.addView(ownerCard); mainContainer.addView(infoLayout);
         LinearLayout membersLayout=new LinearLayout(this); membersLayout.setOrientation(LinearLayout.VERTICAL); membersLayout.setVisibility(View.GONE);
-        databaseReference.child("online_users").addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot snapshot){ membersLayout.removeAllViews(); for(DataSnapshot ds:snapshot.getChildren()){ String uName=ds.getValue(String.class); String uId=ds.getKey(); if(uName!=null){ LinearLayout row=new LinearLayout(VoiceRoomActivity.this); row.setOrientation(LinearLayout.HORIZONTAL); row.setPadding(20,20,20,20); row.setGravity(Gravity.CENTER_VERTICAL); GradientDrawable rBg=new GradientDrawable(); rBg.setColor(Color.parseColor("#2A1B4E")); rBg.setCornerRadius(16); row.setBackground(rBg); LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT); lp.setMargins(0,0,0,10); row.setLayoutParams(lp); String roleBadge=(uId!=null && uId.equals(roomOwnerId))?"👑 Owner ":(roomAdminList.contains(uId)?"🛡️ Admin ":"🟢 Member "); TextView nameTxt=new TextView(VoiceRoomActivity.this); nameTxt.setText(roleBadge+uName+" (ID: "+uId+")"); nameTxt.setTextColor(Color.WHITE); nameTxt.setTextSize(14); nameTxt.setTypeface(null, android.graphics.Typeface.BOLD); row.addView(nameTxt); membersLayout.addView(row); } } } @Override public void onCancelled(@NonNull DatabaseError e){} });
+        databaseReference.child("online_users").addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot snapshot){ membersLayout.removeAllViews(); int serial=1; for(DataSnapshot ds:snapshot.getChildren()){ String uName=ds.getValue(String.class); String uId=ds.getKey(); if(uName!=null){ LinearLayout row=new LinearLayout(VoiceRoomActivity.this); row.setOrientation(LinearLayout.HORIZONTAL); row.setPadding(20,20,20,20); row.setGravity(Gravity.CENTER_VERTICAL); GradientDrawable rBg=new GradientDrawable(); rBg.setColor(Color.parseColor("#2A1B4E")); rBg.setCornerRadius(16); row.setBackground(rBg); LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT); lp.setMargins(0,0,0,10); row.setLayoutParams(lp); String roleBadge=(uId!=null && uId.equals(roomOwnerId))?"👑 Owner ":(roomAdminList.contains(uId)?"🛡️ Admin ":"🟢 Member "); TextView nameTxt=new TextView(VoiceRoomActivity.this); nameTxt.setText(serial+". "+roleBadge+uName+" (ID: "+uId+")"); nameTxt.setTextColor(Color.WHITE); nameTxt.setTextSize(14); nameTxt.setTypeface(null, android.graphics.Typeface.BOLD); row.addView(nameTxt); final String fn=uName; final String fu=uId; row.setOnClickListener(v->{ dialog.dismiss(); fetchUserDataAndShowProfile(fn, fu, null); }); membersLayout.addView(row); serial++; } } } @Override public void onCancelled(@NonNull DatabaseError e){} });
         mainContainer.addView(membersLayout);
         tabInfoBtn.setOnClickListener(v->{ tabInfoBtn.setBackgroundColor(Color.parseColor("#FFD700")); tabInfoBtn.setTextColor(Color.BLACK); tabMembersBtn.setBackgroundColor(Color.parseColor("#2A1B4E")); tabMembersBtn.setTextColor(Color.WHITE); infoLayout.setVisibility(View.VISIBLE); membersLayout.setVisibility(View.GONE); });
         tabMembersBtn.setOnClickListener(v->{ tabMembersBtn.setBackgroundColor(Color.parseColor("#FFD700")); tabMembersBtn.setTextColor(Color.BLACK); tabInfoBtn.setBackgroundColor(Color.parseColor("#2A1B4E")); tabInfoBtn.setTextColor(Color.WHITE); infoLayout.setVisibility(View.GONE); membersLayout.setVisibility(View.VISIBLE); });
@@ -517,7 +639,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         userDatabaseRef.child(userId).addListenerForSingleValueEvent(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot snapshot){ long sendingCoins=0L; long receivingCoins=0L; String gender="♂"; String country="🇧🇩"; if(snapshot.exists()){ Long send=snapshot.child("sendingCoins").getValue(Long.class); Long recv=snapshot.child("receivingCoins").getValue(Long.class); String dbGender=snapshot.child("gender").getValue(String.class); String dbCountry=snapshot.child("country").getValue(String.class); if(send!=null) sendingCoins=send; if(recv!=null) receivingCoins=recv; if(dbGender!=null){ String lowerGender=dbGender.toLowerCase(); if(lowerGender.contains("female")||lowerGender.contains("girl")||lowerGender.contains("মেয়ে")||lowerGender.contains("♀")) gender="♀"; else gender="♂"; } if(dbCountry!=null && !dbCountry.isEmpty()) country=dbCountry; } showUserProfileDialog(userName,userId,userImage,sendingCoins,receivingCoins,gender,country); } @Override public void onCancelled(@NonNull DatabaseError e){ showUserProfileDialog(userName,userId,userImage,0L,0L,"♂","🇧🇩"); } });
     }
 
-    // ================= PREMIUM BIG PROFILE - তোমার নোট অনুযায়ী বড় করা =================
+    // ================= PREMIUM BIG PROFILE - COINS NAI, SHUDHU LEVEL =================
     private void showUserProfileDialog(String userName, String userId, String userImage, long sendingCoins, long receivingCoins, String gender, String country) {
         BottomSheetDialog profileDialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout layout = new LinearLayout(this);
@@ -525,8 +647,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         layout.setPadding(40, 50, 40, 60);
         GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{Color.parseColor("#2A1B4E"), Color.parseColor("#0A0518")});
         bg.setCornerRadii(new float[]{60,60,60,60,0,0,0,0}); layout.setBackground(bg);
-
-        // BIG Avatar - আগে 240 ছিল, এখন 340 PREMIUM
         ImageView imgProfileBig = new ImageView(this);
         LinearLayout.LayoutParams imgParams = new LinearLayout.LayoutParams(340, 340);
         imgParams.gravity = Gravity.CENTER_HORIZONTAL; imgParams.setMargins(0,0,0,20);
@@ -535,47 +655,36 @@ public class VoiceRoomActivity extends AppCompatActivity {
             try { byte[] decodedString = android.util.Base64.decode(userImage, android.util.Base64.DEFAULT); Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length); if (decodedByte != null) { RoundedBitmapDrawable d = RoundedBitmapDrawableFactory.create(getResources(), decodedByte); d.setCircular(true); imgProfileBig.setImageDrawable(d); } else imgProfileBig.setImageResource(android.R.drawable.ic_menu_my_calendar); } catch (Exception e) { imgProfileBig.setImageResource(android.R.drawable.ic_menu_my_calendar); }
         } else imgProfileBig.setImageResource(android.R.drawable.ic_menu_my_calendar);
         layout.addView(imgProfileBig);
-
         LinearLayout nameRow = new LinearLayout(this); nameRow.setOrientation(LinearLayout.HORIZONTAL); nameRow.setGravity(Gravity.CENTER); nameRow.setPadding(0,0,0,8);
         TextView nameText = new TextView(this); nameText.setText(userName != null ? userName : "SR User"); nameText.setTextColor(Color.WHITE); nameText.setTextSize(24); nameText.setTypeface(null, android.graphics.Typeface.BOLD); nameRow.addView(nameText);
         TextView genderFlagText = new TextView(this); genderFlagText.setText(" " + gender + " " + country); genderFlagText.setTextSize(20); genderFlagText.setTextColor(gender.equals("♀") ? Color.parseColor("#FF4081") : Color.parseColor("#00B0FF")); nameRow.addView(genderFlagText);
         layout.addView(nameRow);
-
         String displayId = (userId != null && !userId.isEmpty()) ? userId : "493859069";
         TextView idText = new TextView(this); idText.setText("ID: " + displayId + " 📋"); idText.setTextColor(Color.parseColor("#00E676")); idText.setTextSize(16); idText.setGravity(Gravity.CENTER); idText.setPadding(0,0,0,10);
         idText.setOnClickListener(v -> { ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE); ClipData clip = ClipData.newPlainText("User ID", displayId); if (clipboard != null) { clipboard.setPrimaryClip(clip); Toast.makeText(this, "ID Copied: " + displayId, Toast.LENGTH_SHORT).show(); } });
         layout.addView(idText);
-
-        // Followers / Following Count - REAL Firebase
         TextView followCountText = new TextView(this); followCountText.setText("Followers: ...  •  Following: ..."); followCountText.setTextColor(Color.parseColor("#FFD700")); followCountText.setTextSize(14); followCountText.setTypeface(null, android.graphics.Typeface.BOLD); followCountText.setGravity(Gravity.CENTER); followCountText.setPadding(0,0,0,15); layout.addView(followCountText);
         if (userId != null && !userId.isEmpty()) {
             userDatabaseRef.child(userId).child("followers").addListenerForSingleValueEvent(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ long fc=s.getChildrenCount(); userDatabaseRef.child(userId).child("following").addListenerForSingleValueEvent(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s2){ followCountText.setText("👥 Followers: "+fc+"  •  Following: "+s2.getChildrenCount()); } @Override public void onCancelled(@NonNull DatabaseError e){} }); } @Override public void onCancelled(@NonNull DatabaseError e){} });
         }
-
         int sendLevel = LevelUtils.calculateLevel(sendingCoins);
         int recvLevel = LevelUtils.calculateLevel(receivingCoins);
         LinearLayout levelRow = new LinearLayout(this); levelRow.setOrientation(LinearLayout.HORIZONTAL); levelRow.setGravity(Gravity.CENTER); levelRow.setPadding(0,0,0,25);
         levelRow.addView(createSoftBadgeView("⭐ Send Lv." + sendLevel, LevelUtils.getLevelColor(sendLevel)));
         levelRow.addView(createSoftBadgeView("👑 Recv Lv." + recvLevel, LevelUtils.getLevelColor(recvLevel)));
         layout.addView(levelRow);
-
-        // Stats Row - Sending / Receiving Coins
-        TextView stats = new TextView(this); stats.setText("💰 Sending: "+sendingCoins+"  •  ❤️ Receiving: "+receivingCoins); stats.setTextColor(Color.WHITE); stats.setTextSize(13); stats.setGravity(Gravity.CENTER); stats.setPadding(0,0,0,20); layout.addView(stats);
-
+        // Coins line deleted - only Level
         LinearLayout actionRow = new LinearLayout(this); actionRow.setOrientation(LinearLayout.HORIZONTAL); actionRow.setGravity(Gravity.CENTER); actionRow.setPadding(0,10,0,10);
         Button btnFollow = new Button(this); btnFollow.setText("✨ Follow"); btnFollow.setBackgroundColor(Color.parseColor("#FFD700")); btnFollow.setTextColor(Color.BLACK); btnFollow.setTypeface(null, android.graphics.Typeface.BOLD);
         LinearLayout.LayoutParams p1 = new LinearLayout.LayoutParams(0, 130, 1.0f); p1.setMargins(0,0,8,0); btnFollow.setLayoutParams(p1);
-        // Follow সত্যি কাজ করবে - Firebase এ সেভ হবে
         btnFollow.setOnClickListener(v -> {
             if (userId==null || userId.equals(currentUserId)) { Toast.makeText(this, "You cannot follow yourself!", Toast.LENGTH_SHORT).show(); return; }
             userDatabaseRef.child(userId).child("followers").child(currentUserId).setValue(true);
             userDatabaseRef.child(currentUserId).child("following").child(userId).setValue(true);
-            userDatabaseRef.child(currentUserId).child("followers").child(userId).addListenerForSingleValueEvent(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ if(s.exists()){ Toast.makeText(VoiceRoomActivity.this, "You are already friends! ❤️", Toast.LENGTH_SHORT).show(); } } @Override public void onCancelled(@NonNull DatabaseError e){} });
             btnFollow.setText("✅ Following"); btnFollow.setBackgroundColor(Color.parseColor("#00E676"));
             Toast.makeText(this, "Successfully Followed " + userName, Toast.LENGTH_SHORT).show();
         });
         actionRow.addView(btnFollow);
-
         Button btnAdd = new Button(this); btnAdd.setText("➕ Add Friend"); btnAdd.setBackgroundColor(Color.parseColor("#00B0FF")); btnAdd.setTextColor(Color.WHITE); btnAdd.setTypeface(null, android.graphics.Typeface.BOLD);
         LinearLayout.LayoutParams pAdd = new LinearLayout.LayoutParams(0, 130, 1.0f); pAdd.setMargins(8,0,8,0); btnAdd.setLayoutParams(pAdd);
         btnAdd.setOnClickListener(v -> {
@@ -586,14 +695,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
             btnAdd.setText("✅ Added"); Toast.makeText(this, "Friend Request Sent to " + userName, Toast.LENGTH_SHORT).show();
         });
         actionRow.addView(btnAdd);
-
         Button btnPopupGift = new Button(this); btnPopupGift.setText("🎁 Gift"); btnPopupGift.setBackgroundColor(Color.parseColor("#FF4081")); btnPopupGift.setTextColor(Color.WHITE); btnPopupGift.setTypeface(null, android.graphics.Typeface.BOLD);
         LinearLayout.LayoutParams p2 = new LinearLayout.LayoutParams(0, 130, 1.0f); p2.setMargins(8,0,0,0); btnPopupGift.setLayoutParams(p2);
         btnPopupGift.setOnClickListener(v -> { profileDialog.dismiss(); showPremiumGiftPanel(); });
         actionRow.addView(btnPopupGift);
         layout.addView(actionRow);
-
-        // Extra Row - Chat / Profile View
         LinearLayout actionRow2 = new LinearLayout(this); actionRow2.setOrientation(LinearLayout.HORIZONTAL); actionRow2.setGravity(Gravity.CENTER); actionRow2.setPadding(0,12,0,0);
         Button btnChatUser = new Button(this); btnChatUser.setText("💬 Chat"); btnChatUser.setBackgroundColor(Color.parseColor("#2A1B4E")); btnChatUser.setTextColor(Color.WHITE);
         LinearLayout.LayoutParams pc = new LinearLayout.LayoutParams(0, 120, 1.0f); pc.setMargins(0,0,8,0); btnChatUser.setLayoutParams(pc);
@@ -601,14 +707,48 @@ public class VoiceRoomActivity extends AppCompatActivity {
         actionRow2.addView(btnChatUser);
         Button btnViewFull = new Button(this); btnViewFull.setText("👤 Full Profile"); btnViewFull.setBackgroundColor(Color.parseColor("#2A1B4E")); btnViewFull.setTextColor(Color.parseColor("#FFD700"));
         LinearLayout.LayoutParams pv = new LinearLayout.LayoutParams(0, 120, 1.0f); pv.setMargins(8,0,0,0); btnViewFull.setLayoutParams(pv);
-        btnViewFull.setOnClickListener(v -> Toast.makeText(this, "Full Profile: " + userName, Toast.LENGTH_SHORT).show());
+        btnViewFull.setOnClickListener(v -> { profileDialog.dismiss(); showFullProfileInside(userName, userId, userImage, sendingCoins, receivingCoins, gender, country); });
         actionRow2.addView(btnViewFull);
         layout.addView(actionRow2);
-
         profileDialog.setContentView(layout);
-        Window window = profileDialog.getWindow(); if (window != null) { window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1750); window.setGravity(Gravity.BOTTOM); }
+        Window window = profileDialog.getWindow(); if (window != null) { window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1750); window.setGravity(Gravity.BOTTOM); try { window.getAttributes().windowAnimations = android.R.style.Animation_Dialog; } catch (Exception ignored) {} }
         profileDialog.show();
     }
+
+    private void showFullProfileInside(String userName, String userId, String userImage, long sendingCoins, long receivingCoins, String gender, String country) {
+        BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(40, 40, 40, 60);
+        GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")});
+        bg.setCornerRadii(new float[]{45,45,45,45,0,0,0,0});
+        layout.setBackground(bg);
+        TextView title = new TextView(this);
+        title.setText("👤 Full Profile - " + userName);
+        title.setTextColor(Color.parseColor("#FFD700")); title.setTextSize(19); title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setGravity(Gravity.CENTER); title.setPadding(0,0,0,20);
+        layout.addView(title);
+        ImageView img = new ImageView(this);
+        LinearLayout.LayoutParams ip = new LinearLayout.LayoutParams(400, 400);
+        ip.gravity = Gravity.CENTER_HORIZONTAL; ip.setMargins(0,0,0,20);
+        img.setLayoutParams(ip); img.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        if (userImage != null && !userImage.isEmpty()) {
+            try { byte[] b = android.util.Base64.decode(userImage, android.util.Base64.DEFAULT); Bitmap bmp = BitmapFactory.decodeByteArray(b,0,b.length); if (bmp!=null){ RoundedBitmapDrawable d = RoundedBitmapDrawableFactory.create(getResources(), bmp); d.setCircular(true); img.setImageDrawable(d); } } catch (Exception e){ img.setImageResource(android.R.drawable.ic_menu_my_calendar); }
+        }
+        layout.addView(img);
+        TextView info = new TextView(this);
+        info.setText("ID: " + userId + "\nGender: " + gender + "  Country: " + country + "\nSend Level: " + LevelUtils.calculateLevel(sendingCoins) + "  •  Recv Level: " + LevelUtils.calculateLevel(receivingCoins) + "\nCurrent Theme: " + currentThemeName + "\n\nBio: Welcome to my profile! Enjoy SR Voice Chat. 💑🌊");
+        info.setTextColor(Color.WHITE); info.setTextSize(15); info.setGravity(Gravity.CENTER); info.setPadding(0,0,0,20);
+        layout.addView(info);
+        Button btnClose = new Button(this); btnClose.setText("⬅ Back to Room"); btnClose.setBackgroundColor(Color.parseColor("#FFD700")); btnClose.setTextColor(Color.BLACK);
+        btnClose.setOnClickListener(v -> dialog.dismiss());
+        layout.addView(btnClose);
+        dialog.setContentView(layout);
+        Window w = dialog.getWindow();
+        if (w != null) { w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1600); w.setGravity(Gravity.BOTTOM); }
+        dialog.show();
+    }
+
     private View createSoftBadgeView(String text, int colorInt){ TextView badge=new TextView(this); badge.setText(text); badge.setTextColor(Color.WHITE); badge.setTextSize(12); badge.setTypeface(null, android.graphics.Typeface.BOLD); badge.setPadding(22,10,22,10); GradientDrawable bg=new GradientDrawable(); bg.setColor(colorInt); bg.setCornerRadius(30); badge.setBackground(bg); LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT); lp.setMargins(0,0,16,0); badge.setLayoutParams(lp); return badge; }
     private void showFullLevelCenterDialog(){
         BottomSheetDialog dialog=new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
