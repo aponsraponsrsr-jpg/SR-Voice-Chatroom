@@ -151,7 +151,7 @@ android:textSize="12sp" />
 </LinearLayout>
 </LinearLayout>
 <LinearLayout
-android:id="@+id/menuVip"
+android:id="@+id/menuSvip"
 android:layout_width="match_parent"
 android:layout_height="wrap_content"
 android:orientation="horizontal"
@@ -436,9 +436,8 @@ android:layout_marginLeft="14dp"
 android:layout_marginRight="14dp"
 android:layout_marginBottom="2dp">
 <TextView
-android:layout_width="0dp"
+android:layout_width="wrap_content"
 android:layout_height="wrap_content"
-android:layout_weight="1"
 android:text="📅 Daily Tasks"
 android:textSize="14sp" />
 <TextView
