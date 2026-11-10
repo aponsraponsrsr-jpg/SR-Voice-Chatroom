@@ -36,19 +36,9 @@ myName = prefs.getString("USER_NAME", "User");
 roomsRef = FirebaseDatabase.getInstance().getReference("rooms");
 usersRef = FirebaseDatabase.getInstance().getReference("users");
 btnPlus = findViewById(R.id.btnPlus);
-if (btnPlus == null) {
-btnPlus = findViewById(R.id.btnCreateRoom);
-}
 if (btnPlus != null) {
 btnPlus.setOnClickListener(v -> onPlusClicked());
 }
-setupBottomNav();
-}
-private void setupBottomNav() {
-try {
-LinearLayout navHome = findViewById(R.id.navHome);
-LinearLayout navMoment = findViewById(R.id.navMoment);
-LinearLayout navInbox = findViewById(R.id.navInbox);
 LinearLayout navMe = findViewById(R.id.navMe);
 if (navMe != null) {
 navMe.setOnClickListener(v -> {
@@ -56,7 +46,12 @@ Intent i = new Intent(MainActivity.this, ProfileActivity.class);
 startActivity(i);
 });
 }
-} catch (Exception ignored) {}
+LinearLayout navHome = findViewById(R.id.navHome);
+if (navHome != null) {
+navHome.setOnClickListener(v -> {
+Toast.makeText(this, "Home", Toast.LENGTH_SHORT).show();
+});
+}
 }
 private void onPlusClicked() {
 boolean isDone = prefs.getBoolean("ROOM_SETUP_DONE", false);
