@@ -2,7 +2,6 @@ package com.sr.voicechat;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -42,7 +41,7 @@ btnPlus.setOnClickListener(v -> onPlusClicked());
 LinearLayout navMe = findViewById(R.id.navMe);
 if (navMe != null) {
 navMe.setOnClickListener(v -> {
-Intent i = new Intent(MainActivity.this, ProfileActivity.class);
+Intent i = new Intent(MainActivity.this, MeActivity.class);
 startActivity(i);
 });
 }
