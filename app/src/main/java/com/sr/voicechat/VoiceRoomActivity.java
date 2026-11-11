@@ -118,26 +118,59 @@ if (uid != null && uid.equals(currentUserId)) databaseReference.child("seats").c
 }
 private void showEditMyProfileDialog() {
 AlertDialog.Builder b = new AlertDialog.Builder(this);
-b.setTitle("Edit Profile - Global Name");
+b.setTitle("Edit My Profile");
 LinearLayout layout = new LinearLayout(this);
 layout.setOrientation(LinearLayout.VERTICAL);
 layout.setPadding(50, 30, 50, 30);
-TextView hint = new TextView(this);
-hint.setText("Type any name. It will show live.");
-hint.setTextSize(13);
-hint.setPadding(0, 0, 0, 15);
-layout.addView(hint);
-EditText input = new EditText(this);
-input.setHint("Enter your name...");
-input.setText(getMyDisplayName());
-input.setTextColor(Color.BLACK);
-input.setBackgroundColor(Color.WHITE);
-input.setPadding(25, 20, 25, 20);
-layout.addView(input);
+EditText inputName = new EditText(this);
+inputName.setHint("Enter your name...");
+inputName.setText(getMyDisplayName());
+inputName.setTextColor(Color.BLACK);
+inputName.setBackgroundColor(Color.WHITE);
+inputName.setPadding(25, 20, 25, 20);
+layout.addView(inputName);
+TextView gLabel = new TextView(this);
+gLabel.setText("Gender:");
+gLabel.setPadding(0, 20, 0, 8);
+layout.addView(gLabel);
+android.widget.Spinner genderSpin = new android.widget.Spinner(this);
+String[] genders = {"Male", "Female"};
+genderSpin.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, genders));
+if (myGender != null && myGender.toLowerCase().contains("female")) genderSpin.setSelection(1);
+layout.addView(genderSpin);
+TextView cLabel = new TextView(this);
+cLabel.setText("Country:");
+cLabel.setPadding(0, 20, 0, 8);
+layout.addView(cLabel);
+android.widget.Spinner countrySpin = new android.widget.Spinner(this);
+String[] countries = {"Bangladesh","India","Pakistan","Nepal","Sri Lanka","USA","UK","Canada","Australia","Saudi Arabia","UAE","Qatar","Kuwait","Oman","Malaysia","Indonesia","Philippines","Germany","France"};
+countrySpin.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, countries));
+int sel = 0;
+for (int i = 0; i < countries.length; i++) { if (countries[i].equalsIgnoreCase(myCountry)) { sel = i; break; } }
+countrySpin.setSelection(sel);
+layout.addView(countrySpin);
+EditText inputBio = new EditText(this);
+inputBio.setHint("Enter Bio...");
+inputBio.setTextColor(Color.BLACK);
+inputBio.setBackgroundColor(Color.WHITE);
+inputBio.setPadding(25, 20, 25, 20);
+LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+bp.topMargin = 20; inputBio.setLayoutParams(bp);
+layout.addView(inputBio);
 b.setView(layout);
 b.setPositiveButton("Save", (d, w) -> {
-String nn = input.getText().toString().trim();
-if (!nn.isEmpty()) { saveMyNameGlobal(nn); Toast.makeText(this, "Name saved: " + nn, Toast.LENGTH_SHORT).show(); }
+String nn = inputName.getText().toString().trim();
+String newGender = genders[genderSpin.getSelectedItemPosition()];
+String newCountry = countries[countrySpin.getSelectedItemPosition()];
+String newBio = inputBio.getText().toString().trim();
+if (!nn.isEmpty()) saveMyNameGlobal(nn);
+myGender = newGender;
+myCountry = newCountry;
+prefs.edit().putString("USER_COUNTRY", newCountry).apply();
+userDatabaseRef.child(currentUserId).child("gender").setValue(newGender);
+userDatabaseRef.child(currentUserId).child("country").setValue(newCountry);
+userDatabaseRef.child(currentUserId).child("bio").setValue(newBio);
+Toast.makeText(this, "Saved: " + newCountry + " " + getCountryFlag(newCountry), Toast.LENGTH_SHORT).show();
 });
 b.setNegativeButton("Cancel", (d, w) -> d.dismiss());
 b.show();
@@ -688,6 +721,14 @@ TextView nameTv = new TextView(VoiceRoomActivity.this); nameTv.setText(name); na
 TextView idTv = new TextView(VoiceRoomActivity.this); idTv.setText("ID: " + uid); idTv.setTextColor(Color.parseColor("#00E676")); idTv.setTextSize(13); idTv.setGravity(Gravity.CENTER); idTv.setPadding(0, 6, 0, 12); root.addView(idTv);
 root.addView(makeGenderFlagRow(gender, country));
 if (!bio.isEmpty()) { TextView bioTv = new TextView(VoiceRoomActivity.this); bioTv.setText(bio); bioTv.setTextColor(Color.WHITE); bioTv.setTextSize(14); bioTv.setGravity(Gravity.CENTER); bioTv.setPadding(0, 15, 0, 0); root.addView(bioTv); }
+if (uid.equals(currentUserId)) {
+Button editBtn = new Button(VoiceRoomActivity.this);
+editBtn.setText("Edit My Profile");
+editBtn.setBackgroundColor(Color.parseColor("#FFD700"));
+editBtn.setTextColor(Color.BLACK);
+editBtn.setOnClickListener(v -> { dialog.dismiss(); showEditMyProfileDialog(); });
+root.addView(editBtn);
+}
 dialog.setContentView(root); Window w = dialog.getWindow(); if (w != null) { w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT); w.setGravity(Gravity.BOTTOM); } dialog.show();
 }
 @Override public void onCancelled(@NonNull DatabaseError e) {}
@@ -701,7 +742,30 @@ for (int i = 0; i < 10; i++) { int resId = getResources().getIdentifier("seat_" 
 }
 private void listenToFirebaseSeats() {
 databaseReference.child("seats").addValueEventListener(new ValueEventListener() {
-@Override public void onDataChange(@NonNull DataSnapshot s) { }
+@Override public void onDataChange(@NonNull DataSnapshot s) {
+for (int i = 0; i < 10; i++) {
+int resId = getResources().getIdentifier("seat_" + i, "id", getPackageName());
+if (resId == 0) continue;
+View seat = findViewById(resId);
+if (seat == null) continue;
+String uid = s.child("seat_" + i).child("userId").getValue(String.class);
+String uname = s.child("seat_" + i).child("userName").getValue(String.class);
+String uimg = s.child("seat_" + i).child("userImage").getValue(String.class);
+if (seat instanceof ViewGroup) {
+ViewGroup vg = (ViewGroup) seat;
+for (int c = 0; c < vg.getChildCount(); c++) {
+View child = vg.getChildAt(c);
+if (child instanceof TextView && uname != null) { ((TextView) child).setText(uname); }
+if (child instanceof ImageView && uimg != null && !uimg.isEmpty()) {
+try { byte[] bb = android.util.Base64.decode(uimg, android.util.Base64.DEFAULT); Bitmap bmp = BitmapFactory.decodeByteArray(bb, 0, bb.length); if (bmp != null) { RoundedBitmapDrawable rd = RoundedBitmapDrawableFactory.create(getResources(), bmp); rd.setCircular(true); ((ImageView) child).setImageDrawable(rd); } } catch (Exception ignored) {}
+}
+}
+if (uid == null || uid.isEmpty()) {
+for (int c = 0; c < vg.getChildCount(); c++) { if (vg.getChildAt(c) instanceof TextView) ((TextView) vg.getChildAt(c)).setText("Seat " + (i + 1)); }
+}
+}
+}
+}
 @Override public void onCancelled(@NonNull DatabaseError e) {}
 });
 }
