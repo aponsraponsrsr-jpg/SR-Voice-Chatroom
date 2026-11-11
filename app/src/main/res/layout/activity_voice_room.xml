@@ -6,6 +6,7 @@
     android:background="#1B1035">
 
     <!-- ===== HEADER TOP - ROOM INFO LEFT, POWER RIGHT ===== -->
+    <!-- SETTINGS UPOR THEKE SORANO HOISE, EKHON NICHE JABE -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -16,11 +17,14 @@
         android:paddingTop="10dp"
         android:paddingBottom="6dp">
 
+        <!-- HEADER BANNER - AGE CAMERA CHILO, EKHON CHOTO BANNER -->
+        <!-- Owner ekhane room er chobi lagabe, onno keu parbe na -->
         <ImageView
             android:id="@+id/roomHeaderProfileImg"
             android:layout_width="42dp"
             android:layout_height="42dp"
-            android:src="@android:drawable/ic_menu_camera" />
+            android:scaleType="centerCrop"
+            android:src="@android:drawable/ic_menu_gallery" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -106,15 +110,6 @@
             android:src="@android:drawable/ic_menu_myplaces"
             android:contentDescription="Online" />
 
-        <!-- SETTINGS -->
-        <ImageView
-            android:id="@+id/btnRoomTools"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:layout_marginStart="4dp"
-            android:src="@android:drawable/ic_menu_preferences"
-            android:contentDescription="Tools" />
-
         <!-- POWER - RIGHT SIDE -->
         <ImageButton
             android:id="@+id/btnPower"
@@ -163,7 +158,7 @@
                 android:orientation="vertical"
                 android:gravity="center"
                 android:padding="4dp">
-                <ImageView android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_camera" />
+                <ImageView android:id="@+id/seatImg_0" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Host" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="1" android:textColor="#AAAAAA" android:textSize="11sp" />
             </LinearLayout>
@@ -176,7 +171,7 @@
                 android:orientation="vertical"
                 android:gravity="center"
                 android:padding="4dp">
-                <ImageView android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
+                <ImageView android:id="@+id/seatImg_1" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="2" android:textColor="#AAAAAA" android:textSize="11sp" />
             </LinearLayout>
@@ -189,7 +184,7 @@
                 android:orientation="vertical"
                 android:gravity="center"
                 android:padding="4dp">
-                <ImageView android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
+                <ImageView android:id="@+id/seatImg_2" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="3" android:textColor="#AAAAAA" android:textSize="11sp" />
             </LinearLayout>
@@ -202,7 +197,7 @@
                 android:orientation="vertical"
                 android:gravity="center"
                 android:padding="4dp">
-                <ImageView android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
+                <ImageView android:id="@+id/seatImg_3" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="4" android:textColor="#AAAAAA" android:textSize="11sp" />
             </LinearLayout>
@@ -215,7 +210,7 @@
                 android:orientation="vertical"
                 android:gravity="center"
                 android:padding="4dp">
-                <ImageView android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
+                <ImageView android:id="@+id/seatImg_4" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="5" android:textColor="#AAAAAA" android:textSize="11sp" />
             </LinearLayout>
@@ -237,7 +232,7 @@
                 android:orientation="vertical"
                 android:gravity="center"
                 android:padding="4dp">
-                <ImageView android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
+                <ImageView android:id="@+id/seatImg_5" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="6" android:textColor="#AAAAAA" android:textSize="11sp" />
             </LinearLayout>
@@ -250,7 +245,7 @@
                 android:orientation="vertical"
                 android:gravity="center"
                 android:padding="4dp">
-                <ImageView android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
+                <ImageView android:id="@+id/seatImg_6" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="7" android:textColor="#AAAAAA" android:textSize="11sp" />
             </LinearLayout>
@@ -263,7 +258,7 @@
                 android:orientation="vertical"
                 android:gravity="center"
                 android:padding="4dp">
-                <ImageView android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
+                <ImageView android:id="@+id/seatImg_7" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="8" android:textColor="#AAAAAA" android:textSize="11sp" />
             </LinearLayout>
@@ -276,7 +271,7 @@
                 android:orientation="vertical"
                 android:gravity="center"
                 android:padding="4dp">
-                <ImageView android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
+                <ImageView android:id="@+id/seatImg_8" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="9" android:textColor="#AAAAAA" android:textSize="11sp" />
             </LinearLayout>
@@ -289,7 +284,7 @@
                 android:orientation="vertical"
                 android:gravity="center"
                 android:padding="4dp">
-                <ImageView android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
+                <ImageView android:id="@+id/seatImg_9" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="10" android:textColor="#AAAAAA" android:textSize="11sp" />
             </LinearLayout>
@@ -364,64 +359,85 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- ===== BOTTOM BAR - Mic / Type / Chat / Gift / Game ===== -->
+    <!-- ===== BOTTOM BAR - NEW - CHOTO + CHARKONA + SETTINGS NICHE ===== -->
+    <!-- AGE 48dp CHILO, EKHON 40dp - CHOTO KORE DEWA HOISE -->
+    <!-- AGE SETTINGS UPORE CHILO, EKHON NICHE - btnRoomTools -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="10dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="6dp"
         android:background="#0A0518">
 
+        <!-- 1. MIC -->
         <Button
             android:id="@+id/btnMicToggle"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:text="🎤"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:textColor="#FFFFFF"
             android:background="#FF9800" />
 
+        <!-- 2. TYPE + SEND - JE KEU SEND KORTE PARBE -->
         <EditText
             android:id="@+id/inputChatMessage"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="40dp"
             android:layout_weight="1"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
+            android:layout_marginStart="6dp"
+            android:layout_marginEnd="6dp"
             android:hint="Type..."
             android:textColorHint="#AAAAAA"
             android:textColor="#FFFFFF"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:background="#2A1B4E"
-            android:paddingStart="12dp" />
+            android:paddingStart="10dp" />
 
+        <!-- SEND BUTTON - CHAT OPTION ER JAGAY SEND -->
         <Button
             android:id="@+id/btnChatOption"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:text="💬"
-            android:textSize="18sp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:text="➤"
+            android:textSize="16sp"
             android:textColor="#FFFFFF"
             android:background="#2A1B4E" />
 
+        <!-- 3. GIFT BOX -->
         <Button
             android:id="@+id/btnGiftBox"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="8dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="6dp"
             android:text="🎁"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:textColor="#FFFFFF"
             android:background="#E91E63" />
 
+        <!-- 4. GAME -->
         <Button
             android:id="@+id/btnGame"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="8dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="6dp"
             android:text="🎮"
-            android:textSize="18sp"
+            android:textSize="16sp"
+            android:textColor="#FFFFFF"
+            android:background="#2A1B4E" />
+
+        <!-- 5. SETTINGS - UPORE THEKE NICHE ANA HOISE -->
+        <Button
+            android:id="@+id/btnRoomTools"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="6dp"
+            android:text="⚙️"
+            android:textSize="16sp"
             android:textColor="#FFFFFF"
             android:background="#2A1B4E" />
     </LinearLayout>
