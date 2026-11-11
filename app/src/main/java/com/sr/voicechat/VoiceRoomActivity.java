@@ -10,20 +10,13 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.view.WindowManager;
-import android.view.animation.Animation;
-import android.view.animation.TranslateAnimation;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
-import android.widget.GridLayout;
-import android.widget.HorizontalScrollView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -35,24 +28,15 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.drawable.RoundedBitmapDrawable;
-import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.sr.voicechat.adapters.GiftAdapter;
-import com.sr.voicechat.models.GiftModel;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
+import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,25 +45,17 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private ImageButton btnPower;
     private Button btnMicToggle, btnChatOption, btnGiftBox, btnGameBox;
     private TextView roomTitleText, roomInfoText, textOnlineCount, roomNoticeBarText;
-    private ImageView btnOnlineList, roomHeaderProfileImg, btnRoomTools, themeBackgroundImg;
+    private ImageView btnOnlineList, roomHeaderProfileImg, btnRoomTools;
     private LinearLayout btnInRoomRanking;
     private boolean isMuted = false;
-    private ListView chatListView;
-    private ArrayList<String> chatMessages;
-    private ArrayAdapter<String> chatAdapter;
     private SharedPreferences prefs;
     private DatabaseReference databaseReference, roomMetaRef, userDatabaseRef, messagesRef, adminsRef;
     private FirebaseAuth mAuth;
     private String roomOwnerId = "", currentUserId = "";
     private String currentThemeName = "Night Purple";
-    private long roomJoinTimestamp = 0;
     private List<String> roomAdminList = new ArrayList<>();
-    private String selectedGiftTargetUid = "";
-    private String selectedGiftTargetName = "All";
-    private int giftQuantity = 1;
     private long myWalletCoins = 0L;
     private TextView walletTextInGift = null;
-    private static final double EXCHANGE_RATE = 0.30;
     private String myDisplayName = "User";
     private String myCountry = "Bangladesh";
     private String myGender = "Male";
@@ -89,23 +65,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (n != null && !n.isEmpty()) return n;
         if (myDisplayName != null && !myDisplayName.isEmpty()) return myDisplayName;
         return "User";
-    }
-
-    private void saveMyNameGlobal(String inputName) {
-        if (inputName == null) return;
-        String newName = inputName.trim();
-        if (newName.isEmpty()) return;
-        myDisplayName = newName;
-        prefs.edit().putString("USER_NAME", newName).apply();
-        if (currentUserId != null && !currentUserId.isEmpty()) {
-            userDatabaseRef.child(currentUserId).child("name").setValue(newName);
-            databaseReference.child("online_users").child(currentUserId).setValue(newName);
-        }
-    }
-
-    private void showEditMyProfileDialog() {
-        Intent intent = new Intent(VoiceRoomActivity.this, EditProfileActivity.class);
-        startActivity(intent);
     }
 
     @Override
@@ -131,7 +90,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         roomOwnerId = getIntent().getStringExtra("ROOM_OWNER_ID");
         if (roomOwnerId == null || roomOwnerId.isEmpty()) roomOwnerId = currentUserId;
-        roomJoinTimestamp = System.currentTimeMillis();
 
         databaseReference = FirebaseDatabase.getInstance().getReference("rooms").child("room_" + roomOwnerId);
         roomMetaRef = databaseReference.child("meta");
@@ -156,6 +114,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         btnRoomTools = findViewById(R.id.btnRoomTools);
 
         if (btnPower != null) btnPower.setOnClickListener(v -> showExitDialog());
+        
         if (btnRoomTools != null) {
             btnRoomTools.setOnClickListener(v -> {
                 boolean isOwner = currentUserId.equals(roomOwnerId);
@@ -168,10 +127,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
         }
 
+        if (btnInRoomRanking != null) {
+            btnInRoomRanking.setOnClickListener(v -> showInRoomRankingDialog());
+        }
+
         setupSeatInteractions();
         listenToFirebaseSeats();
         listenToOnlineMembers();
-        listenToRealtimeChatMessages();
 
         btnMicToggle = findViewById(R.id.btnMicToggle);
         if (btnMicToggle != null) btnMicToggle.setOnClickListener(v -> {
@@ -181,6 +143,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         btnChatOption = findViewById(R.id.btnChatOption);
         if (btnChatOption != null) btnChatOption.setOnClickListener(v -> showChatDialog());
+        
         btnGiftBox = findViewById(R.id.btnGiftBox);
         if (btnGiftBox != null) btnGiftBox.setOnClickListener(v -> showNewGiftPanel());
     }
@@ -227,8 +190,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void leaveRoomAndFinish() {
         leaveRoomKeepHome();
-        // এখানে finishAffinity() এর পরিবর্তে শুধু finish() ব্যবহার করা হলো 
-        // যাতে রুম থেকে বের হলে ইউজার লগআউট না হয়ে সরাসরি আগের স্ক্রিন বা MainActivity-তে ফিরে আসে।
+        // নিশ্চিত করা হলো যেন কোনোভাবেই লগআউট বা জিমেইল স্ক্রিন না আসে, সোজা MainActivity তে ফিরে যায়
+        Intent intent = new Intent(VoiceRoomActivity.this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        startActivity(intent);
         finish();
     }
 
@@ -256,6 +221,121 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
+    }
+
+    private void showIconToolsDialog(boolean isOwner) {
+        BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(35, 25, 35, 25);
+        
+        GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")});
+        bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
+        root.setBackground(bg);
+
+        TextView title = new TextView(this);
+        title.setText("⚙️ Room Tools & Settings");
+        title.setTextColor(Color.parseColor("#FFD700"));
+        title.setTextSize(18);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setGravity(Gravity.CENTER);
+        title.setPadding(0, 0, 0, 20);
+        root.addView(title);
+
+        Button btnEditRoom = createToolButton("✏️ Edit Room Info & Theme");
+        btnEditRoom.setOnClickListener(v -> {
+            dialog.dismiss();
+            startActivity(new Intent(VoiceRoomActivity.this, EditProfileActivity.class));
+        });
+        root.addView(btnEditRoom);
+
+        Button btnClearChat = createToolButton("🧹 Clear Chat History");
+        btnClearChat.setOnClickListener(v -> {
+            if (messagesRef != null) {
+                messagesRef.removeValue();
+                Toast.makeText(this, "Chat Cleared!", Toast.LENGTH_SHORT).show();
+            }
+            dialog.dismiss();
+        });
+        root.addView(btnClearChat);
+
+        Button btnLockRoom = createToolButton("🔒 Room Lock Settings");
+        btnLockRoom.setOnClickListener(v -> {
+            Toast.makeText(this, "Room Lock Active", Toast.LENGTH_SHORT).show();
+            dialog.dismiss();
+        });
+        root.addView(btnLockRoom);
+
+        dialog.setContentView(root);
+        Window w = dialog.getWindow();
+        if (w != null) {
+            int sh = getResources().getDisplayMetrics().heightPixels;
+            w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, (int) (sh * 0.75));
+            w.setGravity(Gravity.BOTTOM);
+        }
+        dialog.show();
+    }
+
+    private Button createToolButton(String text) {
+        Button btn = new Button(this);
+        btn.setText(text);
+        btn.setTextColor(Color.WHITE);
+        btn.setTextSize(14);
+        btn.setAllCaps(false);
+        btn.setBackgroundColor(Color.parseColor("#2A1B4E"));
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 120);
+        params.setMargins(0, 10, 0, 10);
+        btn.setLayoutParams(params);
+        return btn;
+    }
+
+    private void showInRoomRankingDialog() {
+        BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(30, 20, 30, 20);
+        
+        GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")});
+        bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
+        root.setBackground(bg);
+
+        TextView title = new TextView(this);
+        title.setText("🏆 Room Contribution Ranking");
+        title.setTextColor(Color.parseColor("#FFD700"));
+        title.setTextSize(18);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setGravity(Gravity.CENTER);
+        title.setPadding(0, 0, 0, 15);
+        root.addView(title);
+
+        ScrollView sv = new ScrollView(this);
+        LinearLayout listLayout = new LinearLayout(this);
+        listLayout.setOrientation(LinearLayout.VERTICAL);
+
+        for (int i = 1; i <= 10; i++) {
+            TextView tv = new TextView(this);
+            tv.setText("No. " + i + " Contributor — User ID");
+            tv.setTextColor(Color.WHITE);
+            tv.setTextSize(14);
+            tv.setPadding(20, 20, 20, 20);
+            tv.setBackgroundColor(Color.parseColor(i <= 3 ? "#2A1B4E" : "#140B26"));
+            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            p.setMargins(0, 5, 0, 5);
+            tv.setLayoutParams(p);
+            listLayout.addView(tv);
+        }
+
+        sv.addView(listLayout);
+        root.addView(sv);
+
+        dialog.setContentView(root);
+        Window w = dialog.getWindow();
+        if (w != null) {
+            int sh = getResources().getDisplayMetrics().heightPixels;
+            w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, (int) (sh * 0.85));
+            w.setGravity(Gravity.BOTTOM);
+        }
+        dialog.show();
     }
 
     private void showNewGiftPanel() {
@@ -286,17 +366,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void showIconToolsDialog(boolean isOwner) {
-        AlertDialog.Builder b = new AlertDialog.Builder(this);
-        b.setTitle("Room Tools");
-        b.setMessage("Select an action:");
-        b.setPositiveButton("Edit Profile", (d, w) -> {
-            startActivity(new Intent(VoiceRoomActivity.this, EditProfileActivity.class));
-        });
-        b.setNegativeButton("Cancel", (d, w) -> d.dismiss());
-        b.show();
-    }
-
     private void showChatDialog() {
         Toast.makeText(this, "Chat Box", Toast.LENGTH_SHORT).show();
     }
@@ -311,17 +380,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
-    }
-
-    private String getCorrectBadgeIcon(String uid) {
-        if (uid == null || uid.isEmpty()) return "";
-        if (uid.equals(roomOwnerId)) return "Owner ";
-        if (roomAdminList.contains(uid)) return "Admin ";
-        return "";
-    }
-
-    private void listenToRealtimeChatMessages() {
-        // Chat listener
     }
 
     private void syncLatestUserProfile() {
