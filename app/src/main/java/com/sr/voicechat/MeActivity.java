@@ -54,25 +54,27 @@ public class MeActivity extends AppCompatActivity {
         if (user != null) {
             firebaseUid = user.getUid();
         }
-        if (firebaseUid == null || firebaseUid.isEmpty()) {
-            firebaseUid = prefs.getString("FIREBASE_UID", "");
-        }
-        
+
+        // পার্মানেন্ট আইডি লোড করা
         my9DigitId = prefs.getString("MY_9_DIGIT_ID", "");
         if (my9DigitId == null || my9DigitId.isEmpty()) {
-            my9DigitId = "100000000";
+            my9DigitId = prefs.getString("USER_ID", "");
+        }
+        if (my9DigitId == null || my9DigitId.isEmpty()) {
+            my9DigitId = String.valueOf((int) (Math.random() * 900000000) + 100000000);
+            prefs.edit().putString("MY_9_DIGIT_ID", my9DigitId).apply();
         }
 
-        if (firebaseUid != null && !firebaseUid.isEmpty()) {
-            userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
-        } else if (my9DigitId != null && !my9DigitId.isEmpty()) {
+        // ফায়ারবেস রেফারেন্স সবসময় পার্মানেন্ট ৯-ডিজিট আইডি দিয়ে কানেক্ট হবে
+        if (!my9DigitId.isEmpty()) {
             userRef = FirebaseDatabase.getInstance().getReference("users").child(my9DigitId);
+        } else if (firebaseUid != null && !firebaseUid.isEmpty()) {
+            userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
         }
 
         showFromPrefs();
         loadMeData();
 
-        // পেন্সিল বা অবতার আইকনে ক্লিক করলে সরাসরি EditProfileActivity ওপেন হবে
         View.OnClickListener editClickListener = v -> {
             try {
                 Intent i = new Intent(MeActivity.this, EditProfileActivity.class);
@@ -101,6 +103,7 @@ public class MeActivity extends AppCompatActivity {
         LinearLayout btnLogout = findViewById(R.id.btnLogoutLayout);
         if (btnLogout != null) {
             btnLogout.setOnClickListener(v -> {
+                // লজিক: লগআউট করলেও পার্মানেন্ট আইডি prefs এ সেভ থাকবে যাতে আইডি মুছে না যায়
                 SharedPreferences.Editor e = prefs.edit();
                 e.putBoolean("IS_LOGGED_IN", false);
                 e.apply();
