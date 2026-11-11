@@ -73,12 +73,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private String roomOwnerId = "", currentUserId = "";
     private String currentThemeName = "Night Purple";
     private static final int PICK_IMAGE_REQUEST = 101;
-    private EditText dialogInputName, dialogInputBio;
     private long roomJoinTimestamp = 0;
     private List<String> roomAdminList = new ArrayList<>();
-    private String rankTab = "Daily";
-    private String rankType = "Wealth";
-    private List<RankItem> rankCache = new ArrayList<>();
     private String selectedGiftTargetUid = "";
     private String selectedGiftTargetName = "All";
     private int giftQuantity = 1;
@@ -87,7 +83,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private TextView walletTextInGift = null;
     private static final double EXCHANGE_RATE = 0.30;
     private String myDisplayName = "User";
-    private String myCountry = "";
+    private String myCountry = "Bangladesh";
     private String myGender = "Male";
     private String myLanguage = "English";
 
@@ -104,8 +100,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (newName.isEmpty()) return;
         myDisplayName = newName;
         prefs.edit().putString("USER_NAME", newName).apply();
-        userDatabaseRef.child(currentUserId).child("name").setValue(newName);
-        databaseReference.child("online_users").child(currentUserId).setValue(newName);
+        if (currentUserId != null && !currentUserId.isEmpty()) {
+            userDatabaseRef.child(currentUserId).child("name").setValue(newName);
+            databaseReference.child("online_users").child(currentUserId).setValue(newName);
+        }
         final String finalName = newName;
         for (int i = 0; i < 10; i++) {
             final int idx = i;
@@ -128,7 +126,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(50, 30, 50, 30);
         
-        EditText inputName = new EditText(this);
+        final EditText inputName = new EditText(this);
         inputName.setHint("Enter your name...");
         inputName.setText(getMyDisplayName());
         inputName.setTextColor(Color.BLACK);
@@ -141,7 +139,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         gLabel.setPadding(0, 20, 0, 8);
         layout.addView(gLabel);
 
-        android.widget.Spinner genderSpin = new android.widget.Spinner(this);
+        final android.widget.Spinner genderSpin = new android.widget.Spinner(this);
         String[] genders = {"Male", "Female"};
         genderSpin.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, genders));
         if (myGender != null && myGender.toLowerCase().contains("female")) genderSpin.setSelection(1);
@@ -152,7 +150,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         cLabel.setPadding(0, 20, 0, 8);
         layout.addView(cLabel);
 
-        android.widget.Spinner countrySpin = new android.widget.Spinner(this);
+        final android.widget.Spinner countrySpin = new android.widget.Spinner(this);
         String[] countries = {"Bangladesh","India","Pakistan","Nepal","Sri Lanka","USA","UK","Canada","Australia","Saudi Arabia","UAE","Qatar","Kuwait","Oman","Malaysia","Indonesia","Philippines","Germany","France"};
         countrySpin.setAdapter(new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, countries));
         int sel = 0;
@@ -165,7 +163,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         countrySpin.setSelection(sel);
         layout.addView(countrySpin);
 
-        EditText inputBio = new EditText(this);
+        final EditText inputBio = new EditText(this);
         inputBio.setHint("Enter Bio...");
         inputBio.setTextColor(Color.BLACK);
         inputBio.setBackgroundColor(Color.WHITE);
@@ -186,10 +184,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
             myCountry = newCountry;
             prefs.edit().putString("USER_COUNTRY", newCountry).apply();
             prefs.edit().putString("USER_GENDER", newGender).apply();
-            userDatabaseRef.child(currentUserId).child("gender").setValue(newGender);
-            userDatabaseRef.child(currentUserId).child("country").setValue(newCountry);
-            userDatabaseRef.child(currentUserId).child("bio").setValue(newBio);
-            Toast.makeText(this, "Saved: " + newCountry + " " + getCountryFlag(newCountry), Toast.LENGTH_SHORT).show();
+            
+            if (currentUserId != null && !currentUserId.isEmpty()) {
+                userDatabaseRef.child(currentUserId).child("gender").setValue(newGender);
+                userDatabaseRef.child(currentUserId).child("country").setValue(newCountry);
+                userDatabaseRef.child(currentUserId).child("bio").setValue(newBio);
+            }
+            Toast.makeText(this, "Profile Saved Successfully!", Toast.LENGTH_SHORT).show();
         });
         b.setNegativeButton("Cancel", (d, w) -> d.dismiss());
         b.show();
@@ -310,23 +311,24 @@ public class VoiceRoomActivity extends AppCompatActivity {
     }
 
     private void leaveRoomKeepHome() {
-        databaseReference.child("online_users").child(currentUserId).removeValue();
-        for (int i = 0; i < 10; i++) {
-            final int idx = i;
-            databaseReference.child("seats").child("seat_" + idx).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override public void onDataChange(@NonNull DataSnapshot s) {
-                    String uid = s.child("userId").getValue(String.class);
-                    if (uid != null && uid.equals(currentUserId)) {
-                        databaseReference.child("seats").child("seat_" + idx).removeValue();
+        if (currentUserId != null && !currentUserId.isEmpty()) {
+            databaseReference.child("online_users").child(currentUserId).removeValue();
+            for (int i = 0; i < 10; i++) {
+                final int idx = i;
+                databaseReference.child("seats").child("seat_" + idx).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override public void onDataChange(@NonNull DataSnapshot s) {
+                        String uid = s.child("userId").getValue(String.class);
+                        if (uid != null && uid.equals(currentUserId)) {
+                            databaseReference.child("seats").child("seat_" + idx).removeValue();
+                        }
                     }
-                }
-                @Override public void onCancelled(@NonNull DatabaseError e) {}
-            });
+                    @Override public void onCancelled(@NonNull DatabaseError e) {}
+                });
+            }
         }
     }
 
     private void leaveRoomAndFinish() {
-        databaseReference.child("online_users").child(currentUserId).removeValue();
         leaveRoomKeepHome();
         finishAffinity();
     }
@@ -707,17 +709,17 @@ public class VoiceRoomActivity extends AppCompatActivity {
         BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(35, 35, 35, 45);
+        root.setPadding(40, 40, 40, 50);
         GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")});
         bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
         root.setBackground(bg);
 
         TextView title = new TextView(this);
-        title.setText("Basic Tools");
+        title.setText("Room & Admin Tools");
         title.setTextColor(Color.parseColor("#FFD700"));
-        title.setTextSize(18);
+        title.setTextSize(20);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
-        title.setPadding(0, 0, 0, 15);
+        title.setPadding(0, 0, 0, 20);
         root.addView(title);
 
         Button editNameBtn = new Button(this);
@@ -730,10 +732,23 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
         root.addView(editNameBtn);
 
+        Button roomThemeBtn = new Button(this);
+        roomThemeBtn.setText("Change Room Theme");
+        roomThemeBtn.setBackgroundColor(Color.parseColor("#2A1B4E"));
+        roomThemeBtn.setTextColor(Color.WHITE);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.topMargin = 20;
+        roomThemeBtn.setLayoutParams(lp);
+        roomThemeBtn.setOnClickListener(v -> {
+            dialog.dismiss();
+            showRoomThemeDialog();
+        });
+        root.addView(roomThemeBtn);
+
         dialog.setContentView(root);
         Window w = dialog.getWindow();
         if (w != null) {
-            w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1000);
+            w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, 1100);
             w.setGravity(Gravity.BOTTOM);
         }
         dialog.show();
@@ -1287,7 +1302,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 });
                             }
                             databaseReference.child("seats").child("seat_" + idx).setValue(seatData);
-                            Toast.makeText(VoiceRoomActivity.this, "Seated!", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(VoiceRoomActivity.this, "Seated Successfully!", Toast.LENGTH_SHORT).show();
                         }
                     }
                     @Override public void onCancelled(@NonNull DatabaseError e) {}
