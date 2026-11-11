@@ -243,6 +243,20 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
+    // সমস্যার সমাধান: এখানে listenToRoomTheme মেথডটি যুক্ত করা হলো
+    private void listenToRoomTheme() {
+        if (roomMetaRef == null) return;
+        roomMetaRef.addValueEventListener(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot s) {
+                String n = s.child("roomTheme").getValue(String.class);
+                if (n != null && !n.isEmpty()) {
+                    currentThemeName = n;
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
+    }
+
     private void showNewGiftPanel() {
         BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout root = new LinearLayout(this);
@@ -371,7 +385,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             seatData.put("userId", currentUserId);
                             seatData.put("userName", getMyDisplayName());
                             
-                            // আগের সিট থেকে রিমুভ করা
                             for (int j = 0; j < 10; j++) {
                                 final int sj = j;
                                 databaseReference.child("seats").child("seat_" + sj).addListenerForSingleValueEvent(new ValueEventListener() {
