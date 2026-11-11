@@ -37,12 +37,12 @@ import java.util.Map;
 
 public class VoiceRoomActivity extends AppCompatActivity {
     private ImageButton btnPower;
-    private Button btnMicToggle, btnChatOption, btnGiftBox, btnGame;
+    private Button btnMicToggle, btnChatOption, btnGiftBox, btnGame, btnRoomTools;
     private TextView roomTitleText, roomInfoText, textOnlineCount, roomNoticeBarText, textRoomCoins;
     private TextView tabAll, tabChat, tabGift, tabNotice, textChatEmpty;
     private EditText inputChatMessage;
     private LinearLayout btnInRoomRanking, chatListContainer;
-    private ImageView btnOnlineList, roomHeaderProfileImg, btnRoomTools;
+    private ImageView btnOnlineList, roomHeaderProfileImg;
     private boolean isMuted = false;
     private SharedPreferences prefs;
     private DatabaseReference databaseReference, roomMetaRef, userDatabaseRef, messagesRef, adminsRef;
@@ -166,7 +166,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
 
         btnChatOption = findViewById(R.id.btnChatOption);
-        if (btnChatOption != null) btnChatOption.setOnClickListener(v -> showChatDialog());
+        if (btnChatOption != null) btnChatOption.setOnClickListener(v -> {
+            if (inputChatMessage != null && !inputChatMessage.getText().toString().trim().isEmpty()) {
+                sendChatFromInput();
+            } else {
+                showChatDialog();
+            }
+        });
 
         btnGiftBox = findViewById(R.id.btnGiftBox);
         if (btnGiftBox != null) btnGiftBox.setOnClickListener(v -> showNewGiftPanel());
@@ -776,7 +782,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                                 if (b != null) { iv.setImageBitmap(b); set = true; }
                             } catch (Exception ignored) {}
                         }
-                        if (!set) iv.setImageResource(android.R.drawable.ic_menu_camera);
+                        if (!set) iv.setImageResource(android.R.drawable.ic_menu_gallery);
                     } else {
                         int sofaId = getResources().getIdentifier("seat_sofa", "drawable", getPackageName());
                         if (sofaId != 0) iv.setImageResource(sofaId);
@@ -839,7 +845,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     root.addView(topRow);
                     ImageView avatar = new ImageView(VoiceRoomActivity.this);
                     avatar.setLayoutParams(new LinearLayout.LayoutParams(160, 160));
-                    avatar.setImageResource(android.R.drawable.ic_menu_camera);
+                    avatar.setImageResource(android.R.drawable.ic_menu_gallery);
                     if (!photoBase64.isEmpty()) {
                         try {
                             byte[] bytes = Base64.decode(photoBase64, Base64.DEFAULT);
