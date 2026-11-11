@@ -7,8 +7,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -23,7 +23,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import java.io.File;
 
 public class MeActivity extends AppCompatActivity {
     private ImageView imgAvatar, btnEditPencil;
@@ -38,7 +37,6 @@ public class MeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         try {
             setContentView(R.layout.activity_me);
-
             prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
 
             imgAvatar = findViewById(R.id.imgAvatar);
@@ -52,33 +50,25 @@ public class MeActivity extends AppCompatActivity {
             txtVisitor = findViewById(R.id.txtVisitor);
 
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-            if (user != null) {
-                firebaseUid = user.getUid();
-            }
+            if (user != null) firebaseUid = user.getUid();
+            if (firebaseUid.isEmpty()) firebaseUid = prefs.getString("FIREBASE_UID", "");
 
-            // পার্মানেন্ট ৯-ডিজিট আইডি সিকিউর করা
+            // RULE: Me te kokhono notun ID banabo na. ID shudhu prefs / Firebase theke nibo.
             my9DigitId = prefs.getString("MY_9_DIGIT_ID", "");
-            if (my9DigitId == null || my9DigitId.isEmpty()) {
-                my9DigitId = prefs.getString("USER_ID", "");
-            }
-            if (my9DigitId == null || my9DigitId.isEmpty()) {
-                my9DigitId = String.valueOf((int) (Math.random() * 900000000) + 100000000);
-                prefs.edit().putString("MY_9_DIGIT_ID", my9DigitId).apply();
-            }
-
-            // ফায়ারবেস রেফারেন্স সবসময় পার্মানেন্ট আইডি দিয়ে যুক্ত হবে
-            if (!my9DigitId.isEmpty()) {
-                userRef = FirebaseDatabase.getInstance().getReference("users").child(my9DigitId);
-            } else if (firebaseUid != null && !firebaseUid.isEmpty()) {
+            // FIX: Firebase e khujbo UID diye, 9-Digit ID diye NA
+            if (!firebaseUid.isEmpty()) {
                 userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
             }
 
             showFromPrefs();
             loadMeData();
 
+            // Pencil = Edit Mode. Ekhane shudhu Name + Photo change hobe.
+            // ID / Gender / Country kokhono change hobe na.
             View.OnClickListener editClickListener = v -> {
                 try {
                     Intent i = new Intent(MeActivity.this, EditProfileActivity.class);
+                    i.putExtra("EDIT_MODE", true);
                     startActivity(i);
                 } catch (Exception e) {
                     Toast.makeText(MeActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -87,7 +77,6 @@ public class MeActivity extends AppCompatActivity {
 
             if (btnEditPencil != null) btnEditPencil.setOnClickListener(editClickListener);
             if (imgAvatar != null) imgAvatar.setOnClickListener(editClickListener);
-            if (txtName != null) txtName.setOnClickListener(editClickListener);
 
             if (txtCopyId != null) {
                 txtCopyId.setOnClickListener(v -> {
@@ -104,9 +93,7 @@ public class MeActivity extends AppCompatActivity {
             LinearLayout btnLogout = findViewById(R.id.btnLogoutLayout);
             if (btnLogout != null) {
                 btnLogout.setOnClickListener(v -> {
-                    SharedPreferences.Editor e = prefs.edit();
-                    e.putBoolean("IS_LOGGED_IN", false);
-                    e.apply();
+                    prefs.edit().putBoolean("IS_LOGGED_IN", false).apply();
                     FirebaseAuth.getInstance().signOut();
                     Intent i = new Intent(MeActivity.this, LoginActivity.class);
                     i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -131,97 +118,68 @@ public class MeActivity extends AppCompatActivity {
         String name = prefs.getString("USER_NAME", "User");
         String country = prefs.getString("USER_COUNTRY", "");
         String gender = prefs.getString("USER_GENDER", "");
-        String photoPath = prefs.getString("USER_PHOTO_PATH", "");
-        if (photoPath.isEmpty()) photoPath = prefs.getString("USER_PHOTO", "");
+        String photoBase64 = prefs.getString("USER_PHOTO", "");
 
         if (txtName != null) txtName.setText(name);
         if (txtId != null) txtId.setText("ID: " + my9DigitId);
-        
         if (txtGenderCountry != null) {
             if (!gender.isEmpty() && !country.isEmpty()) txtGenderCountry.setText(gender + " | " + country);
             else if (!country.isEmpty()) txtGenderCountry.setText(country);
             else if (!gender.isEmpty()) txtGenderCountry.setText(gender);
             else txtGenderCountry.setText("Complete Your Profile");
         }
-
-        showLocalImage(photoPath, imgAvatar);
+        showBase64Image(photoBase64, imgAvatar);
     }
 
     private void loadMeData() {
         if (userRef == null) return;
-        userRef.addValueEventListener(new ValueEventListener() {
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snap) {
                 try {
-                    String name = prefs.getString("USER_NAME", "User");
-                    String id = my9DigitId;
-                    String country = prefs.getString("USER_COUNTRY", "");
-                    String gender = prefs.getString("USER_GENDER", "");
-                    String photoPath = prefs.getString("USER_PHOTO_PATH", "");
-                    String follow = "0";
-                    String fans = "0";
-                    String visitor = "0";
-
-                    if (snap.exists()) {
-                        name = getStr(snap, "name", name);
-                        id = getStr(snap, "my9DigitId", my9DigitId);
-                        country = getStr(snap, "country", country);
-                        gender = getStr(snap, "gender", gender);
-                        String cloudPhoto = getStr(snap, "photoPath", "");
-                        if (cloudPhoto.isEmpty()) cloudPhoto = getStr(snap, "photoUri", "");
-                        if (!cloudPhoto.isEmpty()) photoPath = cloudPhoto;
-                        
-                        follow = getStr(snap, "followCount", "0");
-                        fans = getStr(snap, "fansCount", "0");
-                        visitor = getStr(snap, "visitorCount", "0");
-                    }
+                    if (!snap.exists()) return;
+                    String name = getStr(snap, "name", prefs.getString("USER_NAME", "User"));
+                    String id = getStr(snap, "my9DigitId", my9DigitId);
+                    String country = getStr(snap, "country", prefs.getString("USER_COUNTRY", ""));
+                    String gender = getStr(snap, "gender", prefs.getString("USER_GENDER", ""));
+                    // FIX: Photo ekhon photoBase64 diye porbo - EditProfile e eita diyei save hoy
+                    String photoBase64 = getStr(snap, "photoBase64", "");
+                    if (photoBase64.isEmpty()) photoBase64 = getStr(snap, "photoUrl", "");
+                    String follow = getStr(snap, "followCount", "0");
+                    String fans = getStr(snap, "fansCount", "0");
+                    String visitor = getStr(snap, "visitorCount", "0");
 
                     if (!id.isEmpty()) {
                         my9DigitId = id;
                         prefs.edit().putString("MY_9_DIGIT_ID", id).apply();
                     }
-                    prefs.edit().putString("USER_NAME", name).apply();
-                    prefs.edit().putString("USER_COUNTRY", country).apply();
-                    prefs.edit().putString("USER_GENDER", gender).apply();
-                    if (!photoPath.isEmpty()) {
-                        prefs.edit().putString("USER_PHOTO_PATH", photoPath).apply();
-                    }
+                    prefs.edit()
+                        .putString("USER_NAME", name)
+                        .putString("USER_COUNTRY", country)
+                        .putString("USER_GENDER", gender)
+                        .putString("USER_PHOTO", photoBase64)
+                        .apply();
 
                     if (txtName != null) txtName.setText(name);
                     if (txtId != null) txtId.setText("ID: " + my9DigitId);
-                    
-                    if (txtGenderCountry != null) {
-                        if (!gender.isEmpty() && !country.isEmpty()) txtGenderCountry.setText(gender + " | " + country);
-                        else if (!country.isEmpty()) txtGenderCountry.setText(country);
-                        else if (!gender.isEmpty()) txtGenderCountry.setText(gender);
-                        else txtGenderCountry.setText("Complete Your Profile");
-                    }
-
+                    if (txtGenderCountry != null) txtGenderCountry.setText(gender + " | " + country);
                     if (txtFollow != null) txtFollow.setText(follow);
                     if (txtFans != null) txtFans.setText(fans);
                     if (txtVisitor != null) txtVisitor.setText(visitor);
 
-                    showLocalImage(photoPath, imgAvatar);
+                    showBase64Image(photoBase64, imgAvatar);
                 } catch (Exception ignored) {}
             }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError e) {}
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
     }
 
-    private void showLocalImage(String path, ImageView iv) {
-        if (iv == null || path == null || path.isEmpty()) return;
+    private void showBase64Image(String base64, ImageView iv) {
+        if (iv == null || base64 == null || base64.isEmpty()) return;
         try {
-            if (path.startsWith("/")) {
-                File f = new File(path);
-                if (f.exists()) {
-                    Bitmap b = BitmapFactory.decodeFile(path);
-                    if (b != null) iv.setImageBitmap(b);
-                }
-            } else if (path.startsWith("content://")) {
-                iv.setImageURI(Uri.parse(path));
-            }
+            byte[] bytes = Base64.decode(base64, Base64.DEFAULT);
+            Bitmap b = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            if (b != null) iv.setImageBitmap(b);
         } catch (Exception ignored) {}
     }
 
