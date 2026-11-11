@@ -1,112 +1,278 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:fitsSystemWindows="true"
     android:background="@drawable/voice_room_bg">
 
+    <!-- ============ HEADER ============ -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:padding="10dp"
         android:gravity="center_vertical"
-        android:background="#22000000">
-        <androidx.cardview.widget.CardView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            app:cardCornerRadius="20dp"
-            app:cardElevation="4dp"
-            android:layout_marginEnd="8dp"
-            app:cardBackgroundColor="@android:color/transparent">
-            <ImageView
-                android:id="@+id/roomHeaderProfileImg"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:src="@android:drawable/ic_menu_my_calendar"/>
-        </androidx.cardview.widget.CardView>
+        android:padding="12dp">
+
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@android:drawable/ic_media_previous"
+            android:padding="4dp" />
+
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:orientation="vertical">
-            <TextView android:id="@+id/roomTitleText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="SR Official Voice Room" android:textColor="#FFFFFF" android:textSize="14sp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end"/>
-            <TextView android:id="@+id/roomInfoText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ID: 493859069" android:textColor="#FFD700" android:textSize="11sp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end"/>
+            android:orientation="vertical"
+            android:layout_marginStart="8dp">
+
+            <TextView
+                android:id="@+id/tvRoomTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="My Voice Room"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvRoomId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ID: 123456"
+                android:textColor="#CCFFFFFF"
+                android:textSize="12sp" />
         </LinearLayout>
-        <ImageView android:id="@+id/btnRoomTools" android:layout_width="30dp" android:layout_height="30dp" android:src="@android:drawable/ic_menu_manage" android:tint="#00E5FF" android:layout_marginEnd="10dp" android:contentDescription="Room Tools"/>
-        <LinearLayout android:id="@+id/btnInRoomRanking" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:clickable="true" android:focusable="true" android:layout_marginEnd="10dp" android:background="?attr/selectableItemBackgroundBorderless" android:padding="2dp">
-            <ImageView android:layout_width="22dp" android:layout_height="22dp" android:src="@android:drawable/ic_menu_agenda" android:tint="#FFD700" android:contentDescription="Ranking"/>
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Rank" android:textColor="#FFD700" android:textSize="9sp" android:textStyle="bold"/>
-        </LinearLayout>
-        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:layout_marginEnd="8dp" android:background="@drawable/bg_circle_pink" android:paddingHorizontal="8dp" android:paddingVertical="4dp">
-            <ImageView android:id="@+id/btnOnlineList" android:layout_width="18dp" android:layout_height="18dp" android:src="@android:drawable/ic_menu_myplaces" android:tint="#00E676" android:contentDescription="Online List"/>
-            <TextView android:id="@+id/textOnlineCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1" android:textColor="#00E676" android:textSize="12sp" android:textStyle="bold" android:layout_marginStart="4dp"/>
-        </LinearLayout>
-        <ImageButton android:id="@+id/btnPower" android:layout_width="34dp" android:layout_height="34dp" android:background="?attr/selectableItemBackgroundBorderless" android:src="@android:drawable/ic_lock_power_off" android:tint="#FF4081" android:contentDescription="Power Button" />
+
+        <TextView
+            android:id="@+id/tvOnlineCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="👥 0 Online"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:background="@drawable/bg_circle_pink"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:paddingTop="5dp"
+            android:paddingBottom="5dp" />
     </LinearLayout>
 
-    <TextView android:id="@+id/roomNoticeBarText" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="📢 Notice: এসআর ভয়েস চ্যাটরুমে সবাইকে স্বাগতম!" android:textColor="#FFEB3B" android:textSize="12sp" android:padding="8dp" android:background="#33000000" android:layout_marginHorizontal="10dp" android:layout_marginTop="6dp" android:maxLines="1" android:ellipsize="end"/>
+    <!-- ============ SEATS - ROW 1 - SEAT 1 TO 5 ============ -->
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:columnCount="5"
+        android:rowCount="2"
+        android:alignmentMode="alignMargins"
+        android:padding="8dp">
 
-    <!-- PREMIUM 10 SEATS - 5 + 5 -->
-    <GridLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:columnCount="5" android:padding="8dp" android:alignmentMode="alignMargins" android:columnOrderPreserved="false" android:gravity="center">
+        <!-- SEAT 1 - HOST -->
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
-            <FrameLayout android:id="@+id/seat_0" android:layout_width="62dp" android:layout_height="62dp" android:background="@drawable/bg_premium_seat_empty" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackgroundBorderless"><ImageView android:id="@+id/seatImg_0" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" /></FrameLayout>
-            <TextView android:id="@+id/seatName_0" android:layout_width="65dp" android:layout_height="wrap_content" android:text="Host" android:textColor="#00E676" android:textSize="10sp" android:textStyle="bold" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <FrameLayout
+                android:id="@+id/seat_0"
+                android:layout_width="62dp"
+                android:layout_height="62dp"
+                android:background="@drawable/bg_seat_host"
+                android:clickable="true"
+                android:focusable="true">
+                <ImageView android:id="@+id/seatImg_0" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" />
+            </FrameLayout>
+            <TextView android:id="@+id/seatName_0" android:layout_width="65dp" android:layout_height="wrap_content" android:text="Host" android:textColor="#00E676" android:textSize="10sp" android:textStyle="bold" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end" />
             <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="1" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" />
         </LinearLayout>
+
+        <!-- SEAT 2 -->
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
-            <FrameLayout android:id="@+id/seat_1" android:layout_width="62dp" android:layout_height="62dp" android:background="@drawable/bg_premium_seat_empty" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackgroundBorderless"><ImageView android:id="@+id/seatImg_1" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" /></FrameLayout>
-            <TextView android:id="@+id/seatName_1" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <FrameLayout
+                android:id="@+id/seat_1"
+                android:layout_width="62dp"
+                android:layout_height="62dp"
+                android:background="@drawable/bg_seat_empty"
+                android:clickable="true"
+                android:focusable="true">
+                <ImageView android:id="@+id/seatImg_1" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" />
+            </FrameLayout>
+            <TextView android:id="@+id/seatName_1" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end" />
             <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="2" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" />
         </LinearLayout>
+
+        <!-- SEAT 3 -->
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
-            <FrameLayout android:id="@+id/seat_2" android:layout_width="62dp" android:layout_height="62dp" android:background="@drawable/bg_premium_seat_empty" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackgroundBorderless"><ImageView android:id="@+id/seatImg_2" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" /></FrameLayout>
-            <TextView android:id="@+id/seatName_2" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <FrameLayout
+                android:id="@+id/seat_2"
+                android:layout_width="62dp"
+                android:layout_height="62dp"
+                android:background="@drawable/bg_seat_empty"
+                android:clickable="true"
+                android:focusable="true">
+                <ImageView android:id="@+id/seatImg_2" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" />
+            </FrameLayout>
+            <TextView android:id="@+id/seatName_2" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end" />
             <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="3" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" />
         </LinearLayout>
+
+        <!-- SEAT 4 -->
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
-            <FrameLayout android:id="@+id/seat_3" android:layout_width="62dp" android:layout_height="62dp" android:background="@drawable/bg_premium_seat_empty" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackgroundBorderless"><ImageView android:id="@+id/seatImg_3" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" /></FrameLayout>
-            <TextView android:id="@+id/seatName_3" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <FrameLayout
+                android:id="@+id/seat_3"
+                android:layout_width="62dp"
+                android:layout_height="62dp"
+                android:background="@drawable/bg_seat_empty"
+                android:clickable="true"
+                android:focusable="true">
+                <ImageView android:id="@+id/seatImg_3" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" />
+            </FrameLayout>
+            <TextView android:id="@+id/seatName_3" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end" />
             <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="4" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" />
         </LinearLayout>
+
+        <!-- SEAT 5 -->
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
-            <FrameLayout android:id="@+id/seat_4" android:layout_width="62dp" android:layout_height="62dp" android:background="@drawable/bg_premium_seat_empty" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackgroundBorderless"><ImageView android:id="@+id/seatImg_4" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" /></FrameLayout>
-            <TextView android:id="@+id/seatName_4" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <FrameLayout
+                android:id="@+id/seat_4"
+                android:layout_width="62dp"
+                android:layout_height="62dp"
+                android:background="@drawable/bg_seat_empty"
+                android:clickable="true"
+                android:focusable="true">
+                <ImageView android:id="@+id/seatImg_4" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" />
+            </FrameLayout>
+            <TextView android:id="@+id/seatName_4" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end" />
             <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="5" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" />
         </LinearLayout>
+
+        <!-- SEAT 6 -->
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
-            <FrameLayout android:id="@+id/seat_5" android:layout_width="62dp" android:layout_height="62dp" android:background="@drawable/bg_premium_seat_empty" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackgroundBorderless"><ImageView android:id="@+id/seatImg_5" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" /></FrameLayout>
-            <TextView android:id="@+id/seatName_5" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <FrameLayout
+                android:id="@+id/seat_5"
+                android:layout_width="62dp"
+                android:layout_height="62dp"
+                android:background="@drawable/bg_seat_empty"
+                android:clickable="true"
+                android:focusable="true">
+                <ImageView android:id="@+id/seatImg_5" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" />
+            </FrameLayout>
+            <TextView android:id="@+id/seatName_5" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end" />
             <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="6" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" />
         </LinearLayout>
+
+        <!-- SEAT 7 -->
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
-            <FrameLayout android:id="@+id/seat_6" android:layout_width="62dp" android:layout_height="62dp" android:background="@drawable/bg_premium_seat_empty" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackgroundBorderless"><ImageView android:id="@+id/seatImg_6" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" /></FrameLayout>
-            <TextView android:id="@+id/seatName_6" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <FrameLayout
+                android:id="@+id/seat_6"
+                android:layout_width="62dp"
+                android:layout_height="62dp"
+                android:background="@drawable/bg_seat_empty"
+                android:clickable="true"
+                android:focusable="true">
+                <ImageView android:id="@+id/seatImg_6" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" />
+            </FrameLayout>
+            <TextView android:id="@+id/seatName_6" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end" />
             <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="7" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" />
         </LinearLayout>
+
+        <!-- SEAT 8 -->
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
-            <FrameLayout android:id="@+id/seat_7" android:layout_width="62dp" android:layout_height="62dp" android:background="@drawable/bg_premium_seat_empty" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackgroundBorderless"><ImageView android:id="@+id/seatImg_7" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" /></FrameLayout>
-            <TextView android:id="@+id/seatName_7" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <FrameLayout
+                android:id="@+id/seat_7"
+                android:layout_width="62dp"
+                android:layout_height="62dp"
+                android:background="@drawable/bg_seat_empty"
+                android:clickable="true"
+                android:focusable="true">
+                <ImageView android:id="@+id/seatImg_7" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" />
+            </FrameLayout>
+            <TextView android:id="@+id/seatName_7" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end" />
             <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="8" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" />
         </LinearLayout>
+
+        <!-- SEAT 9 -->
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
-            <FrameLayout android:id="@+id/seat_8" android:layout_width="62dp" android:layout_height="62dp" android:background="@drawable/bg_premium_seat_empty" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackgroundBorderless"><ImageView android:id="@+id/seatImg_8" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" /></FrameLayout>
-            <TextView android:id="@+id/seatName_8" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <FrameLayout
+                android:id="@+id/seat_8"
+                android:layout_width="62dp"
+                android:layout_height="62dp"
+                android:background="@drawable/bg_seat_empty"
+                android:clickable="true"
+                android:focusable="true">
+                <ImageView android:id="@+id/seatImg_8" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" />
+            </FrameLayout>
+            <TextView android:id="@+id/seatName_8" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end" />
             <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="9" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" />
         </LinearLayout>
+
+        <!-- SEAT 10 -->
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:orientation="vertical" android:gravity="center" android:layout_margin="4dp">
-            <FrameLayout android:id="@+id/seat_9" android:layout_width="62dp" android:layout_height="62dp" android:background="@drawable/bg_premium_seat_empty" android:clickable="true" android:focusable="true" android:foreground="?attr/selectableItemBackgroundBorderless"><ImageView android:id="@+id/seatImg_9" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" /></FrameLayout>
-            <TextView android:id="@+id/seatName_9" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end"/>
+            <FrameLayout
+                android:id="@+id/seat_9"
+                android:layout_width="62dp"
+                android:layout_height="62dp"
+                android:background="@drawable/bg_seat_empty"
+                android:clickable="true"
+                android:focusable="true">
+                <ImageView android:id="@+id/seatImg_9" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerInside" android:padding="14dp" android:src="@drawable/seat_sofa" />
+            </FrameLayout>
+            <TextView android:id="@+id/seatName_9" android:layout_width="65dp" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" android:layout_marginTop="3dp" android:maxLines="1" android:ellipsize="end" />
             <TextView android:layout_width="65dp" android:layout_height="wrap_content" android:text="10" android:textColor="#FFFFFF" android:textSize="10sp" android:gravity="center" />
         </LinearLayout>
     </GridLayout>
 
-    <ListView android:id="@+id/chatListView" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:divider="@null" android:stackFromBottom="true" android:transcriptMode="normal" android:paddingHorizontal="10dp" android:paddingTop="8dp" android:layout_marginBottom="8dp"/>
+    <!-- ============ CHAT AREA ============ -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvChat"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:padding="12dp" />
 
-    <LinearLayout android:layout_width="match_parent" android:layout_height="72dp" android:orientation="horizontal" android:background="#33000000" android:gravity="center" android:paddingHorizontal="12dp" android:paddingTop="8dp" android:paddingBottom="12dp">
-        <Button android:id="@+id/btnMicToggle" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:text="🎙️ Mic" android:textColor="#FFFFFF" android:textSize="12sp" android:backgroundTint="#00E676" android:layout_marginHorizontal="4dp" android:textStyle="bold" android:elevation="6dp"/>
-        <Button android:id="@+id/btnChatOption" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:text="💬 Chat" android:textColor="#FFFFFF" android:textSize="12sp" android:backgroundTint="#5E35B1" android:layout_marginHorizontal="4dp" android:textStyle="bold" android:elevation="6dp"/>
-        <Button android:id="@+id/btnGift
+    <!-- ============ BOTTOM BAR ============ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="10dp"
+        android:background="#40000000">
+
+        <EditText
+            android:id="@+id/etMessage"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:hint="Type message..."
+            android:textColor="#FFFFFF"
+            android:textColorHint="#AAFFFFFF"
+            android:background="@drawable/bg_edittext"
+            android:paddingLeft="14dp"
+            android:paddingRight="14dp" />
+
+        <ImageView
+            android:id="@+id/btnSend"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:src="@android:drawable/ic_menu_send"
+            android:padding="10dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_btn_chat" />
+
+        <ImageView
+            android:id="@+id/btnMic"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:src="@android:drawable/ic_btn_speak_now"
+            android:padding="10dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_btn_mic" />
+
+        <ImageView
+            android:id="@+id/btnGift"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:src="@android:drawable/ic_menu_gallery"
+            android:padding="10dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_btn_gift" />
+    </LinearLayout>
+</LinearLayout>
