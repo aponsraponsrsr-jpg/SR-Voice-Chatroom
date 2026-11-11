@@ -544,7 +544,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             Long cur = snap.child(k).child("giftTotal").getValue(Long.class);
                             long nv = (cur != null ? cur : 0L) + receiverGets;
                             databaseReference.child("seats").child(k).child("giftTotal").setValue(nv);
-                            String sid = snap.child(k).child("userId").getValue(String.class);
+                            final String sid = snap.child(k).child("userId").getValue(String.class);
                             if (sid != null && !sid.isEmpty()) {
                                 userDatabaseRef.child(sid).child("coins").addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override public void onDataChange(@NonNull DataSnapshot s2) {
