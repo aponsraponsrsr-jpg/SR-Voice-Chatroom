@@ -522,7 +522,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 return;
             }
             
-            // Deduct Coins & Add Received
             userDatabaseRef.child(currentUserId).child("coins").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override public void onDataChange(@NonNull DataSnapshot s) {
                     Long cur = s.getValue(Long.class);
@@ -1339,5 +1338,19 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
+    }
+
+    public static class RankItem {
+        public String name;
+        public long coins;
+        public String image;
+        public String uid;
+
+        public RankItem(String name, long coins, String image, String uid) {
+            this.name = name;
+            this.coins = coins;
+            this.image = image;
+            this.uid = uid;
+        }
     }
 }
