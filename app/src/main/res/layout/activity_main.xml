@@ -1,70 +1,146 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-android:layout_width="match_parent"
-android:layout_height="match_parent"
-android:orientation="vertical"
-android:background="#0A0518">
-<LinearLayout
-android:layout_width="match_parent"
-android:layout_height="60dp"
-android:orientation="horizontal"
-android:gravity="center_vertical"
-android:paddingLeft="20dp"
-android:paddingRight="20dp">
-<TextView
-android:layout_width="0dp"
-android:layout_height="wrap_content"
-android:layout_weight="1"
-android:text="SR Voice Chat"
-android:textColor="#FFD700"
-android:textSize="20sp"
-android:textStyle="bold" />
-<ImageView
-android:id="@+id/btnPlus"
-android:layout_width="45dp"
-android:layout_height="45dp"
-android:src="@android:drawable/ic_input_add"
-android:background="#FFD700"
-android:padding="8dp" />
-</LinearLayout>
-<TextView
-android:layout_width="match_parent"
-android:layout_height="0dp"
-android:layout_weight="1"
-android:text="Rooms - Tap + to Create Your Room"
-android:textColor="#FFFFFF"
-android:textSize="16sp"
-android:gravity="center" />
-<LinearLayout
-android:layout_width="match_parent"
-android:layout_height="65dp"
-android:orientation="horizontal"
-android:background="#1B1035">
-<LinearLayout
-android:id="@+id/navHome"
-android:layout_width="0dp"
-android:layout_height="match_parent"
-android:layout_weight="1"
-android:orientation="vertical"
-android:gravity="center">
-<TextView
-android:layout_width="wrap_content"
-android:layout_height="wrap_content"
-android:text="Home"
-android:textColor="#FFD700" />
-</LinearLayout>
-<LinearLayout
-android:id="@+id/navMe"
-android:layout_width="0dp"
-android:layout_height="match_parent"
-android:layout_weight="1"
-android:orientation="vertical"
-android:gravity="center">
-<TextView
-android:layout_width="wrap_content"
-android:layout_height="wrap_content"
-android:text="Me"
-android:textColor="#FFFFFF" />
-</LinearLayout>
-</LinearLayout>
-</LinearLayout>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#0A0518">
+
+    <!-- 🌟 Top Header -->
+    <LinearLayout
+        android:id="@+id/topHeaderLayout"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="#1B1035"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingHorizontal="16dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SR Voice Chat"
+            android:textColor="#FFD700"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <!-- ছোট এবং প্রিমিয়াম প্লাস (+) আইকন (রুম ক্রিয়েট করার জন্য) -->
+        <ImageView
+            android:id="@+id/btnCreateRoomPlus"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="@drawable/bg_circle_pink"
+            android:padding="6dp"
+            android:src="@android:drawable/ic_input_add"
+            android:tint="#FFD700" />
+    </LinearLayout>
+
+    <!-- 🌟 Main Content Fragment / Container -->
+    <FrameLayout
+        android:id="@+id/fragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottomNavLayout"
+        android:layout_below="@id/topHeaderLayout" />
+
+    <!-- 🌟 Bottom Navigation Bar (4 Tabs: Home, Moments, Message, Me) -->
+    <LinearLayout
+        android:id="@+id/bottomNavLayout"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_alignParentBottom="true"
+        android:background="#1B1035"
+        android:orientation="horizontal"
+        android:weightSum="4">
+
+        <!-- Tab 1: Home -->
+        <LinearLayout
+            android:id="@+id/tabHome"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:orientation="vertical">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_compass"
+                android:tint="#FFD700" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Home"
+                android:textColor="#FFD700"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Tab 2: Moments -->
+        <LinearLayout
+            android:id="@+id/tabMoments"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:orientation="vertical">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_gallery"
+                android:tint="#B0BEC5" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Moments"
+                android:textColor="#B0BEC5"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- Tab 3: Message -->
+        <LinearLayout
+            android:id="@+id/tabMessage"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:orientation="vertical">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_dialog_email"
+                android:tint="#B0BEC5" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Message"
+                android:textColor="#B0BEC5"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- Tab 4: Me -->
+        <LinearLayout
+            android:id="@+id/tabMe"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:orientation="vertical">
+            <ImageView
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@android:drawable/ic_menu_my_calendar"
+                android:tint="#B0BEC5" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Me"
+                android:textColor="#B0BEC5"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>
