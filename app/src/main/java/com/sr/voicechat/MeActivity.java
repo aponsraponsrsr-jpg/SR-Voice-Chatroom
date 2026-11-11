@@ -58,7 +58,7 @@ public class MeActivity extends AppCompatActivity {
         scroll.setFillViewport(true);
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.parseColor("#F5F0D8")); // Halka Ghiya / Off-White - Video er moto
+        root.setBackgroundColor(Color.parseColor("#F5F0D8"));
         scroll.addView(root);
 
         // ===== TOP HEADER - Halka Deep Green =====
@@ -71,7 +71,7 @@ public class MeActivity extends AppCompatActivity {
         header.setBackground(headerBg);
         root.addView(header);
 
-        // Top Row - Avatar + Name + Pencil
+        // Top Row - Avatar + Name + Profile Arrow ( > )
         LinearLayout topRow = new LinearLayout(this);
         topRow.setOrientation(LinearLayout.HORIZONTAL);
         topRow.setGravity(Gravity.CENTER_VERTICAL);
@@ -84,12 +84,15 @@ public class MeActivity extends AppCompatActivity {
         LinearLayout.LayoutParams avatarParams = new LinearLayout.LayoutParams(170, 170);
         avatarParams.setMargins(0, 0, 30, 0);
         imgAvatar.setLayoutParams(avatarParams);
-        imgAvatar.setOnClickListener(v -> goEdit());
+        // FIXED - Age goEdit() chilo, ekhon goProfile()
+        imgAvatar.setOnClickListener(v -> goProfile());
         topRow.addView(imgAvatar);
 
         LinearLayout nameBox = new LinearLayout(this);
         nameBox.setOrientation(LinearLayout.VERTICAL);
         nameBox.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        // FIXED - Namer upor chap dileo Profile khulbe
+        nameBox.setOnClickListener(v -> goProfile());
         topRow.addView(nameBox);
 
         txtName = new TextView(this);
@@ -129,12 +132,15 @@ public class MeActivity extends AppCompatActivity {
         txtGenderCountry.setTextSize(13);
         nameBox.addView(txtGenderCountry);
 
-        TextView btnPencil = new TextView(this);
-        btnPencil.setText("✏️");
-        btnPencil.setTextSize(22);
-        btnPencil.setPadding(20, 20, 20, 20);
-        btnPencil.setOnClickListener(v -> goEdit());
-        topRow.addView(btnPencil);
+        // FIXED - Age ✏️ chilo, ekhon Demo er moto > arrow - Profile e dhokar icon
+        TextView btnProfileArrow = new TextView(this);
+        btnProfileArrow.setText(">");
+        btnProfileArrow.setTextSize(28);
+        btnProfileArrow.setTypeface(null, Typeface.BOLD);
+        btnProfileArrow.setTextColor(Color.parseColor("#555555"));
+        btnProfileArrow.setPadding(20, 20, 20, 20);
+        btnProfileArrow.setOnClickListener(v -> goProfile());
+        topRow.addView(btnProfileArrow);
 
         // Follow / Fans / Visitor - SACHOL - Sudhu apni dekhben
         LinearLayout countRow = new LinearLayout(this);
@@ -346,17 +352,19 @@ public class MeActivity extends AppCompatActivity {
         arrow.setTextSize(18);
         arrow.setTypeface(null, Typeface.BOLD);
         row.addView(arrow);
-        // Divider
         View div = new View(this);
         div.setBackgroundColor(Color.parseColor("#EEEEEE"));
         div.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 2));
         parent.addView(div);
     }
 
-    private void goEdit() {
+    // NEW - Me theke Nijer Full Profile e jabe - Demo er moto
+    // Age ekhane goEdit() chilo - oita tule deya hoiche
+    private void goProfile() {
         try {
-            Intent i = new Intent(MeActivity.this, EditProfileActivity.class);
-            i.putExtra("EDIT_MODE", true);
+            Intent i = new Intent(MeActivity.this, PublicProfileActivity.class);
+            i.putExtra("TARGET_9DIGIT_ID", my9DigitId);
+            i.putExtra("TARGET_NAME", prefs.getString("USER_NAME", "User"));
             startActivity(i);
         } catch (Exception e) {
             Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
@@ -364,7 +372,6 @@ public class MeActivity extends AppCompatActivity {
     }
 
     private void showCountDialog(String type, String count) {
-        // PRIVACY RULE: Follow/Fans/Visitor sudhu nijer ID diye dekhbe, onno keu na
         new AlertDialog.Builder(this)
             .setTitle(type + " - " + count)
             .setMessage("Apnar " + type + " list ekhane asbe.\n\nEita sudhu apni dekhte parben. Onno keu apnar Follow/Fans dekhte parbe na.\n\nPorer step e eikhane full list banabo InshaAllah.")
@@ -439,11 +446,14 @@ public class MeActivity extends AppCompatActivity {
         });
     }
 
+    // FIXED - Chobi choto kore load - boro chobi OOM hoye haray jeto
     private void showBase64Image(String base64, ImageView iv) {
         if (iv == null || base64 == null || base64.isEmpty()) return;
         try {
             byte[] bytes = Base64.decode(base64, Base64.DEFAULT);
-            Bitmap b = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+            BitmapFactory.Options opt = new BitmapFactory.Options();
+            opt.inSampleSize = 2;
+            Bitmap b = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, opt);
             if (b != null) iv.setImageBitmap(b);
         } catch (Exception ignored) {}
     }
