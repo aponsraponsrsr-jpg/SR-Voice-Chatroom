@@ -514,9 +514,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
             String priceStr = holder[0].getGiftPrice().replaceAll("[^0-9]", "");
             long onePrice = 20L;
             if (!priceStr.isEmpty()) onePrice = Long.parseLong(priceStr);
-            long totalCost = onePrice * giftQuantity;
-            long receiverGets = (long) (totalCost * EXCHANGE_RATE);
-            if (receiverGets <= 0 && totalCost > 0) receiverGets = 1;
+            final long totalCost = onePrice * giftQuantity;
+            final long receiverGets = Math.max(1L, (long) (totalCost * EXCHANGE_RATE));
             if (myWalletCoins < totalCost) {
                 Toast.makeText(this, "Low balance! Need " + formatCoins(totalCost) + ", Have " + formatCoins(myWalletCoins), Toast.LENGTH_LONG).show();
                 return;
