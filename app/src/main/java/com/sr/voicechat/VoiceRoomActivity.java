@@ -1,31 +1,22 @@
 package com.sr.voicechat;
 
-import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -35,7 +26,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -43,7 +33,7 @@ import java.util.Map;
 
 public class VoiceRoomActivity extends AppCompatActivity {
     private ImageButton btnPower;
-    private Button btnMicToggle, btnChatOption, btnGiftBox, btnGameBox;
+    private Button btnMicToggle, btnChatOption, btnGiftBox;
     private TextView roomTitleText, roomInfoText, textOnlineCount, roomNoticeBarText;
     private ImageView btnOnlineList, roomHeaderProfileImg, btnRoomTools;
     private LinearLayout btnInRoomRanking;
@@ -190,7 +180,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void leaveRoomAndFinish() {
         leaveRoomKeepHome();
-        // নিশ্চিত করা হলো যেন কোনোভাবেই লগআউট বা জিমেইল স্ক্রিন না আসে, সোজা MainActivity তে ফিরে যায়
         Intent intent = new Intent(VoiceRoomActivity.this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
@@ -245,7 +234,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         Button btnEditRoom = createToolButton("✏️ Edit Room Info & Theme");
         btnEditRoom.setOnClickListener(v -> {
             dialog.dismiss();
-            startActivity(new Intent(VoiceRoomActivity.this, EditProfileActivity.class));
+            Toast.makeText(this, "Room Edit Dialog Active", Toast.LENGTH_SHORT).show();
         });
         root.addView(btnEditRoom);
 
@@ -293,36 +282,72 @@ public class VoiceRoomActivity extends AppCompatActivity {
         BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(30, 20, 30, 20);
+        root.setPadding(35, 25, 35, 25);
         
         GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, new int[]{Color.parseColor("#1B1035"), Color.parseColor("#0A0518")});
         bg.setCornerRadii(new float[]{45, 45, 45, 45, 0, 0, 0, 0});
         root.setBackground(bg);
 
         TextView title = new TextView(this);
-        title.setText("🏆 Room Contribution Ranking");
+        title.setText("🏆 Contribution Ranking");
         title.setTextColor(Color.parseColor("#FFD700"));
         title.setTextSize(18);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
         title.setGravity(Gravity.CENTER);
-        title.setPadding(0, 0, 0, 15);
+        title.setPadding(0, 0, 0, 20);
         root.addView(title);
 
+        // 🌟 টপ ৩ পডিয়াম लेআউট (বাম=২, মাঝ=১, ডান=৩)
+        LinearLayout podiumLayout = new LinearLayout(this);
+        podiumLayout.setOrientation(LinearLayout.HORIZONTAL);
+        podiumLayout.setGravity(Gravity.CENTER);
+        podiumLayout.setPadding(0, 10, 0, 25);
+        podiumLayout.setWeightSum(3);
+
+        podiumLayout.addView(createPodiumItem("2", "User Two", "50,000 Coins", Color.parseColor("#B0BEC5")));
+        podiumLayout.addView(createPodiumItem("1", "User One", "120,000 Coins", Color.parseColor("#FFD700")));
+        podiumLayout.addView(createPodiumItem("3", "User Three", "30,000 Coins", Color.parseColor("#CD7F32")));
+
+        root.addView(podiumLayout);
+
+        // 🌟 নিচের সিরিয়াল লিস্ট (4th থেকে শুরু)
         ScrollView sv = new ScrollView(this);
         LinearLayout listLayout = new LinearLayout(this);
         listLayout.setOrientation(LinearLayout.VERTICAL);
 
-        for (int i = 1; i <= 10; i++) {
-            TextView tv = new TextView(this);
-            tv.setText("No. " + i + " Contributor — User ID");
-            tv.setTextColor(Color.WHITE);
-            tv.setTextSize(14);
-            tv.setPadding(20, 20, 20, 20);
-            tv.setBackgroundColor(Color.parseColor(i <= 3 ? "#2A1B4E" : "#140B26"));
-            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            p.setMargins(0, 5, 0, 5);
-            tv.setLayoutParams(p);
-            listLayout.addView(tv);
+        for (int i = 4; i <= 15; i++) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(20, 15, 20, 15);
+            row.setBackgroundColor(Color.parseColor("#140B26"));
+            
+            LinearLayout.LayoutParams rowParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            rowParams.setMargins(0, 6, 0, 6);
+            row.setLayoutParams(rowParams);
+
+            TextView tvRank = new TextView(this);
+            tvRank.setText(String.valueOf(i));
+            tvRank.setTextColor(Color.parseColor("#B0BEC5"));
+            tvRank.setTextSize(14);
+            tvRank.setTypeface(null, android.graphics.Typeface.BOLD);
+            tvRank.setLayoutParams(new LinearLayout.LayoutParams(60, ViewGroup.LayoutParams.WRAP_CONTENT));
+            row.addView(tvRank);
+
+            TextView tvName = new TextView(this);
+            tvName.setText("Contributor User " + i);
+            tvName.setTextColor(Color.WHITE);
+            tvName.setTextSize(14);
+            tvName.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            row.addView(tvName);
+
+            TextView tvCoins = new TextView(this);
+            tvCoins.setText((10000 - (i * 500)) + " Coins");
+            tvCoins.setTextColor(Color.parseColor("#00E676"));
+            tvCoins.setTextSize(13);
+            row.addView(tvCoins);
+
+            listLayout.addView(row);
         }
 
         sv.addView(listLayout);
@@ -336,6 +361,37 @@ public class VoiceRoomActivity extends AppCompatActivity {
             w.setGravity(Gravity.BOTTOM);
         }
         dialog.show();
+    }
+
+    private View createPodiumItem(String rank, String name, String coins, int borderColor) {
+        LinearLayout item = new LinearLayout(this);
+        item.setOrientation(LinearLayout.VERTICAL);
+        item.setGravity(Gravity.CENTER);
+        
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        item.setLayoutParams(params);
+
+        TextView tvRankBadge = new TextView(this);
+        tvRankBadge.setText("Top " + rank);
+        tvRankBadge.setTextColor(borderColor);
+        tvRankBadge.setTextSize(12);
+        tvRankBadge.setTypeface(null, android.graphics.Typeface.BOLD);
+        item.addView(tvRankBadge);
+
+        TextView tvName = new TextView(this);
+        tvName.setText(name);
+        tvName.setTextColor(Color.WHITE);
+        tvName.setTextSize(13);
+        tvName.setPadding(0, 4, 0, 2);
+        item.addView(tvName);
+
+        TextView tvCoins = new TextView(this);
+        tvCoins.setText(coins);
+        tvCoins.setTextColor(Color.parseColor("#FFD700"));
+        tvCoins.setTextSize(11);
+        item.addView(tvCoins);
+
+        return item;
     }
 
     private void showNewGiftPanel() {
