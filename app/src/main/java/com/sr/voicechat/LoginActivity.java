@@ -21,21 +21,18 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import java.util.HashMap;
-import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
     private static final int RC_SIGN_IN = 9001;
     private GoogleSignInClient mGoogleSignInClient;
     private FirebaseAuth mAuth;
     private SharedPreferences prefs;
-    private boolean isNavigating = false; // FIX: একবার গেলে আর ২য় বার যাবে না - লাফালাফি বন্ধ
+    private boolean isNavigating = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
         mAuth = FirebaseAuth.getInstance();
 
@@ -48,24 +45,18 @@ public class LoginActivity extends AppCompatActivity {
         Button btnGoogle = findViewById(R.id.btnGoogleLogin);
         if (btnGoogle != null) {
             btnGoogle.setOnClickListener(v -> {
-                Toast.makeText(this, "Opening Google...", Toast.LENGTH_SHORT).show();
+                if (isNavigating) return;
                 signIn();
             });
         }
 
-        // FIX: onStart এ আর চেক করবো না। শুধু onCreate এ একবার চেক করবো।
-        // যাতে Google থেকে ফিরে আসার সময় আবার চেক করে লাফালাফি না করে
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             checkUserInFirebase(user.getUid(), user.getEmail());
         }
     }
 
-    // FIX: onStart পুরা তুলে দিলাম - এইটাই লাফালাফির আসল কারণ ছিলো
-    // @Override onStart আর লাগবে না
-
     private void signIn() {
-        if (isNavigating) return;
         try {
             Intent signInIntent = mGoogleSignInClient.getSignInIntent();
             startActivityForResult(signInIntent, RC_SIGN_IN);
@@ -108,21 +99,14 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    // RULE: Shudhu UID diye khujbo. UID thakle ID o thakbe. Email diye kokhono khujbo na.
     private void checkUserInFirebase(String firebaseUid, String email) {
-        if (isNavigating) return; // ইতিমধ্যে যাইতেছে, আবার যাবে না
-        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
-        usersRef.child(firebaseUid).addListenerForSingleValueEvent(new ValueEventListener() {
+        if (isNavigating) return;
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(DataSnapshot s) {
-                // FIX: এখন শুধু gender + country থাকলেই পুরান ইউজার ধরবো
-                // my9DigitId না থাকলেও Home এ যাবে, Edit এ আটকাবে না
-                if (s.exists() && s.hasChild("gender") && s.hasChild("country")) {
+                if (s.exists() && s.hasChild("my9DigitId") && s.hasChild("gender") && s.hasChild("country")) {
                     String id = s.child("my9DigitId").getValue(String.class);
-                    // যদি এই UID তে ID না থাকে, তাহলে পুরান চাবি থেকে নাও
-                    if (id == null || id.isEmpty()) {
-                        // পুরান ID 428803851 এর ডাটা থেকে নাও
-                        id = prefs.getString("MY_9_DIGIT_ID", "");
-                        if (id == null || id.isEmpty()) id = "428803851";
-                    }
                     String name = s.child("name").getValue(String.class);
                     String gender = s.child("gender").getValue(String.class);
                     String country = s.child("country").getValue(String.class);
@@ -141,37 +125,8 @@ public class LoginActivity extends AppCompatActivity {
                         .apply();
                     goHome();
                 } else {
-                    // UID তে নাই - Email দিয়ে খোঁজো, হয়তো পুরান ডাটা অন্য UID তে আছে
-                    if (email != null && !email.isEmpty()) {
-                        usersRef.orderByChild("email").equalTo(email).addListenerForSingleValueEvent(new ValueEventListener() {
-                            @Override public void onDataChange(DataSnapshot snap) {
-                                if (snap.exists()) {
-                                    for (DataSnapshot child : snap.getChildren()) {
-                                        String oldId = child.child("my9DigitId").getValue(String.class);
-                                        if (oldId == null || oldId.isEmpty()) oldId = child.getKey();
-                                        String oldName = child.child("name").getValue(String.class);
-                                        String oldGender = child.child("gender").getValue(String.class);
-                                        String oldCountry = child.child("country").getValue(String.class);
-                                        prefs.edit()
-                                            .putString("FIREBASE_UID", firebaseUid)
-                                            .putString("MY_9_DIGIT_ID", oldId != null ? oldId : "")
-                                            .putString("USER_NAME", oldName != null ? oldName : "")
-                                            .putString("USER_GENDER", oldGender != null ? oldGender : "")
-                                            .putString("USER_COUNTRY", oldCountry != null ? oldCountry : "")
-                                            .putString("USER_EMAIL", email)
-                                            .putBoolean("IS_PROFILE_SETUP_DONE", true).apply();
-                                        goHome();
-                                        return;
-                                    }
-                                }
-                                // একদম নতুন ইউজার
-                                goToEdit(firebaseUid, email);
-                            }
-                            @Override public void onCancelled(DatabaseError e) { goToEdit(firebaseUid, email); }
-                        });
-                    } else {
-                        goToEdit(firebaseUid, email);
-                    }
+                    // Notun user - Edit e jabe, ID ekhane banano hobe NA
+                    goToEdit(firebaseUid, email);
                 }
             }
             @Override public void onCancelled(DatabaseError e) {
@@ -197,14 +152,9 @@ public class LoginActivity extends AppCompatActivity {
     private void goHome() {
         if (isNavigating) return;
         isNavigating = true;
-        try {
-            Intent i = new Intent(LoginActivity.this, MainActivity.class);
-            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(i);
-            finish();
-        } catch (Exception e) {
-            isNavigating = false;
-            Toast.makeText(this, "MainActivity Not Found: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }
+        Intent i = new Intent(LoginActivity.this, HomeActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(i);
+        finish();
     }
 }
