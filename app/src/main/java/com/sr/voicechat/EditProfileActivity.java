@@ -51,6 +51,7 @@ public class EditProfileActivity extends AppCompatActivity {
     private String selectedPhotoBase64 = "";
     private boolean isLocked = false;
     private boolean isSaving = false;
+    private boolean isEditMode = false;
 
     private final String[] countriesList = {
         "Bangladesh", "Saudi Arabia", "India", "United Arab Emirates",
@@ -67,6 +68,7 @@ public class EditProfileActivity extends AppCompatActivity {
                     try {
                         InputStream is = getContentResolver().openInputStream(uri);
                         Bitmap bmp = BitmapFactory.decodeStream(is);
+                        if (bmp == null) return;
                         Bitmap scaled = Bitmap.createScaledBitmap(bmp, 300, 300, true);
                         ivProfilePhoto.setImageBitmap(scaled);
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -114,7 +116,17 @@ public class EditProfileActivity extends AppCompatActivity {
         if (userEmail.isEmpty()) userEmail = prefs.getString("USER_EMAIL", "");
         if (firebaseUid.isEmpty()) firebaseUid = prefs.getString("FIREBASE_UID", "");
 
+        // STRONG RULE: UID chara kokhono Firebase e jabo na
+        if (firebaseUid.isEmpty()) {
+            Toast.makeText(this, "Login error, please login again", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
         userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
+
+        // Me theke Pencil diye asle EDIT_MODE = true asbe
+        isEditMode = getIntent().getBooleanExtra("EDIT_MODE", false);
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -124,7 +136,11 @@ public class EditProfileActivity extends AppCompatActivity {
         root.setBackground(bg);
 
         TextView title = new TextView(this);
-        title.setText("⚙️ Complete Your Profile (Permanent)");
+        if (isEditMode) {
+            title.setText("✏️ Edit Profile");
+        } else {
+            title.setText("⚙️ Complete Your Profile (Permanent)");
+        }
         title.setTextColor(Color.parseColor("#FFD700"));
         title.setTextSize(18);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -196,7 +212,11 @@ public class EditProfileActivity extends AppCompatActivity {
         root.addView(tvSelectedCountry);
 
         btnSaveProfile = new Button(this);
-        btnSaveProfile.setText("Save & Enter Home");
+        if (isEditMode) {
+            btnSaveProfile.setText("Update Name & Photo");
+        } else {
+            btnSaveProfile.setText("Save & Enter Home");
+        }
         btnSaveProfile.setTextColor(Color.WHITE);
         btnSaveProfile.setBackgroundColor(Color.parseColor("#FF4081"));
         LinearLayout.LayoutParams p2 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 140);
@@ -207,7 +227,6 @@ public class EditProfileActivity extends AppCompatActivity {
 
         setContentView(root);
 
-        // Jodi kono karone puran user ekhane chole ase, tahole take Home e pathao
         checkIfAlreadyExists();
     }
 
@@ -222,13 +241,39 @@ public class EditProfileActivity extends AppCompatActivity {
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(DataSnapshot s) {
                 if (s.exists() && s.hasChild("my9DigitId") && s.hasChild("gender")) {
-                    // Already setup - Home e jao, abar Edit korte dibo na
                     String id = s.child("my9DigitId").getValue(String.class);
+                    String n = s.child("name").getValue(String.class);
+                    String g = s.child("gender").getValue(String.class);
+                    String c = s.child("country").getValue(String.class);
+                    String photo = s.child("photoBase64").getValue(String.class);
+
+                    if (isEditMode) {
+                        // EDIT MODE: Home e jabo na. Ekhanei thakbo.
+                        // Shudhu Name + Photo change hobe. ID / Gender / Country Locked.
+                        if (n != null) etProfileName.setText(n);
+                        if (g != null) selectedGender = g;
+                        if (c != null) selectedCountry = c;
+                        if (photo != null && !photo.isEmpty()) {
+                            selectedPhotoBase64 = photo;
+                            try {
+                                byte[] bytes = Base64.decode(photo, Base64.DEFAULT);
+                                Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                                if (bmp != null) ivProfilePhoto.setImageBitmap(bmp);
+                            } catch (Exception ignored) {}
+                        }
+                        if (id != null) tvPermanentId.setText("Permanent ID: " + id + " (Locked - Cannot Change)");
+                        if (g != null) tvSelectedGender.setText("Gender: " + g + " (Locked)");
+                        if (c != null) tvSelectedCountry.setText("Country: " + c + " " + getFlag(c) + " (Locked)");
+                        isLocked = true;
+                        return;
+                    }
+
+                    // NORMAL MODE: Already setup - Home e jao
                     prefs.edit()
                         .putString("MY_9_DIGIT_ID", id != null ? id : "")
-                        .putString("USER_NAME", s.child("name").getValue(String.class))
-                        .putString("USER_GENDER", s.child("gender").getValue(String.class))
-                        .putString("USER_COUNTRY", s.child("country").getValue(String.class))
+                        .putString("USER_NAME", n)
+                        .putString("USER_GENDER", g)
+                        .putString("USER_COUNTRY", c)
                         .putBoolean("IS_PROFILE_SETUP_DONE", true).apply();
                     Intent intent = new Intent(EditProfileActivity.this, HomeActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -276,6 +321,7 @@ public class EditProfileActivity extends AppCompatActivity {
         btnSaveProfile.setText("Saving... Please Wait");
 
         // TRANSACTION: Jodi age theke ID thake, oitai rakhbe. Na thakle ekbar e notun banabe. Kokhono overwrite hobe na.
+        // STRONG RULE: ID / Gender / Country kokhono overwrite hobe na.
         userRef.runTransaction(new Transaction.Handler() {
             @Override public Transaction.Result doTransaction(MutableData currentData) {
                 if (currentData.getValue() == null) {
@@ -288,6 +334,9 @@ public class EditProfileActivity extends AppCompatActivity {
                     map.put("gender", selectedGender);
                     map.put("country", selectedCountry);
                     if (!selectedPhotoBase64.isEmpty()) map.put("photoBase64", selectedPhotoBase64);
+                    map.put("followCount", "0");
+                    map.put("fansCount", "0");
+                    map.put("visitorCount", "0");
                     currentData.setValue(map);
                 } else {
                     // Already exists - gender/country/ID kokhono change korbo na, shudhu name/photo update korbo
@@ -307,36 +356,53 @@ public class EditProfileActivity extends AppCompatActivity {
                 if (error != null || !committed) {
                     isSaving = false;
                     btnSaveProfile.setEnabled(true);
-                    btnSaveProfile.setText("Save & Enter Home");
+                    if (isEditMode) btnSaveProfile.setText("Update Name & Photo");
+                    else btnSaveProfile.setText("Save & Enter Home");
                     Toast.makeText(EditProfileActivity.this, "Failed, Try Again", Toast.LENGTH_LONG).show();
                     return;
                 }
                 String finalId = s.child("my9DigitId").getValue(String.class);
                 String finalGender = s.child("gender").getValue(String.class);
                 String finalCountry = s.child("country").getValue(String.class);
+                String finalPhoto = s.child("photoBase64").getValue(String.class);
 
-                prefs.edit()
-                    .putString("FIREBASE_UID", firebaseUid)
-                    .putString("MY_9_DIGIT_ID", finalId != null ? finalId : "")
-                    .putString("USER_NAME", name)
-                    .putString("USER_GENDER", finalGender != null ? finalGender : selectedGender)
-                    .putString("USER_COUNTRY", finalCountry != null ? finalCountry : selectedCountry)
-                    .putString("USER_EMAIL", userEmail)
-                    .putString("USER_PHOTO", selectedPhotoBase64)
-                    .putBoolean("IS_PROFILE_SETUP_DONE", true)
-                    .apply();
+                SharedPreferences.Editor e = prefs.edit();
+                e.putString("FIREBASE_UID", firebaseUid);
+                e.putString("MY_9_DIGIT_ID", finalId != null ? finalId : "");
+                e.putString("USER_NAME", name);
+                e.putString("USER_GENDER", finalGender != null ? finalGender : selectedGender);
+                e.putString("USER_COUNTRY", finalCountry != null ? finalCountry : selectedCountry);
+                e.putString("USER_EMAIL", userEmail);
+                // Photo khali thakle puran photo muchbo na - eita earning app er jonno strong rule
+                if (finalPhoto != null && !finalPhoto.isEmpty()) {
+                    e.putString("USER_PHOTO", finalPhoto);
+                } else if (!selectedPhotoBase64.isEmpty()) {
+                    e.putString("USER_PHOTO", selectedPhotoBase64);
+                }
+                e.putBoolean("IS_PROFILE_SETUP_DONE", true);
+                e.apply();
 
-                Toast.makeText(EditProfileActivity.this, "Profile Saved! Your ID: " + finalId, Toast.LENGTH_LONG).show();
-                Intent intent = new Intent(EditProfileActivity.this, HomeActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
-                finish();
+                if (isEditMode) {
+                    Toast.makeText(EditProfileActivity.this, "Profile Updated!", Toast.LENGTH_LONG).show();
+                    // Edit sesh - Me te firbo
+                    finish();
+                } else {
+                    Toast.makeText(EditProfileActivity.this, "Profile Saved! Your ID: " + finalId, Toast.LENGTH_LONG).show();
+                    Intent intent = new Intent(EditProfileActivity.this, HomeActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                }
             }
         });
     }
 
     @Override
     public void onBackPressed() {
-        Toast.makeText(this, "Please complete your profile setup first!", Toast.LENGTH_SHORT).show();
+        if (isEditMode) {
+            super.onBackPressed();
+        } else {
+            Toast.makeText(this, "Please complete your profile setup first!", Toast.LENGTH_SHORT).show();
+        }
     }
 }
