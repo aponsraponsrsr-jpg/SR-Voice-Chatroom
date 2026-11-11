@@ -198,7 +198,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         b.setNeutralButton("Minimize", (d, w) -> {
             d.dismiss();
             leaveRoomKeepHome();
-            Intent home = new Intent(VoiceRoomActivity.this, HomeActivity.class);
+            Intent home = new Intent(VoiceRoomActivity.this, MainActivity.class);
             home.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             startActivity(home);
             finish();
@@ -227,7 +227,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void leaveRoomAndFinish() {
         leaveRoomKeepHome();
-        finishAffinity();
+        // এখানে finishAffinity() এর পরিবর্তে শুধু finish() ব্যবহার করা হলো 
+        // যাতে রুম থেকে বের হলে ইউজার লগআউট না হয়ে সরাসরি আগের স্ক্রিন বা MainActivity-তে ফিরে আসে।
+        finish();
     }
 
     private void listenToMyWallet() {
@@ -243,7 +245,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // সমস্যার সমাধান: এখানে listenToRoomTheme মেথডটি যুক্ত করা হলো
     private void listenToRoomTheme() {
         if (roomMetaRef == null) return;
         roomMetaRef.addValueEventListener(new ValueEventListener() {
