@@ -28,11 +28,14 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 public class EditProfileActivity extends AppCompatActivity {
     private EditText etProfileName;
@@ -40,16 +43,14 @@ public class EditProfileActivity extends AppCompatActivity {
     private ImageView ivProfilePhoto;
     private Button btnSaveProfile;
     private SharedPreferences prefs;
-    private DatabaseReference userDatabaseRef;
+    private DatabaseReference userRef;
     private String firebaseUid = "";
     private String userEmail = "";
-    private String my9DigitId = ""; // শুরুতে খালি থাকবে, Firebase থেকে আসবে
     private String selectedGender = "Male";
     private String selectedCountry = "Bangladesh";
     private String selectedPhotoBase64 = "";
     private boolean isLocked = false;
-    private boolean isAlreadySaved = false;
-    private boolean idLoadedFromFirebase = false;
+    private boolean isSaving = false;
 
     private final String[] countriesList = {
         "Bangladesh", "Saudi Arabia", "India", "United Arab Emirates",
@@ -105,17 +106,15 @@ public class EditProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
 
-        // FIX 1: Firebase UID শুধু Auth থেকে নিবো, 9-Digit ID দিয়ে UID বানাবো না
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) {
             firebaseUid = user.getUid();
             if (user.getEmail() != null) userEmail = user.getEmail();
         }
         if (userEmail.isEmpty()) userEmail = prefs.getString("USER_EMAIL", "");
-        // FIX 2: এখানে আর নতুন ID বানাবো না। my9DigitId খালি থাকবে।
-        my9DigitId = "";
-        prefs.edit().putString("FIREBASE_UID", firebaseUid).putString("USER_EMAIL", userEmail).apply();
-        userDatabaseRef = FirebaseDatabase.getInstance().getReference("users");
+        if (firebaseUid.isEmpty()) firebaseUid = prefs.getString("FIREBASE_UID", "");
+
+        userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
 
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
@@ -158,7 +157,7 @@ public class EditProfileActivity extends AppCompatActivity {
         root.addView(photoLayout);
 
         tvPermanentId = new TextView(this);
-        tvPermanentId.setText("Permanent ID: Loading... Please Wait");
+        tvPermanentId.setText("Permanent ID: Will be generated on Save (One Time)");
         tvPermanentId.setTextColor(Color.parseColor("#B0BEC5"));
         tvPermanentId.setTextSize(14);
         tvPermanentId.setPadding(0, 10, 0, 20);
@@ -197,8 +196,7 @@ public class EditProfileActivity extends AppCompatActivity {
         root.addView(tvSelectedCountry);
 
         btnSaveProfile = new Button(this);
-        btnSaveProfile.setText("Loading... Please Wait");
-        btnSaveProfile.setEnabled(false);
+        btnSaveProfile.setText("Save & Enter Home");
         btnSaveProfile.setTextColor(Color.WHITE);
         btnSaveProfile.setBackgroundColor(Color.parseColor("#FF4081"));
         LinearLayout.LayoutParams p2 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 140);
@@ -208,7 +206,9 @@ public class EditProfileActivity extends AppCompatActivity {
         root.addView(btnSaveProfile);
 
         setContentView(root);
-        checkIfAlreadyLocked();
+
+        // Jodi kono karone puran user ekhane chole ase, tahole take Home e pathao
+        checkIfAlreadyExists();
     }
 
     private void openGallery() {
@@ -217,102 +217,27 @@ public class EditProfileActivity extends AppCompatActivity {
         pickImageLauncher.launch(intent);
     }
 
-    private void checkIfAlreadyLocked() {
-        if (firebaseUid.isEmpty()) {
-            Toast.makeText(this, "Login error, please login again", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        // Step 1: নতুন চাবি দিয়ে খোঁজো - users / Firebase UID
-        userDatabaseRef.child(firebaseUid).addListenerForSingleValueEvent(new ValueEventListener() {
+    private void checkIfAlreadyExists() {
+        if (firebaseUid.isEmpty()) return;
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(DataSnapshot s) {
-                if (s.exists() && s.hasChild("gender") && s.hasChild("country")) {
-                    loadFromSnapshot(s);
-                } else {
-                    // Step 2: পুরান চাবি দিয়ে খোঁজো - users / 428803851 (আপনার পুরান ID)
-                    // এইটা একবারের মাইগ্রেশন, পুরান ডাটা ফেরত আনার জন্য
-                    userDatabaseRef.child("428803851").addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override public void onDataChange(DataSnapshot old) {
-                            if (old.exists() && old.hasChild("gender")) {
-                                // পুরান ID পাওয়া গেছে - ওইটাই রাখবো, নতুন বানাবো না
-                                my9DigitId = "428803851";
-                                idLoadedFromFirebase = true;
-                                prefs.edit().putString("MY_9_DIGIT_ID", my9DigitId).apply();
-                                loadFromSnapshot(old);
-                                Toast.makeText(EditProfileActivity.this, "Old ID Restored: 428803851", Toast.LENGTH_LONG).show();
-                            } else {
-                                // Step 3: Email দিয়ে খোঁজো - ভবিষ্যতে Uninstall করলেও কাজ করবে
-                                if (!userEmail.isEmpty()) {
-                                    userDatabaseRef.orderByChild("email").equalTo(userEmail).addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override public void onDataChange(DataSnapshot snap) {
-                                            if (snap.exists()) {
-                                                for (DataSnapshot child : snap.getChildren()) {
-                                                    loadFromSnapshot(child);
-                                                    return;
-                                                }
-                                            }
-                                            // Step 4: কোথাও নাই - তখনই শুধু একবার নতুন ID বানাও
-                                            createNewIdOnce();
-                                        }
-                                        @Override public void onCancelled(DatabaseError e) { createNewIdOnce(); }
-                                    });
-                                } else {
-                                    createNewIdOnce();
-                                }
-                            }
-                        }
-                        @Override public void onCancelled(DatabaseError e) { createNewIdOnce(); }
-                    });
+                if (s.exists() && s.hasChild("my9DigitId") && s.hasChild("gender")) {
+                    // Already setup - Home e jao, abar Edit korte dibo na
+                    String id = s.child("my9DigitId").getValue(String.class);
+                    prefs.edit()
+                        .putString("MY_9_DIGIT_ID", id != null ? id : "")
+                        .putString("USER_NAME", s.child("name").getValue(String.class))
+                        .putString("USER_GENDER", s.child("gender").getValue(String.class))
+                        .putString("USER_COUNTRY", s.child("country").getValue(String.class))
+                        .putBoolean("IS_PROFILE_SETUP_DONE", true).apply();
+                    Intent intent = new Intent(EditProfileActivity.this, HomeActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
                 }
             }
-            @Override public void onCancelled(DatabaseError e) { createNewIdOnce(); }
+            @Override public void onCancelled(DatabaseError e) {}
         });
-    }
-
-    private void createNewIdOnce() {
-        if (idLoadedFromFirebase) return;
-        int r = (int) (Math.random() * 900000000) + 100000000;
-        my9DigitId = String.valueOf(r);
-        prefs.edit().putString("MY_9_DIGIT_ID", my9DigitId).apply();
-        tvPermanentId.setText("Permanent ID: " + my9DigitId + " (Locked)");
-        btnSaveProfile.setText("Save & Enter Home");
-        btnSaveProfile.setEnabled(true);
-    }
-
-    private void loadFromSnapshot(DataSnapshot s) {
-        String g = s.child("gender").getValue(String.class);
-        String c = s.child("country").getValue(String.class);
-        String n = s.child("name").getValue(String.class);
-        String savedId = s.child("my9DigitId").getValue(String.class);
-        String photo = s.child("photoBase64").getValue(String.class);
-        // যদি Snapshot এ ID থাকে, ওইটাই নিবো। আর যদি পুরান চাবি থেকে আসে (428803851), তাহলে my9DigitId আগেই সেট করা আছে
-        if (savedId != null && !savedId.isEmpty()) {
-            my9DigitId = savedId;
-        } else if (s.getKey() != null && s.getKey().length() == 9 && s.getKey().matches("[0-9]+")) {
-            my9DigitId = s.getKey();
-        }
-        idLoadedFromFirebase = true;
-        prefs.edit().putString("MY_9_DIGIT_ID", my9DigitId).apply();
-        tvPermanentId.setText("Permanent ID: " + my9DigitId + " (Locked)");
-        if (g != null) selectedGender = g;
-        if (c != null) {
-            selectedCountry = c.replaceAll("[^a-zA-Z ]", "").trim();
-            if (selectedCountry.isEmpty()) selectedCountry = "Bangladesh";
-        }
-        if (n != null) etProfileName.setText(n);
-        if (photo != null && !photo.isEmpty()) {
-            try {
-                byte[] bytes = Base64.decode(photo, Base64.DEFAULT);
-                Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                ivProfilePhoto.setImageBitmap(bmp);
-                selectedPhotoBase64 = photo;
-            } catch (Exception ignored) {}
-        }
-        tvSelectedGender.setText("Gender: " + selectedGender + " (Locked)");
-        tvSelectedCountry.setText("Country: " + selectedCountry + " " + getFlag(selectedCountry) + " (Locked)");
-        isLocked = true;
-        isAlreadySaved = true;
-        btnSaveProfile.setText("Confirm & Enter Home");
-        btnSaveProfile.setEnabled(true);
     }
 
     private void showGenderPickerDialog() {
@@ -341,42 +266,71 @@ public class EditProfileActivity extends AppCompatActivity {
     }
 
     private void saveProfileToFirebase() {
+        if (isSaving) return;
         String name = etProfileName.getText().toString().trim();
         if (name.isEmpty()) { Toast.makeText(this, "Please enter your name!", Toast.LENGTH_SHORT).show(); return; }
         if (firebaseUid.isEmpty()) { Toast.makeText(this, "Login error, please login again", Toast.LENGTH_SHORT).show(); return; }
-        if (my9DigitId.isEmpty()) { Toast.makeText(this, "ID Loading... Please Wait", Toast.LENGTH_SHORT).show(); return; }
 
+        isSaving = true;
         btnSaveProfile.setEnabled(false);
         btnSaveProfile.setText("Saving... Please Wait");
 
-        prefs.edit().putString("USER_NAME", name)
-                .putString("USER_GENDER", selectedGender)
-                .putString("USER_COUNTRY", selectedCountry)
-                .putString("USER_PHOTO", selectedPhotoBase64)
-                .putString("MY_9_DIGIT_ID", my9DigitId)
-                .putBoolean("IS_PROFILE_SETUP_DONE", true)
-                .apply();
+        // TRANSACTION: Jodi age theke ID thake, oitai rakhbe. Na thakle ekbar e notun banabe. Kokhono overwrite hobe na.
+        userRef.runTransaction(new Transaction.Handler() {
+            @Override public Transaction.Result doTransaction(MutableData currentData) {
+                if (currentData.getValue() == null) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("uid", firebaseUid);
+                    map.put("email", userEmail);
+                    String newId = String.valueOf(100000000 + new Random().nextInt(900000000));
+                    map.put("my9DigitId", newId);
+                    map.put("name", name);
+                    map.put("gender", selectedGender);
+                    map.put("country", selectedCountry);
+                    if (!selectedPhotoBase64.isEmpty()) map.put("photoBase64", selectedPhotoBase64);
+                    currentData.setValue(map);
+                } else {
+                    // Already exists - gender/country/ID kokhono change korbo na, shudhu name/photo update korbo
+                    // Jodi my9DigitId na thake (puran user), tahole ekbar banabo
+                    if (currentData.child("my9DigitId").getValue() == null) {
+                        String newId = String.valueOf(100000000 + new Random().nextInt(900000000));
+                        currentData.child("my9DigitId").setValue(newId);
+                    }
+                    currentData.child("name").setValue(name);
+                    if (!selectedPhotoBase64.isEmpty()) currentData.child("photoBase64").setValue(selectedPhotoBase64);
+                    // gender, country, uid, email - touch korbo na
+                }
+                return Transaction.success(currentData);
+            }
 
-        Map<String, Object> map = new HashMap<>();
-        map.put("uid", firebaseUid);
-        map.put("email", userEmail);
-        map.put("my9DigitId", my9DigitId);
-        map.put("name", name);
-        map.put("gender", selectedGender);
-        map.put("country", selectedCountry);
-        if (!selectedPhotoBase64.isEmpty()) map.put("photoBase64", selectedPhotoBase64);
+            @Override public void onComplete(DatabaseError error, boolean committed, DataSnapshot s) {
+                if (error != null || !committed) {
+                    isSaving = false;
+                    btnSaveProfile.setEnabled(true);
+                    btnSaveProfile.setText("Save & Enter Home");
+                    Toast.makeText(EditProfileActivity.this, "Failed, Try Again", Toast.LENGTH_LONG).show();
+                    return;
+                }
+                String finalId = s.child("my9DigitId").getValue(String.class);
+                String finalGender = s.child("gender").getValue(String.class);
+                String finalCountry = s.child("country").getValue(String.class);
 
-        userDatabaseRef.child(firebaseUid).updateChildren(map).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                Toast.makeText(this, "Profile Saved Successfully!", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(EditProfileActivity.this, MainActivity.class);
+                prefs.edit()
+                    .putString("FIREBASE_UID", firebaseUid)
+                    .putString("MY_9_DIGIT_ID", finalId != null ? finalId : "")
+                    .putString("USER_NAME", name)
+                    .putString("USER_GENDER", finalGender != null ? finalGender : selectedGender)
+                    .putString("USER_COUNTRY", finalCountry != null ? finalCountry : selectedCountry)
+                    .putString("USER_EMAIL", userEmail)
+                    .putString("USER_PHOTO", selectedPhotoBase64)
+                    .putBoolean("IS_PROFILE_SETUP_DONE", true)
+                    .apply();
+
+                Toast.makeText(EditProfileActivity.this, "Profile Saved! Your ID: " + finalId, Toast.LENGTH_LONG).show();
+                Intent intent = new Intent(EditProfileActivity.this, HomeActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
                 finish();
-            } else {
-                btnSaveProfile.setEnabled(true);
-                btnSaveProfile.setText("Save & Enter Home");
-                Toast.makeText(this, "Failed: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }
