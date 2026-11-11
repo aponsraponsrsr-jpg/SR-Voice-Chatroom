@@ -35,5 +35,6 @@
         <activity android:name=".VoiceRoomActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
         <activity android:name=".RoomSetupActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
         <activity android:name=".AgencyDashboardActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
+        <activity android:name=".PublicProfileActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
     </application>
 </manifest>
