@@ -37,6 +37,7 @@ public class MeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
         try {
             setContentView(R.layout.activity_me);
 
@@ -69,7 +70,6 @@ public class MeActivity extends AppCompatActivity {
                 userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
             }
 
-            // লোকাল ডেটা আগে শো করানো যাতে ক্র্যাশ বা হোমে ব্যাক করার সুযোগ না থাকে
             showFromPrefs();
             loadMeData();
 
@@ -79,7 +79,7 @@ public class MeActivity extends AppCompatActivity {
                     Intent i = new Intent(MeActivity.this, EditProfileActivity.class);
                     startActivity(i);
                 } catch (Exception e) {
-                    Toast.makeText(MeActivity.this, "Error opening edit profile", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MeActivity.this, "Edit Intent Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             };
 
@@ -112,9 +112,10 @@ public class MeActivity extends AppCompatActivity {
                     finish();
                 });
             }
+
         } catch (Exception e) {
-            Toast.makeText(this, "Error loading Me page: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            finish();
+            // যদি কোনো সমস্যা হয়, তবে অ্যাপ বন্ধ না করে স্ক্রিনে টোস্ট মেসেজ দেখাবে
+            Toast.makeText(this, "MeActivity Error: " + e.toString(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -150,41 +151,43 @@ public class MeActivity extends AppCompatActivity {
         userRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snap) {
-                if (!snap.exists()) return;
-                String name = getStr(snap, "name", prefs.getString("USER_NAME", "User"));
-                String id = getStr(snap, "my9DigitId", my9DigitId);
-                String country = getStr(snap, "country", prefs.getString("USER_COUNTRY", ""));
-                String gender = getStr(snap, "gender", prefs.getString("USER_GENDER", ""));
-                String photoPath = getStr(snap, "photoPath", prefs.getString("USER_PHOTO_PATH", ""));
-                if (photoPath.isEmpty()) photoPath = getStr(snap, "photoUri", prefs.getString("USER_PHOTO", ""));
-                
-                String follow = getStr(snap, "followCount", "0");
-                String fans = getStr(snap, "fansCount", "0");
-                String visitor = getStr(snap, "visitorCount", "0");
+                try {
+                    if (!snap.exists()) return;
+                    String name = getStr(snap, "name", prefs.getString("USER_NAME", "User"));
+                    String id = getStr(snap, "my9DigitId", my9DigitId);
+                    String country = getStr(snap, "country", prefs.getString("USER_COUNTRY", ""));
+                    String gender = getStr(snap, "gender", prefs.getString("USER_GENDER", ""));
+                    String photoPath = getStr(snap, "photoPath", prefs.getString("USER_PHOTO_PATH", ""));
+                    if (photoPath.isEmpty()) photoPath = getStr(snap, "photoUri", prefs.getString("USER_PHOTO", ""));
+                    
+                    String follow = getStr(snap, "followCount", "0");
+                    String fans = getStr(snap, "fansCount", "0");
+                    String visitor = getStr(snap, "visitorCount", "0");
 
-                if (!id.isEmpty()) {
-                    my9DigitId = id;
-                    prefs.edit().putString("MY_9_DIGIT_ID", id).apply();
-                }
-                prefs.edit().putString("USER_NAME", name).apply();
-                prefs.edit().putString("USER_COUNTRY", country).apply();
-                prefs.edit().putString("USER_GENDER", gender).apply();
+                    if (!id.isEmpty()) {
+                        my9DigitId = id;
+                        prefs.edit().putString("MY_9_DIGIT_ID", id).apply();
+                    }
+                    prefs.edit().putString("USER_NAME", name).apply();
+                    prefs.edit().putString("USER_COUNTRY", country).apply();
+                    prefs.edit().putString("USER_GENDER", gender).apply();
 
-                if (txtName != null) txtName.setText(name);
-                if (txtId != null) txtId.setText("ID: " + my9DigitId);
-                
-                if (txtGenderCountry != null) {
-                    if (!gender.isEmpty() && !country.isEmpty()) txtGenderCountry.setText(gender + " | " + country);
-                    else if (!country.isEmpty()) txtGenderCountry.setText(country);
-                    else if (!gender.isEmpty()) txtGenderCountry.setText(gender);
-                    else txtGenderCountry.setText("Complete Your Profile");
-                }
+                    if (txtName != null) txtName.setText(name);
+                    if (txtId != null) txtId.setText("ID: " + my9DigitId);
+                    
+                    if (txtGenderCountry != null) {
+                        if (!gender.isEmpty() && !country.isEmpty()) txtGenderCountry.setText(gender + " | " + country);
+                        else if (!country.isEmpty()) txtGenderCountry.setText(country);
+                        else if (!gender.isEmpty()) txtGenderCountry.setText(gender);
+                        else txtGenderCountry.setText("Complete Your Profile");
+                    }
 
-                if (txtFollow != null) txtFollow.setText(follow);
-                if (txtFans != null) txtFans.setText(fans);
-                if (txtVisitor != null) txtVisitor.setText(visitor);
+                    if (txtFollow != null) txtFollow.setText(follow);
+                    if (txtFans != null) txtFans.setText(fans);
+                    if (txtVisitor != null) txtVisitor.setText(visitor);
 
-                showLocalImage(photoPath, imgAvatar);
+                    showLocalImage(photoPath, imgAvatar);
+                } catch (Exception ignored) {}
             }
 
             @Override
