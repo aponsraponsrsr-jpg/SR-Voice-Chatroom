@@ -36,83 +36,87 @@ public class MeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_me);
+        try {
+            setContentView(R.layout.activity_me);
 
-        prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
+            prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
 
-        imgAvatar = findViewById(R.id.imgAvatar);
-        btnEditPencil = findViewById(R.id.btnEditPencil);
-        txtName = findViewById(R.id.txtName);
-        txtId = findViewById(R.id.txtId);
-        txtCopyId = findViewById(R.id.txtCopyId);
-        txtGenderCountry = findViewById(R.id.txtGenderCountry);
-        txtFollow = findViewById(R.id.txtFollow);
-        txtFans = findViewById(R.id.txtFans);
-        txtVisitor = findViewById(R.id.txtVisitor);
+            imgAvatar = findViewById(R.id.imgAvatar);
+            btnEditPencil = findViewById(R.id.btnEditPencil);
+            txtName = findViewById(R.id.txtName);
+            txtId = findViewById(R.id.txtId);
+            txtCopyId = findViewById(R.id.txtCopyId);
+            txtGenderCountry = findViewById(R.id.txtGenderCountry);
+            txtFollow = findViewById(R.id.txtFollow);
+            txtFans = findViewById(R.id.txtFans);
+            txtVisitor = findViewById(R.id.txtVisitor);
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            firebaseUid = user.getUid();
-        }
-
-        // পার্মানেন্ট আইডি লোড করা
-        my9DigitId = prefs.getString("MY_9_DIGIT_ID", "");
-        if (my9DigitId == null || my9DigitId.isEmpty()) {
-            my9DigitId = prefs.getString("USER_ID", "");
-        }
-        if (my9DigitId == null || my9DigitId.isEmpty()) {
-            my9DigitId = String.valueOf((int) (Math.random() * 900000000) + 100000000);
-            prefs.edit().putString("MY_9_DIGIT_ID", my9DigitId).apply();
-        }
-
-        // ফায়ারবেস রেফারেন্স সবসময় পার্মানেন্ট ৯-ডিজিট আইডি দিয়ে কানেক্ট হবে
-        if (!my9DigitId.isEmpty()) {
-            userRef = FirebaseDatabase.getInstance().getReference("users").child(my9DigitId);
-        } else if (firebaseUid != null && !firebaseUid.isEmpty()) {
-            userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
-        }
-
-        showFromPrefs();
-        loadMeData();
-
-        View.OnClickListener editClickListener = v -> {
-            try {
-                Intent i = new Intent(MeActivity.this, EditProfileActivity.class);
-                startActivity(i);
-            } catch (Exception e) {
-                Toast.makeText(MeActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user != null) {
+                firebaseUid = user.getUid();
             }
-        };
 
-        if (btnEditPencil != null) btnEditPencil.setOnClickListener(editClickListener);
-        if (imgAvatar != null) imgAvatar.setOnClickListener(editClickListener);
-        if (txtName != null) txtName.setOnClickListener(editClickListener);
+            // পার্মানেন্ট ৯-ডিজিট আইডি সিকিউর করা
+            my9DigitId = prefs.getString("MY_9_DIGIT_ID", "");
+            if (my9DigitId == null || my9DigitId.isEmpty()) {
+                my9DigitId = prefs.getString("USER_ID", "");
+            }
+            if (my9DigitId == null || my9DigitId.isEmpty()) {
+                my9DigitId = String.valueOf((int) (Math.random() * 900000000) + 100000000);
+                prefs.edit().putString("MY_9_DIGIT_ID", my9DigitId).apply();
+            }
 
-        if (txtCopyId != null) {
-            txtCopyId.setOnClickListener(v -> {
-                if (my9DigitId.isEmpty()) return;
-                ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText("ID", my9DigitId);
-                cm.setPrimaryClip(clip);
-                Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
-            });
-        }
+            // ফায়ারবেস রেফারেন্স সবসময় পার্মানেন্ট আইডি দিয়ে যুক্ত হবে
+            if (!my9DigitId.isEmpty()) {
+                userRef = FirebaseDatabase.getInstance().getReference("users").child(my9DigitId);
+            } else if (firebaseUid != null && !firebaseUid.isEmpty()) {
+                userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
+            }
 
-        setupMenuClicks();
+            showFromPrefs();
+            loadMeData();
 
-        LinearLayout btnLogout = findViewById(R.id.btnLogoutLayout);
-        if (btnLogout != null) {
-            btnLogout.setOnClickListener(v -> {
-                // লজিক: লগআউট করলেও পার্মানেন্ট আইডি prefs এ সেভ থাকবে যাতে আইডি মুছে না যায়
-                SharedPreferences.Editor e = prefs.edit();
-                e.putBoolean("IS_LOGGED_IN", false);
-                e.apply();
-                FirebaseAuth.getInstance().signOut();
-                Intent i = new Intent(MeActivity.this, LoginActivity.class);
-                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(i);
-                finish();
-            });
+            View.OnClickListener editClickListener = v -> {
+                try {
+                    Intent i = new Intent(MeActivity.this, EditProfileActivity.class);
+                    startActivity(i);
+                } catch (Exception e) {
+                    Toast.makeText(MeActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            };
+
+            if (btnEditPencil != null) btnEditPencil.setOnClickListener(editClickListener);
+            if (imgAvatar != null) imgAvatar.setOnClickListener(editClickListener);
+            if (txtName != null) txtName.setOnClickListener(editClickListener);
+
+            if (txtCopyId != null) {
+                txtCopyId.setOnClickListener(v -> {
+                    if (my9DigitId.isEmpty()) return;
+                    ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText("ID", my9DigitId);
+                    cm.setPrimaryClip(clip);
+                    Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
+                });
+            }
+
+            setupMenuClicks();
+
+            LinearLayout btnLogout = findViewById(R.id.btnLogoutLayout);
+            if (btnLogout != null) {
+                btnLogout.setOnClickListener(v -> {
+                    SharedPreferences.Editor e = prefs.edit();
+                    e.putBoolean("IS_LOGGED_IN", false);
+                    e.apply();
+                    FirebaseAuth.getInstance().signOut();
+                    Intent i = new Intent(MeActivity.this, LoginActivity.class);
+                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(i);
+                    finish();
+                });
+            }
+
+        } catch (Exception e) {
+            Toast.makeText(this, "MeActivity Error: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 
@@ -149,17 +153,28 @@ public class MeActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snap) {
                 try {
-                    if (!snap.exists()) return;
-                    String name = getStr(snap, "name", prefs.getString("USER_NAME", "User"));
-                    String id = getStr(snap, "my9DigitId", my9DigitId);
-                    String country = getStr(snap, "country", prefs.getString("USER_COUNTRY", ""));
-                    String gender = getStr(snap, "gender", prefs.getString("USER_GENDER", ""));
-                    String photoPath = getStr(snap, "photoPath", prefs.getString("USER_PHOTO_PATH", ""));
-                    if (photoPath.isEmpty()) photoPath = getStr(snap, "photoUri", prefs.getString("USER_PHOTO", ""));
-                    
-                    String follow = getStr(snap, "followCount", "0");
-                    String fans = getStr(snap, "fansCount", "0");
-                    String visitor = getStr(snap, "visitorCount", "0");
+                    String name = prefs.getString("USER_NAME", "User");
+                    String id = my9DigitId;
+                    String country = prefs.getString("USER_COUNTRY", "");
+                    String gender = prefs.getString("USER_GENDER", "");
+                    String photoPath = prefs.getString("USER_PHOTO_PATH", "");
+                    String follow = "0";
+                    String fans = "0";
+                    String visitor = "0";
+
+                    if (snap.exists()) {
+                        name = getStr(snap, "name", name);
+                        id = getStr(snap, "my9DigitId", my9DigitId);
+                        country = getStr(snap, "country", country);
+                        gender = getStr(snap, "gender", gender);
+                        String cloudPhoto = getStr(snap, "photoPath", "");
+                        if (cloudPhoto.isEmpty()) cloudPhoto = getStr(snap, "photoUri", "");
+                        if (!cloudPhoto.isEmpty()) photoPath = cloudPhoto;
+                        
+                        follow = getStr(snap, "followCount", "0");
+                        fans = getStr(snap, "fansCount", "0");
+                        visitor = getStr(snap, "visitorCount", "0");
+                    }
 
                     if (!id.isEmpty()) {
                         my9DigitId = id;
@@ -168,6 +183,9 @@ public class MeActivity extends AppCompatActivity {
                     prefs.edit().putString("USER_NAME", name).apply();
                     prefs.edit().putString("USER_COUNTRY", country).apply();
                     prefs.edit().putString("USER_GENDER", gender).apply();
+                    if (!photoPath.isEmpty()) {
+                        prefs.edit().putString("USER_PHOTO_PATH", photoPath).apply();
+                    }
 
                     if (txtName != null) txtName.setText(name);
                     if (txtId != null) txtId.setText("ID: " + my9DigitId);
