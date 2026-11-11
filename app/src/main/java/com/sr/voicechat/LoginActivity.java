@@ -5,7 +5,6 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -22,62 +21,60 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
-    private Button btnGoogleLogin;
-    private SharedPreferences prefs;
-    private GoogleSignInClient googleSignInClient;
-    private FirebaseAuth mAuth;
     private static final int RC_SIGN_IN = 9001;
+    private GoogleSignInClient mGoogleSignInClient;
+    private FirebaseAuth mAuth;
+    private SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_login);
+
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
         mAuth = FirebaseAuth.getInstance();
 
-        boolean isLoggedIn = prefs.getBoolean("IS_LOGGED_IN", false);
-        boolean isProfileDone = prefs.getBoolean("IS_PROFILE_SETUP_DONE", false);
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-
-        if (currentUser != null && isLoggedIn && isProfileDone) {
-            goToMain();
-            return;
-        }
-
-        setContentView(R.layout.activity_login);
-
-        // আসল Google Sign-In সেটআপ
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
-        googleSignInClient = GoogleSignIn.getClient(this, gso);
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        btnGoogleLogin = findViewById(R.id.btnGoogleLogin);
-        if (btnGoogleLogin != null) {
-            btnGoogleLogin.setOnClickListener(v -> {
-                // আগের ফেক সেশন মুছে নতুন করে Gmail চাইবো
-                googleSignInClient.signOut().addOnCompleteListener(task -> {
-                    Intent signInIntent = googleSignInClient.getSignInIntent();
-                    startActivityForResult(signInIntent, RC_SIGN_IN);
-                });
-            });
+        Button btnGoogle = findViewById(R.id.btnGoogleLogin);
+        if (btnGoogle != null) {
+            btnGoogle.setOnClickListener(v -> signIn());
         }
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    protected void onStart() {
+        super.onStart();
+        // অ্যাপ খুললেই চেক করো - আগে থেকে Login করা আছে কিনা
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            checkUserInFirebase(user.getUid(), user.getEmail());
+        }
+    }
+
+    private void signIn() {
+        Intent signInIntent = mGoogleSignInClient.getSignInIntent();
+        startActivityForResult(signInIntent, RC_SIGN_IN);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == RC_SIGN_IN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
                 GoogleSignInAccount account = task.getResult(ApiException.class);
-                if (account != null) {
-                    firebaseAuthWithGoogle(account.getIdToken());
-                }
+                if (account != null) firebaseAuthWithGoogle(account.getIdToken());
             } catch (ApiException e) {
-                Toast.makeText(this, "Google Login Failed: " + e.getStatusCode(), Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Google Sign-In Failed: " + e.getStatusCode(), Toast.LENGTH_SHORT).show();
             }
         }
     }
@@ -87,51 +84,66 @@ public class LoginActivity extends AppCompatActivity {
         mAuth.signInWithCredential(credential).addOnCompleteListener(this, task -> {
             if (task.isSuccessful()) {
                 FirebaseUser user = mAuth.getCurrentUser();
-                if (user == null) return;
-                String uid = user.getUid();
-                // আপনার ৯ ডিজিটের ID টা আলাদা রাখলাম, Firebase UID দিয়ে ওভাররাইট করলাম না
-                String my9Digit = prefs.getString("MY_9_DIGIT_ID", "");
-                if (my9Digit.isEmpty()) {
-                    int r = (int) (Math.random() * 900000000) + 100000000;
-                    my9Digit = String.valueOf(r);
-                    prefs.edit().putString("MY_9_DIGIT_ID", my9Digit).apply();
-                }
-                prefs.edit().putBoolean("IS_LOGGED_IN", true).apply();
-                prefs.edit().putString("USER_NAME", user.getDisplayName() != null ? user.getDisplayName() : "User").apply();
-                prefs.edit().putString("USER_EMAIL", user.getEmail() != null ? user.getEmail() : "").apply();
-
-                // Firebase users/uid তে ডাটা সেভ
-                DatabaseReference userRef = FirebaseDatabase.getInstance().getReference("users").child(uid);
-                userRef.child("name").setValue(user.getDisplayName());
-                userRef.child("email").setValue(user.getEmail());
-                userRef.child("my9DigitId").setValue(my9Digit);
-
-                userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot snapshot) {
-                        if (snapshot.exists() && snapshot.hasChild("gender") && snapshot.hasChild("country")) {
-                            prefs.edit().putBoolean("IS_PROFILE_SETUP_DONE", true).apply();
-                            goToMain();
-                        } else {
-                            Intent intent = new Intent(LoginActivity.this, EditProfileActivity.class);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                            startActivity(intent);
-                            finish();
-                        }
-                    }
-                    @Override
-                    public void onCancelled(DatabaseError error) { goToMain(); }
-                });
+                if (user != null) checkUserInFirebase(user.getUid(), user.getEmail());
             } else {
                 Toast.makeText(this, "Firebase Auth Failed", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    private void goToMain() {
-        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
+    // ===== আসল পার্মানেন্ট লজিক এখানে =====
+    private void checkUserInFirebase(String firebaseUid, String email) {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(DataSnapshot s) {
+                // পুরান ইউজার? Gender + Country + 9 Digit ID আছে কিনা দেখো
+                if (s.exists() && s.hasChild("gender") && s.hasChild("country") && s.hasChild("my9DigitId")) {
+                    String id = s.child("my9DigitId").getValue(String.class);
+                    String name = s.child("name").getValue(String.class);
+                    String gender = s.child("gender").getValue(String.class);
+                    String country = s.child("country").getValue(String.class);
+                    String photo = s.child("photoUrl").getValue(String.class);
+
+                    // লোকালেও সেভ করে রাখো যাতে বার বার Firebase থেকে আনা না লাগে
+                    prefs.edit()
+                        .putString("FIREBASE_UID", firebaseUid)
+                        .putString("MY_9_DIGIT_ID", id != null ? id : "")
+                        .putString("USER_NAME", name != null ? name : "")
+                        .putString("USER_GENDER", gender != null ? gender : "")
+                        .putString("USER_COUNTRY", country != null ? country : "")
+                        .putString("USER_EMAIL", email != null ? email : "")
+                        .putString("USER_PHOTO", photo != null ? photo : "")
+                        .putBoolean("IS_PROFILE_SETUP_DONE", true)
+                        .apply();
+
+                    // পুরান ইউজার - Edit পপআপ আর আসবে না, সোজা Home
+                    goHome();
+                } else {
+                    // নতুন ইউজার - EditProfile এ পাঠাও
+                    // যদি লোকালে পুরান 9 Digit ID থাকে কিন্তু Firebase এ না থাকে, তাহলে ওইটাই রাখো
+                    // নাহলে EditProfile এ গিয়ে নতুন বানাবে
+                    prefs.edit()
+                        .putString("FIREBASE_UID", firebaseUid)
+                        .putString("USER_EMAIL", email != null ? email : "")
+                        .putBoolean("IS_PROFILE_SETUP_DONE", false)
+                        .apply();
+
+                    Intent i = new Intent(LoginActivity.this, EditProfileActivity.class);
+                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(i);
+                    finish();
+                }
+            }
+            @Override public void onCancelled(DatabaseError e) {
+                Toast.makeText(LoginActivity.this, "Database Error, Try Again", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void goHome() {
+        Intent i = new Intent(LoginActivity.this, MainActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(i);
         finish();
     }
 }
