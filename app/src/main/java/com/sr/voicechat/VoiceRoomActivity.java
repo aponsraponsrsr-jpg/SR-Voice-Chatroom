@@ -207,9 +207,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         roomMetaRef.addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot s) {
                 String n = s.child("roomTheme").getValue(String.class);
-                if (n != null && !n.isEmpty()) {
-                    currentThemeName = n;
-                }
+                if (n != null && !n.isEmpty()) currentThemeName = n;
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
@@ -451,7 +449,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // ===== SEAT - PERMANENT - Click = Profile, Empty = Sit =====
+    // ===== STEP 1 - PREMIUM SEAT - DEMO IMAGE ER MOTO - FULL FRESH =====
     private void setupSeatInteractions() {
         for (int i = 0; i < 10; i++) {
             int resId = getResources().getIdentifier("seat_" + i, "id", getPackageName());
@@ -464,32 +462,106 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     @Override public void onDataChange(@NonNull DataSnapshot s) {
                         String uid = s.child("userId").getValue(String.class);
                         if (uid != null && !uid.isEmpty()) {
-                            // Karo seat - Mini Profile Card khulbe - DEMO er moto
-                            showMiniProfileCard(uid);
-                        } else {
-                            Map<String, Object> seatData = new HashMap<>();
-                            seatData.put("userId", currentUserId);
-                            seatData.put("userName", getMyDisplayName());
-                            for (int j = 0; j < 10; j++) {
-                                final int sj = j;
-                                databaseReference.child("seats").child("seat_" + sj).addListenerForSingleValueEvent(new ValueEventListener() {
-                                    @Override public void onDataChange(@NonNull DataSnapshot ss) {
-                                        String ouid = ss.child("userId").getValue(String.class);
-                                        if (ouid != null && ouid.equals(currentUserId)) {
-                                            databaseReference.child("seats").child("seat_" + sj).removeValue();
-                                        }
-                                    }
-                                    @Override public void onCancelled(@NonNull DatabaseError e) {}
-                                });
+                            if (uid.equals(currentUserId)) {
+                                showSeatActionSheet(idx, true);
+                            } else {
+                                showMiniProfileCard(uid);
                             }
-                            databaseReference.child("seats").child("seat_" + idx).setValue(seatData);
-                            Toast.makeText(VoiceRoomActivity.this, "Seated Successfully!", Toast.LENGTH_SHORT).show();
+                        } else {
+                            showSeatActionSheet(idx, false);
                         }
                     }
                     @Override public void onCancelled(@NonNull DatabaseError e) {}
                 });
             });
         }
+    }
+
+    private void showSeatActionSheet(int seatIndex, boolean isMySeat) {
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(40, 20, 40, 40);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.parseColor("#FFFFFF"));
+        bg.setCornerRadii(new float[]{45,45,45,45,0,0,0,0});
+        root.setBackground(bg);
+
+        View handle = new View(this);
+        LinearLayout.LayoutParams hp = new LinearLayout.LayoutParams(120, 10);
+        hp.gravity = Gravity.CENTER_HORIZONTAL;
+        hp.setMargins(0, 0, 0, 25);
+        handle.setLayoutParams(hp);
+        GradientDrawable hbg = new GradientDrawable();
+        hbg.setColor(Color.parseColor("#E0E0E0"));
+        hbg.setCornerRadius(5);
+        handle.setBackground(hbg);
+        root.addView(handle);
+
+        TextView txtSeatNo = new TextView(this);
+        txtSeatNo.setText("Seat " + (seatIndex + 1));
+        txtSeatNo.setTextColor(Color.parseColor("#888888"));
+        txtSeatNo.setTextSize(13);
+        txtSeatNo.setGravity(Gravity.CENTER);
+        txtSeatNo.setPadding(0, 0, 0, 15);
+        root.addView(txtSeatNo);
+
+        Button btnAction = new Button(this);
+        btnAction.setText(isMySeat ? "Leave Mic" : "Take Mic");
+        btnAction.setTextColor(Color.WHITE);
+        btnAction.setTextSize(16);
+        btnAction.setAllCaps(false);
+        btnAction.setTypeface(null, android.graphics.Typeface.BOLD);
+        GradientDrawable btnBg = new GradientDrawable();
+        btnBg.setColor(Color.parseColor(isMySeat ? "#FF5252" : "#FF9800"));
+        btnBg.setCornerRadius(60);
+        btnAction.setBackground(btnBg);
+        btnAction.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 130));
+        btnAction.setOnClickListener(v -> {
+            dialog.dismiss();
+            if (isMySeat) leaveSeat(seatIndex);
+            else takeSeat(seatIndex);
+        });
+        root.addView(btnAction);
+
+        Button btnCancel = new Button(this);
+        btnCancel.setText("Cancel");
+        btnCancel.setTextColor(Color.parseColor("#888888"));
+        btnCancel.setTextSize(14);
+        btnCancel.setAllCaps(false);
+        btnCancel.setBackgroundColor(Color.TRANSPARENT);
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        root.addView(btnCancel);
+
+        dialog.setContentView(root);
+        dialog.show();
+    }
+
+    private void takeSeat(int seatIndex) {
+        for (int j = 0; j < 10; j++) {
+            final int sj = j;
+            databaseReference.child("seats").child("seat_" + sj).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override public void onDataChange(@NonNull DataSnapshot ss) {
+                    String ouid = ss.child("userId").getValue(String.class);
+                    if (ouid != null && ouid.equals(currentUserId)) {
+                        databaseReference.child("seats").child("seat_" + sj).removeValue();
+                    }
+                }
+                @Override public void onCancelled(@NonNull DatabaseError e) {}
+            });
+        }
+        Map<String, Object> seatData = new HashMap<>();
+        seatData.put("userId", currentUserId);
+        seatData.put("userName", getMyDisplayName());
+        String myPhoto = prefs.getString("USER_PHOTO_BASE64", "");
+        if (myPhoto != null && !myPhoto.isEmpty()) seatData.put("photoBase64", myPhoto);
+        databaseReference.child("seats").child("seat_" + seatIndex).setValue(seatData);
+        Toast.makeText(this, "Seated Successfully!", Toast.LENGTH_SHORT).show();
+    }
+
+    private void leaveSeat(int seatIndex) {
+        databaseReference.child("seats").child("seat_" + seatIndex).removeValue();
+        Toast.makeText(this, "Left Mic", Toast.LENGTH_SHORT).show();
     }
 
     private void listenToFirebaseSeats() {
@@ -500,23 +572,76 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     if (resId == 0) continue;
                     View seat = findViewById(resId);
                     if (seat == null) continue;
+                    String uid = s.child("seat_" + i).child("userId").getValue(String.class);
                     String uname = s.child("seat_" + i).child("userName").getValue(String.class);
-                    if (seat instanceof ViewGroup) {
-                        ViewGroup vg = (ViewGroup) seat;
-                        for (int c = 0; c < vg.getChildCount(); c++) {
-                            View child = vg.getChildAt(c);
-                            if (child instanceof TextView && uname != null && !uname.isEmpty()) {
-                                ((TextView) child).setText(uname);
-                            }
-                        }
-                    }
+                    String photo = s.child("seat_" + i).child("photoBase64").getValue(String.class);
+                    updatePremiumSeatView(seat, i, uid, uname, photo);
                 }
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
     }
 
-    // ===== STEP 1 - MINI PROFILE CARD - DEMO ER MOTO - PERMANENT =====
+    private void updatePremiumSeatView(View seat, int seatIndex, String uid, String uname, String photoBase64) {
+        boolean isOccupied = uid != null && !uid.isEmpty();
+        boolean isMine = isOccupied && uid.equals(currentUserId);
+
+        GradientDrawable seatBg = new GradientDrawable();
+        seatBg.setShape(GradientDrawable.OVAL);
+        if (isOccupied) {
+            seatBg.setColor(Color.parseColor("#FFFFFF"));
+            seatBg.setStroke(4, Color.parseColor(isMine ? "#FF9800" : "#FFFFFF"));
+        } else {
+            seatBg.setColor(Color.parseColor("#40000000"));
+            seatBg.setStroke(3, Color.parseColor("#FFFFFF"));
+        }
+        seat.setBackground(seatBg);
+
+        if (seat instanceof ViewGroup) {
+            ViewGroup vg = (ViewGroup) seat;
+            for (int c = 0; c < vg.getChildCount(); c++) {
+                View child = vg.getChildAt(c);
+                if (child instanceof ImageView) {
+                    ImageView iv = (ImageView) child;
+                    if (isOccupied) {
+                        boolean set = false;
+                        if (photoBase64 != null && !photoBase64.isEmpty()) {
+                            try {
+                                byte[] bytes = Base64.decode(photoBase64, Base64.DEFAULT);
+                                Bitmap b = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                                if (b != null) { iv.setImageBitmap(b); set = true; }
+                            } catch (Exception ignored) {}
+                        }
+                        if (!set) iv.setImageResource(android.R.drawable.ic_menu_camera);
+                    } else {
+                        int sofaId = getResources().getIdentifier("seat_sofa", "drawable", getPackageName());
+                        if (sofaId != 0) iv.setImageResource(sofaId);
+                        else iv.setImageResource(android.R.drawable.ic_menu_gallery);
+                    }
+                }
+                if (child instanceof TextView) {
+                    TextView tv = (TextView) child;
+                    // Layout e 2 ta TextView thakte pare - 1 ta naam, 1 ta number
+                    // Number TextView er tag = "seat_number" hole sobsomoy number dekhabe
+                    Object tag = tv.getTag();
+                    if (tag != null && "seat_number".equals(String.valueOf(tag))) {
+                        tv.setText(String.valueOf(seatIndex + 1));
+                        tv.setVisibility(View.VISIBLE);
+                        tv.setTextColor(Color.WHITE);
+                    } else {
+                        if (isOccupied && uname != null && !uname.isEmpty()) {
+                            tv.setText(uname);
+                            tv.setVisibility(View.VISIBLE);
+                        } else {
+                            tv.setText("");
+                            tv.setVisibility(View.GONE);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private void showMiniProfileCard(String target9DigitId) {
         userDatabaseRef.orderByChild("my9DigitId").equalTo(target9DigitId)
             .addListenerForSingleValueEvent(new ValueEventListener() {
