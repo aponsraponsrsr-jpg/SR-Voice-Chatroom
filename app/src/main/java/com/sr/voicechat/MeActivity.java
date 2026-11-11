@@ -37,73 +37,84 @@ public class MeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_me);
+        try {
+            setContentView(R.layout.activity_me);
 
-        prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
+            prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
 
-        imgAvatar = findViewById(R.id.imgAvatar);
-        btnEditPencil = findViewById(R.id.btnEditPencil);
-        txtName = findViewById(R.id.txtName);
-        txtId = findViewById(R.id.txtId);
-        txtCopyId = findViewById(R.id.txtCopyId);
-        txtGenderCountry = findViewById(R.id.txtGenderCountry);
-        txtFollow = findViewById(R.id.txtFollow);
-        txtFans = findViewById(R.id.txtFans);
-        txtVisitor = findViewById(R.id.txtVisitor);
+            imgAvatar = findViewById(R.id.imgAvatar);
+            btnEditPencil = findViewById(R.id.btnEditPencil);
+            txtName = findViewById(R.id.txtName);
+            txtId = findViewById(R.id.txtId);
+            txtCopyId = findViewById(R.id.txtCopyId);
+            txtGenderCountry = findViewById(R.id.txtGenderCountry);
+            txtFollow = findViewById(R.id.txtFollow);
+            txtFans = findViewById(R.id.txtFans);
+            txtVisitor = findViewById(R.id.txtVisitor);
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) firebaseUid = user.getUid();
-        if (firebaseUid.isEmpty()) firebaseUid = prefs.getString("FIREBASE_UID", "");
-        if (firebaseUid.isEmpty()) firebaseUid = prefs.getString("UID", "");
-        if (firebaseUid.isEmpty()) firebaseUid = prefs.getString("USER_UID", "");
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user != null) {
+                firebaseUid = user.getUid();
+            }
+            if (firebaseUid == null || firebaseUid.isEmpty()) {
+                firebaseUid = prefs.getString("FIREBASE_UID", "");
+            }
+            
+            my9DigitId = prefs.getString("MY_9_DIGIT_ID", "");
+            if (my9DigitId == null || my9DigitId.isEmpty()) {
+                my9DigitId = "100000000";
+            }
 
-        my9DigitId = prefs.getString("MY_9_DIGIT_ID", "");
-        if (my9DigitId.isEmpty()) my9DigitId = prefs.getString("USER_ID", "");
+            if (firebaseUid != null && !firebaseUid.isEmpty()) {
+                userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
+            }
 
-        if (!firebaseUid.isEmpty()) {
-            userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
-        } else if (!my9DigitId.isEmpty()) {
-            userRef = FirebaseDatabase.getInstance().getReference("users").child(my9DigitId);
-        }
+            // লোকাল ডেটা আগে শো করানো যাতে ক্র্যাশ বা হোমে ব্যাক করার সুযোগ না থাকে
+            showFromPrefs();
+            loadMeData();
 
-        // লোকাল ডেটা ও ছবি আগে লোড করা
-        showFromPrefs();
-        loadMeData();
+            // পেন্সিল বা অবতার আইকনে ক্লিক করলে EditProfileActivity তে যাবে
+            View.OnClickListener editClickListener = v -> {
+                try {
+                    Intent i = new Intent(MeActivity.this, EditProfileActivity.class);
+                    startActivity(i);
+                } catch (Exception e) {
+                    Toast.makeText(MeActivity.this, "Error opening edit profile", Toast.LENGTH_SHORT).show();
+                }
+            };
 
-        // পেন্সিল বা অবতার আইকনে ক্লিক করলে EditProfileActivity তে যাবে (হোম পেজে ব্যাক করবে না)
-        View.OnClickListener editClickListener = v -> {
-            Intent i = new Intent(MeActivity.this, EditProfileActivity.class);
-            startActivity(i);
-        };
+            if (btnEditPencil != null) btnEditPencil.setOnClickListener(editClickListener);
+            if (imgAvatar != null) imgAvatar.setOnClickListener(editClickListener);
+            if (txtName != null) txtName.setOnClickListener(editClickListener);
 
-        if (btnEditPencil != null) btnEditPencil.setOnClickListener(editClickListener);
-        if (imgAvatar != null) imgAvatar.setOnClickListener(editClickListener);
-        if (txtName != null) txtName.setOnClickListener(editClickListener);
+            if (txtCopyId != null) {
+                txtCopyId.setOnClickListener(v -> {
+                    if (my9DigitId.isEmpty()) return;
+                    ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                    ClipData clip = ClipData.newPlainText("ID", my9DigitId);
+                    cm.setPrimaryClip(clip);
+                    Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
+                });
+            }
 
-        if (txtCopyId != null) {
-            txtCopyId.setOnClickListener(v -> {
-                if (my9DigitId.isEmpty()) return;
-                ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                ClipData clip = ClipData.newPlainText("ID", my9DigitId);
-                cm.setPrimaryClip(clip);
-                Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
-            });
-        }
+            setupMenuClicks();
 
-        setupMenuClicks();
-
-        LinearLayout btnLogout = findViewById(R.id.btnLogoutLayout);
-        if (btnLogout != null) {
-            btnLogout.setOnClickListener(v -> {
-                SharedPreferences.Editor e = prefs.edit();
-                e.putBoolean("IS_LOGGED_IN", false);
-                e.apply();
-                FirebaseAuth.getInstance().signOut();
-                Intent i = new Intent(MeActivity.this, LoginActivity.class);
-                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(i);
-                finish();
-            });
+            LinearLayout btnLogout = findViewById(R.id.btnLogoutLayout);
+            if (btnLogout != null) {
+                btnLogout.setOnClickListener(v -> {
+                    SharedPreferences.Editor e = prefs.edit();
+                    e.putBoolean("IS_LOGGED_IN", false);
+                    e.apply();
+                    FirebaseAuth.getInstance().signOut();
+                    Intent i = new Intent(MeActivity.this, LoginActivity.class);
+                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(i);
+                    finish();
+                });
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Error loading Me page: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            finish();
         }
     }
 
@@ -122,7 +133,7 @@ public class MeActivity extends AppCompatActivity {
         if (photoPath.isEmpty()) photoPath = prefs.getString("USER_PHOTO", "");
 
         if (txtName != null) txtName.setText(name);
-        if (txtId != null) txtId.setText("ID: " + (my9DigitId.isEmpty() ? "100000000" : my9DigitId));
+        if (txtId != null) txtId.setText("ID: " + my9DigitId);
         
         if (txtGenderCountry != null) {
             if (!gender.isEmpty() && !country.isEmpty()) txtGenderCountry.setText(gender + " | " + country);
@@ -158,10 +169,6 @@ public class MeActivity extends AppCompatActivity {
                 prefs.edit().putString("USER_NAME", name).apply();
                 prefs.edit().putString("USER_COUNTRY", country).apply();
                 prefs.edit().putString("USER_GENDER", gender).apply();
-                if (!photoPath.isEmpty()) {
-                    prefs.edit().putString("USER_PHOTO_PATH", photoPath).apply();
-                    prefs.edit().putString("USER_PHOTO", photoPath).apply();
-                }
 
                 if (txtName != null) txtName.setText(name);
                 if (txtId != null) txtId.setText("ID: " + my9DigitId);
