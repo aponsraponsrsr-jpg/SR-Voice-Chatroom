@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -36,10 +37,12 @@ import java.util.Map;
 
 public class VoiceRoomActivity extends AppCompatActivity {
     private ImageButton btnPower;
-    private Button btnMicToggle, btnChatOption, btnGiftBox;
-    private TextView roomTitleText, roomInfoText, textOnlineCount, roomNoticeBarText;
+    private Button btnMicToggle, btnChatOption, btnGiftBox, btnGame;
+    private TextView roomTitleText, roomInfoText, textOnlineCount, roomNoticeBarText, textRoomCoins;
+    private TextView tabAll, tabChat, tabGift, tabNotice, textChatEmpty;
+    private EditText inputChatMessage;
+    private LinearLayout btnInRoomRanking, chatListContainer;
     private ImageView btnOnlineList, roomHeaderProfileImg, btnRoomTools;
-    private LinearLayout btnInRoomRanking;
     private boolean isMuted = false;
     private SharedPreferences prefs;
     private DatabaseReference databaseReference, roomMetaRef, userDatabaseRef, messagesRef, adminsRef;
@@ -52,6 +55,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private String myDisplayName = "User";
     private String myCountry = "Bangladesh";
     private String myGender = "Male";
+    private String currentChatFilter = "All";
 
     private String getMyDisplayName() {
         String n = prefs.getString("USER_NAME", "");
@@ -95,6 +99,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         listenToRoomAdmins();
         listenToRoomTheme();
         listenToMyWallet();
+        listenToChatMessages();
 
         btnPower = findViewById(R.id.btnPower);
         roomTitleText = findViewById(R.id.roomTitleText);
@@ -105,6 +110,15 @@ public class VoiceRoomActivity extends AppCompatActivity {
         btnInRoomRanking = findViewById(R.id.btnInRoomRanking);
         roomNoticeBarText = findViewById(R.id.roomNoticeBarText);
         btnRoomTools = findViewById(R.id.btnRoomTools);
+        textRoomCoins = findViewById(R.id.textRoomCoins);
+        inputChatMessage = findViewById(R.id.inputChatMessage);
+        chatListContainer = findViewById(R.id.chatListContainer);
+        textChatEmpty = findViewById(R.id.textChatEmpty);
+        tabAll = findViewById(R.id.tabAll);
+        tabChat = findViewById(R.id.tabChat);
+        tabGift = findViewById(R.id.tabGift);
+        tabNotice = findViewById(R.id.tabNotice);
+        btnGame = findViewById(R.id.btnGame);
 
         if (btnPower != null) btnPower.setOnClickListener(v -> showExitDialog());
 
@@ -124,6 +138,21 @@ public class VoiceRoomActivity extends AppCompatActivity {
             btnInRoomRanking.setOnClickListener(v -> showInRoomRankingDialog());
         }
 
+        if (btnOnlineList != null) {
+            btnOnlineList.setOnClickListener(v -> showOnlineListDialog());
+        }
+
+        if (roomHeaderProfileImg != null) {
+            roomHeaderProfileImg.setOnClickListener(v -> showMiniProfileCard(currentUserId));
+        }
+
+        setupChatTabs();
+        setupBottomChatSend();
+
+        if (btnGame != null) {
+            btnGame.setOnClickListener(v -> Toast.makeText(this, "Games Coming in Step 3 🎮", Toast.LENGTH_SHORT).show());
+        }
+
         setupSeatInteractions();
         listenToFirebaseSeats();
         listenToOnlineMembers();
@@ -131,7 +160,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
         btnMicToggle = findViewById(R.id.btnMicToggle);
         if (btnMicToggle != null) btnMicToggle.setOnClickListener(v -> {
             isMuted = !isMuted;
-            btnMicToggle.setText(isMuted ? "Muted" : "Mic");
+            btnMicToggle.setText(isMuted ? "🔇" : "🎤");
+            btnMicToggle.setBackgroundColor(isMuted ? Color.parseColor("#616161") : Color.parseColor("#FF9800"));
+            Toast.makeText(this, isMuted ? "Mic Muted" : "Mic On", Toast.LENGTH_SHORT).show();
         });
 
         btnChatOption = findViewById(R.id.btnChatOption);
@@ -142,6 +173,126 @@ public class VoiceRoomActivity extends AppCompatActivity {
     }
 
     @Override public void onBackPressed() { showExitDialog(); }
+
+    private void setupChatTabs() {
+        if (tabAll != null) tabAll.setOnClickListener(v -> setChatFilter("All"));
+        if (tabChat != null) tabChat.setOnClickListener(v -> setChatFilter("Chat"));
+        if (tabGift != null) tabGift.setOnClickListener(v -> setChatFilter("Gift"));
+        if (tabNotice != null) tabNotice.setOnClickListener(v -> setChatFilter("Notice"));
+    }
+
+    private void setChatFilter(String filter) {
+        currentChatFilter = filter;
+        if (tabAll != null) tabAll.setTextColor(filter.equals("All") ? Color.WHITE : Color.parseColor("#AAAAAA"));
+        if (tabChat != null) tabChat.setTextColor(filter.equals("Chat") ? Color.WHITE : Color.parseColor("#AAAAAA"));
+        if (tabGift != null) tabGift.setTextColor(filter.equals("Gift") ? Color.WHITE : Color.parseColor("#AAAAAA"));
+        if (tabNotice != null) tabNotice.setTextColor(filter.equals("Notice") ? Color.WHITE : Color.parseColor("#AAAAAA"));
+        if (tabAll != null) tabAll.setTypeface(null, filter.equals("All") ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+        if (tabChat != null) tabChat.setTypeface(null, filter.equals("Chat") ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+        if (tabGift != null) tabGift.setTypeface(null, filter.equals("Gift") ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+        if (tabNotice != null) tabNotice.setTypeface(null, filter.equals("Notice") ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
+        listenToChatMessages();
+    }
+
+    private void setupBottomChatSend() {
+        if (inputChatMessage == null) return;
+        inputChatMessage.setOnEditorActionListener((v, actionId, event) -> {
+            sendChatFromInput();
+            return true;
+        });
+    }
+
+    private void sendChatFromInput() {
+        if (inputChatMessage == null) return;
+        String msg = inputChatMessage.getText().toString().trim();
+        if (msg.isEmpty()) return;
+        sendChatMessage(msg);
+        inputChatMessage.setText("");
+    }
+
+    private void sendChatMessage(String msg) {
+        if (messagesRef == null) return;
+        Map<String, Object> data = new HashMap<>();
+        data.put("userId", currentUserId);
+        data.put("userName", getMyDisplayName());
+        data.put("text", msg);
+        data.put("type", "Chat");
+        data.put("time", System.currentTimeMillis());
+        messagesRef.push().setValue(data);
+    }
+
+    private void listenToChatMessages() {
+        if (messagesRef == null || chatListContainer == null) return;
+        messagesRef.limitToLast(30).addValueEventListener(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot s) {
+                chatListContainer.removeAllViews();
+                boolean hasAny = false;
+                for (DataSnapshot ds : s.getChildren()) {
+                    String type = ds.child("type").getValue(String.class);
+                    if (type == null) type = "Chat";
+                    if (!currentChatFilter.equals("All") && !currentChatFilter.equals(type)) continue;
+                    String uname = ds.child("userName").getValue(String.class);
+                    String txt = ds.child("text").getValue(String.class);
+                    if (txt == null) txt = "";
+                    if (uname == null) uname = "User";
+                    TextView tv = new TextView(VoiceRoomActivity.this);
+                    tv.setText(uname + ": " + txt);
+                    tv.setTextColor(type.equals("Gift") ? Color.parseColor("#FFD700") : Color.WHITE);
+                    tv.setTextSize(13);
+                    tv.setPadding(0, 4, 0, 4);
+                    chatListContainer.addView(tv);
+                    hasAny = true;
+                }
+                if (!hasAny) {
+                    TextView empty = new TextView(VoiceRoomActivity.this);
+                    empty.setText("wlc");
+                    empty.setTextColor(Color.parseColor("#AAAAAA"));
+                    empty.setTextSize(13);
+                    chatListContainer.addView(empty);
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
+    }
+
+    private void showOnlineListDialog() {
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setPadding(35, 25, 35, 35);
+        root.setBackgroundColor(Color.parseColor("#1B1035"));
+        TextView title = new TextView(this);
+        title.setText("Online Members");
+        title.setTextColor(Color.parseColor("#FFD700"));
+        title.setTextSize(18);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setGravity(Gravity.CENTER);
+        title.setPadding(0, 0, 0, 20);
+        root.addView(title);
+        databaseReference.child("online_users").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot s) {
+                for (DataSnapshot ds : s.getChildren()) {
+                    String name = ds.getValue(String.class);
+                    if (name == null) name = "User";
+                    TextView tv = new TextView(VoiceRoomActivity.this);
+                    tv.setText("• " + name + "  (ID: " + ds.getKey() + ")");
+                    tv.setTextColor(Color.WHITE);
+                    tv.setTextSize(14);
+                    tv.setPadding(10, 10, 10, 10);
+                    root.addView(tv);
+                }
+                if (s.getChildrenCount() == 0) {
+                    TextView tv = new TextView(VoiceRoomActivity.this);
+                    tv.setText("No one online");
+                    tv.setTextColor(Color.parseColor("#AAAAAA"));
+                    root.addView(tv);
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
+        dialog.setContentView(root);
+        dialog.show();
+    }
 
     private void showExitDialog() {
         AlertDialog.Builder b = new AlertDialog.Builder(this);
@@ -197,6 +348,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 long w = (coins != null) ? coins : 0L;
                 myWalletCoins = w;
                 if (walletTextInGift != null) walletTextInGift.setText("Coins: " + String.format("%,d", w));
+                if (textRoomCoins != null) textRoomCoins.setText("🪙 " + String.format("%,d", w));
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
@@ -384,6 +536,20 @@ public class VoiceRoomActivity extends AppCompatActivity {
         title.setGravity(Gravity.CENTER);
         title.setPadding(0, 0, 0, 12);
         root.addView(title);
+        TextView wallet = new TextView(this);
+        wallet.setText("Coins: " + String.format("%,d", myWalletCoins));
+        wallet.setTextColor(Color.WHITE);
+        wallet.setTextSize(14);
+        wallet.setGravity(Gravity.CENTER);
+        wallet.setPadding(0, 0, 0, 12);
+        root.addView(wallet);
+        walletTextInGift = wallet;
+        TextView info = new TextView(this);
+        info.setText("Full Gift Store Coming in Step 3 🎁");
+        info.setTextColor(Color.parseColor("#AAAAAA"));
+        info.setTextSize(13);
+        info.setGravity(Gravity.CENTER);
+        root.addView(info);
         dialog.setContentView(root);
         Window w = dialog.getWindow();
         if (w != null) {
@@ -395,7 +561,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
     }
 
     private void showChatDialog() {
-        Toast.makeText(this, "Chat Box", Toast.LENGTH_SHORT).show();
+        if (inputChatMessage != null) {
+            inputChatMessage.requestFocus();
+            Toast.makeText(this, "Type below 👇", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Chat Box", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void listenToRoomAdmins() {
@@ -449,7 +620,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // ===== STEP 1 - PREMIUM SEAT - DEMO IMAGE ER MOTO - FULL FRESH =====
     private void setupSeatInteractions() {
         for (int i = 0; i < 10; i++) {
             int resId = getResources().getIdentifier("seat_" + i, "id", getPackageName());
@@ -486,7 +656,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         bg.setColor(Color.parseColor("#FFFFFF"));
         bg.setCornerRadii(new float[]{45,45,45,45,0,0,0,0});
         root.setBackground(bg);
-
         View handle = new View(this);
         LinearLayout.LayoutParams hp = new LinearLayout.LayoutParams(120, 10);
         hp.gravity = Gravity.CENTER_HORIZONTAL;
@@ -497,7 +666,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         hbg.setCornerRadius(5);
         handle.setBackground(hbg);
         root.addView(handle);
-
         TextView txtSeatNo = new TextView(this);
         txtSeatNo.setText("Seat " + (seatIndex + 1));
         txtSeatNo.setTextColor(Color.parseColor("#888888"));
@@ -505,7 +673,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         txtSeatNo.setGravity(Gravity.CENTER);
         txtSeatNo.setPadding(0, 0, 0, 15);
         root.addView(txtSeatNo);
-
         Button btnAction = new Button(this);
         btnAction.setText(isMySeat ? "Leave Mic" : "Take Mic");
         btnAction.setTextColor(Color.WHITE);
@@ -523,7 +690,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             else takeSeat(seatIndex);
         });
         root.addView(btnAction);
-
         Button btnCancel = new Button(this);
         btnCancel.setText("Cancel");
         btnCancel.setTextColor(Color.parseColor("#888888"));
@@ -532,7 +698,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         btnCancel.setBackgroundColor(Color.TRANSPARENT);
         btnCancel.setOnClickListener(v -> dialog.dismiss());
         root.addView(btnCancel);
-
         dialog.setContentView(root);
         dialog.show();
     }
@@ -585,24 +750,23 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private void updatePremiumSeatView(View seat, int seatIndex, String uid, String uname, String photoBase64) {
         boolean isOccupied = uid != null && !uid.isEmpty();
         boolean isMine = isOccupied && uid.equals(currentUserId);
-
-        GradientDrawable seatBg = new GradientDrawable();
-        seatBg.setShape(GradientDrawable.OVAL);
-        if (isOccupied) {
-            seatBg.setColor(Color.parseColor("#FFFFFF"));
-            seatBg.setStroke(4, Color.parseColor(isMine ? "#FF9800" : "#FFFFFF"));
-        } else {
-            seatBg.setColor(Color.parseColor("#40000000"));
-            seatBg.setStroke(3, Color.parseColor("#FFFFFF"));
-        }
-        seat.setBackground(seatBg);
-
         if (seat instanceof ViewGroup) {
             ViewGroup vg = (ViewGroup) seat;
             for (int c = 0; c < vg.getChildCount(); c++) {
                 View child = vg.getChildAt(c);
                 if (child instanceof ImageView) {
                     ImageView iv = (ImageView) child;
+                    GradientDrawable imgBg = new GradientDrawable();
+                    imgBg.setShape(GradientDrawable.OVAL);
+                    if (isOccupied) {
+                        imgBg.setColor(Color.parseColor("#FFFFFF"));
+                        imgBg.setStroke(4, Color.parseColor(isMine ? "#FF9800" : "#FFFFFF"));
+                    } else {
+                        imgBg.setColor(Color.parseColor("#40000000"));
+                        imgBg.setStroke(3, Color.parseColor("#FFFFFF"));
+                    }
+                    iv.setBackground(imgBg);
+                    iv.setPadding(4, 4, 4, 4);
                     if (isOccupied) {
                         boolean set = false;
                         if (photoBase64 != null && !photoBase64.isEmpty()) {
@@ -621,8 +785,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 }
                 if (child instanceof TextView) {
                     TextView tv = (TextView) child;
-                    // Layout e 2 ta TextView thakte pare - 1 ta naam, 1 ta number
-                    // Number TextView er tag = "seat_number" hole sobsomoy number dekhabe
                     Object tag = tv.getTag();
                     if (tag != null && "seat_number".equals(String.valueOf(tag))) {
                         tv.setText(String.valueOf(seatIndex + 1));
