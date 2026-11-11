@@ -1,21 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- ===== INTERNET + NETWORK ===== -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
+    <!-- ===== VOICE ROOM - MIC - MOST IMPORTANT FOR EARNING APP ===== -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- ===== MEDIA + PROFILE PIC ===== -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <uses-feature android:name="android.hardware.microphone" android:required="true" />
 
     <application
         android:allowBackup="false"
-        android:icon="@android:mipmap/sym_def_app_icon"
-        android:roundIcon="@android:mipmap/sym_def_app_icon"
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="SR Voice Chat"
         android:supportsRtl="true"
-        android:theme="@style/Theme.SRVoiceChat">
+        android:theme="@style/Theme.SRVoiceChat"
+        android:usesCleartextTraffic="true">
 
         <activity
             android:name=".LoginActivity"
@@ -32,7 +49,16 @@
         <activity android:name=".InboxActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
         <activity android:name=".MainActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
         <activity android:name=".MeActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
-        <activity android:name=".VoiceRoomActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
+
+        <!-- VOICE ROOM - FIXED: ROTATE KORLEO ROOM THEKE BER HOBE NA, KEYBOARD UTHLEO BHANGBE NA -->
+        <activity
+            android:name=".VoiceRoomActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SRVoiceChat"
+            android:configChanges="orientation|screenSize|keyboardHidden|keyboard|navigation"
+            android:windowSoftInputMode="adjustResize"
+            android:screenOrientation="portrait" />
+
         <activity android:name=".RoomSetupActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
         <activity android:name=".AgencyDashboardActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
         <activity android:name=".PublicProfileActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
