@@ -26,8 +26,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.io.File;
 
 public class MeActivity extends AppCompatActivity {
-    private ImageView imgAvatar;
-    private ImageView btnEditPencil;
+    private ImageView imgAvatar, btnEditPencil;
     private TextView txtName, txtId, txtCopyId, txtGenderCountry, txtFollow, txtFans, txtVisitor;
     private SharedPreferences prefs;
     private String firebaseUid = "";
@@ -37,85 +36,80 @@ public class MeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_me);
+
+        prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
+
+        imgAvatar = findViewById(R.id.imgAvatar);
+        btnEditPencil = findViewById(R.id.btnEditPencil);
+        txtName = findViewById(R.id.txtName);
+        txtId = findViewById(R.id.txtId);
+        txtCopyId = findViewById(R.id.txtCopyId);
+        txtGenderCountry = findViewById(R.id.txtGenderCountry);
+        txtFollow = findViewById(R.id.txtFollow);
+        txtFans = findViewById(R.id.txtFans);
+        txtVisitor = findViewById(R.id.txtVisitor);
+
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user != null) {
+            firebaseUid = user.getUid();
+        }
+        if (firebaseUid == null || firebaseUid.isEmpty()) {
+            firebaseUid = prefs.getString("FIREBASE_UID", "");
+        }
         
-        try {
-            setContentView(R.layout.activity_me);
+        my9DigitId = prefs.getString("MY_9_DIGIT_ID", "");
+        if (my9DigitId == null || my9DigitId.isEmpty()) {
+            my9DigitId = "100000000";
+        }
 
-            prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
+        if (firebaseUid != null && !firebaseUid.isEmpty()) {
+            userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
+        } else if (my9DigitId != null && !my9DigitId.isEmpty()) {
+            userRef = FirebaseDatabase.getInstance().getReference("users").child(my9DigitId);
+        }
 
-            imgAvatar = findViewById(R.id.imgAvatar);
-            btnEditPencil = findViewById(R.id.btnEditPencil);
-            txtName = findViewById(R.id.txtName);
-            txtId = findViewById(R.id.txtId);
-            txtCopyId = findViewById(R.id.txtCopyId);
-            txtGenderCountry = findViewById(R.id.txtGenderCountry);
-            txtFollow = findViewById(R.id.txtFollow);
-            txtFans = findViewById(R.id.txtFans);
-            txtVisitor = findViewById(R.id.txtVisitor);
+        showFromPrefs();
+        loadMeData();
 
-            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-            if (user != null) {
-                firebaseUid = user.getUid();
+        // পেন্সিল বা অবতার আইকনে ক্লিক করলে সরাসরি EditProfileActivity ওপেন হবে
+        View.OnClickListener editClickListener = v -> {
+            try {
+                Intent i = new Intent(MeActivity.this, EditProfileActivity.class);
+                startActivity(i);
+            } catch (Exception e) {
+                Toast.makeText(MeActivity.this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
-            if (firebaseUid == null || firebaseUid.isEmpty()) {
-                firebaseUid = prefs.getString("FIREBASE_UID", "");
-            }
-            
-            my9DigitId = prefs.getString("MY_9_DIGIT_ID", "");
-            if (my9DigitId == null || my9DigitId.isEmpty()) {
-                my9DigitId = "100000000";
-            }
+        };
 
-            if (firebaseUid != null && !firebaseUid.isEmpty()) {
-                userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
-            }
+        if (btnEditPencil != null) btnEditPencil.setOnClickListener(editClickListener);
+        if (imgAvatar != null) imgAvatar.setOnClickListener(editClickListener);
+        if (txtName != null) txtName.setOnClickListener(editClickListener);
 
-            showFromPrefs();
-            loadMeData();
+        if (txtCopyId != null) {
+            txtCopyId.setOnClickListener(v -> {
+                if (my9DigitId.isEmpty()) return;
+                ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                ClipData clip = ClipData.newPlainText("ID", my9DigitId);
+                cm.setPrimaryClip(clip);
+                Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
+            });
+        }
 
-            // পেন্সিল বা অবতার আইকনে ক্লিক করলে EditProfileActivity তে যাবে
-            View.OnClickListener editClickListener = v -> {
-                try {
-                    Intent i = new Intent(MeActivity.this, EditProfileActivity.class);
-                    startActivity(i);
-                } catch (Exception e) {
-                    Toast.makeText(MeActivity.this, "Edit Intent Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            };
+        setupMenuClicks();
 
-            if (btnEditPencil != null) btnEditPencil.setOnClickListener(editClickListener);
-            if (imgAvatar != null) imgAvatar.setOnClickListener(editClickListener);
-            if (txtName != null) txtName.setOnClickListener(editClickListener);
-
-            if (txtCopyId != null) {
-                txtCopyId.setOnClickListener(v -> {
-                    if (my9DigitId.isEmpty()) return;
-                    ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-                    ClipData clip = ClipData.newPlainText("ID", my9DigitId);
-                    cm.setPrimaryClip(clip);
-                    Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
-                });
-            }
-
-            setupMenuClicks();
-
-            LinearLayout btnLogout = findViewById(R.id.btnLogoutLayout);
-            if (btnLogout != null) {
-                btnLogout.setOnClickListener(v -> {
-                    SharedPreferences.Editor e = prefs.edit();
-                    e.putBoolean("IS_LOGGED_IN", false);
-                    e.apply();
-                    FirebaseAuth.getInstance().signOut();
-                    Intent i = new Intent(MeActivity.this, LoginActivity.class);
-                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(i);
-                    finish();
-                });
-            }
-
-        } catch (Exception e) {
-            // যদি কোনো সমস্যা হয়, তবে অ্যাপ বন্ধ না করে স্ক্রিনে টোস্ট মেসেজ দেখাবে
-            Toast.makeText(this, "MeActivity Error: " + e.toString(), Toast.LENGTH_LONG).show();
+        LinearLayout btnLogout = findViewById(R.id.btnLogoutLayout);
+        if (btnLogout != null) {
+            btnLogout.setOnClickListener(v -> {
+                SharedPreferences.Editor e = prefs.edit();
+                e.putBoolean("IS_LOGGED_IN", false);
+                e.apply();
+                FirebaseAuth.getInstance().signOut();
+                Intent i = new Intent(MeActivity.this, LoginActivity.class);
+                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(i);
+                finish();
+            });
         }
     }
 
