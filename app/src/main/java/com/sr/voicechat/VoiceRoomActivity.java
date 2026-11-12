@@ -303,12 +303,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if(b!=null)b.setOnClickListener(v->showChatPopup());
         if(inputChatMessage!=null)inputChatMessage.setOnEditorActionListener((v,a,e)->{sendChatMessage();return true;});
         if(btnChatOption!=null)btnChatOption.setOnClickListener(v->sendChatMessage());
-        TextView e=findViewById(R.id.btnEmoji);
-        if(e!=null)e.setOnClickListener(v->Toast.makeText(this,"Emoji - Coming Soon 😊",Toast.LENGTH_SHORT).show());
-        TextView g=findViewById(R.id.btnGallery);
-        if(g!=null)g.setOnClickListener(v->Toast.makeText(this,"Gallery - Future te allow hobe 🖼️",Toast.LENGTH_SHORT).show());
-        TextView c=findViewById(R.id.btnCamera);
-        if(c!=null)c.setOnClickListener(v->Toast.makeText(this,"Camera - Future te allow hobe 📷",Toast.LENGTH_SHORT).show());
     }
 
     @Override public void onBackPressed(){
@@ -319,7 +313,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         super.onBackPressed();
     }
 
-    // 🌟 মেসেজ সেন্ড ফিক্সড ও পার্মানেন্ট মেথড
+    // 🌟 পার্মানেন্ট এবং ক্লিন মেসেজ সেন্ড মেথড
     private void sendChatMessage(){
         if(inputChatMessage==null)return;
         String msg=inputChatMessage.getText().toString().trim();
@@ -343,7 +337,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         pushOnlineNow();
     }
 
-    // 🌟 চ্যাট রিয়েলটাইম লিসেনার (গোল প্রোফাইল পিকচার সহ)
+    // 🌟 চ্যাট রিয়েলটাইম লিসেনার (গোল প্রোফাইল পিকচার, নাম, লেভেল ও কান্ট্রি ফ্ল্যাগ সহ)
     private void listenToChatRealtime(){
         if(messagesRef==null||chatListContainer==null)return;
         messagesRef.limitToLast(100).addValueEventListener(new ValueEventListener(){
@@ -358,7 +352,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     String uid=ds.child("userId").getValue(String.class);
                     if(uid==null)uid="";
                     String photo=ds.child("photoBase64").getValue(String.class);
-                    String g=ds.child("gender").getValue(String.class);
                     String co=ds.child("country").getValue(String.class);
 
                     LinearLayout row=new LinearLayout(VoiceRoomActivity.this);
@@ -366,6 +359,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     row.setGravity(Gravity.TOP);
                     row.setPadding(4,6,4,6);
 
+                    // গোল প্রোফাইল পিকচার (CardView)
                     CardView cardAv=new CardView(VoiceRoomActivity.this);
                     LinearLayout.LayoutParams cardLp=new LinearLayout.LayoutParams(72,72);
                     cardLp.setMargins(0,4,8,0);
@@ -389,8 +383,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     box.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f));
                     row.addView(box);
 
+                    // নাম, লেভেল এবং কান্ট্রি ফ্ল্যাগ (ফালতু জগাখিচুড়ি বা আইডি বাদ দিয়ে ক্লিন ফরম্যাট)
                     TextView tvN=new TextView(VoiceRoomActivity.this);
-                    tvN.setText(uname+" "+genderIcon(g)+" "+flagForCountry(co)+" • ID: "+uid);
+                    tvN.setText(uname+"  Lv0  "+flagForCountry(co));
                     tvN.setTextColor(Color.parseColor("#3E2F00"));
                     tvN.setTextSize(12);
                     tvN.setTypeface(null,android.graphics.Typeface.BOLD);
