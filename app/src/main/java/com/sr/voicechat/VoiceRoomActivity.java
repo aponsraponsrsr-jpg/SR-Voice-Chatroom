@@ -78,6 +78,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         chatListContainer=findViewById(R.id.chatListContainer);
         chatScrollView=findViewById(R.id.chatScrollView);
         chatPopupBar=findViewById(R.id.chatPopupBar);
+        inputChatMessage=findViewById(R.id.inputChatMessage);
+        btnChatOption=findViewById(R.id.btnChatOption);
         if(chatPopupBar!=null)chatPopupBar.setVisibility(View.GONE);
 
         galleryLauncher=registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),r->{
@@ -317,6 +319,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         super.onBackPressed();
     }
 
+    // 🌟 মেসেজ সেন্ড ফিক্সড ও পার্মানেন্ট মেথড
     private void sendChatMessage(){
         if(inputChatMessage==null)return;
         String msg=inputChatMessage.getText().toString().trim();
@@ -340,7 +343,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         pushOnlineNow();
     }
 
-    // 🌟 CHAT REALTIME LISTENER - গোল প্রোফাইল পিকচার সহ
+    // 🌟 চ্যাট রিয়েলটাইম লিসেনার (গোল প্রোফাইল পিকচার সহ)
     private void listenToChatRealtime(){
         if(messagesRef==null||chatListContainer==null)return;
         messagesRef.limitToLast(100).addValueEventListener(new ValueEventListener(){
@@ -363,12 +366,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     row.setGravity(Gravity.TOP);
                     row.setPadding(4,6,4,6);
 
-                    // গোল প্রোফাইল পিকচারের জন্য CardView
                     CardView cardAv=new CardView(VoiceRoomActivity.this);
                     LinearLayout.LayoutParams cardLp=new LinearLayout.LayoutParams(72,72);
                     cardLp.setMargins(0,4,8,0);
                     cardAv.setLayoutParams(cardLp);
-                    cardAv.setRadius(36); // গোল করার জন্য
+                    cardAv.setRadius(36);
                     cardAv.setCardElevation(0);
                     cardAv.setCardBackgroundColor(Color.TRANSPARENT);
 
@@ -492,7 +494,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // 🌟 ROOM HEADER PHOTO - গোল প্রোফাইল পিকচার সেটআপ
     private void listenToRoomPhoto(){
         if(roomMetaRef==null)return;
         roomMetaRef.addValueEventListener(new ValueEventListener(){
@@ -544,7 +545,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // 🌟 ONLINE LIST - গোল প্রোফাইল পিকচার সহ
     private void showOnlineListDialog(){
         android.app.Dialog d=makeFullScreenDialog();
         LinearLayout root=new LinearLayout(this);
@@ -651,12 +651,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
         row.setPadding(6,14,6,14);
         row.setTag("ONLINE_"+uid);
 
-        // গোল প্রোফাইল পিকচার (CardView)
         CardView cardAv=new CardView(this);
         LinearLayout.LayoutParams cardLp=new LinearLayout.LayoutParams(110,110);
         cardLp.setMargins(0,0,12,0);
         cardAv.setLayoutParams(cardLp);
-        cardAv.setRadius(55); // গোল করার জন্য
+        cardAv.setRadius(55);
         cardAv.setCardElevation(0);
         cardAv.setCardBackgroundColor(Color.TRANSPARENT);
 
@@ -798,7 +797,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         top.setPadding(20,16,20,16);
         pb.addView(top);
 
-        // রুম হেডার ফটো গোল (CardView)
         CardView cardRp=new CardView(this);
         LinearLayout.LayoutParams cardRpLp=new LinearLayout.LayoutParams(130,130);
         cardRpLp.setMargins(0,0,12,0);
@@ -993,7 +991,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     row.addView(ts);
                     serial++;
 
-                    // মেম্বার লিস্টে ছবি গোল (CardView)
                     CardView cardAv=new CardView(VoiceRoomActivity.this);
                     LinearLayout.LayoutParams cardLp=new LinearLayout.LayoutParams(100,100);
                     cardLp.setMargins(0,0,12,0);
