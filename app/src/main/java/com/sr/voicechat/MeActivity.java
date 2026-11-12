@@ -23,6 +23,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -53,22 +54,20 @@ public class MeActivity extends AppCompatActivity {
             userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
         }
 
-        // ===== ROOT - Scroll =====
+        // ===== ROOT - ScrollView (সম্পূর্ণ পেজ স্মুথলি স্ক্রোল হবে, হেডার ফিক্সড থাকবে না) =====
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
+        scroll.setBackgroundColor(Color.parseColor("#0A0518"));
+
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.parseColor("#F5F0D8"));
         scroll.addView(root);
 
-        // ===== TOP HEADER - Halka Deep Green =====
+        // ===== TOP HEADER PROFILE SECTION (ডার্ক প্রিমিয়াম ব্যাকগ্রাউন্ড ও গোল অবতার) =====
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.VERTICAL);
-        header.setPadding(40, 50, 40, 30);
-        GradientDrawable headerBg = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{Color.parseColor("#C9E8A8"), Color.parseColor("#E9F5C8")});
-        headerBg.setCornerRadius(0);
-        header.setBackground(headerBg);
+        header.setPadding(30, 40, 30, 25);
+        header.setBackgroundColor(Color.parseColor("#1B1035"));
         root.addView(header);
 
         // Top Row - Avatar + Name + Profile Arrow ( > )
@@ -77,28 +76,32 @@ public class MeActivity extends AppCompatActivity {
         topRow.setGravity(Gravity.CENTER_VERTICAL);
         header.addView(topRow);
 
+        // 🌟 গোল প্রোফাইল পিকচারের জন্য CardView (CornerRadius 35dp)
+        CardView cardAvatar = new CardView(this);
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(160, 160);
+        cardParams.setMargins(0, 0, 25, 0);
+        cardAvatar.setLayoutParams(cardParams);
+        cardAvatar.setRadius(80); // গোল করার জন্য রেডিয়াস
+        cardAvatar.setCardElevation(4);
+        cardAvatar.setCardBackgroundColor(Color.TRANSPARENT);
+        cardAvatar.setOnClickListener(v -> goProfile());
+
         imgAvatar = new ImageView(this);
-        imgAvatar.setImageResource(android.R.drawable.ic_menu_camera);
-        imgAvatar.setBackgroundColor(Color.parseColor("#FFFFFF"));
-        imgAvatar.setPadding(6, 6, 6, 6);
-        LinearLayout.LayoutParams avatarParams = new LinearLayout.LayoutParams(170, 170);
-        avatarParams.setMargins(0, 0, 30, 0);
-        imgAvatar.setLayoutParams(avatarParams);
-        // FIXED - Age goEdit() chilo, ekhon goProfile()
-        imgAvatar.setOnClickListener(v -> goProfile());
-        topRow.addView(imgAvatar);
+        imgAvatar.setImageResource(android.R.drawable.ic_menu_my_calendar);
+        imgAvatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        cardAvatar.addView(imgAvatar);
+        topRow.addView(cardAvatar);
 
         LinearLayout nameBox = new LinearLayout(this);
         nameBox.setOrientation(LinearLayout.VERTICAL);
         nameBox.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        // FIXED - Namer upor chap dileo Profile khulbe
         nameBox.setOnClickListener(v -> goProfile());
         topRow.addView(nameBox);
 
         txtName = new TextView(this);
         txtName.setText(prefs.getString("USER_NAME", "User"));
-        txtName.setTextColor(Color.parseColor("#222222"));
-        txtName.setTextSize(20);
+        txtName.setTextColor(Color.WHITE);
+        txtName.setTextSize(18);
         txtName.setTypeface(null, Typeface.BOLD);
         nameBox.addView(txtName);
 
@@ -109,13 +112,13 @@ public class MeActivity extends AppCompatActivity {
 
         txtId = new TextView(this);
         txtId.setText("ID: " + my9DigitId);
-        txtId.setTextColor(Color.parseColor("#555555"));
+        txtId.setTextColor(Color.parseColor("#00E676"));
         txtId.setTextSize(13);
         idRow.addView(txtId);
 
         TextView txtCopy = new TextView(this);
         txtCopy.setText("  📋 Copy");
-        txtCopy.setTextColor(Color.parseColor("#4CAF50"));
+        txtCopy.setTextColor(Color.parseColor("#FFD700"));
         txtCopy.setTextSize(13);
         txtCopy.setTypeface(null, Typeface.BOLD);
         txtCopy.setOnClickListener(v -> {
@@ -128,112 +131,114 @@ public class MeActivity extends AppCompatActivity {
 
         txtGenderCountry = new TextView(this);
         txtGenderCountry.setText(getGenderCountryText());
-        txtGenderCountry.setTextColor(Color.parseColor("#666666"));
-        txtGenderCountry.setTextSize(13);
+        txtGenderCountry.setTextColor(Color.parseColor("#B0BEC5"));
+        txtGenderCountry.setTextSize(12);
         nameBox.addView(txtGenderCountry);
 
-        // FIXED - Age ✏️ chilo, ekhon Demo er moto > arrow - Profile e dhokar icon
         TextView btnProfileArrow = new TextView(this);
         btnProfileArrow.setText(">");
-        btnProfileArrow.setTextSize(28);
+        btnProfileArrow.setTextSize(24);
         btnProfileArrow.setTypeface(null, Typeface.BOLD);
-        btnProfileArrow.setTextColor(Color.parseColor("#555555"));
+        btnProfileArrow.setTextColor(Color.parseColor("#B0BEC5"));
         btnProfileArrow.setPadding(20, 20, 20, 20);
         btnProfileArrow.setOnClickListener(v -> goProfile());
         topRow.addView(btnProfileArrow);
 
-        // Follow / Fans / Visitor - SACHOL - Sudhu apni dekhben
+        // ===== Copy ID Full Row =====
+        LinearLayout copyIdBar = new LinearLayout(this);
+        copyIdBar.setOrientation(LinearLayout.HORIZONTAL);
+        copyIdBar.setBackgroundColor(Color.parseColor("#140B26"));
+        copyIdBar.setPadding(30, 15, 30, 15);
+        copyIdBar.setOnClickListener(v -> {
+            if (my9DigitId.isEmpty()) return;
+            ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            cm.setPrimaryClip(ClipData.newPlainText("ID", my9DigitId));
+            Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
+        });
+        TextView tvCopyTitle = new TextView(this);
+        tvCopyTitle.setText("Copy ID");
+        tvCopyTitle.setTextColor(Color.parseColor("#FFD700"));
+        tvCopyTitle.setTextSize(14);
+        tvCopyTitle.setTypeface(null, Typeface.BOLD);
+        copyIdBar.addView(tvCopyTitle);
+        root.addView(copyIdBar);
+
+        // ===== Stats Bar (Follow / Fans / Visitor) =====
         LinearLayout countRow = new LinearLayout(this);
         countRow.setOrientation(LinearLayout.HORIZONTAL);
         countRow.setGravity(Gravity.CENTER);
-        countRow.setPadding(0, 30, 0, 10);
-        header.addView(countRow);
+        countRow.setBackgroundColor(Color.parseColor("#1B1035"));
+        countRow.setPadding(15, 20, 15, 20);
+        root.addView(countRow);
 
         txtFollow = addCountItem(countRow, "0", "Follow", () -> showCountDialog("Follow", followCount));
         txtFans = addCountItem(countRow, "0", "Fans", () -> showCountDialog("Fans", fansCount));
         txtVisitor = addCountItem(countRow, "0", "Visitor", () -> showCountDialog("Visitor", visitorCount));
 
-        // ===== SVIP CENTER - LOCKED =====
-        LinearLayout svip = new LinearLayout(this);
-        svip.setOrientation(LinearLayout.HORIZONTAL);
-        svip.setGravity(Gravity.CENTER_VERTICAL);
-        svip.setPadding(30, 25, 30, 25);
-        GradientDrawable svipBg = new GradientDrawable();
-        svipBg.setColor(Color.parseColor("#3A2A00"));
-        svipBg.setCornerRadius(30);
-        svip.setBackground(svipBg);
-        LinearLayout.LayoutParams svipParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        svipParams.setMargins(30, 25, 30, 15);
-        svip.setLayoutParams(svipParams);
-        svip.setOnClickListener(v -> Toast.makeText(this, "🔒 SVIP Locked - Coming Soon", Toast.LENGTH_SHORT).show());
-        root.addView(svip);
+        // ===== Scrollable Menu Items Container =====
+        LinearLayout menuContainer = new LinearLayout(this);
+        menuContainer.setOrientation(LinearLayout.VERTICAL);
+        menuContainer.setPadding(20, 20, 20, 30);
+        root.addView(menuContainer);
 
-        TextView svipIcon = new TextView(this);
-        svipIcon.setText("👑 SVIP");
-        svipIcon.setTextColor(Color.parseColor("#FFD700"));
-        svipIcon.setTextSize(16);
-        svipIcon.setTypeface(null, Typeface.BOLD);
-        svip.addView(svipIcon);
-
-        TextView svipSub = new TextView(this);
-        svipSub.setText("  SVIP Center - Get SVIP and enjoy various privileges >");
-        svipSub.setTextColor(Color.parseColor("#FFE9A8"));
-        svipSub.setTextSize(12);
-        svipSub.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        svip.addView(svipSub);
-
-        // ===== VIP / Recharge =====
+        // SVIP Center
+        addMenuCard(menuContainer, "👑 SVIP Center", "Get SVIP and enjoy privileges", () -> Toast.makeText(this, "SVIP Locked - Coming Soon", Toast.LENGTH_SHORT).show());
+        
+        // VIP & Recharge Row
         LinearLayout vipRow = new LinearLayout(this);
         vipRow.setOrientation(LinearLayout.HORIZONTAL);
-        vipRow.setPadding(30, 0, 30, 0);
-        root.addView(vipRow);
+        LinearLayout.LayoutParams vipRowLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        vipRowLp.setMargins(0, 10, 0, 10);
+        vipRow.setLayoutParams(vipRowLp);
+        menuContainer.addView(vipRow);
 
-        LinearLayout vipBox = makeSmallCard("👑 VIP", "check now >", "#FFF0D6");
+        LinearLayout vipBox = makeSmallCard("👑 VIP", "Check now >", "#2A1B4E");
         vipBox.setOnClickListener(v -> Toast.makeText(this, "VIP - Coming Soon", Toast.LENGTH_SHORT).show());
         LinearLayout.LayoutParams vipLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
-        vipLp.setMargins(0, 0, 15, 0);
+        vipLp.setMargins(0, 0, 10, 0);
         vipBox.setLayoutParams(vipLp);
         vipRow.addView(vipBox);
 
-        LinearLayout rechargeBox = makeSmallCard("🎁 Recharge", "Top up >", "#FFE4EC");
+        LinearLayout rechargeBox = makeSmallCard("🎁 Recharge", "Top up >", "#2A1B4E");
         rechargeBox.setOnClickListener(v -> Toast.makeText(this, "Recharge - Coming Soon", Toast.LENGTH_SHORT).show());
         LinearLayout.LayoutParams recLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
-        recLp.setMargins(15, 0, 0, 0);
+        recLp.setMargins(10, 0, 0, 0);
         rechargeBox.setLayoutParams(recLp);
         vipRow.addView(rechargeBox);
 
-        // ===== General Tools =====
+        // General Tools Title
         TextView toolsTitle = new TextView(this);
         toolsTitle.setText("General Tools");
-        toolsTitle.setTextColor(Color.parseColor("#333333"));
-        toolsTitle.setTextSize(15);
+        toolsTitle.setTextColor(Color.parseColor("#B0BEC5"));
+        toolsTitle.setTextSize(14);
         toolsTitle.setTypeface(null, Typeface.BOLD);
-        toolsTitle.setPadding(40, 30, 0, 15);
-        root.addView(toolsTitle);
+        toolsTitle.setPadding(10, 15, 10, 10);
+        menuContainer.addView(toolsTitle);
 
         LinearLayout toolsRow = new LinearLayout(this);
         toolsRow.setOrientation(LinearLayout.HORIZONTAL);
         toolsRow.setGravity(Gravity.CENTER);
-        toolsRow.setPadding(20, 0, 20, 10);
-        root.addView(toolsRow);
+        toolsRow.setBackgroundColor(Color.parseColor("#1B1035"));
+        toolsRow.setPadding(15, 20, 15, 20);
+        LinearLayout.LayoutParams toolsLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        toolsLp.setMargins(0, 0, 0, 15);
+        toolsRow.setLayoutParams(toolsLp);
+        menuContainer.addView(toolsRow);
 
         addToolItem(toolsRow, "🛍️", "Store");
         addToolItem(toolsRow, "👗", "Dress");
-        addToolItem(toolsRow, "🎂", "Birthday gift");
+        addToolItem(toolsRow, "🎂", "Birthday");
         addToolItem(toolsRow, "📊", "Level");
 
-        // ===== List Menu - Arrow > Soho =====
+        // List Menu Items (Arrow > সহ)
         LinearLayout listBox = new LinearLayout(this);
         listBox.setOrientation(LinearLayout.VERTICAL);
-        listBox.setBackgroundColor(Color.WHITE);
-        LinearLayout.LayoutParams listLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        listLp.setMargins(30, 20, 30, 20);
-        listBox.setLayoutParams(listLp);
+        listBox.setBackgroundColor(Color.parseColor("#1B1035"));
         GradientDrawable listBg = new GradientDrawable();
-        listBg.setColor(Color.WHITE);
-        listBg.setCornerRadius(30);
+        listBg.setColor(Color.parseColor("#1B1035"));
+        listBg.setCornerRadius(20);
         listBox.setBackground(listBg);
-        root.addView(listBox);
+        menuContainer.addView(listBox);
 
         addMenuRow(listBox, "🎁 Newbie mission");
         addMenuRow(listBox, "👥 Invite Friend");
@@ -243,15 +248,29 @@ public class MeActivity extends AppCompatActivity {
         addMenuRow(listBox, "📅 Daily Tasks");
         addMenuRow(listBox, "⚙️ Setting");
 
-        // ===== Logout =====
+        // ===== Logout Button (সেটিংস ও অন্যান্য মেনুর ঠিক নিচে প্রিমিয়াম কার্ড স্টাইলে) =====
+        LinearLayout logoutLayout = new LinearLayout(this);
+        logoutLayout.setOrientation(LinearLayout.HORIZONTAL);
+        logoutLayout.setGravity(Gravity.CENTER);
+        logoutLayout.setBackgroundColor(Color.parseColor("#2A1B4E"));
+        logoutLayout.setPadding(20, 25, 20, 25);
+        GradientDrawable logoutBg = new GradientDrawable();
+        logoutBg.setColor(Color.parseColor("#2A1B4E"));
+        logoutBg.setCornerRadius(20);
+        logoutLayout.setBackground(logoutBg);
+        
+        LinearLayout.LayoutParams logoutLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        logoutLp.setMargins(0, 25, 0, 40);
+        logoutLayout.setLayoutParams(logoutLp);
+
         TextView btnLogout = new TextView(this);
-        btnLogout.setText("🚪 Logout");
-        btnLogout.setTextColor(Color.parseColor("#E91E63"));
-        btnLogout.setTextSize(15);
+        btnLogout.setText("🚪 Log Out");
+        btnLogout.setTextColor(Color.parseColor("#FF4081"));
+        btnLogout.setTextSize(16);
         btnLogout.setTypeface(null, Typeface.BOLD);
-        btnLogout.setGravity(Gravity.CENTER);
-        btnLogout.setPadding(0, 30, 0, 40);
-        btnLogout.setOnClickListener(v -> {
+        logoutLayout.addView(btnLogout);
+
+        logoutLayout.setOnClickListener(v -> {
             prefs.edit().putBoolean("IS_LOGGED_IN", false).apply();
             FirebaseAuth.getInstance().signOut();
             Intent i = new Intent(MeActivity.this, LoginActivity.class);
@@ -259,7 +278,7 @@ public class MeActivity extends AppCompatActivity {
             startActivity(i);
             finish();
         });
-        root.addView(btnLogout);
+        menuContainer.addView(logoutLayout);
 
         setContentView(scroll);
         showFromPrefs();
@@ -271,21 +290,18 @@ public class MeActivity extends AppCompatActivity {
         box.setOrientation(LinearLayout.VERTICAL);
         box.setGravity(Gravity.CENTER);
         box.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        box.setPadding(10, 10, 10, 10);
         box.setOnClickListener(v -> onClick.run());
         parent.addView(box);
         TextView tvNum = new TextView(this);
         tvNum.setText(num);
-        tvNum.setTextColor(Color.parseColor("#222222"));
-        tvNum.setTextSize(18);
+        tvNum.setTextColor(Color.WHITE);
+        tvNum.setTextSize(16);
         tvNum.setTypeface(null, Typeface.BOLD);
-        tvNum.setGravity(Gravity.CENTER);
         box.addView(tvNum);
         TextView tvLabel = new TextView(this);
         tvLabel.setText(label);
-        tvLabel.setTextColor(Color.parseColor("#666666"));
+        tvLabel.setTextColor(Color.parseColor("#B0BEC5"));
         tvLabel.setTextSize(12);
-        tvLabel.setGravity(Gravity.CENTER);
         box.addView(tvLabel);
         return tvNum;
     }
@@ -293,23 +309,51 @@ public class MeActivity extends AppCompatActivity {
     private LinearLayout makeSmallCard(String title, String sub, String bgColor) {
         LinearLayout box = new LinearLayout(this);
         box.setOrientation(LinearLayout.VERTICAL);
-        box.setPadding(30, 25, 30, 25);
+        box.setPadding(25, 20, 25, 20);
         GradientDrawable bg = new GradientDrawable();
         bg.setColor(Color.parseColor(bgColor));
-        bg.setCornerRadius(30);
+        bg.setCornerRadius(20);
         box.setBackground(bg);
         TextView t1 = new TextView(this);
         t1.setText(title);
-        t1.setTextColor(Color.parseColor("#333333"));
-        t1.setTextSize(15);
+        t1.setTextColor(Color.WHITE);
+        t1.setTextSize(14);
         t1.setTypeface(null, Typeface.BOLD);
         box.addView(t1);
         TextView t2 = new TextView(this);
         t2.setText(sub);
-        t2.setTextColor(Color.parseColor("#888888"));
-        t2.setTextSize(12);
+        t2.setTextColor(Color.parseColor("#B0BEC5"));
+        t2.setTextSize(11);
         box.addView(t2);
         return box;
+    }
+
+    private void addMenuCard(LinearLayout parent, String title, String sub, Runnable onClick) {
+        LinearLayout box = new LinearLayout(this);
+        box.setOrientation(LinearLayout.VERTICAL);
+        box.setPadding(25, 20, 25, 20);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.parseColor("#2A1B4E"));
+        bg.setCornerRadius(20);
+        box.setBackground(bg);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lp.setMargins(0, 0, 0, 10);
+        box.setLayoutParams(lp);
+        box.setOnClickListener(v -> onClick.run());
+
+        TextView t1 = new TextView(this);
+        t1.setText(title);
+        t1.setTextColor(Color.parseColor("#FFD700"));
+        t1.setTextSize(15);
+        t1.setTypeface(null, Typeface.BOLD);
+        box.addView(t1);
+
+        TextView t2 = new TextView(this);
+        t2.setText(sub);
+        t2.setTextColor(Color.parseColor("#B0BEC5"));
+        t2.setTextSize(12);
+        box.addView(t2);
+        parent.addView(box);
     }
 
     private void addToolItem(LinearLayout parent, String icon, String label) {
@@ -317,17 +361,16 @@ public class MeActivity extends AppCompatActivity {
         box.setOrientation(LinearLayout.VERTICAL);
         box.setGravity(Gravity.CENTER);
         box.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        box.setPadding(10, 10, 10, 10);
         box.setOnClickListener(v -> Toast.makeText(this, label + " - Coming Soon", Toast.LENGTH_SHORT).show());
         parent.addView(box);
         TextView iv = new TextView(this);
         iv.setText(icon);
-        iv.setTextSize(24);
+        iv.setTextSize(22);
         iv.setGravity(Gravity.CENTER);
         box.addView(iv);
         TextView tv = new TextView(this);
         tv.setText(label);
-        tv.setTextColor(Color.parseColor("#444444"));
+        tv.setTextColor(Color.WHITE);
         tv.setTextSize(12);
         tv.setGravity(Gravity.CENTER);
         box.addView(tv);
@@ -337,29 +380,23 @@ public class MeActivity extends AppCompatActivity {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(35, 28, 35, 28);
+        row.setPadding(30, 25, 30, 25);
         row.setOnClickListener(v -> Toast.makeText(this, title + " - Coming Soon", Toast.LENGTH_SHORT).show());
         parent.addView(row);
         TextView t = new TextView(this);
         t.setText(title);
-        t.setTextColor(Color.parseColor("#333333"));
+        t.setTextColor(Color.WHITE);
         t.setTextSize(14);
         t.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         row.addView(t);
         TextView arrow = new TextView(this);
         arrow.setText(">");
-        arrow.setTextColor(Color.parseColor("#AAAAAA"));
-        arrow.setTextSize(18);
+        arrow.setTextColor(Color.parseColor("#B0BEC5"));
+        arrow.setTextSize(16);
         arrow.setTypeface(null, Typeface.BOLD);
         row.addView(arrow);
-        View div = new View(this);
-        div.setBackgroundColor(Color.parseColor("#EEEEEE"));
-        div.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 2));
-        parent.addView(div);
     }
 
-    // NEW - Me theke Nijer Full Profile e jabe - Demo er moto
-    // Age ekhane goEdit() chilo - oita tule deya hoiche
     private void goProfile() {
         try {
             Intent i = new Intent(MeActivity.this, PublicProfileActivity.class);
@@ -374,7 +411,7 @@ public class MeActivity extends AppCompatActivity {
     private void showCountDialog(String type, String count) {
         new AlertDialog.Builder(this)
             .setTitle(type + " - " + count)
-            .setMessage("Apnar " + type + " list ekhane asbe.\n\nEita sudhu apni dekhte parben. Onno keu apnar Follow/Fans dekhte parbe na.\n\nPorer step e eikhane full list banabo InshaAllah.")
+            .setMessage("Apnar " + type + " list ekhane asbe.\n\nEita sudhu apni dekhte parben.")
             .setPositiveButton("OK", null)
             .show();
     }
@@ -446,7 +483,6 @@ public class MeActivity extends AppCompatActivity {
         });
     }
 
-    // FIXED - Chobi choto kore load - boro chobi OOM hoye haray jeto
     private void showBase64Image(String base64, ImageView iv) {
         if (iv == null || base64 == null || base64.isEmpty()) return;
         try {
