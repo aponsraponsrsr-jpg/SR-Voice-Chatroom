@@ -3,9 +3,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#1B1035">
+    android:background="#F5E6B8">
 
-    <!-- ===== HEADER ===== -->
+    <!-- ===== HEADER - GOLDEN ICON, NO PROFILE PIC EMOJI ===== -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -14,14 +14,19 @@
         android:paddingStart="10dp"
         android:paddingEnd="10dp"
         android:paddingTop="10dp"
-        android:paddingBottom="6dp">
+        android:paddingBottom="6dp"
+        android:background="#E8D48B">
 
-        <ImageView
+        <TextView
             android:id="@+id/roomHeaderProfileImg"
             android:layout_width="42dp"
             android:layout_height="42dp"
-            android:scaleType="centerCrop"
-            android:src="@android:drawable/ic_menu_gallery" />
+            android:gravity="center"
+            android:text="SR"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:background="#FFC107" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -29,133 +34,102 @@
             android:layout_weight="1"
             android:orientation="vertical"
             android:paddingStart="8dp">
-            <TextView android:id="@+id/roomTitleText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sr Official's Room" android:textColor="#FFFFFF" android:textSize="15sp" android:textStyle="bold" android:maxLines="1" />
-            <TextView android:id="@+id/roomInfoText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ID: 499506534" android:textColor="#B0BEC5" android:textSize="12sp" />
+            <TextView android:id="@+id/roomTitleText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sr Official's Room" android:textColor="#3E2F00" android:textSize="15sp" android:textStyle="bold" android:maxLines="1" />
+            <TextView android:id="@+id/roomInfoText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ID: 499506534" android:textColor="#6D5A00" android:textSize="12sp" />
         </LinearLayout>
 
-        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:padding="6dp" android:background="#2A1B4E">
-            <TextView android:id="@+id/textRoomCoins" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🪙 0" android:textColor="#FFD700" android:textSize="13sp" android:textStyle="bold" />
+        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:padding="6dp" android:background="#FFFFFF">
+            <TextView android:id="@+id/textRoomCoins" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🪙 0" android:textColor="#B8860B" android:textSize="13sp" android:textStyle="bold" />
         </LinearLayout>
 
-        <LinearLayout android:id="@+id/btnInRoomRanking" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:padding="6dp" android:layout_marginStart="6dp" android:background="#2A1B4E">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🏆 398" android:textColor="#FFD700" android:textSize="13sp" android:textStyle="bold" />
+        <LinearLayout android:id="@+id/btnInRoomRanking" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:padding="6dp" android:layout_marginStart="6dp" android:background="#FFFFFF">
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🏆 398" android:textColor="#B8860B" android:textSize="13sp" android:textStyle="bold" />
         </LinearLayout>
 
-        <TextView android:id="@+id/textOnlineCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold" android:paddingStart="8dp" />
+        <TextView android:id="@+id/textOnlineCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1" android:textColor="#3E2F00" android:textSize="13sp" android:textStyle="bold" android:paddingStart="8dp" />
         <ImageView android:id="@+id/btnOnlineList" android:layout_width="32dp" android:layout_height="32dp" android:layout_marginStart="4dp" android:src="@android:drawable/ic_menu_myplaces" android:contentDescription="Online" />
         <ImageButton android:id="@+id/btnPower" android:layout_width="36dp" android:layout_height="36dp" android:layout_marginStart="4dp" android:background="@android:color/transparent" android:src="@android:drawable/ic_lock_power_off" android:contentDescription="Power" />
     </LinearLayout>
 
-    <TextView android:id="@+id/roomNoticeBarText" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingStart="12dp" android:paddingEnd="12dp" android:paddingBottom="6dp" android:text="Welcome to SR Voice Chat ❤️" android:textColor="#FFD700" android:textSize="13sp" />
+    <TextView android:id="@+id/roomNoticeBarText" android:layout_width="match_parent" android:layout_height="wrap_content" android:paddingStart="12dp" android:paddingEnd="12dp" android:paddingBottom="6dp" android:background="#FFF8DC" android:text="Welcome to SR Voice Chat ❤️" android:textColor="#8B6508" android:textSize="13sp" />
 
-    <!-- ===== SEATS ===== -->
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="10dp" android:paddingEnd="10dp" android:paddingTop="6dp">
+    <!-- ===== SEATS - SMALL ROUND + CHAIR INSIDE - PREMIUM ===== -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="10dp" android:paddingEnd="10dp" android:paddingTop="6dp" android:background="#F5E6B8">
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:weightSum="5">
             <LinearLayout android:id="@+id/seat_0" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp">
-                <ImageView android:id="@+id/seatImg_0" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Host" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="1" android:textColor="#AAAAAA" android:textSize="11sp" />
+                <TextView android:id="@+id/seatImg_0" android:layout_width="48dp" android:layout_height="48dp" android:gravity="center" android:text="🪑" android:textSize="20sp" android:background="#FFE9A8" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Host" android:textColor="#3E2F00" android:textSize="11sp" android:maxLines="1" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="1" android:textColor="#8B6508" android:textSize="11sp" />
             </LinearLayout>
             <LinearLayout android:id="@+id/seat_1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp">
-                <ImageView android:id="@+id/seatImg_1" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="2" android:textColor="#AAAAAA" android:textSize="11sp" />
+                <TextView android:id="@+id/seatImg_1" android:layout_width="48dp" android:layout_height="48dp" android:gravity="center" android:text="🪑" android:textSize="20sp" android:background="#FFE9A8" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#3E2F00" android:textSize="11sp" android:maxLines="1" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="2" android:textColor="#8B6508" android:textSize="11sp" />
             </LinearLayout>
             <LinearLayout android:id="@+id/seat_2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp">
-                <ImageView android:id="@+id/seatImg_2" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="3" android:textColor="#AAAAAA" android:textSize="11sp" />
+                <TextView android:id="@+id/seatImg_2" android:layout_width="48dp" android:layout_height="48dp" android:gravity="center" android:text="🪑" android:textSize="20sp" android:background="#FFE9A8" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#3E2F00" android:textSize="11sp" android:maxLines="1" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="3" android:textColor="#8B6508" android:textSize="11sp" />
             </LinearLayout>
             <LinearLayout android:id="@+id/seat_3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp">
-                <ImageView android:id="@+id/seatImg_3" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="4" android:textColor="#AAAAAA" android:textSize="11sp" />
+                <TextView android:id="@+id/seatImg_3" android:layout_width="48dp" android:layout_height="48dp" android:gravity="center" android:text="🪑" android:textSize="20sp" android:background="#FFE9A8" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#3E2F00" android:textSize="11sp" android:maxLines="1" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="4" android:textColor="#8B6508" android:textSize="11sp" />
             </LinearLayout>
             <LinearLayout android:id="@+id/seat_4" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp">
-                <ImageView android:id="@+id/seatImg_4" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="5" android:textColor="#AAAAAA" android:textSize="11sp" />
+                <TextView android:id="@+id/seatImg_4" android:layout_width="48dp" android:layout_height="48dp" android:gravity="center" android:text="🪑" android:textSize="20sp" android:background="#FFE9A8" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#3E2F00" android:textSize="11sp" android:maxLines="1" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="5" android:textColor="#8B6508" android:textSize="11sp" />
             </LinearLayout>
         </LinearLayout>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:weightSum="5">
             <LinearLayout android:id="@+id/seat_5" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp">
-                <ImageView android:id="@+id/seatImg_5" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="6" android:textColor="#AAAAAA" android:textSize="11sp" />
+                <TextView android:id="@+id/seatImg_5" android:layout_width="48dp" android:layout_height="48dp" android:gravity="center" android:text="🪑" android:textSize="20sp" android:background="#FFE9A8" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#3E2F00" android:textSize="11sp" android:maxLines="1" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="6" android:textColor="#8B6508" android:textSize="11sp" />
             </LinearLayout>
             <LinearLayout android:id="@+id/seat_6" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp">
-                <ImageView android:id="@+id/seatImg_6" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="7" android:textColor="#AAAAAA" android:textSize="11sp" />
+                <TextView android:id="@+id/seatImg_6" android:layout_width="48dp" android:layout_height="48dp" android:gravity="center" android:text="🪑" android:textSize="20sp" android:background="#FFE9A8" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#3E2F00" android:textSize="11sp" android:maxLines="1" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="7" android:textColor="#8B6508" android:textSize="11sp" />
             </LinearLayout>
             <LinearLayout android:id="@+id/seat_7" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp">
-                <ImageView android:id="@+id/seatImg_7" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="8" android:textColor="#AAAAAA" android:textSize="11sp" />
+                <TextView android:id="@+id/seatImg_7" android:layout_width="48dp" android:layout_height="48dp" android:gravity="center" android:text="🪑" android:textSize="20sp" android:background="#FFE9A8" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#3E2F00" android:textSize="11sp" android:maxLines="1" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="8" android:textColor="#8B6508" android:textSize="11sp" />
             </LinearLayout>
             <LinearLayout android:id="@+id/seat_8" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp">
-                <ImageView android:id="@+id/seatImg_8" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="9" android:textColor="#AAAAAA" android:textSize="11sp" />
+                <TextView android:id="@+id/seatImg_8" android:layout_width="48dp" android:layout_height="48dp" android:gravity="center" android:text="🪑" android:textSize="20sp" android:background="#FFE9A8" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#3E2F00" android:textSize="11sp" android:maxLines="1" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="9" android:textColor="#8B6508" android:textSize="11sp" />
             </LinearLayout>
             <LinearLayout android:id="@+id/seat_9" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp">
-                <ImageView android:id="@+id/seatImg_9" android:layout_width="52dp" android:layout_height="52dp" android:src="@android:drawable/ic_menu_gallery" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#FFFFFF" android:textSize="11sp" android:maxLines="1" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="10" android:textColor="#AAAAAA" android:textSize="11sp" />
+                <TextView android:id="@+id/seatImg_9" android:layout_width="48dp" android:layout_height="48dp" android:gravity="center" android:text="🪑" android:textSize="20sp" android:background="#FFE9A8" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textColor="#3E2F00" android:textSize="11sp" android:maxLines="1" />
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:tag="seat_number" android:text="10" android:textColor="#8B6508" android:textSize="11sp" />
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingStart="12dp" android:paddingTop="10dp">
-        <TextView android:id="@+id/tabAll" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="All" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold" android:paddingEnd="16dp" />
-        <TextView android:id="@+id/tabChat" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Chat" android:textColor="#AAAAAA" android:textSize="13sp" android:paddingEnd="16dp" />
-        <TextView android:id="@+id/tabGift" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Gift" android:textColor="#AAAAAA" android:textSize="13sp" android:paddingEnd="16dp" />
-        <TextView android:id="@+id/tabNotice" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Notice" android:textColor="#AAAAAA" android:textSize="13sp" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingStart="12dp" android:paddingTop="10dp" android:background="#F5E6B8">
+        <TextView android:id="@+id/tabAll" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="All" android:textColor="#3E2F00" android:textSize="13sp" android:textStyle="bold" android:paddingEnd="16dp" />
+        <TextView android:id="@+id/tabChat" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Chat" android:textColor="#8B6508" android:textSize="13sp" android:paddingEnd="16dp" />
+        <TextView android:id="@+id/tabGift" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Gift" android:textColor="#8B6508" android:textSize="13sp" android:paddingEnd="16dp" />
+        <TextView android:id="@+id/tabNotice" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Notice" android:textColor="#8B6508" android:textSize="13sp" />
     </LinearLayout>
 
-    <!-- CHAT LIST - SCROLLVIEW KE ID DILAM JATE AUTO SCROLL HOY -->
-    <ScrollView
-        android:id="@+id/chatScrollView"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:padding="12dp">
-        <LinearLayout
-            android:id="@+id/chatListContainer"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-            <TextView android:id="@+id/textChatEmpty" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="wlc" android:textColor="#AAAAAA" android:textSize="13sp" />
+    <ScrollView android:id="@+id/chatScrollView" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:padding="12dp" android:background="#F5E6B8">
+        <LinearLayout android:id="@+id/chatListContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+            <TextView android:id="@+id/textChatEmpty" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="wlc" android:textColor="#8B6508" android:textSize="13sp" />
         </LinearLayout>
     </ScrollView>
 
-    <!-- ===== BOTTOM BAR - MESSAGE CHOTO, ICON BORO ===== -->
-    <!-- AGE 40dp CHILO, EKHON 52dp - BORO + PREMIUM -->
-    <!-- MESSAGE BOX AGE BESI JAYGA NITO, EKHON CHOTO - weight kom -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:paddingStart="6dp"
-        android:paddingEnd="6dp"
-        android:paddingTop="6dp"
-        android:paddingBottom="6dp"
-        android:background="#0A0518">
-
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="6dp" android:paddingEnd="6dp" android:paddingTop="6dp" android:paddingBottom="6dp" android:background="#2E7D32">
         <TextView android:id="@+id/btnMicToggle" android:layout_width="52dp" android:layout_height="52dp" android:gravity="center" android:text="🎤" android:textSize="22sp" android:textColor="#FFFFFF" android:background="#FF9800" />
-
-        <!-- TYPE BOX CHOTO - weight 1 kintu height kom, margin kom -->
-        <EditText android:id="@+id/inputChatMessage" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:layout_marginStart="5dp" android:layout_marginEnd="5dp" android:hint="Type..." android:textColorHint="#AAAAAA" android:textColor="#FFFFFF" android:textSize="13sp" android:background="#2A1B4E" android:paddingStart="10dp" android:singleLine="true" android:imeOptions="actionSend" />
-
-        <TextView android:id="@+id/btnChatOption" android:layout_width="52dp" android:layout_height="52dp" android:gravity="center" android:text="➤" android:textSize="22sp" android:textColor="#FFFFFF" android:background="#2A1B4E" />
-
+        <EditText android:id="@+id/inputChatMessage" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:layout_marginStart="5dp" android:layout_marginEnd="5dp" android:hint="Type..." android:textColorHint="#AAAAAA" android:textColor="#FFFFFF" android:textSize="13sp" android:background="#1B5E20" android:paddingStart="10dp" android:singleLine="true" android:imeOptions="actionSend" />
+        <TextView android:id="@+id/btnChatOption" android:layout_width="52dp" android:layout_height="52dp" android:gravity="center" android:text="➤" android:textSize="22sp" android:textColor="#FFFFFF" android:background="#1B5E20" />
         <TextView android:id="@+id/btnGiftBox" android:layout_width="52dp" android:layout_height="52dp" android:layout_marginStart="5dp" android:gravity="center" android:text="🎁" android:textSize="22sp" android:textColor="#FFFFFF" android:background="#E91E63" />
-
-        <!-- GAME - GOLAPI + BEGUNI - PREMIUM -->
         <TextView android:id="@+id/btnGame" android:layout_width="52dp" android:layout_height="52dp" android:layout_marginStart="5dp" android:gravity="center" android:text="🎮" android:textSize="22sp" android:textColor="#FFFFFF" android:background="#9C27B0" />
-
-        <TextView android:id="@+id/btnRoomTools" android:layout_width="52dp" android:layout_height="52dp" android:layout_marginStart="5dp" android:gravity="center" android:text="⚙️" android:textSize="22sp" android:textColor="#FFFFFF" android:background="#2A1B4E" />
+        <TextView android:id="@+id/btnRoomTools" android:layout_width="52dp" android:layout_height="52dp" android:layout_marginStart="5dp" android:gravity="center" android:text="⚙️" android:textSize="22sp" android:textColor="#FFFFFF" android:background="#1B5E20" />
     </LinearLayout>
-
 </LinearLayout>
