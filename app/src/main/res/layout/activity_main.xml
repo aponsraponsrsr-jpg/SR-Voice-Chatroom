@@ -5,7 +5,7 @@
     android:orientation="vertical"
     android:background="#1B1035">
 
-    <!-- UPORE CONTENT - SCROLL HOBE -->
+    <!-- UPORE CONTENT CONTAINER - SCROLL HOBE -->
     <FrameLayout
         android:id="@+id/mainContainer"
         android:layout_width="match_parent"
@@ -97,7 +97,9 @@
             android:id="@+id/pageMoment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="gone">
+            android:visibility="gone"
+            android:fillViewport="true"
+            android:background="#1B1035">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -126,7 +128,9 @@
             android:id="@+id/pageInbox"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="gone">
+            android:visibility="gone"
+            android:fillViewport="true"
+            android:background="#1B1035">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -150,7 +154,7 @@
             </LinearLayout>
         </ScrollView>
 
-        <!-- ME PAGE - SCROLL HOBE - BOTTOM SORBE NA -->
+        <!-- ME PAGE - SCROLL HOBE -->
         <ScrollView
             android:id="@+id/pageMe"
             android:layout_width="match_parent"
@@ -164,13 +168,13 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <!-- PROFILE - GOL - DEMO ER MOTO -->
+                <!-- PROFILE - GOL -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
-                    android:padding="10dp"
+                    android:padding="12dp"
                     android:background="#FFFFFF">
 
                     <!-- GOL PROFILE -->
@@ -201,13 +205,14 @@
                             android:id="@+id/meIdText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="ID: 499506534  Copy"
+                            android:text="ID: 499506534  📋"
                             android:textColor="#888888"
                             android:textSize="13sp" />
                         <TextView
+                            android:id="@+id/meGenderCountryText"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Male | Bangladesh"
+                            android:text="♂ Male | Bangladesh"
                             android:textColor="#888888"
                             android:textSize="12sp" />
                     </LinearLayout>
@@ -314,23 +319,41 @@
                     <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📊" android:textSize="22sp" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Level" android:textColor="#333333" android:textSize="12sp" /></LinearLayout>
                 </LinearLayout>
 
-                <!-- LIST - SERIAL - DEMO ER MOTO -->
+                <!-- LIST -->
                 <LinearLayout android:id="@+id/meMenuList" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="#FFFFFF" android:layout_marginTop="10dp" />
 
-                <!-- SETTING ER NICHE LOGOUT - SCROLL KORE PABE -->
-                <TextView
+                <!-- SETTING ER NICHE LOGOUT (সেটিংস মেনুর স্টাইলে গোছানো) -->
+                <LinearLayout
                     android:id="@+id/btnLogout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="🚪  Logout"
-                    android:textColor="#FF0000"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:gravity="center"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
                     android:padding="16dp"
                     android:background="#FFFFFF"
                     android:layout_marginTop="10dp"
-                    android:layout_marginBottom="20dp" />
+                    android:layout_marginBottom="20dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🚪"
+                        android:textSize="18sp" />
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Logout"
+                        android:textColor="#FF0000"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:paddingStart="12dp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=">"
+                        android:textColor="#AAAAAA"
+                        android:textSize="16sp" />
+                </LinearLayout>
             </LinearLayout>
         </ScrollView>
     </FrameLayout>
@@ -350,21 +373,21 @@
         </LinearLayout>
 
         <LinearLayout android:id="@+id/navMoment" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🕒" android:textSize="20sp" />
+            <TextView android:id="@+id/navMomentIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🕒" android:textSize="20sp" />
             <TextView android:id="@+id/navMomentText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Moment" android:textColor="#888888" android:textSize="11sp" />
         </LinearLayout>
 
-        <LinearLayout android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
+        <LinearLayout android:id="@+id/navCenterPlus" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
             <TextView android:layout_width="44dp" android:layout_height="44dp" android:gravity="center" android:text="+" android:textSize="22sp" android:textColor="#FFFFFF" android:background="#FF4081" />
         </LinearLayout>
 
         <LinearLayout android:id="@+id/navInbox" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💬" android:textSize="20sp" />
+            <TextView android:id="@+id/navInboxIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💬" android:textSize="20sp" />
             <TextView android:id="@+id/navInboxText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Inbox" android:textColor="#888888" android:textSize="11sp" />
         </LinearLayout>
 
         <LinearLayout android:id="@+id/navMe" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👤" android:textSize="20sp" />
+            <TextView android:id="@+id/navMeIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👤" android:textSize="20sp" />
             <TextView android:id="@+id/navMeText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Me" android:textColor="#888888" android:textSize="11sp" />
         </LinearLayout>
     </LinearLayout>
