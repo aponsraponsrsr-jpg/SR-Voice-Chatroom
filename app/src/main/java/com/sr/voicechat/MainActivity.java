@@ -1,5 +1,8 @@
 package com.sr.voicechat;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -24,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private ScrollView pageHome, pageMoment, pageInbox, pageMe;
     private LinearLayout homeRoomList, meMenuList;
     private ImageView meProfileImg;
-    private TextView meNameText, meIdText, navHomeText, navMomentText, navInboxText, navMeText;
+    private TextView meNameText, meIdText, meGenderCountryText, navHomeText, navMomentText, navInboxText, navMeText;
     private String myUid = "", my9DigitId = "", myName = "User", myPhotoBase64 = "", myCountry = "Bangladesh", myGender = "Male";
 
     @Override
@@ -55,21 +58,37 @@ public class MainActivity extends AppCompatActivity {
         meProfileImg = findViewById(R.id.meProfileImg);
         meNameText = findViewById(R.id.meNameText);
         meIdText = findViewById(R.id.meIdText);
+        meGenderCountryText = findViewById(R.id.meGenderCountryText);
         navHomeText = findViewById(R.id.navHomeText);
         navMomentText = findViewById(R.id.navMomentText);
         navInboxText = findViewById(R.id.navInboxText);
         navMeText = findViewById(R.id.navMeText);
 
-        // BOTTOM NAV - FIXED - KOKHONO SORBE NA - BACK BUTTON LAGBE NA
+        // BOTTOM NAV - FIXED - CLICK KORE SOJA HOME BA ONNO TAB E JAWA JABO
         findViewById(R.id.navHome).setOnClickListener(v -> showPage(0));
         findViewById(R.id.navMoment).setOnClickListener(v -> showPage(1));
         findViewById(R.id.navInbox).setOnClickListener(v -> showPage(2));
         findViewById(R.id.navMe).setOnClickListener(v -> showPage(3));
+        
+        // Center Plus (+) click handler
+        findViewById(R.id.navCenterPlus).setOnClickListener(v -> 
+            Toast.makeText(this, "Create Room / Post - Coming Soon", Toast.LENGTH_SHORT).show()
+        );
 
-        // ME PROFILE CLICK - GOL PROFILE
+        // ID Copy click handler
+        if (meIdText != null) {
+            meIdText.setOnClickListener(v -> {
+                String idToCopy = my9DigitId.isEmpty() ? myUid : my9DigitId;
+                ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                cm.setPrimaryClip(ClipData.newPlainText("ID", idToCopy));
+                Toast.makeText(this, "ID Copied: " + idToCopy, Toast.LENGTH_SHORT).show();
+            });
+        }
+
+        // ME PROFILE CLICK
         if (meProfileImg != null) meProfileImg.setOnClickListener(v -> Toast.makeText(this, "Edit Profile - Coming Soon", Toast.LENGTH_SHORT).show());
 
-        // LOGOUT - SETTING ER NICHE - SCROLL KORE PABE
+        // LOGOUT
         View btnLogout = findViewById(R.id.btnLogout);
         if (btnLogout != null) btnLogout.setOnClickListener(v -> {
             FirebaseAuth.getInstance().signOut();
@@ -84,23 +103,25 @@ public class MainActivity extends AppCompatActivity {
         showPage(0);
     }
 
-    // PAGE SWITCH - BOTTOM BAR SOB SOMOY THAKBE
+    // PAGE SWITCH - BOTTOM BAR SOB SOMOY FIXED THAKBE
     private void showPage(int index) {
         pageHome.setVisibility(index == 0 ? View.VISIBLE : View.GONE);
         pageMoment.setVisibility(index == 1 ? View.VISIBLE : View.GONE);
         pageInbox.setVisibility(index == 2 ? View.VISIBLE : View.GONE);
         pageMe.setVisibility(index == 3 ? View.VISIBLE : View.GONE);
+        
         navHomeText.setTextColor(index == 0 ? Color.parseColor("#FF4081") : Color.parseColor("#888888"));
         navMomentText.setTextColor(index == 1 ? Color.parseColor("#FF4081") : Color.parseColor("#888888"));
         navInboxText.setTextColor(index == 2 ? Color.parseColor("#FF4081") : Color.parseColor("#888888"));
         navMeText.setTextColor(index == 3 ? Color.parseColor("#FF4081") : Color.parseColor("#888888"));
+        
         navHomeText.setTypeface(null, index == 0 ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
         navMomentText.setTypeface(null, index == 1 ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
         navInboxText.setTypeface(null, index == 2 ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
         navMeText.setTypeface(null, index == 3 ? android.graphics.Typeface.BOLD : android.graphics.Typeface.NORMAL);
     }
 
-    // BACK BUTTON - HOME E JABE - APP BONDHO HOBE NA
+    // BACK BUTTON - ANY PAGE THEKE HOME E NIYE JABE, APP BONDHO HOBE NA
     @Override
     public void onBackPressed() {
         if (pageMe.getVisibility() == View.VISIBLE || pageMoment.getVisibility() == View.VISIBLE || pageInbox.getVisibility() == View.VISIBLE) {
@@ -110,7 +131,7 @@ public class MainActivity extends AppCompatActivity {
         super.onBackPressed();
     }
 
-    // ME MENU - DEMO SERIAL - SETTING ER PORE LOGOUT XML E ACHE
+    // ME MENU SERIAL
     private void buildMeMenu() {
         if (meMenuList == null) return;
         meMenuList.removeAllViews();
@@ -153,21 +174,37 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // PROFILE LOAD - GOL KORE DEKHABE
+    // PROFILE LOAD
     private void loadMyProfile() {
         if (meNameText != null) meNameText.setText(myName);
-        if (meIdText != null) meIdText.setText("ID: " + (my9DigitId.isEmpty() ? myUid : my9DigitId) + "  Copy");
+        if (meIdText != null) meIdText.setText("ID: " + (my9DigitId.isEmpty() ? myUid : my9DigitId) + "  📋");
+        if (meGenderCountryText != null) {
+            String genderIcon = myGender.equalsIgnoreCase("Female") ? "♀" : "♂";
+            meGenderCountryText.setText(genderIcon + " " + myGender + " | " + myCountry);
+        }
         Bitmap bmp = decodeBase64(myPhotoBase64);
         if (bmp != null && meProfileImg != null) {
             meProfileImg.setImageBitmap(bmp);
         }
-        // Firebase theke latest profile
+        
         if (!myUid.isEmpty()) {
             db.child("users").child(myUid).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override public void onDataChange(@NonNull DataSnapshot s) {
                     if (!s.exists()) return;
                     String n = s.child("name").getValue(String.class);
                     if (n != null && !n.isEmpty()) { myName = n; meNameText.setText(n); prefs.edit().putString("USER_NAME", n).apply(); }
+                    
+                    String g = s.child("gender").getValue(String.class);
+                    if (g != null && !g.isEmpty()) { myGender = g; prefs.edit().putString("USER_GENDER", g).apply(); }
+                    
+                    String c = s.child("country").getValue(String.class);
+                    if (c != null && !c.isEmpty()) { myCountry = c; prefs.edit().putString("USER_COUNTRY", c).apply(); }
+
+                    if (meGenderCountryText != null) {
+                        String gIcon = myGender.equalsIgnoreCase("Female") ? "♀" : "♂";
+                        meGenderCountryText.setText(gIcon + " " + myGender + " | " + myCountry);
+                    }
+
                     String ph = s.child("photoBase64").getValue(String.class);
                     if (ph != null && !ph.isEmpty()) {
                         myPhotoBase64 = ph;
@@ -176,14 +213,14 @@ public class MainActivity extends AppCompatActivity {
                         if (b2 != null) meProfileImg.setImageBitmap(b2);
                     }
                     String id9 = s.child("my9DigitId").getValue(String.class);
-                    if (id9 != null && !id9.isEmpty()) { my9DigitId = id9; meIdText.setText("ID: " + id9 + "  Copy"); }
+                    if (id9 != null && !id9.isEmpty()) { my9DigitId = id9; meIdText.setText("ID: " + id9 + "  📋"); }
                 }
                 @Override public void onCancelled(@NonNull DatabaseError e) {}
             });
         }
     }
 
-    // ROOM LIST - ROOM ER PROFILE O GOL
+    // ROOM LIST
     private void loadRooms() {
         if (homeRoomList == null) return;
         db.child("rooms").addValueEventListener(new ValueEventListener() {
@@ -223,7 +260,6 @@ public class MainActivity extends AppCompatActivity {
         top.setGravity(Gravity.CENTER_VERTICAL);
         card.addView(top);
 
-        // ROOM PROFILE - GOL
         ImageView roomImg = new ImageView(this);
         roomImg.setLayoutParams(new LinearLayout.LayoutParams(90, 90));
         roomImg.setScaleType(ImageView.ScaleType.CENTER_CROP);
