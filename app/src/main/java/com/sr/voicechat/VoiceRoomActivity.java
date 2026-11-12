@@ -103,7 +103,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         });
 
-        if (roomHeaderProfileImg != null) roomHeaderProfileImg.setOnClickListener(v -> showHeaderProfileMembersDialog());
+        // ✅ PERMANENT - HEADER CLICK = ROOM PROFILE - ONLINE LIST NA
+        if (roomHeaderProfileImg != null) roomHeaderProfileImg.setOnClickListener(v -> showRoomHeaderProfile());
+        if (roomTitleText != null) roomTitleText.setOnClickListener(v -> showRoomHeaderProfile());
+        if (roomInfoText != null) roomInfoText.setOnClickListener(v -> showRoomHeaderProfile());
         View btnOnline = findViewById(R.id.btnOnlineList);
         if (btnOnline != null) btnOnline.setOnClickListener(v -> showOnlineListDialog());
         View btnPower = findViewById(R.id.btnPower);
@@ -204,7 +207,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // ================= ONLINE - LOCK KHOLA - USER HOLEO UTHBE =================
+    // ================= ONLINE - PERMANENT - LOCK KHOLA =================
     private void pushOnlineNow(){
         String key = my9DigitId;
         if(key == null || key.isEmpty()) key = currentUserId;
@@ -236,7 +239,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // ================= CHAT - LOCK KHOLA - SMS SATHE SATHE JABE =================
+    // ================= CHAT - PERMANENT - SMALL WHITE - GIFT ASBE NA =================
     private void showChatPopup(){
         if(chatPopupBar!=null) chatPopupBar.setVisibility(View.VISIBLE);
         if(inputChatMessage!=null){ inputChatMessage.requestFocus(); InputMethodManager imm=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE); if(imm!=null) imm.showSoftInput(inputChatMessage, InputMethodManager.SHOW_IMPLICIT); }
@@ -275,7 +278,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private void listenToRoomAdmins(){ if(adminsRef==null) return; adminsRef.addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ roomAdminList.clear(); for(DataSnapshot ds:s.getChildren()) if(Boolean.TRUE.equals(ds.getValue(Boolean.class))) roomAdminList.add(ds.getKey()); } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
     private void listenToMyWallet(){ if(currentUserId.isEmpty()) return; userDatabaseRef.child(currentUserId).addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ Long coins=s.child("coins").getValue(Long.class); long w=(coins!=null)?coins:0L; myWalletCoins=w; if(walletTextInGift!=null) walletTextInGift.setText("Coins: "+String.format("%,d",w)); if(textRoomCoins!=null) textRoomCoins.setText("🪙 "+String.format("%,d",w)); } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
 
-    // ================= ONLINE LIST =================
+    // ================= ONLINE LIST - TEMPORARY - SUDHU ACTIVE =================
     private void showOnlineListDialog(){
         android.app.Dialog dialog=makeFullScreenDialog();
         LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(Color.WHITE); root.setPadding(24,20,24,24);
@@ -339,11 +342,342 @@ public class VoiceRoomActivity extends AppCompatActivity {
         row.setOnClickListener(v->{ dialog.dismiss(); showMiniProfileCard(uid); }); list.addView(row);
     }
 
+    // ================= HEADER PROFILE - ROOM PROFILE - PERMANENT - ONLINE LIST THEKE ALADA =================
+    private void showRoomHeaderProfile(){
+        android.app.Dialog dialog = makeFullScreenDialog();
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(Color.WHITE);
+        root.setPadding(0,0,0,0);
+        LinearLayout tabRow = new LinearLayout(this);
+        tabRow.setOrientation(LinearLayout.HORIZONTAL);
+        tabRow.setGravity(Gravity.CENTER);
+        tabRow.setPadding(0,16,0,0);
+        root.addView(tabRow);
+        TextView tabProfile = new TextView(this);
+        tabProfile.setText("Profile");
+        tabProfile.setTextSize(17);
+        tabProfile.setTypeface(null, android.graphics.Typeface.BOLD);
+        tabProfile.setTextColor(Color.parseColor("#222222"));
+        tabProfile.setPadding(30,10,30,10);
+        tabRow.addView(tabProfile);
+        TextView tabMembers = new TextView(this);
+        tabMembers.setText("Members");
+        tabMembers.setTextSize(17);
+        tabMembers.setTextColor(Color.parseColor("#999999"));
+        tabMembers.setPadding(30,10,30,10);
+        tabRow.addView(tabMembers);
+        TextView closeBtn = new TextView(this);
+        closeBtn.setText("✕");
+        closeBtn.setTextSize(20);
+        closeBtn.setTextColor(Color.parseColor("#999999"));
+        closeBtn.setPadding(20,10,20,10);
+        closeBtn.setOnClickListener(v -> dialog.dismiss());
+        tabRow.addView(closeBtn);
+        ScrollView svProfile = new ScrollView(this);
+        LinearLayout profileBox = new LinearLayout(this);
+        profileBox.setOrientation(LinearLayout.VERTICAL);
+        profileBox.setPadding(20,10,20,20);
+        svProfile.addView(profileBox);
+        root.addView(svProfile);
+        LinearLayout membersBox = new LinearLayout(this);
+        membersBox.setOrientation(LinearLayout.VERTICAL);
+        membersBox.setPadding(20,10,20,20);
+        membersBox.setVisibility(View.GONE);
+        root.addView(membersBox);
+        tabProfile.setOnClickListener(v -> {
+            tabProfile.setTextColor(Color.parseColor("#222222"));
+            tabProfile.setTypeface(null, android.graphics.Typeface.BOLD);
+            tabMembers.setTextColor(Color.parseColor("#999999"));
+            tabMembers.setTypeface(null, android.graphics.Typeface.NORMAL);
+            svProfile.setVisibility(View.VISIBLE);
+            membersBox.setVisibility(View.GONE);
+        });
+        tabMembers.setOnClickListener(v -> {
+            tabMembers.setTextColor(Color.parseColor("#222222"));
+            tabMembers.setTypeface(null, android.graphics.Typeface.BOLD);
+            tabProfile.setTextColor(Color.parseColor("#999999"));
+            tabProfile.setTypeface(null, android.graphics.Typeface.NORMAL);
+            svProfile.setVisibility(View.GONE);
+            membersBox.setVisibility(View.VISIBLE);
+            loadRoomMembersList(membersBox, dialog);
+        });
+        LinearLayout topCard = new LinearLayout(this);
+        topCard.setOrientation(LinearLayout.HORIZONTAL);
+        topCard.setGravity(Gravity.CENTER_VERTICAL);
+        topCard.setBackgroundColor(Color.parseColor("#FFFDE7"));
+        topCard.setPadding(20,16,20,16);
+        profileBox.addView(topCard);
+        ImageView roomPic = new ImageView(this);
+        roomPic.setLayoutParams(new LinearLayout.LayoutParams(130,130));
+        roomPic.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        roomPic.setImageResource(android.R.drawable.ic_menu_gallery);
+        Bitmap bmpRoom = decodeBase64(currentRoomPhotoBase64);
+        if(bmpRoom != null) roomPic.setImageBitmap(bmpRoom);
+        else if(roomHeaderProfileImg != null && roomHeaderProfileImg.getDrawable() != null) roomPic.setImageDrawable(roomHeaderProfileImg.getDrawable());
+        topCard.addView(roomPic);
+        LinearLayout nameBox = new LinearLayout(this);
+        nameBox.setOrientation(LinearLayout.VERTICAL);
+        nameBox.setPadding(16,0,0,0);
+        nameBox.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        topCard.addView(nameBox);
+        String rName = roomTitleText != null ? roomTitleText.getText().toString() : "Sr Official's Room";
+        TextView tvRoomName = new TextView(this);
+        tvRoomName.setText(rName);
+        tvRoomName.setTextColor(Color.parseColor("#222222"));
+        tvRoomName.setTextSize(19);
+        tvRoomName.setTypeface(null, android.graphics.Typeface.BOLD);
+        nameBox.addView(tvRoomName);
+        LinearLayout idRow = new LinearLayout(this);
+        idRow.setOrientation(LinearLayout.HORIZONTAL);
+        idRow.setGravity(Gravity.CENTER_VERTICAL);
+        nameBox.addView(idRow);
+        TextView tvRoomId = new TextView(this);
+        tvRoomId.setText("ID: " + roomOwnerId);
+        tvRoomId.setTextColor(Color.parseColor("#888888"));
+        tvRoomId.setTextSize(13);
+        idRow.addView(tvRoomId);
+        TextView tvCopy = new TextView(this);
+        tvCopy.setText("  📋 Copy");
+        tvCopy.setTextColor(Color.parseColor("#FF9800"));
+        tvCopy.setTextSize(13);
+        tvCopy.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvCopy.setPadding(10,10,10,10);
+        tvCopy.setOnClickListener(v -> copyRoomId());
+        idRow.addView(tvCopy);
+        TextView tvCounts = new TextView(this);
+        tvCounts.setText("1 Following    1 Fans    80 Visitor");
+        tvCounts.setTextColor(Color.parseColor("#666666"));
+        tvCounts.setTextSize(13);
+        tvCounts.setPadding(0,8,0,0);
+        nameBox.addView(tvCounts);
+        LinearLayout banner = new LinearLayout(this);
+        banner.setOrientation(LinearLayout.HORIZONTAL);
+        banner.setGravity(Gravity.CENTER);
+        banner.setBackgroundColor(Color.parseColor("#FFD700"));
+        banner.setPadding(16,14,16,14);
+        LinearLayout.LayoutParams bannerLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        bannerLp.setMargins(0,16,0,0);
+        banner.setLayoutParams(bannerLp);
+        profileBox.addView(banner);
+        TextView tvBanner = new TextView(this);
+        tvBanner.setText("🏆  Reward Event");
+        tvBanner.setTextColor(Color.parseColor("#7A0000"));
+        tvBanner.setTextSize(15);
+        tvBanner.setTypeface(null, android.graphics.Typeface.BOLD);
+        banner.addView(tvBanner);
+        banner.setOnClickListener(v -> Toast.makeText(this, "Reward Event - Coming Soon 🏆", Toast.LENGTH_SHORT).show());
+        addHeaderInfoRow(profileBox, "⚙️  Level", "Lv0", "Room Level - Coin khelle Level Up hobe");
+        String ownerName = rName.replace("Room", "").replace("'s", "").trim();
+        if(ownerName.isEmpty()) ownerName = "Sr Official";
+        addHeaderInfoRow(profileBox, "👤  RoomOwner", ownerName + "  (ID:" + roomOwnerId + ")", null);
+        addHeaderInfoRow(profileBox, "🌐  Language", myLanguage != null ? myLanguage : "English", null);
+        addHeaderInfoRow(profileBox, "🏳️  Country", myCountry != null ? myCountry : "Bangladesh", null);
+        addHeaderInfoRow(profileBox, "🏷️  Tag", selectedRoomLabel != null ? selectedRoomLabel : "Friends", null);
+        Button btnJoin = new Button(this);
+        btnJoin.setText("✨  Join This Room");
+        btnJoin.setTextColor(Color.WHITE);
+        btnJoin.setTextSize(15);
+        btnJoin.setAllCaps(false);
+        btnJoin.setTypeface(null, android.graphics.Typeface.BOLD);
+        GradientDrawable joinBg = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, new int[]{Color.parseColor("#FFC107"), Color.parseColor("#FF9800")});
+        joinBg.setCornerRadius(60);
+        btnJoin.setBackground(joinBg);
+        LinearLayout.LayoutParams joinLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 120);
+        joinLp.setMargins(0,24,0,0);
+        btnJoin.setLayoutParams(joinLp);
+        profileBox.addView(btnJoin);
+        btnJoin.setOnClickListener(v -> {
+            joinThisRoomPermanently();
+            Toast.makeText(this, "Joined Successfully ✅ - Tumi ekhon Permanent Member", Toast.LENGTH_SHORT).show();
+        });
+        TextView tvJoinNote = new TextView(this);
+        tvJoinNote.setText("Join korle tumi Members list e Permanent thakba - Room theke ber holeo jaba na");
+        tvJoinNote.setTextColor(Color.parseColor("#999999"));
+        tvJoinNote.setTextSize(12);
+        tvJoinNote.setGravity(Gravity.CENTER);
+        tvJoinNote.setPadding(0,10,0,0);
+        profileBox.addView(tvJoinNote);
+        TextView tvMemberTitle = new TextView(this);
+        tvMemberTitle.setText("Members: 1/1000      Admin: 1/20");
+        tvMemberTitle.setTextColor(Color.parseColor("#222222"));
+        tvMemberTitle.setTextSize(14);
+        tvMemberTitle.setTypeface(null, android.graphics.Typeface.BOLD);
+        membersBox.addView(tvMemberTitle);
+        EditText etSearch = new EditText(this);
+        etSearch.setHint("🔍 Search ID");
+        etSearch.setTextColor(Color.parseColor("#222222"));
+        etSearch.setTextSize(14);
+        etSearch.setBackgroundColor(Color.parseColor("#F5F5F5"));
+        etSearch.setPadding(20,16,20,16);
+        LinearLayout.LayoutParams searchLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        searchLp.setMargins(0,12,0,12);
+        etSearch.setLayoutParams(searchLp);
+        membersBox.addView(etSearch);
+        dialog.setContentView(root);
+        dialog.show();
+    }
+    private void addHeaderInfoRow(LinearLayout parent, String label, String value, String sub){
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setGravity(Gravity.CENTER_VERTICAL);
+        row.setPadding(4,14,4,14);
+        parent.addView(row);
+        TextView tvL = new TextView(this);
+        tvL.setText(label);
+        tvL.setTextColor(Color.parseColor("#666666"));
+        tvL.setTextSize(14);
+        tvL.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        row.addView(tvL);
+        TextView tvV = new TextView(this);
+        tvV.setText(value);
+        tvV.setTextColor(Color.parseColor("#222222"));
+        tvV.setTextSize(14);
+        tvV.setTypeface(null, android.graphics.Typeface.BOLD);
+        row.addView(tvV);
+        if(sub != null){
+            TextView tvSub = new TextView(this);
+            tvSub.setText(sub);
+            tvSub.setTextColor(Color.parseColor("#AAAAAA"));
+            tvSub.setTextSize(11);
+            tvSub.setPadding(4,0,4,8);
+            parent.addView(tvSub);
+        }
+        View line = new View(this);
+        line.setBackgroundColor(Color.parseColor("#EEEEEE"));
+        line.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 2));
+        parent.addView(line);
+    }
+    private void joinThisRoomPermanently(){
+        String myId = my9DigitId;
+        if(myId == null || myId.isEmpty()) myId = currentUserId;
+        if(myId == null || myId.isEmpty()) myId = roomOwnerId;
+        if(databaseReference == null) return;
+        Map<String,Object> m = new HashMap<>();
+        m.put("userId", myId);
+        m.put("userName", myDisplayName != null ? myDisplayName : "User");
+        m.put("photoBase64", myPhotoBase64 != null ? myPhotoBase64 : "");
+        m.put("country", myCountry);
+        m.put("gender", myGender);
+        m.put("level", "0");
+        m.put("joinedAt", System.currentTimeMillis());
+        m.put("isAdmin", false);
+        databaseReference.child("rooms").child(roomOwnerId).child("members").child(myId).setValue(m);
+        Map<String,Object> ownerMap = new HashMap<>();
+        ownerMap.put("userId", roomOwnerId);
+        ownerMap.put("userName", roomTitleText != null ? roomTitleText.getText().toString().replace("Room","").replace("'s","").trim() : "Sr Official");
+        ownerMap.put("photoBase64", currentRoomPhotoBase64 != null ? currentRoomPhotoBase64 : "");
+        ownerMap.put("country", myCountry);
+        ownerMap.put("gender", "Male");
+        ownerMap.put("level", "0");
+        ownerMap.put("joinedAt", System.currentTimeMillis());
+        ownerMap.put("isAdmin", false);
+        databaseReference.child("rooms").child(roomOwnerId).child("members").child(roomOwnerId).setValue(ownerMap);
+    }
+    private void loadRoomMembersList(LinearLayout membersBox, android.app.Dialog dialog){
+        while(membersBox.getChildCount() > 2) membersBox.removeViewAt(2);
+        if(databaseReference == null) return;
+        databaseReference.child("rooms").child(roomOwnerId).child("members").addListenerForSingleValueEvent(new ValueEventListener(){
+            @Override public void onDataChange(@NonNull DataSnapshot s){
+                while(membersBox.getChildCount() > 2) membersBox.removeViewAt(2);
+                if(!s.exists() || s.getChildrenCount() == 0){
+                    TextView tvEmpty = new TextView(VoiceRoomActivity.this);
+                    tvEmpty.setText("Owner - " + roomOwnerId);
+                    tvEmpty.setTextColor(Color.parseColor("#888888"));
+                    tvEmpty.setPadding(0,20,0,0);
+                    membersBox.addView(tvEmpty);
+                    return;
+                }
+                List<DataSnapshot> list = new ArrayList<>();
+                for(DataSnapshot ds : s.getChildren()) list.add(ds);
+                Collections.sort(list, (a,b) -> {
+                    String aId = a.getKey(), bId = b.getKey();
+                    if(aId != null && aId.equals(roomOwnerId)) return -1;
+                    if(bId != null && bId.equals(roomOwnerId)) return 1;
+                    boolean aAdmin = Boolean.TRUE.equals(a.child("isAdmin").getValue(Boolean.class)) || roomAdminList.contains(aId);
+                    boolean bAdmin = Boolean.TRUE.equals(b.child("isAdmin").getValue(Boolean.class)) || roomAdminList.contains(bId);
+                    if(aAdmin && !bAdmin) return -1;
+                    if(!aAdmin && bAdmin) return 1;
+                    Long at = a.child("joinedAt").getValue(Long.class);
+                    Long bt = b.child("joinedAt").getValue(Long.class);
+                    if(at == null) at = 0L; if(bt == null) bt = 0L;
+                    return Long.compare(at, bt);
+                });
+                int serial = 1;
+                for(DataSnapshot ds : list){
+                    String uid = ds.getKey();
+                    String nm = ds.child("userName").getValue(String.class);
+                    if(nm == null) nm = "User";
+                    String ph = ds.child("photoBase64").getValue(String.class);
+                    String co = ds.child("country").getValue(String.class);
+                    String ge = ds.child("gender").getValue(String.class);
+                    boolean isAdmin = Boolean.TRUE.equals(ds.child("isAdmin").getValue(Boolean.class)) || roomAdminList.contains(uid);
+                    boolean isOwner = uid != null && uid.equals(roomOwnerId);
+                    LinearLayout row = new LinearLayout(VoiceRoomActivity.this);
+                    row.setOrientation(LinearLayout.HORIZONTAL);
+                    row.setGravity(Gravity.CENTER_VERTICAL);
+                    row.setPadding(6,14,6,14);
+                    membersBox.addView(row);
+                    TextView tvSerial = new TextView(VoiceRoomActivity.this);
+                    tvSerial.setText(String.valueOf(serial) + ". ");
+                    tvSerial.setTextColor(Color.parseColor("#999999"));
+                    tvSerial.setTextSize(14);
+                    tvSerial.setTypeface(null, android.graphics.Typeface.BOLD);
+                    row.addView(tvSerial);
+                    serial++;
+                    ImageView av = new ImageView(VoiceRoomActivity.this);
+                    av.setLayoutParams(new LinearLayout.LayoutParams(100,100));
+                    av.setImageResource(android.R.drawable.ic_menu_gallery);
+                    Bitmap bmp = decodeBase64(ph);
+                    if(bmp != null) av.setImageBitmap(bmp);
+                    row.addView(av);
+                    LinearLayout box = new LinearLayout(VoiceRoomActivity.this);
+                    box.setOrientation(LinearLayout.VERTICAL);
+                    box.setPadding(14,0,0,0);
+                    box.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+                    row.addView(box);
+                    TextView tvN = new TextView(VoiceRoomActivity.this);
+                    tvN.setText(nm + "  " + genderIcon(ge) + "  " + flagForCountry(co));
+                    tvN.setTextColor(Color.parseColor("#222222"));
+                    tvN.setTextSize(15);
+                    tvN.setTypeface(null, android.graphics.Typeface.BOLD);
+                    box.addView(tvN);
+                    TextView tvI = new TextView(VoiceRoomActivity.this);
+                    tvI.setText("ID: " + uid);
+                    tvI.setTextColor(Color.parseColor("#888888"));
+                    tvI.setTextSize(12);
+                    box.addView(tvI);
+                    if(isOwner){
+                        TextView badge = new TextView(VoiceRoomActivity.this);
+                        badge.setText("👑 OWNER");
+                        badge.setTextColor(Color.parseColor("#FF9800"));
+                        badge.setTypeface(null, android.graphics.Typeface.BOLD);
+                        badge.setTextSize(12);
+                        row.addView(badge);
+                    } else if(isAdmin){
+                        TextView badge = new TextView(VoiceRoomActivity.this);
+                        badge.setText("⭐ Admin");
+                        badge.setTextColor(Color.parseColor("#4CAF50"));
+                        badge.setTypeface(null, android.graphics.Typeface.BOLD);
+                        badge.setTextSize(12);
+                        row.addView(badge);
+                    }
+                }
+                TextView tvEnd = new TextView(VoiceRoomActivity.this);
+                tvEnd.setText("No more data");
+                tvEnd.setTextColor(Color.parseColor("#AAAAAA"));
+                tvEnd.setGravity(Gravity.CENTER);
+                tvEnd.setPadding(0,20,0,0);
+                membersBox.addView(tvEnd);
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e){}
+        });
+    }
+
     // ================= EXIT / PROFILE / GIFT / TOOLS / RANKING / ROOM EDIT =================
     private void showExitDialog(){ AlertDialog.Builder b=new AlertDialog.Builder(this); b.setTitle("Exit Room?"); b.setMessage("Exit room or Minimize to Home?"); b.setPositiveButton("Exit Room",(d,w)->{ d.dismiss(); leaveRoomAndFinish(); }); b.setNeutralButton("Minimize",(d,w)->{ d.dismiss(); leaveRoomKeepHome(); Intent home=new Intent(VoiceRoomActivity.this,MainActivity.class); home.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP); startActivity(home); finish(); }); b.setNegativeButton("Cancel",(d,w)->d.dismiss()); b.show(); }
     private void leaveRoomKeepHome(){ String key=my9DigitId.isEmpty()?currentUserId:my9DigitId; if(key!=null && !key.isEmpty()){ databaseReference.child("rooms").child(roomOwnerId).child("online_users").child(key).removeValue(); databaseReference.child("online_users").child(key).removeValue(); } }
     private void leaveRoomAndFinish(){ leaveRoomKeepHome(); Intent intent=new Intent(VoiceRoomActivity.this,MainActivity.class); intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP); startActivity(intent); finish(); }
-    private void showHeaderProfileMembersDialog(){ showOnlineListDialog(); }
     private void showMiniProfileCard(String uid){
         BottomSheetDialog dialog=new BottomSheetDialog(this,R.style.Theme_Design_BottomSheetDialog); LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setGravity(Gravity.CENTER); root.setPadding(28,24,28,28); root.setBackgroundColor(Color.WHITE);
         TextView t=new TextView(this); t.setText("Profile\nID: "+uid); t.setTextColor(Color.parseColor("#222222")); t.setTextSize(16); t.setTypeface(null,android.graphics.Typeface.BOLD); t.setGravity(Gravity.CENTER); root.addView(t);
