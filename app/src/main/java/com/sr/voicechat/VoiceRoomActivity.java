@@ -31,7 +31,7 @@ import java.util.*;
 
 public class VoiceRoomActivity extends AppCompatActivity {
 
-    private String roomOwnerId = "123456789", currentUserId = "", my9DigitId = "", myDisplayName = "User", myCountry = "Bangladesh", myLanguage = "English", myTag = "Friends", myGender = "Male", myPhotoBase64 = "", currentThemeName = "Sunset", selectedRoomLabel = "Friends", galleryMode = "", pendingRoomPhotoBase64 = "", pendingCustomBgBase64 = "", rankingTab = "Day", rankingType = "Wealth", currentRoomPhotoBase64 = "";
+    private String roomOwnerId = "499506534", currentUserId = "", my9DigitId = "", myDisplayName = "User", myCountry = "Bangladesh", myLanguage = "English", myTag = "Friends", myGender = "Male", myPhotoBase64 = "", currentThemeName = "Sunset", selectedRoomLabel = "Friends", galleryMode = "", pendingRoomPhotoBase64 = "", pendingCustomBgBase64 = "", currentRoomPhotoBase64 = "";
     private long myWalletCoins = 0;
     private SharedPreferences prefs;
     private DatabaseReference databaseReference, roomMetaRef, adminsRef, messagesRef, userDatabaseRef;
@@ -43,7 +43,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private ScrollView chatScrollView;
     private List<String> roomAdminList = new ArrayList<>();
     private ActivityResultLauncher<Intent> galleryLauncher;
-    private boolean identityResolved = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,7 +59,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         String rid = getIntent().getStringExtra("ROOM_OWNER_ID");
         if (rid != null && !rid.isEmpty()) roomOwnerId = rid;
-        // Jodi Intent e 9-digit ID o pathano hoy, oita keo dhorbo
         String myIdFromIntent = getIntent().getStringExtra("MY_9DIGIT_ID");
         if (myIdFromIntent != null && !myIdFromIntent.isEmpty()) my9DigitId = myIdFromIntent;
         String myUidFromIntent = getIntent().getStringExtra("MY_UID");
@@ -133,22 +131,18 @@ public class VoiceRoomActivity extends AppCompatActivity {
         listenToFirebaseSeats();
         listenToChatRealtime();
         listenToMyWallet();
-        applyRoomBackground();
     }
 
     // ================= HELPERS =================
     private void setDialog85(BottomSheetDialog d){ Window w=d.getWindow(); if(w!=null){ int sh=getResources().getDisplayMetrics().heightPixels; w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT,(int)(sh*0.85)); w.setGravity(Gravity.BOTTOM); } }
     private void setDialog75(BottomSheetDialog d){ Window w=d.getWindow(); if(w!=null){ int sh=getResources().getDisplayMetrics().heightPixels; w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT,(int)(sh*0.75)); w.setGravity(Gravity.BOTTOM); } }
-    private String getMyDisplayName(){ if(myDisplayName!=null && !myDisplayName.isEmpty()) return myDisplayName; return prefs.getString("USER_NAME","User"); }
     private android.app.Dialog makeFullScreenDialog(){ android.app.Dialog d=new android.app.Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen); Window w=d.getWindow(); if(w!=null){ w.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT); w.setGravity(Gravity.BOTTOM); w.setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(Color.TRANSPARENT)); } return d; }
-    private String flagForCountry(String c){ if(c==null) return "🌍"; String s=c.toLowerCase(); if(s.contains("bangladesh")||s.contains("bd")) return "🇧🇩"; if(s.contains("india")||s.contains("ind")) return "🇮🇳"; if(s.contains("pakistan")) return "🇵🇰"; if(s.contains("saudi")) return "🇸🇦"; if(s.contains("oman")) return "🇴🇲"; if(s.contains("uae")||s.contains("emirates")) return "🇦🇪"; if(s.contains("usa")||s.contains("america")) return "🇺🇸"; if(s.contains("uk")||s.contains("england")) return "🇬🇧"; return "🌍"; }
-    private String genderIcon(String g){ if(g==null) return "👤"; String s=g.toLowerCase(); if(s.contains("female")||s.contains("girl")||s.contains("meye")||s.contains("f")) return "👧"; return "👦"; }
+    private String flagForCountry(String c){ if(c==null) return "🌍"; String s=c.toLowerCase(); if(s.contains("bangladesh")||s.contains("bd")) return "🇧🇩"; if(s.contains("india")) return "🇮🇳"; if(s.contains("pakistan")) return "🇵🇰"; if(s.contains("saudi")) return "🇸🇦"; if(s.contains("oman")) return "🇴🇲"; if(s.contains("uae")||s.contains("emirates")) return "🇦🇪"; if(s.contains("usa")||s.contains("america")) return "🇺🇸"; if(s.contains("uk")||s.contains("england")) return "🇬🇧"; return "🌍"; }
+    private String genderIcon(String g){ if(g==null) return "👤"; String s=g.toLowerCase(); if(s.contains("female")||s.contains("girl")||s.contains("f")) return "👧"; return "👦"; }
     private Bitmap decodeBase64(String b64){ if(b64==null||b64.isEmpty()) return null; try{ byte[] b=Base64.decode(b64,Base64.DEFAULT); return BitmapFactory.decodeByteArray(b,0,b.length); }catch(Exception e){ return null; } }
     private void copyRoomId(){ ClipboardManager cm=(ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE); if(cm!=null){ cm.setPrimaryClip(ClipData.newPlainText("Room ID", roomOwnerId)); Toast.makeText(this,"Room ID Copied: "+roomOwnerId+" ✅",Toast.LENGTH_SHORT).show(); } }
-    private void applyRoomBackground(){ if(roomMetaRef==null) return; roomMetaRef.addListenerForSingleValueEvent(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ String bg=s.child("customBgBase64").getValue(String.class); Bitmap bmp=decodeBase64(bg); if(bmp!=null){ View root=findViewById(android.R.id.content); if(root!=null) root.setBackground(new android.graphics.drawable.BitmapDrawable(getResources(),bmp)); } } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
-    private void listenToRoomPhoto(){ if(roomMetaRef==null) return; roomMetaRef.addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ String rp=s.child("roomPhotoBase64").getValue(String.class); if(rp!=null && !rp.isEmpty()){ currentRoomPhotoBase64=rp; Bitmap bmp=decodeBase64(rp); if(bmp!=null && roomHeaderProfileImg!=null) roomHeaderProfileImg.setImageBitmap(bmp); } } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
 
-    // ================= IDENTITY - SOB ROOM ER JONNO - USER / ADMIN / OWNER SOBAI =================
+    // ================= IDENTITY =================
     private void ensureMyIdentity(){
         if(my9DigitId == null) my9DigitId = "";
         if(my9DigitId.isEmpty()) my9DigitId = prefs.getString("USER_9DIGIT_ID", "");
@@ -164,9 +158,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             if(u.child("photoBase64").getValue()!=null) myPhotoBase64 = String.valueOf(u.child("photoBase64").getValue());
                             if(u.child("country").getValue()!=null) myCountry = String.valueOf(u.child("country").getValue());
                             if(u.child("gender").getValue()!=null) myGender = String.valueOf(u.child("gender").getValue());
-                            if(u.child("language").getValue()!=null) myLanguage = String.valueOf(u.child("language").getValue());
                             prefs.edit().putString("USER_UID", currentUserId).putString("USER_NAME", myDisplayName).putString("USER_PHOTO_BASE64", myPhotoBase64).putString("USER_COUNTRY", myCountry).putString("USER_GENDER", myGender).apply();
-                            identityResolved = true;
                             pushOnlineNow();
                             break;
                         }
@@ -177,7 +169,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         } else { syncByUidFallback(); }
     }
     private void syncByUidFallback(){
-        if(currentUserId == null || currentUserId.isEmpty()) return;
+        if(currentUserId == null || currentUserId.isEmpty()) { pushOnlineNow(); return; }
         userDatabaseRef.child(currentUserId).addListenerForSingleValueEvent(new ValueEventListener(){
             @Override public void onDataChange(@NonNull DataSnapshot s){
                 if(s.exists()){
@@ -187,26 +179,42 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     if(s.child("country").getValue()!=null) myCountry = String.valueOf(s.child("country").getValue());
                     if(s.child("gender").getValue()!=null) myGender = String.valueOf(s.child("gender").getValue());
                     prefs.edit().putString("USER_9DIGIT_ID", my9DigitId).putString("USER_NAME", myDisplayName).putString("USER_PHOTO_BASE64", myPhotoBase64).apply();
-                    identityResolved = true;
+                }
+                pushOnlineNow();
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e){ pushOnlineNow(); }
+        });
+    }
+    private void syncLatestUserProfile(){
+        if(currentUserId.isEmpty() && my9DigitId.isEmpty()) return;
+        String key = !currentUserId.isEmpty() ? currentUserId : my9DigitId;
+        userDatabaseRef.child(key).addListenerForSingleValueEvent(new ValueEventListener(){
+            @Override public void onDataChange(@NonNull DataSnapshot s){
+                if(s.exists()){
+                    String dbName=s.child("name").getValue(String.class); if(dbName!=null && !dbName.isEmpty()){ myDisplayName=dbName; prefs.edit().putString("USER_NAME",dbName).apply(); }
+                    String v=s.child("my9DigitId").getValue(String.class); if(v!=null && !v.isEmpty()){ my9DigitId=v; prefs.edit().putString("USER_9DIGIT_ID",v).apply(); }
+                    String dbCountry=s.child("country").getValue(String.class); if(dbCountry!=null && !dbCountry.isEmpty()){ myCountry=dbCountry; }
+                    String dbLang=s.child("language").getValue(String.class); if(dbLang!=null && !dbLang.isEmpty()){ myLanguage=dbLang; }
+                    String dbGender=s.child("gender").getValue(String.class); if(dbGender!=null && !dbGender.isEmpty()) myGender=dbGender;
+                    String ph=s.child("photoBase64").getValue(String.class); if(ph!=null && !ph.isEmpty()){ myPhotoBase64=ph; prefs.edit().putString("USER_PHOTO_BASE64",ph).apply(); }
                     pushOnlineNow();
                 }
             }
             @Override public void onCancelled(@NonNull DatabaseError e){}
         });
     }
-    private void syncLatestUserProfile(){ if(currentUserId.isEmpty() && my9DigitId.isEmpty()) return; String key = !currentUserId.isEmpty() ? currentUserId : my9DigitId; userDatabaseRef.child(key).addListenerForSingleValueEvent(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ if(s.exists()){ String dbName=s.child("name").getValue(String.class); if(dbName!=null && !dbName.isEmpty()){ myDisplayName=dbName; prefs.edit().putString("USER_NAME",dbName).apply(); } String v=s.child("my9DigitId").getValue(String.class); if(v!=null && !v.isEmpty()){ my9DigitId=v; prefs.edit().putString("USER_9DIGIT_ID",v).apply(); } String dbCountry=s.child("country").getValue(String.class); if(dbCountry!=null && !dbCountry.isEmpty()){ myCountry=dbCountry; prefs.edit().putString("USER_COUNTRY",dbCountry).apply(); } String dbLang=s.child("language").getValue(String.class); if(dbLang!=null && !dbLang.isEmpty()){ myLanguage=dbLang; prefs.edit().putString("USER_LANGUAGE",dbLang).apply(); } String dbTag=s.child("tag").getValue(String.class); if(dbTag!=null && !dbTag.isEmpty()){ myTag=dbTag; selectedRoomLabel=dbTag; } String dbGender=s.child("gender").getValue(String.class); if(dbGender!=null && !dbGender.isEmpty()) myGender=dbGender; String ph=s.child("photoBase64").getValue(String.class); if(ph!=null && !ph.isEmpty()){ myPhotoBase64=ph; prefs.edit().putString("USER_PHOTO_BASE64",ph).apply(); } pushOnlineNow(); } } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
 
-    // ================= ONLINE - PER ROOM - USER / ADMIN / OWNER SOBAI =================
+    // ================= ONLINE - LOCK KHOLA - USER HOLEO UTHBE =================
     private void pushOnlineNow(){
         String key = my9DigitId;
         if(key == null || key.isEmpty()) key = currentUserId;
+        if(key == null || key.isEmpty()) key = roomOwnerId;
         if(key == null || key.isEmpty() || databaseReference == null) return;
-        if(myDisplayName == null || myDisplayName.equals("User") || myDisplayName.isEmpty()){
-            if(!identityResolved) { new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> pushOnlineNow(), 600); }
-            return;
-        }
+        String nameToShow = myDisplayName;
+        if(nameToShow == null || nameToShow.isEmpty()) nameToShow = prefs.getString("USER_NAME", "User");
+        if(nameToShow.equals("User") && !key.isEmpty()) nameToShow = "User " + key;
         Map<String,Object> m = new HashMap<>();
-        m.put("name", myDisplayName);
+        m.put("name", nameToShow);
         m.put("photoBase64", myPhotoBase64 != null ? myPhotoBase64 : "");
         m.put("level", "0");
         m.put("country", myCountry);
@@ -220,28 +228,23 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private void listenToOnlineMembers(){
         pushOnlineNow();
         if(databaseReference==null) return;
-        // Room er online count - ei room e jara ache tarai
         databaseReference.child("rooms").child(roomOwnerId).child("online_users").addValueEventListener(new ValueEventListener(){
             @Override public void onDataChange(@NonNull DataSnapshot s){
                 if(textOnlineCount!=null) textOnlineCount.setText(String.valueOf(s.getChildrenCount()));
-                // Jodi room er online khali hoy kintu global e thake, tahole global thekeo count nao - purano user der jonno
-                if(s.getChildrenCount()==0){
-                    databaseReference.child("online_users").addListenerForSingleValueEvent(new ValueEventListener(){
-                        @Override public void onDataChange(@NonNull DataSnapshot g){ if(textOnlineCount!=null && g.exists()) textOnlineCount.setText(String.valueOf(g.getChildrenCount())); }
-                        @Override public void onCancelled(@NonNull DatabaseError e){}
-                    });
-                }
             }
             @Override public void onCancelled(@NonNull DatabaseError e){}
         });
     }
 
-    // ================= CHAT POPUP =================
-    private void showChatPopup(){ if(chatPopupBar!=null) chatPopupBar.setVisibility(View.VISIBLE); if(inputChatMessage!=null){ inputChatMessage.requestFocus(); InputMethodManager imm=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE); if(imm!=null) imm.showSoftInput(inputChatMessage, InputMethodManager.SHOW_IMPLICIT); } }
+    // ================= CHAT - LOCK KHOLA - SMS SATHE SATHE JABE =================
+    private void showChatPopup(){
+        if(chatPopupBar!=null) chatPopupBar.setVisibility(View.VISIBLE);
+        if(inputChatMessage!=null){ inputChatMessage.requestFocus(); InputMethodManager imm=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE); if(imm!=null) imm.showSoftInput(inputChatMessage, InputMethodManager.SHOW_IMPLICIT); }
+    }
     private void hideChatPopup(){ if(chatPopupBar!=null) chatPopupBar.setVisibility(View.GONE); if(inputChatMessage!=null){ inputChatMessage.setText(""); InputMethodManager imm=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE); if(imm!=null) imm.hideSoftInputFromWindow(inputChatMessage.getWindowToken(),0); } }
     private void setupChatPopup(){
         View btnOpen=findViewById(R.id.btnOpenChat); if(btnOpen!=null) btnOpen.setOnClickListener(v->showChatPopup());
-        if(inputChatMessage!=null){ inputChatMessage.setOnFocusChangeListener((v,has)->{ if(has) showChatPopup(); }); inputChatMessage.setOnEditorActionListener((v,a,e)->{ sendChatMessage(); return true; }); }
+        if(inputChatMessage!=null){ inputChatMessage.setOnEditorActionListener((v,a,e)->{ sendChatMessage(); return true; }); }
         if(btnChatOption!=null) btnChatOption.setOnClickListener(v->sendChatMessage());
         TextView e=findViewById(R.id.btnEmoji); if(e!=null) e.setOnClickListener(v->Toast.makeText(this,"Emoji - Coming Soon 😊",Toast.LENGTH_SHORT).show());
         TextView g=findViewById(R.id.btnGallery); if(g!=null) g.setOnClickListener(v->Toast.makeText(this,"Gallery - Future te allow hobe 🖼️",Toast.LENGTH_SHORT).show());
@@ -251,14 +254,127 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private void sendChatMessage(){
         if(inputChatMessage==null) return; String msg=inputChatMessage.getText().toString().trim();
         if(msg.isEmpty()||messagesRef==null) return;
-        if(myDisplayName == null || myDisplayName.equals("User")){
-            ensureMyIdentity(); Toast.makeText(this,"1 sec wait koro, profile load hocche...",Toast.LENGTH_SHORT).show(); return;
-        }
-        Map<String,Object> m=new HashMap<>(); m.put("userId", my9DigitId.isEmpty()?currentUserId:my9DigitId); m.put("userName", myDisplayName); m.put("text", msg); m.put("photoBase64", myPhotoBase64 != null ? myPhotoBase64 : ""); m.put("gender", myGender); m.put("country", myCountry); m.put("time", System.currentTimeMillis()); messagesRef.push().setValue(m); hideChatPopup();
+        String nameToSend = myDisplayName;
+        if(nameToSend == null || nameToSend.isEmpty()) nameToSend = prefs.getString("USER_NAME", "User");
+        if(nameToSend.equals("User")) ensureMyIdentity();
+        String idToSend = my9DigitId;
+        if(idToSend == null || idToSend.isEmpty()) idToSend = currentUserId;
+        if(idToSend == null || idToSend.isEmpty()) idToSend = roomOwnerId;
+        Map<String,Object> m=new HashMap<>(); m.put("userId", idToSend); m.put("userName", nameToSend); m.put("text", msg); m.put("photoBase64", myPhotoBase64 != null ? myPhotoBase64 : ""); m.put("gender", myGender); m.put("country", myCountry); m.put("time", System.currentTimeMillis()); messagesRef.push().setValue(m); hideChatPopup(); pushOnlineNow();
     }
     private void listenToChatRealtime(){ if(messagesRef==null||chatListContainer==null) return; messagesRef.limitToLast(100).addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ chatListContainer.removeAllViews(); if(!s.exists()) return; for(DataSnapshot ds:s.getChildren()){ String uname=ds.child("userName").getValue(String.class); if(uname==null) uname="User"; String txt=ds.child("text").getValue(String.class); if(txt==null) txt=""; String uid=ds.child("userId").getValue(String.class); if(uid==null) uid=""; String photo=ds.child("photoBase64").getValue(String.class); String g=ds.child("gender").getValue(String.class); String co=ds.child("country").getValue(String.class); LinearLayout row=new LinearLayout(VoiceRoomActivity.this); row.setOrientation(LinearLayout.HORIZONTAL); row.setGravity(Gravity.TOP); row.setPadding(4,6,4,6); ImageView av=new ImageView(VoiceRoomActivity.this); av.setLayoutParams(new LinearLayout.LayoutParams(72,72)); av.setImageResource(android.R.drawable.ic_menu_gallery); Bitmap bmp=decodeBase64(photo); if(bmp!=null) av.setImageBitmap(bmp); row.addView(av); LinearLayout box=new LinearLayout(VoiceRoomActivity.this); box.setOrientation(LinearLayout.VERTICAL); box.setPadding(10,0,0,0); box.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); row.addView(box); TextView tvN=new TextView(VoiceRoomActivity.this); tvN.setText(uname+" "+genderIcon(g)+" "+flagForCountry(co)+" • ID: "+uid); tvN.setTextColor(Color.parseColor("#3E2F00")); tvN.setTextSize(12); tvN.setTypeface(null, android.graphics.Typeface.BOLD); box.addView(tvN); TextView tvM=new TextView(VoiceRoomActivity.this); tvM.setText(txt); tvM.setTextColor(Color.parseColor("#222222")); tvM.setTextSize(14); box.addView(tvM); chatListContainer.addView(row); } if(chatScrollView!=null) chatScrollView.post(()->chatScrollView.fullScroll(View.FOCUS_DOWN)); } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
 
-    // ================= ROOM EDIT =================
+    // ================= SEATS =================
+    private void setupSeatInteractions(){ for(int i=0;i<10;i++){ int idx=i; int resId=getResources().getIdentifier("seat_"+idx,"id",getPackageName()); View seat=findViewById(resId); if(seat!=null) seat.setOnClickListener(v->{ DatabaseReference seatRef=databaseReference.child("rooms").child(roomOwnerId).child("seats").child("seat_"+idx); seatRef.addListenerForSingleValueEvent(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ if(!s.exists()){ Map<String,Object> m=new HashMap<>(); m.put("userId", my9DigitId.isEmpty()?currentUserId:my9DigitId); m.put("userName", myDisplayName); m.put("photoBase64", myPhotoBase64!=null?myPhotoBase64:""); seatRef.setValue(m); Toast.makeText(VoiceRoomActivity.this,"Seat "+(idx+1)+" nile ✅",Toast.LENGTH_SHORT).show(); } else { String uid=s.child("userId").getValue(String.class); if(uid!=null && (uid.equals(currentUserId)||uid.equals(my9DigitId))){ seatRef.removeValue(); } else { Toast.makeText(VoiceRoomActivity.this,"Ei seat e onno jon ache",Toast.LENGTH_SHORT).show(); } } } @Override public void onCancelled(@NonNull DatabaseError e){} }); }); } }
+    private void listenToFirebaseSeats(){ if(databaseReference==null) return; databaseReference.child("rooms").child(roomOwnerId).child("seats").addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ for(int i=0;i<10;i++){ int seatImgId=getResources().getIdentifier("seatImg_"+i,"id",getPackageName()); TextView seatImg=findViewById(seatImgId); if(seatImg==null) continue; DataSnapshot seatSnap=s.child("seat_"+i); if(seatSnap.exists()){ String photo=seatSnap.child("photoBase64").getValue(String.class); Bitmap bmp=decodeBase64(photo); if(bmp!=null){ seatImg.setText(""); seatImg.setBackground(new android.graphics.drawable.BitmapDrawable(getResources(),bmp)); } else seatImg.setText("👤"); String nm=seatSnap.child("userName").getValue(String.class); View seatLayout=findViewById(getResources().getIdentifier("seat_"+i,"id",getPackageName())); if(seatLayout instanceof LinearLayout){ LinearLayout ll=(LinearLayout)seatLayout; if(ll.getChildCount()>=2 && ll.getChildAt(1) instanceof TextView) ((TextView)ll.getChildAt(1)).setText(nm!=null?nm:""); } } else { seatImg.setText("🪑"); seatImg.setBackgroundColor(Color.parseColor("#FFE9A8")); } } } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
+
+    // ================= ROOM DETAILS / PHOTO / THEME / ADMIN / WALLET =================
+    private void listenToRoomDetails(){ if(roomMetaRef==null) return; roomMetaRef.addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ String rn=s.child("roomName").getValue(String.class); if(rn!=null && !rn.isEmpty() && roomTitleText!=null) roomTitleText.setText(rn); if(roomInfoText!=null) roomInfoText.setText("ID: "+roomOwnerId); String ann=s.child("announcement").getValue(String.class); if(roomNoticeBarText!=null){ if(ann==null || ann.isEmpty() || ann.equals("wlc")){ roomNoticeBarText.setVisibility(View.GONE); roomNoticeBarText.setText(""); } else { roomNoticeBarText.setVisibility(View.VISIBLE); roomNoticeBarText.setText(ann); } } String lb=s.child("roomLabel").getValue(String.class); if(lb!=null && !lb.isEmpty()) selectedRoomLabel=lb; } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
+    private void listenToRoomPhoto(){ if(roomMetaRef==null) return; roomMetaRef.addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ String rp=s.child("roomPhotoBase64").getValue(String.class); if(rp!=null && !rp.isEmpty()){ currentRoomPhotoBase64=rp; Bitmap bmp=decodeBase64(rp); if(bmp!=null && roomHeaderProfileImg!=null) roomHeaderProfileImg.setImageBitmap(bmp); } } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
+    private void listenToRoomTheme(){ if(roomMetaRef==null) return; roomMetaRef.addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ String n=s.child("roomTheme").getValue(String.class); if(n!=null && !n.isEmpty()) currentThemeName=n; } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
+    private void listenToRoomAdmins(){ if(adminsRef==null) return; adminsRef.addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ roomAdminList.clear(); for(DataSnapshot ds:s.getChildren()) if(Boolean.TRUE.equals(ds.getValue(Boolean.class))) roomAdminList.add(ds.getKey()); } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
+    private void listenToMyWallet(){ if(currentUserId.isEmpty()) return; userDatabaseRef.child(currentUserId).addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ Long coins=s.child("coins").getValue(Long.class); long w=(coins!=null)?coins:0L; myWalletCoins=w; if(walletTextInGift!=null) walletTextInGift.setText("Coins: "+String.format("%,d",w)); if(textRoomCoins!=null) textRoomCoins.setText("🪙 "+String.format("%,d",w)); } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
+
+    // ================= ONLINE LIST =================
+    private void showOnlineListDialog(){
+        android.app.Dialog dialog=makeFullScreenDialog();
+        LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(Color.WHITE); root.setPadding(24,20,24,24);
+        LinearLayout top=new LinearLayout(this); top.setOrientation(LinearLayout.HORIZONTAL); top.setGravity(Gravity.CENTER_VERTICAL); root.addView(top);
+        TextView title=new TextView(this); title.setText("Online list"); title.setTextColor(Color.parseColor("#222222")); title.setTextSize(19); title.setTypeface(null,android.graphics.Typeface.BOLD); title.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); top.addView(title);
+        TextView close=new TextView(this); close.setText("✕"); close.setTextSize(22); close.setTextColor(Color.parseColor("#888888")); close.setPadding(10,10,10,10); close.setOnClickListener(v->dialog.dismiss()); top.addView(close);
+        TextView sub=new TextView(this); sub.setText("Room e ekhon jara active ache"); sub.setTextColor(Color.parseColor("#999999")); sub.setTextSize(13); sub.setPadding(0,4,0,10); root.addView(sub);
+        ScrollView sv=new ScrollView(this); LinearLayout list=new LinearLayout(this); list.setOrientation(LinearLayout.VERTICAL); sv.addView(list); root.addView(sv);
+        pushOnlineNow();
+        databaseReference.child("rooms").child(roomOwnerId).child("online_users").addValueEventListener(new ValueEventListener(){
+            @Override public void onDataChange(@NonNull DataSnapshot s){
+                list.removeAllViews();
+                if(!s.exists() || s.getChildrenCount()==0){
+                    databaseReference.child("online_users").addListenerForSingleValueEvent(new ValueEventListener(){
+                        @Override public void onDataChange(@NonNull DataSnapshot g){
+                            if(!g.exists() || g.getChildrenCount()==0){ TextView tv=new TextView(VoiceRoomActivity.this); tv.setText("No one online"); tv.setTextColor(Color.parseColor("#AAAAAA")); tv.setGravity(Gravity.CENTER); tv.setPadding(0,40,0,40); list.addView(tv); return; }
+                            for(DataSnapshot ds : g.getChildren()) showOneOnlineUser(list, ds, dialog);
+                        }
+                        @Override public void onCancelled(@NonNull DatabaseError e){}
+                    });
+                    return;
+                }
+                for(DataSnapshot ds : s.getChildren()) showOneOnlineUser(list, ds, dialog);
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e){}
+        });
+        dialog.setContentView(root); dialog.show();
+    }
+    private void showOneOnlineUser(LinearLayout list, DataSnapshot ds, android.app.Dialog dialog){
+        String uidKey = ds.getKey(); if(uidKey == null) return;
+        String onName = ds.child("name").getValue(String.class);
+        String onPhoto = ds.child("photoBase64").getValue(String.class);
+        String onCountry = ds.child("country").getValue(String.class);
+        String onGender = ds.child("gender").getValue(String.class);
+        String onLevel = ds.child("level").getValue(String.class);
+        userDatabaseRef.orderByChild("my9DigitId").equalTo(uidKey).addListenerForSingleValueEvent(new ValueEventListener(){
+            @Override public void onDataChange(@NonNull DataSnapshot us){
+                String nm = onName != null ? onName : "User";
+                String ph = onPhoto != null ? onPhoto : "";
+                String co = onCountry != null ? onCountry : "";
+                String ge = onGender != null ? onGender : "Male";
+                String lv = onLevel != null ? onLevel : "0";
+                if(us.exists()){ for(DataSnapshot u : us.getChildren()){ if(u.child("name").getValue()!=null) nm = String.valueOf(u.child("name").getValue()); if(u.child("photoBase64").getValue()!=null && !String.valueOf(u.child("photoBase64").getValue()).isEmpty()) ph = String.valueOf(u.child("photoBase64").getValue()); if(u.child("country").getValue()!=null) co = String.valueOf(u.child("country").getValue()); if(u.child("gender").getValue()!=null) ge = String.valueOf(u.child("gender").getValue()); if(u.child("level").getValue()!=null) lv = String.valueOf(u.child("level").getValue()); break; } }
+                addOnlineRow(list, uidKey, nm, ph, lv, ge, co, dialog);
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e){ addOnlineRow(list, uidKey, onName!=null?onName:"User", onPhoto!=null?onPhoto:"", "0", "Male", "", dialog); }
+        });
+    }
+    private void addOnlineRow(LinearLayout list, String uid, String name, String photo, String level, String gender, String country, android.app.Dialog dialog){
+        for(int i=0;i<list.getChildCount();i++){ View v=list.getChildAt(i); Object tag=v.getTag(); if(tag!=null && String.valueOf(tag).equals("ONLINE_"+uid)) return; }
+        LinearLayout row=new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL); row.setGravity(Gravity.CENTER_VERTICAL); row.setPadding(6,14,6,14); row.setTag("ONLINE_"+uid);
+        ImageView avatar=new ImageView(this); avatar.setLayoutParams(new LinearLayout.LayoutParams(110,110)); avatar.setImageResource(android.R.drawable.ic_menu_gallery); Bitmap bmp=decodeBase64(photo); if(bmp!=null) avatar.setImageBitmap(bmp); row.addView(avatar);
+        LinearLayout box=new LinearLayout(this); box.setOrientation(LinearLayout.VERTICAL); box.setPadding(16,0,0,0); box.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); row.addView(box);
+        TextView tvName=new TextView(this); tvName.setText(name+"  "+genderIcon(gender)+"  "+flagForCountry(country)); tvName.setTextColor(Color.parseColor("#222222")); tvName.setTextSize(16); tvName.setTypeface(null,android.graphics.Typeface.BOLD); box.addView(tvName);
+        TextView tvId=new TextView(this); tvId.setText("ID: "+uid); tvId.setTextColor(Color.parseColor("#888888")); tvId.setTextSize(13); box.addView(tvId);
+        LinearLayout lvRow=new LinearLayout(this); lvRow.setOrientation(LinearLayout.HORIZONTAL); lvRow.setPadding(0,6,0,0); box.addView(lvRow);
+        TextView lv1=new TextView(this); lv1.setText(" Lv"+level+" "); lv1.setTextColor(Color.WHITE); lv1.setTextSize(12); lv1.setBackgroundColor(Color.parseColor("#FF9800")); lv1.setPadding(10,4,10,4); lvRow.addView(lv1);
+        TextView lv2=new TextView(this); lv2.setText(" Lv0 "); lv2.setTextColor(Color.WHITE); lv2.setTextSize(12); lv2.setBackgroundColor(Color.parseColor("#9C27B0")); lv2.setPadding(10,4,10,4); LinearLayout.LayoutParams lp2=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT); lp2.setMargins(8,0,0,0); lv2.setLayoutParams(lp2); lvRow.addView(lv2);
+        if(uid.equals(roomOwnerId)){ TextView badge=new TextView(this); badge.setText("👑 Owner"); badge.setTextColor(Color.parseColor("#FF9800")); badge.setTypeface(null,android.graphics.Typeface.BOLD); badge.setTextSize(12); row.addView(badge); }
+        else if(roomAdminList.contains(uid)){ TextView badge=new TextView(this); badge.setText("⭐ Admin"); badge.setTextColor(Color.parseColor("#4CAF50")); badge.setTypeface(null,android.graphics.Typeface.BOLD); badge.setTextSize(12); row.addView(badge); }
+        row.setOnClickListener(v->{ dialog.dismiss(); showMiniProfileCard(uid); }); list.addView(row);
+    }
+
+    // ================= EXIT / PROFILE / GIFT / TOOLS / RANKING / ROOM EDIT =================
+    private void showExitDialog(){ AlertDialog.Builder b=new AlertDialog.Builder(this); b.setTitle("Exit Room?"); b.setMessage("Exit room or Minimize to Home?"); b.setPositiveButton("Exit Room",(d,w)->{ d.dismiss(); leaveRoomAndFinish(); }); b.setNeutralButton("Minimize",(d,w)->{ d.dismiss(); leaveRoomKeepHome(); Intent home=new Intent(VoiceRoomActivity.this,MainActivity.class); home.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP); startActivity(home); finish(); }); b.setNegativeButton("Cancel",(d,w)->d.dismiss()); b.show(); }
+    private void leaveRoomKeepHome(){ String key=my9DigitId.isEmpty()?currentUserId:my9DigitId; if(key!=null && !key.isEmpty()){ databaseReference.child("rooms").child(roomOwnerId).child("online_users").child(key).removeValue(); databaseReference.child("online_users").child(key).removeValue(); } }
+    private void leaveRoomAndFinish(){ leaveRoomKeepHome(); Intent intent=new Intent(VoiceRoomActivity.this,MainActivity.class); intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP); startActivity(intent); finish(); }
+    private void showHeaderProfileMembersDialog(){ showOnlineListDialog(); }
+    private void showMiniProfileCard(String uid){
+        BottomSheetDialog dialog=new BottomSheetDialog(this,R.style.Theme_Design_BottomSheetDialog); LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setGravity(Gravity.CENTER); root.setPadding(28,24,28,28); root.setBackgroundColor(Color.WHITE);
+        TextView t=new TextView(this); t.setText("Profile\nID: "+uid); t.setTextColor(Color.parseColor("#222222")); t.setTextSize(16); t.setTypeface(null,android.graphics.Typeface.BOLD); t.setGravity(Gravity.CENTER); root.addView(t);
+        Button b=new Button(this); b.setText("Copy ID"); b.setOnClickListener(v->{ ClipboardManager cm=(ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE); if(cm!=null) cm.setPrimaryClip(ClipData.newPlainText("ID",uid)); Toast.makeText(this,"Copied ✅",Toast.LENGTH_SHORT).show(); dialog.dismiss(); }); root.addView(b);
+        dialog.setContentView(root); setDialog75(dialog); dialog.show();
+    }
+    private void showNewGiftPanel(){
+        BottomSheetDialog dialog=new BottomSheetDialog(this,R.style.Theme_Design_BottomSheetDialog); LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(24,20,24,24); root.setBackgroundColor(Color.WHITE);
+        TextView title=new TextView(this); title.setText("🎁 Gift Box"); title.setTextColor(Color.parseColor("#222222")); title.setTextSize(18); title.setTypeface(null,android.graphics.Typeface.BOLD); title.setGravity(Gravity.CENTER); root.addView(title);
+        walletTextInGift=new TextView(this); walletTextInGift.setText("Coins: "+myWalletCoins); walletTextInGift.setTextColor(Color.parseColor("#B8860B")); walletTextInGift.setGravity(Gravity.CENTER); walletTextInGift.setPadding(0,8,0,16); root.addView(walletTextInGift);
+        String[][] gifts={{"🌹","Rose","10"},{"💎","Diamond","100"},{"🚗","Car","1000"},{"🏰","Castle","10000"}};
+        for(String[] g:gifts){ Button btn=new Button(this); btn.setText(g[0]+" "+g[1]+" - 🪙 "+g[2]); btn.setOnClickListener(v->{ Toast.makeText(this,g[1]+" Sent ✅",Toast.LENGTH_SHORT).show(); dialog.dismiss(); }); root.addView(btn); }
+        dialog.setContentView(root); setDialog75(dialog); dialog.show();
+    }
+    private void showIconToolsDialog(boolean isOwner){
+        BottomSheetDialog dialog=new BottomSheetDialog(this,R.style.Theme_Design_BottomSheetDialog); LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(28,20,28,28); root.setBackgroundColor(Color.parseColor("#FFF8E1"));
+        TextView title=new TextView(this); title.setText("Room Settings"); title.setTextColor(Color.parseColor("#222222")); title.setTextSize(18); title.setTypeface(null,android.graphics.Typeface.BOLD); title.setGravity(Gravity.CENTER); title.setPadding(0,0,0,16); root.addView(title);
+        TextView basic=new TextView(this); basic.setText("Basic Tools"); basic.setTextColor(Color.parseColor("#888888")); basic.setTextSize(13); basic.setTypeface(null,android.graphics.Typeface.BOLD); basic.setPadding(4,0,0,8); root.addView(basic);
+        root.addView(createToolsGrid(new String[][]{{"🔒","Lock off"},{"⚙️","Room set"},{"✏️","Room Edit"},{"🧹","Clear charm"},{"🗑️","Clear chat"},{"🎤","Change mic"},{"🎨","Mic Theme"},{"👗","Dress"},{"🔔","Lucky Sound"},{"🎙️","Voice User"},{"🚪","Kick out record"}},dialog));
+        TextView other=new TextView(this); other.setText("Other Tools"); other.setTextColor(Color.parseColor("#888888")); other.setTextSize(13); other.setTypeface(null,android.graphics.Typeface.BOLD); other.setPadding(4,20,0,8); root.addView(other);
+        root.addView(createToolsGrid(new String[][]{{"▶️","YouTube"},{"🍀","Lucky float"},{"⚔️","Room PK"},{"📡","Broadcast"}},dialog));
+        dialog.setContentView(root); setDialog85(dialog); dialog.show();
+    }
+    private LinearLayout createToolsGrid(String[][] items,BottomSheetDialog dialog){ LinearLayout grid=new LinearLayout(this); grid.setOrientation(LinearLayout.VERTICAL); for(int i=0;i<items.length;i+=4){ LinearLayout row=new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL); row.setWeightSum(4); for(int j=0;j<4;j++){ int idx=i+j; LinearLayout cell=new LinearLayout(this); cell.setOrientation(LinearLayout.VERTICAL); cell.setGravity(Gravity.CENTER); cell.setPadding(4,12,4,12); cell.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); if(idx<items.length){ TextView icon=new TextView(this); icon.setText(items[idx][0]); icon.setTextSize(26); icon.setGravity(Gravity.CENTER); cell.addView(icon); TextView label=new TextView(this); label.setText(items[idx][1]); label.setTextColor(Color.parseColor("#333333")); label.setTextSize(11); label.setGravity(Gravity.CENTER); label.setPadding(0,6,0,0); cell.addView(label); String action=items[idx][1]; cell.setOnClickListener(v->{ dialog.dismiss(); if(action.equals("Clear chat") && messagesRef!=null){ messagesRef.removeValue(); Toast.makeText(this,"Chat Cleared!",Toast.LENGTH_SHORT).show(); } else if(action.equals("Room set")||action.equals("Room Edit")){ showRoomEditDialog(); } else Toast.makeText(this,action+" - Coming Soon",Toast.LENGTH_SHORT).show(); }); } row.addView(cell); } grid.addView(row); } return grid; }
+    private void showInRoomRankingDialog(){
+        android.app.Dialog dialog=makeFullScreenDialog(); LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(20,16,20,20); root.setBackgroundColor(Color.parseColor("#1B1035"));
+        TextView t=new TextView(this); t.setText("🏆 In-Room Ranking"); t.setTextColor(Color.WHITE); t.setTextSize(18); t.setTypeface(null,android.graphics.Typeface.BOLD); t.setGravity(Gravity.CENTER); root.addView(t);
+        TextView c=new TextView(this); c.setText("✕ Close"); c.setTextColor(Color.WHITE); c.setGravity(Gravity.CENTER); c.setPadding(0,20,0,0); c.setOnClickListener(v->dialog.dismiss()); root.addView(c);
+        TextView info=new TextView(this); info.setText("Day / Week / Month - Coming Soon"); info.setTextColor(Color.parseColor("#AAAAAA")); info.setGravity(Gravity.CENTER); info.setPadding(0,20,0,0); root.addView(info);
+        dialog.setContentView(root); dialog.show();
+    }
     private void showRoomEditDialog(){
         BottomSheetDialog dialog=new BottomSheetDialog(this,R.style.Theme_Design_BottomSheetDialog); ScrollView sv=new ScrollView(this); LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(28,16,28,28); root.setBackgroundColor(Color.parseColor("#FFFFFF")); sv.addView(root);
         TextView topTitle=new TextView(this); topTitle.setText("Room set"); topTitle.setTextColor(Color.parseColor("#222222")); topTitle.setTextSize(18); topTitle.setTypeface(null,android.graphics.Typeface.BOLD); topTitle.setGravity(Gravity.CENTER); topTitle.setPadding(0,0,0,16); root.addView(topTitle);
@@ -274,238 +390,21 @@ public class VoiceRoomActivity extends AppCompatActivity {
         TextView tvNameCount=new TextView(this); tvNameCount.setText(curName.length()+"/20"); tvNameCount.setTextColor(Color.parseColor("#999999")); tvNameCount.setTextSize(12); nameRow.addView(tvNameCount); etName.addTextChangedListener(new TextWatcher(){ @Override public void beforeTextChanged(CharSequence s,int st,int c,int a){} @Override public void onTextChanged(CharSequence s,int st,int b,int c){ tvNameCount.setText(s.length()+"/20"); } @Override public void afterTextChanged(Editable s){} });
         TextView lblAnn=new TextView(this); lblAnn.setText("Room announcement"); lblAnn.setTextColor(Color.parseColor("#333333")); lblAnn.setTextSize(14); lblAnn.setTypeface(null,android.graphics.Typeface.BOLD); lblAnn.setPadding(0,20,0,8); root.addView(lblAnn);
         EditText etAnn=new EditText(this); etAnn.setHint("Write announcement..."); etAnn.setTextColor(Color.parseColor("#222222")); etAnn.setTextSize(14); etAnn.setBackgroundColor(Color.parseColor("#F5F5F5")); etAnn.setPadding(20,20,20,20); etAnn.setMinLines(4); etAnn.setGravity(Gravity.TOP); etAnn.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT)); String curAnn=roomNoticeBarText!=null?roomNoticeBarText.getText().toString():""; etAnn.setText(curAnn); root.addView(etAnn);
-        TextView tvAnnCount=new TextView(this); tvAnnCount.setText(curAnn.length()+"/200"); tvAnnCount.setTextColor(Color.parseColor("#999999")); tvAnnCount.setTextSize(12); tvAnnCount.setGravity(Gravity.END); tvAnnCount.setPadding(0,4,0,0); root.addView(tvAnnCount); etAnn.addTextChangedListener(new TextWatcher(){ @Override public void beforeTextChanged(CharSequence s,int st,int c,int a){} @Override public void onTextChanged(CharSequence s,int st,int b,int c){ tvAnnCount.setText(s.length()+"/200"); } @Override public void afterTextChanged(Editable s){} });
         TextView lblLabel=new TextView(this); lblLabel.setText("Room label"); lblLabel.setTextColor(Color.parseColor("#333333")); lblLabel.setTextSize(14); lblLabel.setTypeface(null,android.graphics.Typeface.BOLD); lblLabel.setPadding(0,20,0,8); root.addView(lblLabel);
-        LinearLayout labelRow=new LinearLayout(this); labelRow.setOrientation(LinearLayout.HORIZONTAL); labelRow.setWeightSum(4); root.addView(labelRow); String[] labels={"Friends","Game","Music","Chat"}; List<TextView> labelViews=new ArrayList<>(); for(String lb:labels){ TextView tv=new TextView(this); tv.setText(lb); tv.setTextSize(13); tv.setGravity(Gravity.CENTER); tv.setPadding(10,18,10,18); GradientDrawable gd=new GradientDrawable(); gd.setCornerRadius(40); gd.setColor(lb.equals(selectedRoomLabel)?Color.parseColor("#FFC107"):Color.parseColor("#E0E0E0")); tv.setBackground(gd); tv.setTextColor(lb.equals(selectedRoomLabel)?Color.WHITE:Color.parseColor("#555555")); tv.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); labelViews.add(tv); tv.setOnClickListener(v->{ selectedRoomLabel=lb; for(int i=0;i<labels.length;i++){ TextView t=labelViews.get(i); GradientDrawable g2=new GradientDrawable(); g2.setCornerRadius(40); boolean sel=labels[i].equals(lb); g2.setColor(sel?Color.parseColor("#FFC107"):Color.parseColor("#E0E0E0")); t.setBackground(g2); t.setTextColor(sel?Color.WHITE:Color.parseColor("#555555")); } }); LinearLayout.LayoutParams mp=(LinearLayout.LayoutParams)tv.getLayoutParams(); mp.setMargins(4,0,4,0); tv.setLayoutParams(mp); labelRow.addView(tv); }
+        LinearLayout labelRow=new LinearLayout(this); labelRow.setOrientation(LinearLayout.HORIZONTAL); labelRow.setWeightSum(4); root.addView(labelRow); String[] labels={"Friends","Game","Music","Chat"}; List<TextView> labelViews=new ArrayList<>(); for(String lb:labels){ TextView tv=new TextView(this); tv.setText(lb); tv.setTextSize(13); tv.setGravity(Gravity.CENTER); tv.setPadding(10,18,10,18); GradientDrawable gd=new GradientDrawable(); gd.setCornerRadius(40); gd.setColor(lb.equals(selectedRoomLabel)?Color.parseColor("#FFC107"):Color.parseColor("#E0E0E0")); tv.setBackground(gd); tv.setTextColor(lb.equals(selectedRoomLabel)?Color.WHITE:Color.parseColor("#555555")); tv.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); labelViews.add(tv); tv.setOnClickListener(v->{ selectedRoomLabel=lb; for(int i=0;i<labels.length;i++){ TextView t2=labelViews.get(i); GradientDrawable g2=new GradientDrawable(); g2.setCornerRadius(40); boolean sel=labels[i].equals(lb); g2.setColor(sel?Color.parseColor("#FFC107"):Color.parseColor("#E0E0E0")); t2.setBackground(g2); t2.setTextColor(sel?Color.WHITE:Color.parseColor("#555555")); } }); LinearLayout.LayoutParams mp=(LinearLayout.LayoutParams)tv.getLayoutParams(); mp.setMargins(4,0,4,0); tv.setLayoutParams(mp); labelRow.addView(tv); }
         TextView lblTheme=new TextView(this); lblTheme.setText("Room theme"); lblTheme.setTextColor(Color.parseColor("#333333")); lblTheme.setTextSize(14); lblTheme.setTypeface(null,android.graphics.Typeface.BOLD); lblTheme.setPadding(0,20,0,8); root.addView(lblTheme);
         LinearLayout themeRow=new LinearLayout(this); themeRow.setOrientation(LinearLayout.HORIZONTAL); themeRow.setGravity(Gravity.CENTER_VERTICAL); themeRow.setBackgroundColor(Color.parseColor("#F5F5F5")); themeRow.setPadding(16,16,16,16); root.addView(themeRow); TextView tvThemeName=new TextView(this); tvThemeName.setText(currentThemeName); tvThemeName.setTextColor(Color.parseColor("#222222")); tvThemeName.setTextSize(14); tvThemeName.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); themeRow.addView(tvThemeName); TextView tvThemeArrow=new TextView(this); tvThemeArrow.setText("🖼️  >"); tvThemeArrow.setTextSize(18); themeRow.addView(tvThemeArrow); themeRow.setOnClickListener(v->showRoomThemeDialog());
         Button btnSave=new Button(this); btnSave.setText("Save"); btnSave.setTextColor(Color.WHITE); btnSave.setTextSize(17); btnSave.setAllCaps(false); btnSave.setTypeface(null,android.graphics.Typeface.BOLD); GradientDrawable saveBg=new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,new int[]{Color.parseColor("#FFC107"),Color.parseColor("#FF9800")}); saveBg.setCornerRadius(60); btnSave.setBackground(saveBg); LinearLayout.LayoutParams sp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,130); sp.setMargins(0,28,0,0); btnSave.setLayoutParams(sp); root.addView(btnSave);
         btnSave.setOnClickListener(v->{ String newName=etName.getText().toString().trim(); String newAnn=etAnn.getText().toString().trim(); if(newName.isEmpty()){ Toast.makeText(this,"Room Name likho",Toast.LENGTH_SHORT).show(); return; } Map<String,Object> map=new HashMap<>(); map.put("roomName",newName); map.put("announcement",newAnn); map.put("roomLabel",selectedRoomLabel); map.put("roomTheme",currentThemeName); if(pendingRoomPhotoBase64!=null && !pendingRoomPhotoBase64.isEmpty()){ map.put("roomPhotoBase64",pendingRoomPhotoBase64); currentRoomPhotoBase64=pendingRoomPhotoBase64; Bitmap bmp=decodeBase64(pendingRoomPhotoBase64); if(bmp!=null && roomHeaderProfileImg!=null) roomHeaderProfileImg.setImageBitmap(bmp); } if(pendingCustomBgBase64!=null && !pendingCustomBgBase64.isEmpty()){ if(myWalletCoins<100000){ Toast.makeText(this,"Not enough coins - 100000 gold lagbe",Toast.LENGTH_SHORT).show(); return; } map.put("customBgBase64",pendingCustomBgBase64); userDatabaseRef.child(currentUserId).child("coins").setValue(myWalletCoins-100000); pendingCustomBgBase64=""; } roomMetaRef.updateChildren(map); if(roomTitleText!=null) roomTitleText.setText(newName); if(roomNoticeBarText!=null){ if(newAnn.isEmpty()) roomNoticeBarText.setVisibility(View.GONE); else { roomNoticeBarText.setVisibility(View.VISIBLE); roomNoticeBarText.setText(newAnn); } } Toast.makeText(this,"Room Saved Successfully ✅",Toast.LENGTH_SHORT).show(); dialog.dismiss(); });
         dialog.setContentView(sv); setDialog75(dialog); dialog.show();
     }
-    private void showRoomThemeDialog(){ BottomSheetDialog dialog=new BottomSheetDialog(this,R.style.Theme_Design_BottomSheetDialog); LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(Color.parseColor("#111111")); root.setPadding(20,16,20,20); TextView title=new TextView(this); title.setText("Background"); title.setTextColor(Color.WHITE); title.setTextSize(18); title.setTypeface(null,android.graphics.Typeface.BOLD); title.setGravity(Gravity.CENTER); title.setPadding(0,0,0,12); root.addView(title); LinearLayout tabs=new LinearLayout(this); tabs.setOrientation(LinearLayout.HORIZONTAL); tabs.setWeightSum(2); tabs.setPadding(0,0,0,12); root.addView(tabs); TextView tabSys=new TextView(this); tabSys.setText("System"); tabSys.setTextColor(Color.WHITE); tabSys.setTextSize(15); tabSys.setTypeface(null,android.graphics.Typeface.BOLD); tabSys.setGravity(Gravity.CENTER); tabSys.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); tabs.addView(tabSys); TextView tabMine=new TextView(this); tabMine.setText("Mine"); tabMine.setTextColor(Color.parseColor("#888888")); tabMine.setTextSize(15); tabMine.setGravity(Gravity.CENTER); tabMine.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); tabs.addView(tabMine); ScrollView sv=new ScrollView(this); LinearLayout gridBox=new LinearLayout(this); gridBox.setOrientation(LinearLayout.VERTICAL); sv.addView(gridBox); root.addView(sv); Runnable showSystem=()->{ gridBox.removeAllViews(); String[][] items={{"🦁 Lion","99999"},{"🐉 Dragon","59999"},{"🦅 Eagle","19999"},{"🐯 Tiger","9999"},{"🐻 Bear","9999"},{"🕌 Mosque","5000"},{"🌅 Sunset","Free"},{"🏖️ Beach","Free"}}; for(int i=0;i<items.length;i+=2){ LinearLayout row=new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL); row.setWeightSum(2); gridBox.addView(row); for(int j=0;j<2;j++){ int idx=i+j; LinearLayout cell=new LinearLayout(this); cell.setOrientation(LinearLayout.VERTICAL); cell.setGravity(Gravity.CENTER); cell.setBackgroundColor(Color.parseColor("#222222")); cell.setPadding(16,20,16,20); LinearLayout.LayoutParams cp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); cp.setMargins(8,8,8,8); cell.setLayoutParams(cp); if(idx<items.length){ TextView icon=new TextView(this); icon.setText(items[idx][0]); icon.setTextColor(Color.WHITE); icon.setTextSize(16); icon.setGravity(Gravity.CENTER); cell.addView(icon); TextView price=new TextView(this); price.setText("🪙 "+items[idx][1]); price.setTextColor(Color.parseColor("#FFD700")); price.setTextSize(12); price.setGravity(Gravity.CENTER); price.setPadding(0,8,0,0); cell.addView(price); TextView btn=new TextView(this); btn.setText(items[idx][1].equals("Free")?"Save":"Buy"); btn.setTextColor(Color.WHITE); btn.setTextSize(13); btn.setTypeface(null,android.graphics.Typeface.BOLD); btn.setGravity(Gravity.CENTER); btn.setBackgroundColor(Color.parseColor("#4CAF50")); btn.setPadding(10,12,10,12); LinearLayout.LayoutParams bp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT); bp.setMargins(0,10,0,0); btn.setLayoutParams(bp); cell.addView(btn); String themeName=items[idx][0]; String priceStr=items[idx][1]; btn.setOnClickListener(v->{ if(!priceStr.equals("Free")){ try{ long p=Long.parseLong(priceStr); if(myWalletCoins<p){ Toast.makeText(this,"Not enough coins",Toast.LENGTH_SHORT).show(); return; } userDatabaseRef.child(currentUserId).child("coins").setValue(myWalletCoins-p); }catch(Exception ignored){} } currentThemeName=themeName; roomMetaRef.child("roomTheme").setValue(themeName); Toast.makeText(this,themeName+" Selected ✅",Toast.LENGTH_SHORT).show(); dialog.dismiss(); }); } row.addView(cell); } } }; Runnable showMine=()->{ gridBox.removeAllViews(); LinearLayout cell=new LinearLayout(this); cell.setOrientation(LinearLayout.VERTICAL); cell.setGravity(Gravity.CENTER); cell.setBackgroundColor(Color.parseColor("#2A2A2A")); cell.setPadding(30,40,30,40); TextView up=new TextView(this); up.setText("☁️⬆️"); up.setTextSize(42); up.setGravity(Gravity.CENTER); cell.addView(up); TextView price=new TextView(this); price.setText("🪙 100000 gold"); price.setTextColor(Color.parseColor("#FFD700")); price.setTextSize(15); price.setTypeface(null,android.graphics.Typeface.BOLD); price.setGravity(Gravity.CENTER); price.setPadding(0,12,0,0); cell.addView(price); TextView hint=new TextView(this); hint.setText("Upload your own background\n100K will go to Company"); hint.setTextColor(Color.parseColor("#AAAAAA")); hint.setTextSize(12); hint.setGravity(Gravity.CENTER); hint.setPadding(0,8,0,0); cell.addView(hint); cell.setOnClickListener(v->{ galleryMode="CUSTOM_BG"; Intent i=new Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI); galleryLauncher.launch(i); dialog.dismiss(); }); gridBox.addView(cell); }; tabSys.setOnClickListener(v->{ tabSys.setTextColor(Color.WHITE); tabMine.setTextColor(Color.parseColor("#888888")); showSystem.run(); }); tabMine.setOnClickListener(v->{ tabMine.setTextColor(Color.WHITE); tabSys.setTextColor(Color.parseColor("#888888")); showMine.run(); }); showSystem.run(); dialog.setContentView(root); setDialog75(dialog); dialog.show(); }
-
-    // ================= ONLINE LIST - SOBAI - USER / ADMIN / OWNER =================
-    private void showOnlineListDialog(){
-        android.app.Dialog dialog=makeFullScreenDialog();
-        LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(Color.WHITE); root.setPadding(24,20,24,24);
-        LinearLayout top=new LinearLayout(this); top.setOrientation(LinearLayout.HORIZONTAL); top.setGravity(Gravity.CENTER_VERTICAL); root.addView(top);
-        TextView title=new TextView(this); title.setText("Online list"); title.setTextColor(Color.parseColor("#222222")); title.setTextSize(19); title.setTypeface(null,android.graphics.Typeface.BOLD); title.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); top.addView(title);
-        TextView close=new TextView(this); close.setText("✕"); close.setTextSize(22); close.setTextColor(Color.parseColor("#888888")); close.setPadding(10,10,10,10); close.setOnClickListener(v->dialog.dismiss()); top.addView(close);
-        TextView sub=new TextView(this); sub.setText("Room e ekhon jara active ache"); sub.setTextColor(Color.parseColor("#999999")); sub.setTextSize(13); sub.setPadding(0,4,0,10); root.addView(sub);
-        ScrollView sv=new ScrollView(this); LinearLayout list=new LinearLayout(this); list.setOrientation(LinearLayout.VERTICAL); sv.addView(list); root.addView(sv);
-        // 1) Age nijeke nischit koro - tumi online e acho
-        pushOnlineNow();
-        // 2) Room er online_users theke sobai ke nao - User / Admin / Owner sobai ekhane
-        databaseReference.child("rooms").child(roomOwnerId).child("online_users").addValueEventListener(new ValueEventListener(){
-            @Override public void onDataChange(@NonNull DataSnapshot s){
-                list.removeAllViews();
-                if(!s.exists() || s.getChildrenCount()==0){
-                    // Purano version er user ra global e thakte pare - oikhan thekeo dekhao
-                    databaseReference.child("online_users").addListenerForSingleValueEvent(new ValueEventListener(){
-                        @Override public void onDataChange(@NonNull DataSnapshot g){
-                            if(!g.exists() || g.getChildrenCount()==0){
-                                TextView tv=new TextView(VoiceRoomActivity.this); tv.setText("No one online"); tv.setTextColor(Color.parseColor("#AAAAAA")); tv.setGravity(Gravity.CENTER); tv.setPadding(0,40,0,40); list.addView(tv); return;
-                            }
-                            for(DataSnapshot ds : g.getChildren()) showOneOnlineUser(list, ds, dialog);
-                        }
-                        @Override public void onCancelled(@NonNull DatabaseError e){}
-                    });
-                    return;
-                }
-                for(DataSnapshot ds : s.getChildren()) showOneOnlineUser(list, ds, dialog);
-            }
-            @Override public void onCancelled(@NonNull DatabaseError e){}
-        });
-        dialog.setContentView(root); dialog.show();
-    }
-    private void showOneOnlineUser(LinearLayout list, DataSnapshot ds, android.app.Dialog dialog){
-        String uidKey = ds.getKey();
-        if(uidKey == null) return;
-        String onName = ds.child("name").getValue(String.class);
-        String onPhoto = ds.child("photoBase64").getValue(String.class);
-        String onCountry = ds.child("country").getValue(String.class);
-        String onGender = ds.child("gender").getValue(String.class);
-        String onLevel = ds.child("level").getValue(String.class);
-        // Asol profile users theke - Group Photo kokhono asbe na, Profile Photo asbe
-        userDatabaseRef.orderByChild("my9DigitId").equalTo(uidKey).addListenerForSingleValueEvent(new ValueEventListener(){
-            @Override public void onDataChange(@NonNull DataSnapshot us){
-                String nm = onName != null ? onName : "User";
-                String ph = onPhoto != null ? onPhoto : "";
-                String co = onCountry != null ? onCountry : "";
-                String ge = onGender != null ? onGender : "Male";
-                String lv = onLevel != null ? onLevel : "0";
-                if(us.exists()){
-                    for(DataSnapshot u : us.getChildren()){
-                        if(u.child("name").getValue()!=null) nm = String.valueOf(u.child("name").getValue());
-                        if(u.child("photoBase64").getValue()!=null && !String.valueOf(u.child("photoBase64").getValue()).isEmpty()) ph = String.valueOf(u.child("photoBase64").getValue());
-                        if(u.child("country").getValue()!=null) co = String.valueOf(u.child("country").getValue());
-                        if(u.child("gender").getValue()!=null) ge = String.valueOf(u.child("gender").getValue());
-                        if(u.child("level").getValue()!=null) lv = String.valueOf(u.child("level").getValue());
-                        break;
-                    }
-                }
-                // Jodi nam ekhono User / khali hoy, tobuo row dekhaba - kintu ID diye
-                if(nm == null || nm.isEmpty()) nm = "User";
-                addOnlineRow(list, uidKey, nm, ph, lv, ge, co, dialog);
-            }
-            @Override public void onCancelled(@NonNull DatabaseError e){ addOnlineRow(list, uidKey, onName!=null?onName:"User", onPhoto!=null?onPhoto:"", "0", "Male", "", dialog); }
-        });
-    }
-    private void addOnlineRow(LinearLayout list, String uid, String name, String photo, String level, String gender, String country, android.app.Dialog dialog){
-        // Duplicate row atkaw - eki ID 2 bar asbe na
-        for(int i=0;i<list.getChildCount();i++){ View v=list.getChildAt(i); Object tag=v.getTag(); if(tag!=null && String.valueOf(tag).equals("ONLINE_"+uid)) return; }
-        LinearLayout row=new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL); row.setGravity(Gravity.CENTER_VERTICAL); row.setPadding(6,14,6,14); row.setTag("ONLINE_"+uid);
-        ImageView avatar=new ImageView(this); avatar.setLayoutParams(new LinearLayout.LayoutParams(110,110)); avatar.setImageResource(android.R.drawable.ic_menu_gallery); Bitmap bmp=decodeBase64(photo); if(bmp!=null) avatar.setImageBitmap(bmp); row.addView(avatar);
-        LinearLayout box=new LinearLayout(this); box.setOrientation(LinearLayout.VERTICAL); box.setPadding(16,0,0,0); box.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); row.addView(box);
-        TextView tvName=new TextView(this); tvName.setText(name+"  "+genderIcon(gender)+"  "+flagForCountry(country)); tvName.setTextColor(Color.parseColor("#222222")); tvName.setTextSize(16); tvName.setTypeface(null,android.graphics.Typeface.BOLD); box.addView(tvName);
-        TextView tvId=new TextView(this); tvId.setText("ID: "+uid); tvId.setTextColor(Color.parseColor("#888888")); tvId.setTextSize(13); box.addView(tvId);
-        LinearLayout lvRow=new LinearLayout(this); lvRow.setOrientation(LinearLayout.HORIZONTAL); lvRow.setPadding(0,6,0,0); box.addView(lvRow);
-        TextView lv1=new TextView(this); lv1.setText(" Lv"+level+" "); lv1.setTextColor(Color.WHITE); lv1.setTextSize(12); lv1.setBackgroundColor(Color.parseColor("#FF9800")); lv1.setPadding(10,4,10,4); lvRow.addView(lv1);
-        TextView lv2=new TextView(this); lv2.setText(" Lv0 "); lv2.setTextColor(Color.WHITE); lv2.setTextSize(12); lv2.setBackgroundColor(Color.parseColor("#9C27B0")); lv2.setPadding(10,4,10,4); LinearLayout.LayoutParams lp2=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,ViewGroup.LayoutParams.WRAP_CONTENT); lp2.setMargins(8,0,0,0); lv2.setLayoutParams(lp2); lvRow.addView(lv2);
-        // Owner / Admin badge - jodi room owner hoy
-        if(uid.equals(roomOwnerId)){ TextView badge=new TextView(this); badge.setText("👑 Owner"); badge.setTextColor(Color.parseColor("#FF9800")); badge.setTypeface(null,android.graphics.Typeface.BOLD); badge.setTextSize(12); row.addView(badge); }
-        else if(roomAdminList.contains(uid)){ TextView badge=new TextView(this); badge.setText("⭐ Admin"); badge.setTextColor(Color.parseColor("#4CAF50")); badge.setTypeface(null,android.graphics.Typeface.BOLD); badge.setTextSize(12); row.addView(badge); }
-        row.setOnClickListener(v->{ dialog.dismiss(); showMiniProfileCard(uid); }); list.addView(row);
-    }
-
-    // ================= EXIT / WALLET / TOOLS / RANKING / GIFT =================
-    private void showExitDialog(){ AlertDialog.Builder b=new AlertDialog.Builder(this); b.setTitle("Exit Room?"); b.setMessage("Exit room or Minimize to Home?"); b.setPositiveButton("Exit Room",(d,w)->{ d.dismiss(); leaveRoomAndFinish(); }); b.setNeutralButton("Minimize",(d,w)->{ d.dismiss(); leaveRoomKeepHome(); Intent home=new Intent(VoiceRoomActivity.this,MainActivity.class); home.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP); startActivity(home); finish(); }); b.setNegativeButton("Cancel",(d,w)->d.dismiss()); b.show(); }
-    private void leaveRoomKeepHome(){ String key=my9DigitId.isEmpty()?currentUserId:my9DigitId; if(key!=null && !key.isEmpty()){ databaseReference.child("rooms").child(roomOwnerId).child("online_users").child(key).removeValue(); databaseReference.child("online_users").child(key).removeValue(); for(int i=0;i<10;i++){ final int idx=i; databaseReference.child("seats").child("seat_"+idx).addListenerForSingleValueEvent(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ String uid=s.child("userId").getValue(String.class); if(uid!=null && (uid.equals(currentUserId)||uid.equals(my9DigitId))) databaseReference.child("seats").child("seat_"+idx).removeValue(); } @Override public void onCancelled(@NonNull DatabaseError e){} }); } } }
-    private void leaveRoomAndFinish(){ leaveRoomKeepHome(); Intent intent=new Intent(VoiceRoomActivity.this,MainActivity.class); intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP); startActivity(intent); finish(); }
-    private void listenToMyWallet(){ if(currentUserId.isEmpty()) return; userDatabaseRef.child(currentUserId).addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ Long coins=s.child("coins").getValue(Long.class); long w=(coins!=null)?coins:0L; myWalletCoins=w; if(walletTextInGift!=null) walletTextInGift.setText("Coins: "+String.format("%,d",w)); if(textRoomCoins!=null) textRoomCoins.setText("🪙 "+String.format("%,d",w)); } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
-    private void listenToRoomTheme(){ if(roomMetaRef==null) return; roomMetaRef.addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ String n=s.child("roomTheme").getValue(String.class); if(n!=null && !n.isEmpty()) currentThemeName=n; } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
-    private void listenToRoomDetails(){ if(roomMetaRef==null) return; roomMetaRef.addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ String rn=s.child("roomName").getValue(String.class); if(rn!=null && !rn.isEmpty() && roomTitleText!=null) roomTitleText.setText(rn); if(roomInfoText!=null) roomInfoText.setText("ID: "+roomOwnerId); String ann=s.child("announcement").getValue(String.class); if(roomNoticeBarText!=null){ if(ann==null || ann.isEmpty() || ann.equals("wlc") || ann.equals("Welcome to SR Voice Chat ❤️")){ roomNoticeBarText.setVisibility(View.GONE); roomNoticeBarText.setText(""); } else { roomNoticeBarText.setVisibility(View.VISIBLE); roomNoticeBarText.setText(ann); } } String lb=s.child("roomLabel").getValue(String.class); if(lb!=null && !lb.isEmpty()) selectedRoomLabel=lb; } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
-    private void listenToRoomAdmins(){ if(adminsRef==null) return; adminsRef.addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ roomAdminList.clear(); for(DataSnapshot ds:s.getChildren()) if(Boolean.TRUE.equals(ds.getValue(Boolean.class))) roomAdminList.add(ds.getKey()); } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
-    private void showIconToolsDialog(boolean isOwner){ BottomSheetDialog dialog=new BottomSheetDialog(this,R.style.Theme_Design_BottomSheetDialog); LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(28,20,28,28); root.setBackgroundColor(Color.parseColor("#FFF8E1")); TextView title=new TextView(this); title.setText("Room Settings"); title.setTextColor(Color.parseColor("#222222")); title.setTextSize(18); title.setTypeface(null,android.graphics.Typeface.BOLD); title.setGravity(Gravity.CENTER); title.setPadding(0,0,0,16); root.addView(title); TextView basic=new TextView(this); basic.setText("Basic Tools"); basic.setTextColor(Color.parseColor("#888888")); basic.setTextSize(13); basic.setTypeface(null,android.graphics.Typeface.BOLD); basic.setPadding(4,0,0,8); root.addView(basic); root.addView(createToolsGrid(new String[][]{{"🔒","Lock off"},{"⚙️","Room set"},{"✏️","Room Edit"},{"🧹","Clear charm"},{"🗑️","Clear chat"},{"🎤","Change mic"},{"🎨","Mic Theme"},{"👗","Dress"},{"🔔","Lucky Sound"},{"🎙️","Voice User"},{"🚪","Kick out record"}},dialog)); TextView other=new TextView(this); other.setText("Other Tools"); other.setTextColor(Color.parseColor("#888888")); other.setTextSize(13); other.setTypeface(null,android.graphics.Typeface.BOLD); other.setPadding(4,20,0,8); root.addView(other); root.addView(createToolsGrid(new String[][]{{"▶️","YouTube"},{"🍀","Lucky float"},{"⚔️","Room PK"},{"📡","Broadcast"}},dialog)); dialog.setContentView(root); setDialog85(dialog); dialog.show(); }
-    private LinearLayout createToolsGrid(String[][] items,BottomSheetDialog dialog){ LinearLayout grid=new LinearLayout(this); grid.setOrientation(LinearLayout.VERTICAL); for(int i=0;i<items.length;i+=4){ LinearLayout row=new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL); row.setWeightSum(4); for(int j=0;j<4;j++){ int idx=i+j; LinearLayout cell=new LinearLayout(this); cell.setOrientation(LinearLayout.VERTICAL); cell.setGravity(Gravity.CENTER); cell.setPadding(4,12,4,12); cell.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); if(idx<items.length){ TextView icon=new TextView(this); icon.setText(items[idx][0]); icon.setTextSize(26); icon.setGravity(Gravity.CENTER); cell.addView(icon); TextView label=new TextView(this); label.setText(items[idx][1]); label.setTextColor(Color.parseColor("#333333")); label.setTextSize(11); label.setGravity(Gravity.CENTER); label.setPadding(0,6,0,0); cell.addView(label); String action=items[idx][1]; cell.setOnClickListener(v->{ dialog.dismiss(); if(action.equals("Clear chat") && messagesRef!=null){ messagesRef.removeValue(); Toast.makeText(this,"Chat Cleared!",Toast.LENGTH_SHORT).show(); } else if(action.equals("Room set")||action.equals("Room Edit")){ showRoomEditDialog(); } else Toast.makeText(this,action+" - Coming Soon",Toast.LENGTH_SHORT).show(); }); } row.addView(cell); } grid.addView(row); } return grid; }
-    private void showInRoomRankingDialog(){ android.app.Dialog dialog=makeFullScreenDialog(); LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(20,16,20,20); GradientDrawable bg=new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,new int[]{Color.parseColor("#1B1035"),Color.parseColor("#0A0518")}); root.setBackground(bg); LinearLayout topBar=new LinearLayout(this); topBar.setOrientation(LinearLayout.HORIZONTAL); topBar.setGravity(Gravity.CENTER_VERTICAL); TextView tvClose=new TextView(this); tvClose.setText("✕"); tvClose.setTextColor(Color.WHITE); tvClose.setTextSize(20); tvClose.setPadding(10,10,10,10); tvClose.setOnClickListener(v->dialog.dismiss()); topBar.addView(tvClose); TextView title=new TextView(this); title.setText("🏆 Ranking"); title.setTextColor(Color.parseColor("#FFD700")); title.setTextSize(20); title.setTypeface(null,android.graphics.Typeface.BOLD); title.setGravity(Gravity.CENTER); title.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); topBar.addView(title); root.addView(topBar); LinearLayout typeRow=new LinearLayout(this); typeRow.setOrientation(LinearLayout.HORIZONTAL); typeRow.setWeightSum(2); typeRow.setPadding(0,12,0,8); root.addView(typeRow); TextView tabWealth=new TextView(this); tabWealth.setText("Wealth"); tabWealth.setGravity(Gravity.CENTER); tabWealth.setTextSize(16); tabWealth.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); typeRow.addView(tabWealth); TextView tabCharm=new TextView(this); tabCharm.setText("Charm"); tabCharm.setGravity(Gravity.CENTER); tabCharm.setTextSize(16); tabCharm.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); typeRow.addView(tabCharm); LinearLayout timeRow=new LinearLayout(this); timeRow.setOrientation(LinearLayout.HORIZONTAL); timeRow.setWeightSum(3); timeRow.setPadding(0,0,0,14); root.addView(timeRow); TextView tabDay=new TextView(this); tabDay.setText("Day"); tabDay.setGravity(Gravity.CENTER); tabDay.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); timeRow.addView(tabDay); TextView tabWeek=new TextView(this); tabWeek.setText("Week"); tabWeek.setGravity(Gravity.CENTER); tabWeek.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); timeRow.addView(tabWeek); TextView tabMonth=new TextView(this); tabMonth.setText("Month"); tabMonth.setGravity(Gravity.CENTER); tabMonth.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); timeRow.addView(tabMonth); ScrollView sv=new ScrollView(this); LinearLayout listLayout=new LinearLayout(this); listLayout.setOrientation(LinearLayout.VERTICAL); sv.addView(listLayout); root.addView(sv); Runnable refreshTabs=()->{ tabWealth.setTextColor(rankingType.equals("Wealth")?Color.parseColor("#FFD700"):Color.parseColor("#AAAAAA")); tabCharm.setTextColor(rankingType.equals("Charm")?Color.parseColor("#FFD700"):Color.parseColor("#AAAAAA")); tabDay.setTextColor(rankingTab.equals("Day")?Color.WHITE:Color.parseColor("#AAAAAA")); tabDay.setBackgroundColor(rankingTab.equals("Day")?Color.parseColor("#FFC107"):Color.TRANSPARENT); tabWeek.setTextColor(rankingTab.equals("Week")?Color.WHITE:Color.parseColor("#AAAAAA")); tabWeek.setBackgroundColor(rankingTab.equals("Week")?Color.parseColor("#FFC107"):Color.TRANSPARENT); tabMonth.setTextColor(rankingTab.equals("Month")?Color.WHITE:Color.parseColor("#AAAAAA")); tabMonth.setBackgroundColor(rankingTab.equals("Month")?Color.parseColor("#FFC107"):Color.TRANSPARENT); listLayout.removeAllViews(); databaseReference.child("contributions").addListenerForSingleValueEvent(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ listLayout.removeAllViews(); if(!s.exists()||s.getChildrenCount()==0){ TextView empty=new TextView(VoiceRoomActivity.this); empty.setText("No contributions yet\nSend gift to be Top 1 🏆\n"+rankingType+" - "+rankingTab); empty.setTextColor(Color.parseColor("#AAAAAA")); empty.setTextSize(14); empty.setGravity(Gravity.CENTER); empty.setPadding(0,30,0,30); listLayout.addView(empty); return; } List<DataSnapshot> list=new ArrayList<>(); for(DataSnapshot ds:s.getChildren()) list.add(ds); Collections.sort(list,(a,b)->{ Long ca=a.child("coins").getValue(Long.class); if(ca==null) ca=0L; Long cb=b.child("coins").getValue(Long.class); if(cb==null) cb=0L; return Long.compare(cb,ca); }); int rank=1; for(DataSnapshot ds:list){ String uname=ds.child("userName").getValue(String.class); if(uname==null||uname.isEmpty()) uname="User"; Long c=ds.child("coins").getValue(Long.class); long coins=(c!=null)?c:0; LinearLayout row=new LinearLayout(VoiceRoomActivity.this); row.setOrientation(LinearLayout.HORIZONTAL); row.setGravity(Gravity.CENTER_VERTICAL); row.setPadding(20,14,20,14); GradientDrawable rowBg=new GradientDrawable(); rowBg.setCornerRadius(20); rowBg.setColor(rank==1?Color.parseColor("#3D2B00"):Color.parseColor("#140B26")); row.setBackground(rowBg); LinearLayout.LayoutParams rp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT); rp.setMargins(0,5,0,5); row.setLayoutParams(rp); TextView tvRank=new TextView(VoiceRoomActivity.this); tvRank.setText(rank==1?"👑 1": rank==2?"🥈 2": rank==3?"🥉 3":String.valueOf(rank)); tvRank.setTextColor(rank==1?Color.parseColor("#FFD700"):Color.parseColor("#B0BEC5")); tvRank.setTextSize(15); tvRank.setTypeface(null,android.graphics.Typeface.BOLD); tvRank.setLayoutParams(new LinearLayout.LayoutParams(120,ViewGroup.LayoutParams.WRAP_CONTENT)); row.addView(tvRank); TextView tvName=new TextView(VoiceRoomActivity.this); tvName.setText(uname); tvName.setTextColor(Color.WHITE); tvName.setTextSize(14); tvName.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); row.addView(tvName); TextView tvCoins=new TextView(VoiceRoomActivity.this); tvCoins.setText(String.format("%,d Coins",coins)); tvCoins.setTextColor(Color.parseColor("#00E676")); tvCoins.setTextSize(13); row.addView(tvCoins); listLayout.addView(row); rank++; } } @Override public void onCancelled(@NonNull DatabaseError e){} }); }; tabWealth.setOnClickListener(v->{ rankingType="Wealth"; refreshTabs.run(); }); tabCharm.setOnClickListener(v->{ rankingType="Charm"; refreshTabs.run(); }); tabDay.setOnClickListener(v->{ rankingTab="Day"; refreshTabs.run(); }); tabWeek.setOnClickListener(v->{ rankingTab="Week"; refreshTabs.run(); }); tabMonth.setOnClickListener(v->{ rankingTab="Month"; refreshTabs.run(); }); refreshTabs.run(); dialog.setContentView(root); dialog.show(); }
-    private void showNewGiftPanel(){ BottomSheetDialog dialog=new BottomSheetDialog(this,R.style.Theme_Design_BottomSheetDialog); LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(30,20,30,20); GradientDrawable bg=new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,new int[]{Color.parseColor("#1B1035"),Color.parseColor("#0A0518")}); bg.setCornerRadii(new float[]{45,45,45,45,0,0,0,0}); root.setBackground(bg); TextView title=new TextView(this); title.setText("Gift Center"); title.setTextColor(Color.parseColor("#FFD700")); title.setTextSize(18); title.setTypeface(null,android.graphics.Typeface.BOLD); title.setGravity(Gravity.CENTER); title.setPadding(0,0,0,12); root.addView(title); TextView wallet=new TextView(this); wallet.setText("Coins: "+String.format("%,d",myWalletCoins)); wallet.setTextColor(Color.WHITE); wallet.setTextSize(14); wallet.setGravity(Gravity.CENTER); wallet.setPadding(0,0,0,12); root.addView(wallet); walletTextInGift=wallet; TextView info=new TextView(this); info.setText("Full Gift Store Coming Soon 🎁"); info.setTextColor(Color.parseColor("#AAAAAA")); info.setTextSize(13); info.setGravity(Gravity.CENTER); root.addView(info); dialog.setContentView(root); setDialog85(dialog); dialog.show(); }
-
-    // ================= SEATS =================
-    private void setupSeatInteractions(){ for(int i=0;i<10;i++){ int resId=getResources().getIdentifier("seat_"+i,"id",getPackageName()); if(resId==0) continue; View seat=findViewById(resId); if(seat==null) continue; final int idx=i; seat.setOnClickListener(v->{ databaseReference.child("seats").child("seat_"+idx).addListenerForSingleValueEvent(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ String uid=s.child("userId").getValue(String.class); if(uid!=null && !uid.isEmpty()){ if(uid.equals(currentUserId)||uid.equals(my9DigitId)) showSeatActionSheet(idx,true); else showMiniProfileCard(uid); } else showSeatActionSheet(idx,false); } @Override public void onCancelled(@NonNull DatabaseError e){} }); }); } }
-    private void showSeatActionSheet(int seatIndex,boolean isMySeat){ BottomSheetDialog dialog=new BottomSheetDialog(this); LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(40,20,40,40); GradientDrawable bg=new GradientDrawable(); bg.setColor(Color.parseColor("#FFFFFF")); bg.setCornerRadii(new float[]{45,45,45,45,0,0,0,0}); root.setBackground(bg); TextView txtSeatNo=new TextView(this); txtSeatNo.setText("Seat "+(seatIndex+1)); txtSeatNo.setTextColor(Color.parseColor("#888888")); txtSeatNo.setTextSize(13); txtSeatNo.setGravity(Gravity.CENTER); txtSeatNo.setPadding(0,0,0,15); root.addView(txtSeatNo); Button btnAction=new Button(this); btnAction.setText(isMySeat?"Leave Mic":"Take Mic"); btnAction.setTextColor(Color.WHITE); btnAction.setTextSize(16); btnAction.setAllCaps(false); btnAction.setTypeface(null,android.graphics.Typeface.BOLD); GradientDrawable btnBg=new GradientDrawable(); btnBg.setColor(Color.parseColor(isMySeat?"#FF5252":"#FF9800")); btnBg.setCornerRadius(60); btnAction.setBackground(btnBg); btnAction.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,130)); btnAction.setOnClickListener(v->{ dialog.dismiss(); if(isMySeat) leaveSeat(seatIndex); else takeSeat(seatIndex); }); root.addView(btnAction); Button btnCancel=new Button(this); btnCancel.setText("Cancel"); btnCancel.setTextColor(Color.parseColor("#888888")); btnCancel.setTextSize(14); btnCancel.setAllCaps(false); btnCancel.setBackgroundColor(Color.TRANSPARENT); btnCancel.setOnClickListener(v->dialog.dismiss()); root.addView(btnCancel); dialog.setContentView(root); dialog.show(); }
-    private void takeSeat(int seatIndex){ for(int j=0;j<10;j++){ final int sj=j; databaseReference.child("seats").child("seat_"+sj).addListenerForSingleValueEvent(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot ss){ String ouid=ss.child("userId").getValue(String.class); if(ouid!=null && (ouid.equals(currentUserId)||ouid.equals(my9DigitId))) databaseReference.child("seats").child("seat_"+sj).removeValue(); } @Override public void onCancelled(@NonNull DatabaseError e){} }); } Map<String,Object> seatData=new HashMap<>(); seatData.put("userId", my9DigitId.isEmpty()?currentUserId:my9DigitId); seatData.put("userName",getMyDisplayName()); if(myPhotoBase64!=null && !myPhotoBase64.isEmpty()) seatData.put("photoBase64",myPhotoBase64); databaseReference.child("seats").child("seat_"+seatIndex).setValue(seatData); Toast.makeText(this,"Seated Successfully!",Toast.LENGTH_SHORT).show(); }
-    private void leaveSeat(int seatIndex){ databaseReference.child("seats").child("seat_"+seatIndex).removeValue(); Toast.makeText(this,"Left Mic",Toast.LENGTH_SHORT).show(); }
-    private void listenToFirebaseSeats(){ databaseReference.child("seats").addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ for(int i=0;i<10;i++){ int resId=getResources().getIdentifier("seat_"+i,"id",getPackageName()); if(resId==0) continue; View seat=findViewById(resId); if(seat==null) continue; String uid=s.child("seat_"+i).child("userId").getValue(String.class); String uname=s.child("seat_"+i).child("userName").getValue(String.class); String photo=s.child("seat_"+i).child("photoBase64").getValue(String.class); updatePremiumSeatView(seat,i,uid,uname,photo); } } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
-    private void updatePremiumSeatView(View seat,int seatIndex,String uid,String uname,String photoBase64){
-        boolean isOccupied = uid!=null && !uid.isEmpty();
-        boolean isMine = isOccupied && (uid.equals(currentUserId)||uid.equals(my9DigitId));
-        if(seat instanceof ViewGroup){
-            ViewGroup vg = (ViewGroup) seat;
-            for(int c=0;c<vg.getChildCount();c++){
-                View child = vg.getChildAt(c);
-                if(child instanceof TextView){
-                    TextView tv = (TextView) child;
-                    Object tag = tv.getTag();
-                    if(tag!=null && "seat_number".equals(String.valueOf(tag))){ tv.setText(String.valueOf(seatIndex+1)); tv.setVisibility(View.VISIBLE); }
-                    else if(child.getId()!=View.NO_ID){
-                        try{
-                            String entry = getResources().getResourceEntryName(child.getId());
-                            if(entry.startsWith("seatImg_")){
-                                if(isOccupied){ tv.setText("👤"); GradientDrawable gd = new GradientDrawable(); gd.setShape(GradientDrawable.OVAL); gd.setColor(Color.WHITE); gd.setStroke(3, Color.parseColor(isMine?"#FF9800":"#FFD700")); tv.setBackground(gd); }
-                                else { tv.setText("🪑"); GradientDrawable gd = new GradientDrawable(); gd.setShape(GradientDrawable.OVAL); gd.setColor(Color.parseColor("#FFE9A8")); gd.setStroke(2, Color.parseColor("#FFD700")); tv.setBackground(gd); }
-                                continue;
-                            }
-                        }catch(Exception ignored){}
-                        if(isOccupied && uname!=null && !uname.isEmpty()){ tv.setText(uname); tv.setVisibility(View.VISIBLE); } else { tv.setText(""); tv.setVisibility(View.GONE); }
-                    } else {
-                        if(isOccupied && uname!=null && !uname.isEmpty()){ tv.setText(uname); tv.setVisibility(View.VISIBLE); } else { tv.setText(""); tv.setVisibility(View.GONE); }
-                    }
-                }
-            }
-        }
-    }
-
-    // ================= MINI PROFILE - PROFILE PHOTO =================
-    private void showMiniProfileCard(String uid9){
-        userDatabaseRef.orderByChild("my9DigitId").equalTo(uid9).addListenerForSingleValueEvent(new ValueEventListener(){
-            @Override public void onDataChange(@NonNull DataSnapshot snap){
-                String name = "User", photo = "", country = "", gender = "Male", level = "0";
-                if(snap.exists()){
-                    for(DataSnapshot u : snap.getChildren()){
-                        if(u.child("name").getValue()!=null) name = String.valueOf(u.child("name").getValue());
-                        if(u.child("photoBase64").getValue()!=null) photo = String.valueOf(u.child("photoBase64").getValue());
-                        if(u.child("country").getValue()!=null) country = String.valueOf(u.child("country").getValue());
-                        if(u.child("gender").getValue()!=null) gender = String.valueOf(u.child("gender").getValue());
-                        if(u.child("level").getValue()!=null) level = String.valueOf(u.child("level").getValue());
-                        break;
-                    }
-                }
-                BottomSheetDialog dialog = new BottomSheetDialog(VoiceRoomActivity.this);
-                LinearLayout root = new LinearLayout(VoiceRoomActivity.this);
-                root.setOrientation(LinearLayout.VERTICAL); root.setGravity(Gravity.CENTER);
-                root.setPadding(30,30,30,30); root.setBackgroundColor(Color.WHITE);
-                ImageView av = new ImageView(VoiceRoomActivity.this);
-                av.setLayoutParams(new LinearLayout.LayoutParams(220,220));
-                av.setImageResource(android.R.drawable.ic_menu_gallery);
-                Bitmap bmp = decodeBase64(photo); if(bmp!=null) av.setImageBitmap(bmp);
-                root.addView(av);
-                TextView tvN = new TextView(VoiceRoomActivity.this);
-                tvN.setText(name + "  " + genderIcon(gender) + "  " + flagForCountry(country));
-                tvN.setTextSize(18); tvN.setTypeface(null, android.graphics.Typeface.BOLD);
-                tvN.setGravity(Gravity.CENTER); tvN.setPadding(0,16,0,0); root.addView(tvN);
-                TextView tvId = new TextView(VoiceRoomActivity.this);
-                tvId.setText("ID: " + uid9 + "   •   Lv" + level + "  •  Lv0");
-                tvId.setTextColor(Color.parseColor("#888888")); tvId.setGravity(Gravity.CENTER); root.addView(tvId);
-                dialog.setContentView(root); dialog.show();
-            }
-            @Override public void onCancelled(@NonNull DatabaseError e){}
-        });
-    }
-
-    // ================= HEADER PROFILE - GROUP PHOTO SUDHU EKHANE =================
-    private void showHeaderProfileMembersDialog(){
-        android.app.Dialog dialog = makeFullScreenDialog();
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(Color.parseColor("#FFF8E1"));
-        LinearLayout topBar = new LinearLayout(this);
-        topBar.setOrientation(LinearLayout.HORIZONTAL); topBar.setGravity(Gravity.CENTER_VERTICAL); topBar.setPadding(20,18,20,10);
-        TextView tvClose = new TextView(this); tvClose.setText("✕  Close"); tvClose.setTextSize(15); tvClose.setTextColor(Color.parseColor("#888888"));
-        tvClose.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        tvClose.setOnClickListener(v -> dialog.dismiss()); topBar.addView(tvClose); root.addView(topBar);
-        LinearLayout tabs = new LinearLayout(this); tabs.setOrientation(LinearLayout.HORIZONTAL); tabs.setPadding(24,6,24,8); tabs.setWeightSum(2);
-        TextView tabProfile = new TextView(this); tabProfile.setText("Profile"); tabProfile.setTextSize(18); tabProfile.setTypeface(null, android.graphics.Typeface.BOLD); tabProfile.setTextColor(Color.parseColor("#222222")); tabProfile.setGravity(Gravity.CENTER); tabProfile.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        TextView tabMembers = new TextView(this); tabMembers.setText("Members"); tabMembers.setTextSize(18); tabMembers.setTextColor(Color.parseColor("#999999")); tabMembers.setGravity(Gravity.CENTER); tabMembers.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        tabs.addView(tabProfile); tabs.addView(tabMembers); root.addView(tabs);
-        ScrollView outer = new ScrollView(this);
-        LinearLayout profileBox = new LinearLayout(this); profileBox.setOrientation(LinearLayout.VERTICAL); profileBox.setPadding(24,8,24,30);
-        LinearLayout membersBox = new LinearLayout(this); membersBox.setOrientation(LinearLayout.VERTICAL); membersBox.setPadding(24,8,24,30);
-        outer.addView(profileBox); root.addView(outer);
-        tabProfile.setOnClickListener(v -> { tabProfile.setTextColor(Color.parseColor("#222222")); tabMembers.setTextColor(Color.parseColor("#999999")); outer.removeAllViews(); outer.addView(profileBox); });
-        tabMembers.setOnClickListener(v -> { tabMembers.setTextColor(Color.parseColor("#222222")); tabProfile.setTextColor(Color.parseColor("#999999")); outer.removeAllViews(); outer.addView(membersBox); loadMembersInto(membersBox, dialog); });
-        profileBox.removeAllViews();
-        ImageView avatar = new ImageView(this); avatar.setLayoutParams(new LinearLayout.LayoutParams(200,200));
-        avatar.setImageResource(android.R.drawable.ic_menu_gallery);
-        Bitmap rbmp = decodeBase64(currentRoomPhotoBase64); if(rbmp!=null) avatar.setImageBitmap(rbmp);
-        profileBox.addView(avatar);
-        TextView tvName = new TextView(this); tvName.setText(roomTitleText!=null?roomTitleText.getText().toString():"Room"); tvName.setTextSize(20); tvName.setTypeface(null, android.graphics.Typeface.BOLD); tvName.setPadding(0,16,0,0); profileBox.addView(tvName);
-        LinearLayout idRow = new LinearLayout(this); idRow.setOrientation(LinearLayout.HORIZONTAL); profileBox.addView(idRow);
-        TextView tvId = new TextView(this); tvId.setText("ID: " + roomOwnerId); tvId.setTextSize(14); idRow.addView(tvId);
-        TextView tvCopy = new TextView(this); tvCopy.setText("  📋 Copy"); tvCopy.setTextColor(Color.parseColor("#FF9800")); tvCopy.setTypeface(null, android.graphics.Typeface.BOLD); tvCopy.setOnClickListener(v -> copyRoomId()); idRow.addView(tvCopy);
-        TextView tvMeta = new TextView(this); tvMeta.setText("Language: " + myLanguage + "\nCountry: " + myCountry + "\nTag: " + selectedRoomLabel + "\nLevel: Lv0  •  Lv0"); tvMeta.setTextSize(14); tvMeta.setPadding(0,16,0,0); profileBox.addView(tvMeta);
-        TextView tvBanner = new TextView(this); tvBanner.setText("🏆  Room Reward  •  Weekly Contribution"); tvBanner.setTextColor(Color.WHITE); tvBanner.setTextSize(16); tvBanner.setTypeface(null, android.graphics.Typeface.BOLD); tvBanner.setGravity(Gravity.CENTER); tvBanner.setBackgroundColor(Color.parseColor("#FF9800")); tvBanner.setPadding(20,20,20,20); LinearLayout.LayoutParams bp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT); bp.setMargins(0,20,0,0); tvBanner.setLayoutParams(bp); profileBox.addView(tvBanner);
-        dialog.setContentView(root); dialog.show();
-    }
-
-    // ================= MEMBERS - PROFILE PHOTO =================
-    private void loadMembersInto(LinearLayout box, android.app.Dialog dialog){
-        box.removeAllViews();
-        TextView tvCount = new TextView(this); tvCount.setText("Members: 1/1000   Admin: 0/20"); tvCount.setTextColor(Color.parseColor("#888888")); box.addView(tvCount);
-        userDatabaseRef.orderByChild("my9DigitId").equalTo(roomOwnerId).addListenerForSingleValueEvent(new ValueEventListener(){
-            @Override public void onDataChange(@NonNull DataSnapshot snap){
-                String name = "Owner", photo = "", country = "", gender = "Male";
-                if(snap.exists()){ for(DataSnapshot u : snap.getChildren()){ if(u.child("name").getValue()!=null) name = String.valueOf(u.child("name").getValue()); if(u.child("photoBase64").getValue()!=null) photo = String.valueOf(u.child("photoBase64").getValue()); if(u.child("country").getValue()!=null) country = String.valueOf(u.child("country").getValue()); if(u.child("gender").getValue()!=null) gender = String.valueOf(u.child("gender").getValue()); break; } }
-                LinearLayout row = new LinearLayout(VoiceRoomActivity.this); row.setOrientation(LinearLayout.HORIZONTAL); row.setGravity(Gravity.CENTER_VERTICAL); row.setPadding(6,14,6,14);
-                ImageView av = new ImageView(VoiceRoomActivity.this); av.setLayoutParams(new LinearLayout.LayoutParams(110,110)); av.setImageResource(android.R.drawable.ic_menu_gallery); Bitmap bmp = decodeBase64(photo); if(bmp!=null) av.setImageBitmap(bmp); row.addView(av);
-                LinearLayout b2 = new LinearLayout(VoiceRoomActivity.this); b2.setOrientation(LinearLayout.VERTICAL); b2.setPadding(14,0,0,0); b2.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)); row.addView(b2);
-                TextView tn = new TextView(VoiceRoomActivity.this); tn.setText(name + "  " + genderIcon(gender) + "  " + flagForCountry(country)); tn.setTypeface(null, android.graphics.Typeface.BOLD); tn.setTextSize(16); b2.addView(tn);
-                TextView ti = new TextView(VoiceRoomActivity.this); ti.setText("ID: " + roomOwnerId); ti.setTextColor(Color.parseColor("#888888")); b2.addView(ti);
-                TextView badge = new TextView(VoiceRoomActivity.this); badge.setText("👑 Owner"); badge.setTextColor(Color.parseColor("#FF9800")); badge.setTypeface(null, android.graphics.Typeface.BOLD); row.addView(badge);
-                row.setOnClickListener(v -> { dialog.dismiss(); showMiniProfileCard(roomOwnerId); });
-                box.addView(row);
-            }
-            @Override public void onCancelled(@NonNull DatabaseError e){}
-        });
+    private void showRoomThemeDialog(){
+        BottomSheetDialog dialog=new BottomSheetDialog(this,R.style.Theme_Design_BottomSheetDialog); LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(Color.parseColor("#111111")); root.setPadding(20,16,20,20);
+        TextView title=new TextView(this); title.setText("Background"); title.setTextColor(Color.WHITE); title.setTextSize(18); title.setTypeface(null,android.graphics.Typeface.BOLD); title.setGravity(Gravity.CENTER); title.setPadding(0,0,0,12); root.addView(title);
+        LinearLayout gridBox=new LinearLayout(this); gridBox.setOrientation(LinearLayout.VERTICAL); root.addView(gridBox);
+        String[][] items={{"🌅 Sunset","Free"},{"🏖️ Beach","Free"},{"🦁 Lion","99999"},{"🐉 Dragon","59999"}};
+        for(String[] it:items){ Button b=new Button(this); b.setText(it[0]+" - 🪙 "+it[1]); b.setOnClickListener(v->{ currentThemeName=it[0]; roomMetaRef.child("roomTheme").setValue(it[0]); Toast.makeText(this,it[0]+" Selected ✅",Toast.LENGTH_SHORT).show(); dialog.dismiss(); }); gridBox.addView(b); }
+        Button mine=new Button(this); mine.setText("☁️ Upload My Background - 🪙 100000"); mine.setOnClickListener(v->{ galleryMode="CUSTOM_BG"; Intent i=new Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI); galleryLauncher.launch(i); dialog.dismiss(); }); gridBox.addView(mine);
+        dialog.setContentView(root); setDialog75(dialog); dialog.show();
     }
 }
