@@ -1,227 +1,344 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#0A0518"
-    android:orientation="vertical">
+    android:fillViewport="true">
 
-    <!-- Top Header Profile Section -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#1B1035"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="20dp">
+        android:orientation="vertical">
 
-        <!-- Circular Profile Avatar -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="70dp"
-            android:layout_height="70dp"
-            android:layout_marginRight="15dp"
-            app:cardCornerRadius="35dp"
-            app:cardElevation="4dp"
-            app:cardBackgroundColor="@android:color/transparent">
-
-            <ImageView
-                android:id="@+id/imgAvatar"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:src="@android:drawable/ic_menu_my_calendar" />
-        </androidx.cardview.widget.CardView>
-
+        <!-- 🌟 Top Header Profile Section -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:background="#1B1035"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="20dp">
 
+            <!-- গোল প্রোফাইল পিকচার অবতার -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_marginRight="15dp"
+                app:cardCornerRadius="35dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="@android:color/transparent">
+
+                <ImageView
+                    android:id="@+id/imgAvatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@android:drawable/ic_menu_my_calendar" />
+            </androidx.cardview.widget.CardView>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/txtName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="User Name"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txtId"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="3dp"
+                    android:text="ID: 000000000"
+                    android:textColor="#00E676"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/txtGenderCountry"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingTop="3dp"
+                    android:text="Male | Bangladesh"
+                    android:textColor="#B0BEC5"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <!-- প্রোফাইল এডিট বা পাবলিক প্রোফাইলে যাওয়ার অ্যারো (>) -->
             <TextView
-                android:id="@+id/txtName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Apon sr"
-                android:textColor="#FFFFFF"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/txtId"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingTop="3dp"
-                android:text="ID: 995226505"
-                android:textColor="#00E676"
-                android:textSize="13sp" />
-
-            <TextView
-                android:id="@+id/txtGenderCountry"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingTop="3dp"
-                android:text="Male | Bangladesh"
+                android:text=">"
                 android:textColor="#B0BEC5"
-                android:textSize="12sp" />
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:padding="10dp" />
         </LinearLayout>
 
-        <!-- Pencil Edit Button -->
-        <ImageView
-            android:id="@+id/btnEditPencil"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
-            android:background="#2A1B4E"
-            android:padding="8dp"
-            android:src="@android:drawable/ic_menu_edit"
-            android:tint="#FFD700" />
-    </LinearLayout>
-
-    <!-- Copy ID Row -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#140B26"
-        android:padding="12dp">
-
-        <TextView
-            android:id="@+id/txtCopyId"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Copy ID"
-            android:textColor="#FFD700"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-    </LinearLayout>
-
-    <!-- Stats Bar -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#1B1035"
-        android:orientation="horizontal"
-        android:padding="15dp">
-
+        <!-- 🌟 Copy ID Row -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
+            android:background="#140B26"
+            android:padding="12dp"
+            android:paddingHorizontal="20dp">
 
             <TextView
-                android:id="@+id/txtFollow"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="0"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
+                android:text="Copy ID"
+                android:textColor="#FFD700"
+                android:textSize="14sp"
                 android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Follow"
-                android:textColor="#B0BEC5"
-                android:textSize="12sp" />
         </LinearLayout>
 
+        <!-- 🌟 Stats Bar (Follow, Fans, Visitor) -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
+            android:background="#1B1035"
+            android:orientation="horizontal"
+            android:padding="15dp">
 
-            <TextView
-                android:id="@+id/txtFans"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="0"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
+                <TextView
+                    android:id="@+id/txtFollow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Follow"
+                    android:textColor="#B0BEC5"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Fans"
-                android:textColor="#B0BEC5"
-                android:textSize="12sp" />
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/txtFans"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Fans"
+                    android:textColor="#B0BEC5"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/txtVisitor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textColor="#FFFFFF"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Visitor"
+                    android:textColor="#B0BEC5"
+                    android:textSize="12sp" />
+            </LinearLayout>
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/txtVisitor"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Visitor"
-                android:textColor="#B0BEC5"
-                android:textSize="12sp" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <!-- Scrollable Menu Items -->
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1">
-
+        <!-- 🌟 Scrollable Menu Items Container -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="15dp">
 
-            <TextView android:id="@+id/menuSvip" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:text="SVIP Center" android:textColor="#FFFFFF"/>
-            <TextView android:id="@+id/menuVip" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:text="VIP Center" android:textColor="#FFFFFF"/>
-            <TextView android:id="@+id/menuRecharge" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:text="Recharge / Wallet" android:textColor="#FFFFFF"/>
-            <TextView android:id="@+id/menuStore" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:text="Store" android:textColor="#FFFFFF"/>
-            <TextView android:id="@+id/menuDress" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:text="Dress / Outfit" android:textColor="#FFFFFF"/>
-            <TextView android:id="@+id/menuBirthday" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:text="Birthday Gift" android:textColor="#FFFFFF"/>
-            <TextView android:id="@+id/menuLevel" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:text="Level System" android:textColor="#FFFFFF"/>
-            <TextView android:id="@+id/menuNewbie" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:text="Newbie Mission" android:textColor="#FFFFFF"/>
-            <TextView android:id="@+id/menuInvite" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:text="Invite Friend" android:textColor="#FFFFFF"/>
-            <TextView android:id="@+id/menuMedal" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:text="Medal" android:textColor="#FFFFFF"/>
-            <TextView android:id="@+id/menuFamily" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:text="Family" android:textColor="#FFFFFF"/>
-            <TextView android:id="@+id/menuHost" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:text="Host Center" android:textColor="#FFFFFF"/>
-            <TextView android:id="@+id/menuDaily" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:text="Daily Task" android:textColor="#FFFFFF"/>
-            <TextView android:id="@+id/menuSetting" android:layout_width="match_parent" android:layout_height="wrap_content" android:padding="12dp" android:text="Settings" android:textColor="#FFFFFF"/>
+            <!-- SVIP Center Card -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#2A1B4E"
+                android:orientation="vertical"
+                android:padding="15dp"
+                android:layout_marginBottom="10dp">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="👑 SVIP Center"
+                    android:textColor="#FFD700"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Get SVIP and enjoy privileges >"
+                    android:textColor="#B0BEC5"
+                    android:textSize="12sp"
+                    android:paddingTop="3dp" />
+            </LinearLayout>
 
-            <!-- Logout Button Layout -->
+            <!-- VIP & Recharge Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="15dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="#2A1B4E"
+                    android:orientation="vertical"
+                    android:padding="15dp"
+                    android:layout_marginRight="5dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="👑 VIP"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Check now >"
+                        android:textColor="#B0BEC5"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="#2A1B4E"
+                    android:orientation="vertical"
+                    android:padding="15dp"
+                    android:layout_marginLeft="5dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🎁 Recharge"
+                        android:textColor="#FFFFFF"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Top up >"
+                        android:textColor="#B0BEC5"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- General Tools Title -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="General Tools"
+                android:textColor="#B0BEC5"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <!-- Tools Row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#1B1035"
+                android:orientation="horizontal"
+                android:padding="15dp"
+                android:layout_marginBottom="15dp"
+                android:weightSum="4">
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                    <TextView android:text="🛍️" android:textSize="22sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                    <TextView android:text="Store" android:textColor="#FFFFFF" android:textSize="11sp" android:paddingTop="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                    <TextView android:text="👗" android:textSize="22sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                    <TextView android:text="Dress" android:textColor="#FFFFFF" android:textSize="11sp" android:paddingTop="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                    <TextView android:text="🎂" android:textSize="22sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                    <TextView android:text="Birthday" android:textColor="#FFFFFF" android:textSize="11sp" android:paddingTop="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                </LinearLayout>
+
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:orientation="vertical">
+                    <TextView android:text="📊" android:textSize="22sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                    <TextView android:text="Level" android:textColor="#FFFFFF" android:textSize="11sp" android:paddingTop="4dp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Menu Items List Box -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#1B1035"
+                android:orientation="vertical"
+                android:paddingVertical="5dp"
+                android:layout_marginBottom="15dp">
+
+                <!-- Helper items (Newbie, Invite, Medal, Family, Host, Tasks, Setting) -->
+                <include layout="@layout/row_menu_item" android:id="@+id/itemNewbie" />
+                <!-- Menu rows are dynamically handled or can be added via code/xml -->
+            </LinearLayout>
+
+            <!-- 🌟 Logout Card -->
             <LinearLayout
                 android:id="@+id/btnLogoutLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
                 android:background="#2A1B4E"
                 android:gravity="center"
-                android:padding="15dp">
+                android:padding="15dp"
+                android:layout_marginBottom="30dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Log Out"
+                    android:text="🚪 Log Out"
                     android:textColor="#FF4081"
-                    android:textSize="16sp"
+                    android:textSize="15sp"
                     android:textStyle="bold" />
             </LinearLayout>
 
         </LinearLayout>
-    </ScrollView>
-
-</LinearLayout>
+    </LinearLayout>
+</ScrollView>
