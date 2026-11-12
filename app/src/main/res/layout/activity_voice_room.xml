@@ -16,7 +16,6 @@
         android:paddingTop="10dp" android:paddingBottom="6dp"
         android:background="#E8D48B">
 
-        <!-- 🌟 গোল রুম হেডার প্রোফাইল পিকচার (CardView) -->
         <androidx.cardview.widget.CardView
             android:layout_width="42dp"
             android:layout_height="42dp"
@@ -82,6 +81,7 @@
         </LinearLayout>
     </ScrollView>
 
+    <!-- 🌟 ক্লিন টাইপিং পপআপ বার -->
     <LinearLayout android:id="@+id/chatPopupBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -98,13 +98,14 @@
         <TextView android:id="@+id/btnChatOption" android:layout_width="36dp" android:layout_height="36dp" android:gravity="center" android:text="↑" android:textSize="18sp" android:textColor="#000000" android:background="@drawable/bg_circle_white" />
     </LinearLayout>
 
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="10dp" android:paddingEnd="10dp" android:paddingTop="8dp" android:paddingBottom="10dp" android:background="#F5E6B8">
-        <TextView android:id="@+id/btnMicToggle" android:layout_width="44dp" android:layout_height="44dp" android:gravity="center" android:text="🎤" android:textSize="20sp" android:textColor="#FFFFFF" android:background="#FF9800" />
+    <!-- 🌟 ট্রান্সপারেন্ট ব্যাকগ্রাউন্ড বটম আইকন বার (কোনো সলিড কালার বক্স নেই) -->
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="10dp" android:paddingEnd="10dp" android:paddingTop="8dp" android:paddingBottom="10dp" android:background="@android:color/transparent">
+        <TextView android:id="@+id/btnMicToggle" android:layout_width="44dp" android:layout_height="44dp" android:gravity="center" android:text="🎤" android:textSize="20sp" android:textColor="#FFFFFF" android:background="@android:color/transparent" />
         <LinearLayout android:id="@+id/btnOpenChat" android:layout_width="0dp" android:layout_height="44dp" android:layout_weight="1" android:layout_marginStart="8dp" android:layout_marginEnd="8dp" android:orientation="horizontal" android:gravity="center_vertical" android:background="#FFFFFF" android:paddingStart="12dp" android:paddingEnd="12dp">
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Type..." android:textColor="#999999" android:textSize="13sp" />
         </LinearLayout>
-        <TextView android:id="@+id/btnGiftBox" android:layout_width="44dp" android:layout_height="44dp" android:layout_marginStart="4dp" android:gravity="center" android:text="🎁" android:textSize="20sp" android:textColor="#FFFFFF" android:background="#E91E63" />
-        <TextView android:id="@+id/btnGame" android:layout_width="44dp" android:layout_height="44dp" android:layout_marginStart="6dp" android:gravity="center" android:text="🎮" android:textSize="20sp" android:textColor="#FFFFFF" android:background="#9C27B0" />
-        <ImageView android:id="@+id/btnRoomTools" android:layout_width="44dp" android:layout_height="44dp" android:layout_marginStart="6dp" android:src="@drawable/ic_tools" android:scaleType="centerCrop" android:background="#1A1A1A" android:padding="8dp" />
+        <TextView android:id="@+id/btnGiftBox" android:layout_width="44dp" android:layout_height="44dp" android:layout_marginStart="4dp" android:gravity="center" android:text="🎁" android:textSize="20sp" android:textColor="#FFFFFF" android:background="@android:color/transparent" />
+        <TextView android:id="@+id/btnGame" android:layout_width="44dp" android:layout_height="44dp" android:layout_marginStart="6dp" android:gravity="center" android:text="🎮" android:textSize="20sp" android:textColor="#FFFFFF" android:background="@android:color/transparent" />
+        <ImageView android:id="@+id/btnRoomTools" android:layout_width="44dp" android:layout_height="44dp" android:layout_marginStart="6dp" android:src="@drawable/ic_tools" android:scaleType="centerCrop" android:background="@android:color/transparent" android:padding="8dp" />
     </LinearLayout>
 </LinearLayout>
