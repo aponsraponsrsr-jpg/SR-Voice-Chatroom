@@ -70,7 +70,8 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- ✅ CHAT POPUP - PREMIUM SMALL WHITE - 1 LINE - LEKHA NAI -->
+    <!-- ✅ CHAT POPUP - PREMIUM - CHOTO - PURA SADA - 1 LINE - LEKHA NAI -->
+    <!-- ✅ EKHANEI TOMAR bg_circle_white USE KORCHI - NOTUN circle_white LAGBE NA -->
     <LinearLayout android:id="@+id/chatPopupBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -109,12 +110,13 @@
             android:paddingStart="12dp" android:paddingEnd="12dp"
             android:singleLine="true" android:imeOptions="actionSend" />
 
+        <!-- ✅ SEND - GOL SADA - TOMAR PURANO bg_circle_white -->
         <TextView android:id="@+id/btnChatOption"
             android:layout_width="36dp" android:layout_height="36dp"
             android:gravity="center"
             android:text="↑" android:textSize="18sp"
             android:textColor="#000000"
-            android:background="@drawable/circle_white" />
+            android:background="@drawable/bg_circle_white" />
     </LinearLayout>
 
     <!-- BOTTOM BAR - NORMAL - SUDHU ICON -->
