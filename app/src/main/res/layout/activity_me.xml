@@ -71,7 +71,6 @@
                     android:textSize="12sp" />
             </LinearLayout>
 
-            <!-- প্রোফাইল এডিট বা পাবলিক প্রোফাইলে যাওয়ার অ্যারো (>) -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -306,20 +305,6 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- Menu Items List Box -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="#1B1035"
-                android:orientation="vertical"
-                android:paddingVertical="5dp"
-                android:layout_marginBottom="15dp">
-
-                <!-- Helper items (Newbie, Invite, Medal, Family, Host, Tasks, Setting) -->
-                <include layout="@layout/row_menu_item" android:id="@+id/itemNewbie" />
-                <!-- Menu rows are dynamically handled or can be added via code/xml -->
-            </LinearLayout>
-
             <!-- 🌟 Logout Card -->
             <LinearLayout
                 android:id="@+id/btnLogoutLayout"
@@ -328,6 +313,7 @@
                 android:background="#2A1B4E"
                 android:gravity="center"
                 android:padding="15dp"
+                android:layout_marginTop="10dp"
                 android:layout_marginBottom="30dp">
 
                 <TextView
