@@ -45,6 +45,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private List<String> roomAdminList=new ArrayList<>();
     private ActivityResultLauncher<Intent> galleryLauncher;
     private String rankType="Wealth", rankPeriod="Day";
+    // KAJ 3 - Real profile cache for chat
+    private Map<String,Map<String,String>> chatRealMap=new HashMap<>();
 
     @Override protected void onCreate(Bundle s){
         super.onCreate(s);
@@ -158,30 +160,111 @@ public class VoiceRoomActivity extends AppCompatActivity {
         databaseReference.child("rooms").child(roomOwnerId).child("online_users").child(key).setValue(m); databaseReference.child("rooms").child(roomOwnerId).child("online_users").child(key).onDisconnect().removeValue(); databaseReference.child("online_users").child(key).setValue(m); databaseReference.child("online_users").child(key).onDisconnect().removeValue();
     }
     private void listenToOnlineMembers(){ pushOnlineNow(); if(databaseReference==null)return; databaseReference.child("rooms").child(roomOwnerId).child("online_users").addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ if(textOnlineCount!=null&&s.exists()&&s.getChildrenCount()>0)textOnlineCount.setText(String.valueOf(s.getChildrenCount())); else if(textOnlineCount!=null&&s.exists())textOnlineCount.setText("1"); } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
-
-    // ===== FIXED - CHAT POPUP - BOTTOM BAR STAYS DOWN =====
-    private void showChatPopup(){
-        if(bottomBarContainer!=null) bottomBarContainer.setVisibility(View.GONE);
-        if(chatPopupBar!=null) chatPopupBar.setVisibility(View.VISIBLE);
-        if(inputChatMessage!=null){ inputChatMessage.requestFocus(); InputMethodManager imm=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE); if(imm!=null) imm.showSoftInput(inputChatMessage,InputMethodManager.SHOW_IMPLICIT); }
-    }
-    private void hideChatPopup(){
-        if(chatPopupBar!=null) chatPopupBar.setVisibility(View.GONE);
-        if(bottomBarContainer!=null) bottomBarContainer.setVisibility(View.VISIBLE);
-        if(inputChatMessage!=null){ inputChatMessage.setText(""); InputMethodManager imm=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE); if(imm!=null) imm.hideSoftInputFromWindow(inputChatMessage.getWindowToken(),0); }
-    }
+    private void showChatPopup(){ if(bottomBarContainer!=null) bottomBarContainer.setVisibility(View.GONE); if(chatPopupBar!=null) chatPopupBar.setVisibility(View.VISIBLE); if(inputChatMessage!=null){ inputChatMessage.requestFocus(); InputMethodManager imm=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE); if(imm!=null) imm.showSoftInput(inputChatMessage,InputMethodManager.SHOW_IMPLICIT); } }
+    private void hideChatPopup(){ if(chatPopupBar!=null) chatPopupBar.setVisibility(View.GONE); if(bottomBarContainer!=null) bottomBarContainer.setVisibility(View.VISIBLE); if(inputChatMessage!=null){ inputChatMessage.setText(""); InputMethodManager imm=(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE); if(imm!=null) imm.hideSoftInputFromWindow(inputChatMessage.getWindowToken(),0); } }
     private void setupChatPopup(){ View b=findViewById(R.id.btnOpenChat); if(b!=null)b.setOnClickListener(v->showChatPopup()); if(inputChatMessage!=null)inputChatMessage.setOnEditorActionListener((v,a,e)->{sendChatMessage();return true;}); if(btnChatOption!=null)btnChatOption.setOnClickListener(v->sendChatMessage()); }
     @Override public void onBackPressed(){ if(chatPopupBar!=null&&chatPopupBar.getVisibility()==View.VISIBLE){ hideChatPopup(); return; } super.onBackPressed(); }
+
+    // ===== KAJ 3 ONLY - CHAT SEND - REAL PROFILE =====
     private void sendChatMessage(){
         if(inputChatMessage==null)return; String msg=inputChatMessage.getText().toString().trim(); if(msg.isEmpty()||messagesRef==null)return;
-        String n=myDisplayName; if(n==null||n.isEmpty())n=prefs.getString("USER_NAME","User"); if(n.equals("User"))ensureMyIdentity();
-        String id=my9DigitId; if(id==null||id.isEmpty())id=currentUserId; if(id==null||id.isEmpty())id=roomOwnerId;
-        Map<String,Object> m=new HashMap<>(); m.put("userId",id); m.put("userName",n); m.put("text",msg); m.put("photoBase64",myPhotoBase64!=null?myPhotoBase64:""); m.put("gender",myGender); m.put("country",myCountry); m.put("time",System.currentTimeMillis());
-        messagesRef.push().setValue(m); hideChatPopup(); pushOnlineNow();
+        String myId=my9DigitId; if(myId==null||myId.isEmpty())myId=currentUserId; if(myId==null||myId.isEmpty())myId=roomOwnerId;
+        final String finalId=myId; final String finalMsg=msg;
+        // Always fetch REAL profile from users table by my9DigitId before sending - so never "User" / empty photo
+        userDatabaseRef.orderByChild("my9DigitId").equalTo(finalId).addListenerForSingleValueEvent(new ValueEventListener(){
+            @Override public void onDataChange(@NonNull DataSnapshot snap){
+                String realName=myDisplayName; String realPhoto=myPhotoBase64; String realCountry=myCountry; String realGender=myGender; String realLevel="0";
+                if(snap.exists()){
+                    for(DataSnapshot u:snap.getChildren()){
+                        String n=u.child("name").getValue(String.class); if(n!=null&&!n.isEmpty()) realName=n;
+                        String p=u.child("photoBase64").getValue(String.class); if(p!=null&&!p.isEmpty()) realPhoto=p;
+                        String c=u.child("country").getValue(String.class); if(c!=null&&!c.isEmpty()) realCountry=c;
+                        String g=u.child("gender").getValue(String.class); if(g!=null&&!g.isEmpty()) realGender=g;
+                        String lv=u.child("level").getValue(String.class); if(lv!=null&&!lv.isEmpty()) realLevel=lv;
+                        // Save back so next time instant
+                        myDisplayName=realName; myPhotoBase64=realPhoto; myCountry=realCountry; myGender=realGender;
+                        prefs.edit().putString("USER_NAME",realName).putString("USER_PHOTO_BASE64",realPhoto).putString("USER_COUNTRY",realCountry).apply();
+                        break;
+                    }
+                }
+                if(realName==null||realName.isEmpty()||realName.equals("User")) realName=prefs.getString("USER_NAME","User");
+                Map<String,Object> m=new HashMap<>(); m.put("userId",finalId); m.put("userName",realName); m.put("text",finalMsg);
+                m.put("photoBase64",realPhoto!=null?realPhoto:""); m.put("gender",realGender); m.put("country",realCountry); m.put("level",realLevel); m.put("time",System.currentTimeMillis());
+                messagesRef.push().setValue(m); hideChatPopup(); pushOnlineNow();
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e){
+                Map<String,Object> m=new HashMap<>(); m.put("userId",finalId); m.put("userName",myDisplayName); m.put("text",finalMsg); m.put("photoBase64",myPhotoBase64!=null?myPhotoBase64:""); m.put("gender",myGender); m.put("country",myCountry); m.put("level","0"); m.put("time",System.currentTimeMillis());
+                messagesRef.push().setValue(m); hideChatPopup(); pushOnlineNow();
+            }
+        });
     }
+
+    // ===== KAJ 3 ONLY - CHAT SHOW - REAL PHOTO + NAME + FLAG + LEVEL =====
     private void listenToChatRealtime(){
-        if(messagesRef==null||chatListContainer==null)return; messagesRef.limitToLast(100).addValueEventListener(new ValueEventListener(){
-            @Override public void onDataChange(@NonNull DataSnapshot s){ chatListContainer.removeAllViews(); if(!s.exists())return; for(DataSnapshot ds:s.getChildren()){ String uname=ds.child("userName").getValue(String.class); if(uname==null)uname="User"; String txt=ds.child("text").getValue(String.class); if(txt==null)txt=""; String photo=ds.child("photoBase64").getValue(String.class); String co=ds.child("country").getValue(String.class); LinearLayout row=new LinearLayout(VoiceRoomActivity.this); row.setOrientation(LinearLayout.HORIZONTAL); row.setGravity(Gravity.TOP); row.setPadding(4,6,4,6); CardView cardAv=new CardView(VoiceRoomActivity.this); LinearLayout.LayoutParams cardLp=new LinearLayout.LayoutParams(72,72); cardLp.setMargins(0,4,8,0); cardAv.setLayoutParams(cardLp); cardAv.setRadius(36); cardAv.setCardElevation(0); cardAv.setCardBackgroundColor(Color.TRANSPARENT); ImageView av=new ImageView(VoiceRoomActivity.this); av.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT)); av.setScaleType(ImageView.ScaleType.CENTER_CROP); av.setImageResource(android.R.drawable.ic_menu_gallery); Bitmap bmp=decodeBase64(photo); if(bmp!=null)av.setImageBitmap(bmp); cardAv.addView(av); row.addView(cardAv); LinearLayout box=new LinearLayout(VoiceRoomActivity.this); box.setOrientation(LinearLayout.VERTICAL); box.setPadding(10,0,0,0); box.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); row.addView(box); TextView tvN=new TextView(VoiceRoomActivity.this); tvN.setText(uname+"  Lv0  "+flagForCountry(co)); tvN.setTextColor(Color.parseColor("#3E2F00")); tvN.setTextSize(12); tvN.setTypeface(null,android.graphics.Typeface.BOLD); box.addView(tvN); TextView tvM=new TextView(VoiceRoomActivity.this); tvM.setText(txt); tvM.setTextColor(Color.parseColor("#222222")); tvM.setTextSize(14); box.addView(tvM); chatListContainer.addView(row); } if(chatScrollView!=null)chatScrollView.post(()->chatScrollView.fullScroll(View.FOCUS_DOWN)); }
+        if(messagesRef==null||chatListContainer==null)return;
+        // Load real profiles once - for fixing old messages that were saved as "User"
+        userDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener(){
+            @Override public void onDataChange(@NonNull DataSnapshot usersSnap){
+                chatRealMap.clear();
+                for(DataSnapshot u:usersSnap.getChildren()){
+                    String mid=u.child("my9DigitId").getValue(String.class); if(mid==null||mid.isEmpty()) mid=u.getKey();
+                    Map<String,String> mm=new HashMap<>();
+                    mm.put("name", u.child("name").getValue(String.class)!=null?u.child("name").getValue(String.class):"");
+                    mm.put("photo", u.child("photoBase64").getValue(String.class)!=null?u.child("photoBase64").getValue(String.class):"");
+                    mm.put("country", u.child("country").getValue(String.class)!=null?u.child("country").getValue(String.class):"");
+                    mm.put("level", u.child("level").getValue(String.class)!=null?u.child("level").getValue(String.class):"0");
+                    chatRealMap.put(mid,mm);
+                }
+                messagesRef.limitToLast(100).addValueEventListener(new ValueEventListener(){
+                    @Override public void onDataChange(@NonNull DataSnapshot s){
+                        chatListContainer.removeAllViews(); if(!s.exists())return;
+                        for(DataSnapshot ds:s.getChildren()){
+                            String uid=ds.child("userId").getValue(String.class); if(uid==null)uid="";
+                            String uname=ds.child("userName").getValue(String.class); if(uname==null)uname="User";
+                            String txt=ds.child("text").getValue(String.class); if(txt==null)txt="";
+                            String photo=ds.child("photoBase64").getValue(String.class); if(photo==null)photo="";
+                            String co=ds.child("country").getValue(String.class); if(co==null)co="";
+                            String lv=ds.child("level").getValue(String.class); if(lv==null)lv="0";
+                            // Real profile wins - if message was saved as User / empty photo, fix from users table
+                            Map<String,String> real=chatRealMap.get(uid);
+                            if(real!=null){
+                                if(uname.equals("User")||uname.isEmpty()){ if(real.get("name")!=null&&!real.get("name").isEmpty()) uname=real.get("name"); }
+                                if(photo.isEmpty()&&real.get("photo")!=null&&!real.get("photo").isEmpty()) photo=real.get("photo");
+                                if((co==null||co.isEmpty())&&real.get("country")!=null) co=real.get("country");
+                                if((lv==null||lv.equals("0"))&&real.get("level")!=null&&!real.get("level").isEmpty()) lv=real.get("level");
+                            }
+                            LinearLayout row=new LinearLayout(VoiceRoomActivity.this); row.setOrientation(LinearLayout.HORIZONTAL); row.setGravity(Gravity.TOP); row.setPadding(4,6,4,6);
+                            CardView cardAv=new CardView(VoiceRoomActivity.this); LinearLayout.LayoutParams cardLp=new LinearLayout.LayoutParams(72,72); cardLp.setMargins(0,4,8,0);
+                            cardAv.setLayoutParams(cardLp); cardAv.setRadius(36); cardAv.setCardElevation(0);
+                            Bitmap bmp=decodeBase64(photo);
+                            if(bmp!=null){
+                                cardAv.setCardBackgroundColor(Color.TRANSPARENT);
+                                ImageView av=new ImageView(VoiceRoomActivity.this); av.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT));
+                                av.setScaleType(ImageView.ScaleType.CENTER_CROP); av.setImageBitmap(bmp); cardAv.addView(av);
+                            }else{
+                                cardAv.setCardBackgroundColor(Color.parseColor("#FF9800"));
+                                TextView letter=new TextView(VoiceRoomActivity.this); letter.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT));
+                                letter.setGravity(Gravity.CENTER); letter.setTextSize(22); letter.setTextColor(Color.WHITE); letter.setTypeface(null,android.graphics.Typeface.BOLD);
+                                letter.setText(uname!=null&&!uname.isEmpty()?uname.substring(0,1).toUpperCase():"U"); cardAv.addView(letter);
+                            }
+                            row.addView(cardAv);
+                            LinearLayout box=new LinearLayout(VoiceRoomActivity.this); box.setOrientation(LinearLayout.VERTICAL); box.setPadding(10,0,0,0);
+                            box.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); row.addView(box);
+                            // Line 1: Name + Flag
+                            TextView tvN=new TextView(VoiceRoomActivity.this); tvN.setText(uname+"  "+flagForCountry(co));
+                            tvN.setTextColor(Color.parseColor("#3E2F00")); tvN.setTextSize(12); tvN.setTypeface(null,android.graphics.Typeface.BOLD); box.addView(tvN);
+                            // Line 2: Lv
+                            TextView tvL=new TextView(VoiceRoomActivity.this); tvL.setText("Lv."+lv);
+                            tvL.setTextColor(Color.parseColor("#888888")); tvL.setTextSize(11); box.addView(tvL);
+                            // Line 3: Message
+                            TextView tvM=new TextView(VoiceRoomActivity.this); tvM.setText(txt); tvM.setTextColor(Color.parseColor("#222222")); tvM.setTextSize(14); box.addView(tvM);
+                            chatListContainer.addView(row);
+                        }
+                        if(chatScrollView!=null)chatScrollView.post(()->chatScrollView.fullScroll(View.FOCUS_DOWN));
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError e){}
+                });
+            }
             @Override public void onCancelled(@NonNull DatabaseError e){}
         });
     }
@@ -196,7 +279,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private void listenToRoomTheme(){ if(roomMetaRef==null)return; roomMetaRef.addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ String n=s.child("roomTheme").getValue(String.class); if(n!=null&&!n.isEmpty())currentThemeName=n; } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
     private void listenToRoomAdmins(){ if(adminsRef==null)return; adminsRef.addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ roomAdminList.clear(); for(DataSnapshot ds:s.getChildren())if(Boolean.TRUE.equals(ds.getValue(Boolean.class)))roomAdminList.add(ds.getKey()); } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
     private void listenToMyWallet(){ if(currentUserId.isEmpty())return; userDatabaseRef.child(currentUserId).addValueEventListener(new ValueEventListener(){ @Override public void onDataChange(@NonNull DataSnapshot s){ Long c=s.child("coins").getValue(Long.class); long w=c!=null?c:0L; myWalletCoins=w; if(walletTextInGift!=null)walletTextInGift.setText("Coins: "+String.format("%,d",w)); if(textRoomCoins!=null)textRoomCoins.setText("🪙 "+String.format("%,d",w)); } @Override public void onCancelled(@NonNull DatabaseError e){} }); }
-
     private void showOnlineListDialog(){
         android.app.Dialog d=makeFullScreenDialog(); LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(Color.WHITE); root.setPadding(24,20,24,24);
         LinearLayout top=new LinearLayout(this); top.setOrientation(LinearLayout.HORIZONTAL); top.setGravity(Gravity.CENTER_VERTICAL); root.addView(top);
