@@ -31,15 +31,15 @@ import com.google.firebase.database.*;
 import java.util.*;
 
 public class VoiceRoomActivity extends AppCompatActivity {
-    private String roomOwnerId="499506534",currentUserId="",my9DigitId="",myDisplayName="User",myCountry="Bangladesh",myLanguage="English",myTag="Friends",myGender="Male",myPhotoBase64="",currentThemeName="Sunset",selectedRoomLabel="Friends",galleryMode="",pendingRoomPhotoBase64="",currentRoomPhotoBase64="";
+    private String roomOwnerId="499506534", currentUserId="", my9DigitId="", myDisplayName="User", myCountry="Bangladesh", myLanguage="English", myTag="Friends", myGender="Male", myPhotoBase64="", currentThemeName="Sunset", selectedRoomLabel="Friends", galleryMode="", pendingRoomPhotoBase64="", currentRoomPhotoBase64="";
     private long myWalletCoins=0;
     private SharedPreferences prefs;
-    private DatabaseReference databaseReference,roomMetaRef,adminsRef,messagesRef,userDatabaseRef;
-    private TextView roomTitleText,roomNoticeBarText,roomInfoText,textOnlineCount,textRoomCoins,walletTextInGift,roomEditLogoText;
-    private ImageView roomHeaderProfileImg,roomEditLogoView;
+    private DatabaseReference databaseReference, roomMetaRef, adminsRef, messagesRef, userDatabaseRef;
+    private TextView roomTitleText, roomNoticeBarText, roomInfoText, textOnlineCount, textRoomCoins, walletTextInGift, roomEditLogoText;
+    private ImageView roomHeaderProfileImg, roomEditLogoView;
     private EditText inputChatMessage;
     private TextView btnChatOption;
-    private LinearLayout chatListContainer,chatPopupBar;
+    private LinearLayout chatListContainer, chatPopupBar;
     private ScrollView chatScrollView;
     private List<String> roomAdminList=new ArrayList<>();
     private ActivityResultLauncher<Intent> galleryLauncher;
@@ -398,64 +398,68 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // 🌟 নিখুঁত সিট জয়েন, সিট চেঞ্জ এবং পার্মানেন্ট প্রোফাইল ডেটা সিঙ্ক লজিক
+    // 🌟 নিখুঁত, মজবুত এবং ত্রুটিমুক্ত সিট জয়েন ও সিট চেঞ্জ লজিক
     private void setupSeatInteractions(){
         for(int i=0;i<10;i++){
-            int idx=i;
+            final int idx=i;
             int res=getResources().getIdentifier("seat_"+idx,"id",getPackageName());
             View seat=findViewById(res);
-            if(seat!=null)seat.setOnClickListener(v->{
-                String myId=my9DigitId.isEmpty()?currentUserId:my9DigitId;
-                if(myId==null||myId.isEmpty())myId=roomOwnerId;
-                String finalMyId = myId;
-                String finalName = (myDisplayName!=null && !myDisplayName.isEmpty()) ? myDisplayName : "User";
-                String finalPhoto = (myPhotoBase64!=null) ? myPhotoBase64 : "";
+            if(seat!=null){
+                seat.setOnClickListener(new View.OnClickListener(){
+                    @Override public void onClick(View v){
+                        String myId=my9DigitId.isEmpty()?currentUserId:my9DigitId;
+                        if(myId==null||myId.isEmpty())myId=roomOwnerId;
+                        final String finalMyId = myId;
+                        final String finalName = (myDisplayName!=null && !myDisplayName.isEmpty()) ? myDisplayName : "User";
+                        final String finalPhoto = (myPhotoBase64!=null) ? myPhotoBase64 : "";
 
-                DatabaseReference seatsRootRef = databaseReference.child("rooms").child(roomOwnerId).child("seats");
-                seatsRootRef.addListenerForSingleValueEvent(new ValueEventListener(){
-                    @Override public void onDataChange(@NonNull DataSnapshot allSeatsSnap){
-                        String existingSeatKey = null;
-                        for(DataSnapshot sSnap : allSeatsSnap.getChildren()){
-                            String uIdInSeat = sSnap.child("userId").getValue(String.class);
-                            if(uIdInSeat!=null && uIdInSeat.equals(finalMyId)){
-                                existingSeatKey = sSnap.getKey();
-                                break;
-                            }
-                        }
-
-                        DatabaseReference targetSeatRef = databaseReference.child("rooms").child(roomOwnerId).child("seats").child("seat_"+idx);
-                        targetSeatRef.addListenerForSingleValueEvent(new ValueEventListener(){
-                            @Override public void onDataChange(@NonNull DataSnapshot targetSnap){
-                                if(!targetSnap.exists()){
-                                    if(existingSeatKey!=null && !existingSeatKey.equals("seat_"+idx)){
-                                        databaseReference.child("rooms").child(roomOwnerId).child("seats").child(existingSeatKey).removeValue();
-                                    }
-                                    Map<String,Object> m=new HashMap<>();
-                                    m.put("userId", finalMyId);
-                                    m.put("userName", finalName);
-                                    m.put("photoBase64", finalPhoto);
-                                    targetSeatRef.setValue(m);
-                                    Toast.makeText(VoiceRoomActivity.this,"Seat "+(idx+1)+" এ বসেছেন ✅",Toast.LENGTH_SHORT).show();
-                                }else{
-                                    String uid=targetSnap.child("userId").getValue(String.class);
-                                    if(uid!=null && (uid.equals(currentUserId)||uid.equals(my9DigitId) || uid.equals(finalMyId))){
-                                        targetSeatRef.removeValue();
-                                        Toast.makeText(VoiceRoomActivity.this,"Seat থেকে উঠে গেছেন 🪑",Toast.LENGTH_SHORT).show();
-                                    }else{
-                                        Toast.makeText(VoiceRoomActivity.this,"এই সিটে অন্য জন আছেন",Toast.LENGTH_SHORT).show();
+                        DatabaseReference seatsRootRef = databaseReference.child("rooms").child(roomOwnerId).child("seats");
+                        seatsRootRef.addListenerForSingleValueEvent(new ValueEventListener(){
+                            @Override public void onDataChange(@NonNull DataSnapshot allSeatsSnap){
+                                String existingSeatKey = null;
+                                for(DataSnapshot sSnap : allSeatsSnap.getChildren()){
+                                    String uIdInSeat = sSnap.child("userId").getValue(String.class);
+                                    if(uIdInSeat!=null && uIdInSeat.equals(finalMyId)){
+                                        existingSeatKey = sSnap.getKey();
+                                        break;
                                     }
                                 }
+
+                                final DatabaseReference targetSeatRef = databaseReference.child("rooms").child(roomOwnerId).child("seats").child("seat_"+idx);
+                                targetSeatRef.addListenerForSingleValueEvent(new ValueEventListener(){
+                                    @Override public void onDataChange(@NonNull DataSnapshot targetSnap){
+                                        if(!targetSnap.exists()){
+                                            if(existingSeatKey!=null && !existingSeatKey.equals("seat_"+idx)){
+                                                databaseReference.child("rooms").child(roomOwnerId).child("seats").child(existingSeatKey).removeValue();
+                                            }
+                                            Map<String,Object> m=new HashMap<>();
+                                            m.put("userId", finalMyId);
+                                            m.put("userName", finalName);
+                                            m.put("photoBase64", finalPhoto);
+                                            targetSeatRef.setValue(m);
+                                            Toast.makeText(VoiceRoomActivity.this,"Seat "+(idx+1)+" এ বসেছেন ✅",Toast.LENGTH_SHORT).show();
+                                        }else{
+                                            String uid=targetSnap.child("userId").getValue(String.class);
+                                            if(uid!=null && (uid.equals(currentUserId)||uid.equals(my9DigitId) || uid.equals(finalMyId))){
+                                                targetSeatRef.removeValue();
+                                                Toast.makeText(VoiceRoomActivity.this,"Seat থেকে উঠে গেছেন 🪑",Toast.LENGTH_SHORT).show();
+                                            }else{
+                                                Toast.makeText(VoiceRoomActivity.this,"এই সিটে অন্য জন আছেন",Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                    }
+                                    @Override public void onCancelled(@NonNull DatabaseError e){}
+                                });
                             }
                             @Override public void onCancelled(@NonNull DatabaseError e){}
                         });
                     }
-                    @Override public void onCancelled(@NonNull DatabaseError e){}
                 });
-            });
+            }
         }
     }
 
-    // 🌟 রিয়েলটাইমে সিটে ইউজারের নিজস্ব ছবি ও নাম রেন্ডার করা (মাইক বা স্পিকার স্ট্যাটাসে শো করবে)
+    // 🌟 রিয়েলটাইমে সিটে ইউজারের নিজস্ব ছবি ও নাম রেন্ডার করা
     private void listenToFirebaseSeats(){
         if(databaseReference==null)return;
         databaseReference.child("rooms").child(roomOwnerId).child("seats").addValueEventListener(new ValueEventListener(){
