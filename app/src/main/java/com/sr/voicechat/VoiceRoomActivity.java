@@ -31,7 +31,7 @@ import com.google.firebase.database.*;
 import java.util.*;
 
 public class VoiceRoomActivity extends AppCompatActivity {
-    private String roomOwnerId="499506534",currentUserId="",my9DigitId="",myDisplayName="User",myCountry="Bangladesh",myLanguage="English",myTag="Friends",myGender="Male",myPhotoBase64="",currentThemeName="Sunset",selectedRoomLabel="Friends",galleryMode="",pendingRoomPhotoBase64="",pendingCustomBgBase64="",currentRoomPhotoBase64="";
+    private String roomOwnerId="499506534",currentUserId="",my9DigitId="",myDisplayName="User",myCountry="Bangladesh",myLanguage="English",myTag="Friends",myGender="Male",myPhotoBase64="",currentThemeName="Sunset",selectedRoomLabel="Friends",galleryMode="",pendingRoomPhotoBase64="",currentRoomPhotoBase64="";
     private long myWalletCoins=0;
     private SharedPreferences prefs;
     private DatabaseReference databaseReference,roomMetaRef,adminsRef,messagesRef,userDatabaseRef;
@@ -93,10 +93,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         pendingRoomPhotoBase64=b64;
                         if(roomEditLogoView!=null)roomEditLogoView.setImageBitmap(bmp);
                         if(roomEditLogoText!=null)roomEditLogoText.setVisibility(View.GONE);
-                        Toast.makeText(this,"Room Photo Selected ✅ - Save koro",Toast.LENGTH_SHORT).show();
-                    }else if("CUSTOM_BG".equals(galleryMode)){
-                        pendingCustomBgBase64=b64;
-                        Toast.makeText(this,"Background Selected ✅ - Room set e Save koro",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this,"Room Photo Selected ✅",Toast.LENGTH_SHORT).show();
                     }
                 }catch(Exception e){
                     Toast.makeText(this,"Pic nite pari nai",Toast.LENGTH_SHORT).show();
@@ -313,7 +310,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         super.onBackPressed();
     }
 
-    // 🌟 পার্মানেন্ট এবং ক্লিন মেসেজ সেন্ড মেথড
     private void sendChatMessage(){
         if(inputChatMessage==null)return;
         String msg=inputChatMessage.getText().toString().trim();
@@ -337,7 +333,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         pushOnlineNow();
     }
 
-    // 🌟 চ্যাট রিয়েলটাইম লিসেনার (গোল প্রোফাইল পিকচার, নাম, লেভেল ও কান্ট্রি ফ্ল্যাগ সহ)
     private void listenToChatRealtime(){
         if(messagesRef==null||chatListContainer==null)return;
         messagesRef.limitToLast(100).addValueEventListener(new ValueEventListener(){
@@ -359,7 +354,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     row.setGravity(Gravity.TOP);
                     row.setPadding(4,6,4,6);
 
-                    // গোল প্রোফাইল পিকচার (CardView)
                     CardView cardAv=new CardView(VoiceRoomActivity.this);
                     LinearLayout.LayoutParams cardLp=new LinearLayout.LayoutParams(72,72);
                     cardLp.setMargins(0,4,8,0);
@@ -383,7 +377,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     box.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f));
                     row.addView(box);
 
-                    // নাম, লেভেল এবং কান্ট্রি ফ্ল্যাগ (ফালতু জগাখিচুড়ি বা আইডি বাদ দিয়ে ক্লিন ফরম্যাট)
                     TextView tvN=new TextView(VoiceRoomActivity.this);
                     tvN.setText(uname+"  Lv0  "+flagForCountry(co));
                     tvN.setTextColor(Color.parseColor("#3E2F00"));
@@ -405,27 +398,56 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
+    // 🌟 নিখুঁত সিট জয়েন, সিট চেঞ্জ এবং পার্মানেন্ট প্রোফাইল ডেটা সিঙ্ক লজিক
     private void setupSeatInteractions(){
         for(int i=0;i<10;i++){
             int idx=i;
             int res=getResources().getIdentifier("seat_"+idx,"id",getPackageName());
             View seat=findViewById(res);
             if(seat!=null)seat.setOnClickListener(v->{
-                DatabaseReference sr=databaseReference.child("rooms").child(roomOwnerId).child("seats").child("seat_"+idx);
-                sr.addListenerForSingleValueEvent(new ValueEventListener(){
-                    @Override public void onDataChange(@NonNull DataSnapshot s){
-                        if(!s.exists()){
-                            Map<String,Object> m=new HashMap<>();
-                            m.put("userId",my9DigitId.isEmpty()?currentUserId:my9DigitId);
-                            m.put("userName",myDisplayName);
-                            m.put("photoBase64",myPhotoBase64!=null?myPhotoBase64:"");
-                            sr.setValue(m);
-                            Toast.makeText(VoiceRoomActivity.this,"Seat "+(idx+1)+" nile ✅",Toast.LENGTH_SHORT).show();
-                        }else{
-                            String uid=s.child("userId").getValue(String.class);
-                            if(uid!=null&&(uid.equals(currentUserId)||uid.equals(my9DigitId)))sr.removeValue();
-                            else Toast.makeText(VoiceRoomActivity.this,"Ei seat e onno jon ache",Toast.LENGTH_SHORT).show();
+                String myId=my9DigitId.isEmpty()?currentUserId:my9DigitId;
+                if(myId==null||myId.isEmpty())myId=roomOwnerId;
+                String finalMyId = myId;
+                String finalName = (myDisplayName!=null && !myDisplayName.isEmpty()) ? myDisplayName : "User";
+                String finalPhoto = (myPhotoBase64!=null) ? myPhotoBase64 : "";
+
+                DatabaseReference seatsRootRef = databaseReference.child("rooms").child(roomOwnerId).child("seats");
+                seatsRootRef.addListenerForSingleValueEvent(new ValueEventListener(){
+                    @Override public void onDataChange(@NonNull DataSnapshot allSeatsSnap){
+                        String existingSeatKey = null;
+                        for(DataSnapshot sSnap : allSeatsSnap.getChildren()){
+                            String uIdInSeat = sSnap.child("userId").getValue(String.class);
+                            if(uIdInSeat!=null && uIdInSeat.equals(finalMyId)){
+                                existingSeatKey = sSnap.getKey();
+                                break;
+                            }
                         }
+
+                        DatabaseReference targetSeatRef = databaseReference.child("rooms").child(roomOwnerId).child("seats").child("seat_"+idx);
+                        targetSeatRef.addListenerForSingleValueEvent(new ValueEventListener(){
+                            @Override public void onDataChange(@NonNull DataSnapshot targetSnap){
+                                if(!targetSnap.exists()){
+                                    if(existingSeatKey!=null && !existingSeatKey.equals("seat_"+idx)){
+                                        databaseReference.child("rooms").child(roomOwnerId).child("seats").child(existingSeatKey).removeValue();
+                                    }
+                                    Map<String,Object> m=new HashMap<>();
+                                    m.put("userId", finalMyId);
+                                    m.put("userName", finalName);
+                                    m.put("photoBase64", finalPhoto);
+                                    targetSeatRef.setValue(m);
+                                    Toast.makeText(VoiceRoomActivity.this,"Seat "+(idx+1)+" এ বসেছেন ✅",Toast.LENGTH_SHORT).show();
+                                }else{
+                                    String uid=targetSnap.child("userId").getValue(String.class);
+                                    if(uid!=null && (uid.equals(currentUserId)||uid.equals(my9DigitId) || uid.equals(finalMyId))){
+                                        targetSeatRef.removeValue();
+                                        Toast.makeText(VoiceRoomActivity.this,"Seat থেকে উঠে গেছেন 🪑",Toast.LENGTH_SHORT).show();
+                                    }else{
+                                        Toast.makeText(VoiceRoomActivity.this,"এই সিটে অন্য জন আছেন",Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            }
+                            @Override public void onCancelled(@NonNull DatabaseError e){}
+                        });
                     }
                     @Override public void onCancelled(@NonNull DatabaseError e){}
                 });
@@ -433,31 +455,53 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
+    // 🌟 রিয়েলটাইমে সিটে ইউজারের নিজস্ব ছবি ও নাম রেন্ডার করা (মাইক বা স্পিকার স্ট্যাটাসে শো করবে)
     private void listenToFirebaseSeats(){
         if(databaseReference==null)return;
         databaseReference.child("rooms").child(roomOwnerId).child("seats").addValueEventListener(new ValueEventListener(){
             @Override public void onDataChange(@NonNull DataSnapshot s){
                 for(int i=0;i<10;i++){
-                    int id=getResources().getIdentifier("seatImg_"+i,"id",getPackageName());
-                    TextView img=findViewById(id);
-                    if(img==null)continue;
+                    int imgId=getResources().getIdentifier("seatImg_"+i,"id",getPackageName());
+                    View imgView=findViewById(imgId);
                     DataSnapshot ss=s.child("seat_"+i);
+
+                    View sl=findViewById(getResources().getIdentifier("seat_"+i,"id",getPackageName()));
+                    TextView nameTv = null;
+                    if(sl instanceof LinearLayout){
+                        LinearLayout ll=(LinearLayout)sl;
+                        if(ll.getChildCount()>=2 && ll.getChildAt(1) instanceof TextView){
+                            nameTv = (TextView)ll.getChildAt(1);
+                        }
+                    }
+
                     if(ss.exists()){
                         String ph=ss.child("photoBase64").getValue(String.class);
-                        Bitmap bmp=decodeBase64(ph);
-                        if(bmp!=null){
-                            img.setText("");
-                            img.setBackground(new android.graphics.drawable.BitmapDrawable(getResources(),bmp));
-                        }else img.setText("👤");
                         String nm=ss.child("userName").getValue(String.class);
-                        View sl=findViewById(getResources().getIdentifier("seat_"+i,"id",getPackageName()));
-                        if(sl instanceof LinearLayout){
-                            LinearLayout ll=(LinearLayout)sl;
-                            if(ll.getChildCount()>=2&&ll.getChildAt(1)instanceof TextView)((TextView)ll.getChildAt(1)).setText(nm!=null?nm:"");
+                        Bitmap bmp=decodeBase64(ph);
+
+                        if(imgView instanceof TextView){
+                            TextView tv = (TextView)imgView;
+                            if(bmp!=null){
+                                tv.setText("");
+                                tv.setBackground(new android.graphics.drawable.BitmapDrawable(getResources(),bmp));
+                            }else{
+                                tv.setText("👤");
+                                tv.setBackgroundColor(Color.parseColor("#FFE9A8"));
+                            }
+                        }
+                        if(nameTv!=null){
+                            nameTv.setText(nm!=null?nm:"");
                         }
                     }else{
-                        img.setText("🪑");
-                        img.setBackgroundColor(Color.parseColor("#FFE9A8"));
+                        if(imgView instanceof TextView){
+                            TextView tv = (TextView)imgView;
+                            tv.setText("🪑");
+                            tv.setBackgroundColor(Color.parseColor("#FFE9A8"));
+                        }
+                        if(nameTv!=null){
+                            if(i==0) nameTv.setText("Host");
+                            else nameTv.setText("");
+                        }
                     }
                 }
             }
@@ -568,13 +612,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         cl.setOnClickListener(v->d.dismiss());
         top.addView(cl);
 
-        TextView sub=new TextView(this);
-        sub.setText("Room e ekhon jara active ache");
-        sub.setTextColor(Color.parseColor("#999999"));
-        sub.setTextSize(13);
-        sub.setPadding(0,4,0,10);
-        root.addView(sub);
-
         ScrollView sv=new ScrollView(this);
         LinearLayout list=new LinearLayout(this);
         list.setOrientation(LinearLayout.VERTICAL);
@@ -587,17 +624,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 list.removeAllViews();
                 if(s.exists()&&s.getChildrenCount()>0){
                     for(DataSnapshot ds:s.getChildren())showOneOnlineUser(list,ds,d);
-                }else{
-                    String myId=my9DigitId.isEmpty()?currentUserId:my9DigitId;
-                    if(myId==null||myId.isEmpty())myId=roomOwnerId;
-                    addOnlineRow(list,myId,myDisplayName,myPhotoBase64,"0",myGender,myCountry,d);
-                    addOnlineRow(list,roomOwnerId,roomTitleText!=null?roomTitleText.getText().toString():"Owner",currentRoomPhotoBase64,"0","Male",myCountry,d);
                 }
             }
-            @Override public void onCancelled(@NonNull DatabaseError e){
-                String myId=my9DigitId.isEmpty()?currentUserId:my9DigitId;
-                addOnlineRow(list,myId!=null?myId:roomOwnerId,myDisplayName,myPhotoBase64,"0",myGender,myCountry,d);
-            }
+            @Override public void onCancelled(@NonNull DatabaseError e){}
         });
         d.setContentView(root);
         d.show();
@@ -611,40 +640,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
         String co=ds.child("country").getValue(String.class);
         String ge=ds.child("gender").getValue(String.class);
         String lv=ds.child("level").getValue(String.class);
-        userDatabaseRef.orderByChild("my9DigitId").equalTo(k).addListenerForSingleValueEvent(new ValueEventListener(){
-            @Override public void onDataChange(@NonNull DataSnapshot us){
-                String nm=n!=null?n:"User";
-                String ph=p!=null?p:"";
-                String c=co!=null?co:"";
-                String g=ge!=null?ge:"Male";
-                String l=lv!=null?lv:"0";
-                if(us.exists()){
-                    for(DataSnapshot u:us.getChildren()){
-                        if(u.child("name").getValue()!=null)nm=String.valueOf(u.child("name").getValue());
-                        if(u.child("photoBase64").getValue()!=null&&!String.valueOf(u.child("photoBase64").getValue()).isEmpty())ph=String.valueOf(u.child("photoBase64").getValue());
-                        if(u.child("country").getValue()!=null)c=String.valueOf(u.child("country").getValue());
-                        if(u.child("gender").getValue()!=null)g=String.valueOf(u.child("gender").getValue());
-                        if(u.child("level").getValue()!=null)l=String.valueOf(u.child("level").getValue());
-                        break;
-                    }
-                }
-                addOnlineRow(list,k,nm,ph,l,g,c,dialog);
-            }
-            @Override public void onCancelled(@NonNull DatabaseError e){addOnlineRow(list,k,n!=null?n:"User",p!=null?p:"","0","Male","",dialog);}
-        });
+        addOnlineRow(list,k,n!=null?n:"User",p!=null?p:"",lv!=null?lv:"0",ge!=null?ge:"Male",co!=null?co:"",dialog);
     }
 
     private void addOnlineRow(LinearLayout list,String uid,String name,String photo,String level,String gender,String country,android.app.Dialog dialog){
-        for(int i=0;i<list.getChildCount();i++){
-            View v=list.getChildAt(i);
-            Object tag=v.getTag();
-            if(tag!=null&&String.valueOf(tag).equals("ONLINE_"+uid))return;
-        }
         LinearLayout row=new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(6,14,6,14);
-        row.setTag("ONLINE_"+uid);
 
         CardView cardAv=new CardView(this);
         LinearLayout.LayoutParams cardLp=new LinearLayout.LayoutParams(110,110);
@@ -682,39 +685,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         ti.setTextSize(13);
         box.addView(ti);
 
-        LinearLayout lr=new LinearLayout(this);
-        lr.setOrientation(LinearLayout.HORIZONTAL);
-        lr.setPadding(0,6,0,0);
-        box.addView(lr);
-
-        TextView l1=new TextView(this);
-        l1.setText(" Lv"+level+" ");
-        l1.setTextColor(Color.WHITE);
-        l1.setTextSize(12);
-        l1.setBackgroundColor(Color.parseColor("#FF9800"));
-        l1.setPadding(10,4,10,4);
-        lr.addView(l1);
-
-        if(uid.equals(roomOwnerId)){
-            TextView b=new TextView(this);
-            b.setText("👑 Owner");
-            b.setTextColor(Color.parseColor("#FF9800"));
-            b.setTypeface(null,android.graphics.Typeface.BOLD);
-            b.setTextSize(12);
-            row.addView(b);
-        }else if(roomAdminList.contains(uid)){
-            TextView b=new TextView(this);
-            b.setText("⭐ Admin");
-            b.setTextColor(Color.parseColor("#4CAF50"));
-            b.setTypeface(null,android.graphics.Typeface.BOLD);
-            b.setTextSize(12);
-            row.addView(b);
-        }
-
-        row.setOnClickListener(v->{
-            dialog.dismiss();
-            showMiniProfileCard(uid);
-        });
         list.addView(row);
     }
 
@@ -738,13 +708,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         tp.setPadding(30,10,30,10);
         tabRow.addView(tp);
 
-        TextView tm=new TextView(this);
-        tm.setText("Members");
-        tm.setTextSize(17);
-        tm.setTextColor(Color.parseColor("#999999"));
-        tm.setPadding(30,10,30,10);
-        tabRow.addView(tm);
-
         TextView cb=new TextView(this);
         cb.setText("✕");
         cb.setTextSize(20);
@@ -759,31 +722,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         pb.setPadding(20,10,20,20);
         sv.addView(pb);
         root.addView(sv);
-
-        LinearLayout mb=new LinearLayout(this);
-        mb.setOrientation(LinearLayout.VERTICAL);
-        mb.setPadding(20,10,20,20);
-        mb.setVisibility(View.GONE);
-        root.addView(mb);
-
-        tp.setOnClickListener(v->{
-            tp.setTextColor(Color.parseColor("#222222"));
-            tp.setTypeface(null,android.graphics.Typeface.BOLD);
-            tm.setTextColor(Color.parseColor("#999999"));
-            tm.setTypeface(null,android.graphics.Typeface.NORMAL);
-            sv.setVisibility(View.VISIBLE);
-            mb.setVisibility(View.GONE);
-        });
-
-        tm.setOnClickListener(v->{
-            tm.setTextColor(Color.parseColor("#222222"));
-            tm.setTypeface(null,android.graphics.Typeface.BOLD);
-            tp.setTextColor(Color.parseColor("#999999"));
-            tp.setTypeface(null,android.graphics.Typeface.NORMAL);
-            sv.setVisibility(View.GONE);
-            mb.setVisibility(View.VISIBLE);
-            loadRoomMembersList(mb,dialog);
-        });
 
         LinearLayout top=new LinearLayout(this);
         top.setOrientation(LinearLayout.HORIZONTAL);
@@ -806,7 +744,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         rp.setImageResource(android.R.drawable.ic_menu_gallery);
         Bitmap br=decodeBase64(currentRoomPhotoBase64);
         if(br!=null)rp.setImageBitmap(br);
-        else if(roomHeaderProfileImg!=null&&roomHeaderProfileImg.getDrawable()!=null)rp.setImageDrawable(roomHeaderProfileImg.getDrawable());
         cardRp.addView(rp);
         top.addView(cardRp);
 
@@ -824,43 +761,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
         trn.setTypeface(null,android.graphics.Typeface.BOLD);
         nb.addView(trn);
 
-        LinearLayout ir=new LinearLayout(this);
-        ir.setOrientation(LinearLayout.HORIZONTAL);
-        ir.setGravity(Gravity.CENTER_VERTICAL);
-        nb.addView(ir);
-
         TextView tri=new TextView(this);
         tri.setText("ID: "+roomOwnerId);
         tri.setTextColor(Color.parseColor("#888888"));
         tri.setTextSize(13);
-        ir.addView(tri);
-
-        TextView tc=new TextView(this);
-        tc.setText("  📋 Copy");
-        tc.setTextColor(Color.parseColor("#FF9800"));
-        tc.setTextSize(13);
-        tc.setTypeface(null,android.graphics.Typeface.BOLD);
-        tc.setPadding(10,10,10,10);
-        tc.setOnClickListener(v->copyRoomId());
-        ir.addView(tc);
-
-        TextView tco=new TextView(this);
-        tco.setText("1 Following    1 Fans    80 Visitor");
-        tco.setTextColor(Color.parseColor("#666666"));
-        tco.setTextSize(13);
-        tco.setPadding(0,8,0,0);
-        nb.addView(tco);
-
-        addHeaderInfoRow(pb,"⚙️  Level","Lv0","Room Level - Coin khelle Level Up hobe");
-        String on=rn.replace("Room","").replace("'s","").trim();
-        if(on.isEmpty())on="Sr Official";
-        addHeaderInfoRow(pb,"👤  RoomOwner",on+"  (ID:"+roomOwnerId+")",null);
-        addHeaderInfoRow(pb,"🌐  Language",myLanguage!=null?myLanguage:"English",null);
-        addHeaderInfoRow(pb,"🏳️  Country",myCountry!=null?myCountry:"Bangladesh",null);
-        addHeaderInfoRow(pb,"🏷️  Tag",selectedRoomLabel!=null?selectedRoomLabel:"Friends",null);
+        nb.addView(tri);
 
         Button bj=new Button(this);
-        bj.setText("✨  Join This Room");
+        bj.setText("✨ Join This Room");
         bj.setTextColor(Color.WHITE);
         bj.setTextSize(15);
         bj.setAllCaps(false);
@@ -874,58 +782,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
         pb.addView(bj);
         bj.setOnClickListener(v->{
             joinThisRoomPermanently();
-            Toast.makeText(this,"Joined Successfully ✅ - Tumi ekhon Permanent Member",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this,"Joined Successfully ✅",Toast.LENGTH_SHORT).show();
         });
-
-        TextView tn2=new TextView(this);
-        tn2.setText("Join korle tumi Members list e Permanent thakba - Room theke ber holeo jaba na");
-        tn2.setTextColor(Color.parseColor("#999999"));
-        tn2.setTextSize(12);
-        tn2.setGravity(Gravity.CENTER);
-        tn2.setPadding(0,10,0,0);
-        pb.addView(tn2);
-
-        TextView mt=new TextView(this);
-        mt.setText("Members: 1/1000      Admin: 1/20");
-        mt.setTextColor(Color.parseColor("#222222"));
-        mt.setTextSize(14);
-        mt.setTypeface(null,android.graphics.Typeface.BOLD);
-        mb.addView(mt);
 
         dialog.setContentView(root);
         dialog.show();
-    }
-
-    private void addHeaderInfoRow(LinearLayout p,String l,String v,String sub){
-        LinearLayout r=new LinearLayout(this);
-        r.setOrientation(LinearLayout.HORIZONTAL);
-        r.setGravity(Gravity.CENTER_VERTICAL);
-        r.setPadding(4,14,4,14);
-        p.addView(r);
-        TextView a=new TextView(this);
-        a.setText(l);
-        a.setTextColor(Color.parseColor("#666666"));
-        a.setTextSize(14);
-        a.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f));
-        r.addView(a);
-        TextView b=new TextView(this);
-        b.setText(v);
-        b.setTextColor(Color.parseColor("#222222"));
-        b.setTextSize(14);
-        b.setTypeface(null,android.graphics.Typeface.BOLD);
-        r.addView(b);
-        if(sub!=null){
-            TextView s=new TextView(this);
-            s.setText(sub);
-            s.setTextColor(Color.parseColor("#AAAAAA"));
-            s.setTextSize(11);
-            s.setPadding(4,0,4,8);
-            p.addView(s);
-        }
-        View line=new View(this);
-        line.setBackgroundColor(Color.parseColor("#EEEEEE"));
-        line.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,2));
-        p.addView(line);
     }
 
     private void joinThisRoomPermanently(){
@@ -939,115 +800,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
         m.put("photoBase64",myPhotoBase64!=null?myPhotoBase64:"");
         m.put("country",myCountry);
         m.put("gender",myGender);
-        m.put("level","0");
-        m.put("joinedAt",System.currentTimeMillis());
-        m.put("isAdmin",false);
         databaseReference.child("rooms").child(roomOwnerId).child("members").child(id).setValue(m);
-    }
-
-    private void loadRoomMembersList(LinearLayout mb,android.app.Dialog d){
-        while(mb.getChildCount()>1)mb.removeViewAt(1);
-        if(databaseReference==null)return;
-        databaseReference.child("rooms").child(roomOwnerId).child("members").addListenerForSingleValueEvent(new ValueEventListener(){
-            @Override public void onDataChange(@NonNull DataSnapshot s){
-                while(mb.getChildCount()>1)mb.removeViewAt(1);
-                if(!s.exists()||s.getChildrenCount()==0){
-                    TextView e=new TextView(VoiceRoomActivity.this);
-                    e.setText("No members yet");
-                    e.setTextColor(Color.parseColor("#888888"));
-                    e.setPadding(0,20,0,0);
-                    mb.addView(e);
-                    return;
-                }
-                List<DataSnapshot> list=new ArrayList<>();
-                for(DataSnapshot ds:s.getChildren())list.add(ds);
-                int serial=1;
-                for(DataSnapshot ds:list){
-                    String uid=ds.getKey();
-                    String nm=ds.child("userName").getValue(String.class);
-                    if(nm==null)nm="User";
-                    String ph=ds.child("photoBase64").getValue(String.class);
-                    String co=ds.child("country").getValue(String.class);
-                    String ge=ds.child("gender").getValue(String.class);
-                    boolean isAdmin=Boolean.TRUE.equals(ds.child("isAdmin").getValue(Boolean.class))||roomAdminList.contains(uid);
-                    boolean isOwner=uid!=null&&uid.equals(roomOwnerId);
-
-                    LinearLayout row=new LinearLayout(VoiceRoomActivity.this);
-                    row.setOrientation(LinearLayout.HORIZONTAL);
-                    row.setGravity(Gravity.CENTER_VERTICAL);
-                    row.setPadding(6,14,6,14);
-                    mb.addView(row);
-
-                    TextView ts=new TextView(VoiceRoomActivity.this);
-                    ts.setText(String.valueOf(serial)+". ");
-                    ts.setTextColor(Color.parseColor("#999999"));
-                    ts.setTextSize(14);
-                    ts.setTypeface(null,android.graphics.Typeface.BOLD);
-                    row.addView(ts);
-                    serial++;
-
-                    CardView cardAv=new CardView(VoiceRoomActivity.this);
-                    LinearLayout.LayoutParams cardLp=new LinearLayout.LayoutParams(100,100);
-                    cardLp.setMargins(0,0,12,0);
-                    cardAv.setLayoutParams(cardLp);
-                    cardAv.setRadius(50);
-                    cardAv.setCardElevation(0);
-                    cardAv.setCardBackgroundColor(Color.TRANSPARENT);
-
-                    ImageView av=new ImageView(VoiceRoomActivity.this);
-                    av.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT));
-                    av.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                    av.setImageResource(android.R.drawable.ic_menu_gallery);
-                    Bitmap bmp=decodeBase64(ph);
-                    if(bmp!=null)av.setImageBitmap(bmp);
-                    cardAv.addView(av);
-                    row.addView(cardAv);
-
-                    LinearLayout box=new LinearLayout(VoiceRoomActivity.this);
-                    box.setOrientation(LinearLayout.VERTICAL);
-                    box.setPadding(14,0,0,0);
-                    box.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f));
-                    row.addView(box);
-
-                    TextView tn=new TextView(VoiceRoomActivity.this);
-                    tn.setText(nm+"  "+genderIcon(ge)+"  "+flagForCountry(co));
-                    tn.setTextColor(Color.parseColor("#222222"));
-                    tn.setTextSize(15);
-                    tn.setTypeface(null,android.graphics.Typeface.BOLD);
-                    box.addView(tn);
-
-                    TextView ti=new TextView(VoiceRoomActivity.this);
-                    ti.setText("ID: "+uid);
-                    ti.setTextColor(Color.parseColor("#888888"));
-                    ti.setTextSize(12);
-                    box.addView(ti);
-
-                    if(isOwner){
-                        TextView b=new TextView(VoiceRoomActivity.this);
-                        b.setText("👑 OWNER");
-                        b.setTextColor(Color.parseColor("#FF9800"));
-                        b.setTypeface(null,android.graphics.Typeface.BOLD);
-                        b.setTextSize(12);
-                        row.addView(b);
-                    }else if(isAdmin){
-                        TextView b=new TextView(VoiceRoomActivity.this);
-                        b.setText("⭐ Admin");
-                        b.setTextColor(Color.parseColor("#4CAF50"));
-                        b.setTypeface(null,android.graphics.Typeface.BOLD);
-                        b.setTextSize(12);
-                        row.addView(b);
-                    }
-                }
-            }
-            @Override public void onCancelled(@NonNull DatabaseError e){}
-        });
     }
 
     private void showExitDialog(){
         AlertDialog.Builder b=new AlertDialog.Builder(this);
         b.setTitle("Exit Room?");
-        b.setMessage("Exit room or Minimize to Home?");
-        b.setPositiveButton("Exit Room",(d,w)->{d.dismiss();leaveRoomAndFinish();});
+        b.setMessage("Exit room or Minimize?");
+        b.setPositiveButton("Exit",(d,w)->{d.dismiss();leaveRoomAndFinish();});
         b.setNeutralButton("Minimize",(d,w)->{
             d.dismiss();
             leaveRoomKeepHome();
@@ -1064,7 +824,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         String k=my9DigitId.isEmpty()?currentUserId:my9DigitId;
         if(k!=null&&!k.isEmpty()){
             databaseReference.child("rooms").child(roomOwnerId).child("online_users").child(k).removeValue();
-            databaseReference.child("online_users").child(k).removeValue();
         }
     }
 
@@ -1074,34 +833,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(i);
         finish();
-    }
-
-    private void showMiniProfileCard(String uid){
-        BottomSheetDialog d=new BottomSheetDialog(this,R.style.Theme_Design_BottomSheetDialog);
-        LinearLayout r=new LinearLayout(this);
-        r.setOrientation(LinearLayout.VERTICAL);
-        r.setGravity(Gravity.CENTER);
-        r.setPadding(28,24,28,28);
-        r.setBackgroundColor(Color.WHITE);
-        TextView t=new TextView(this);
-        t.setText("Profile\nID: "+uid);
-        t.setTextColor(Color.parseColor("#222222"));
-        t.setTextSize(16);
-        t.setTypeface(null,android.graphics.Typeface.BOLD);
-        t.setGravity(Gravity.CENTER);
-        r.addView(t);
-        Button b=new Button(this);
-        b.setText("Copy ID");
-        b.setOnClickListener(v->{
-            ClipboardManager cm=(ClipboardManager)getSystemService(Context.CLIPBOARD_SERVICE);
-            if(cm!=null)cm.setPrimaryClip(ClipData.newPlainText("ID",uid));
-            Toast.makeText(this,"Copied ✅",Toast.LENGTH_SHORT).show();
-            d.dismiss();
-        });
-        r.addView(b);
-        d.setContentView(r);
-        setDialog75(d);
-        d.show();
     }
 
     private void showNewGiftPanel(){
@@ -1152,22 +883,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         t.setGravity(Gravity.CENTER);
         t.setPadding(0,0,0,16);
         r.addView(t);
-        TextView b1=new TextView(this);
-        b1.setText("Basic Tools");
-        b1.setTextColor(Color.parseColor("#888888"));
-        b1.setTextSize(13);
-        b1.setTypeface(null,android.graphics.Typeface.BOLD);
-        b1.setPadding(4,0,0,8);
-        r.addView(b1);
         r.addView(createToolsGrid(new String[][]{{"🔒","Lock off"},{"⚙️","Room set"},{"✏️","Room Edit"},{"🧹","Clear charm"},{"🗑️","Clear chat"},{"🎤","Change mic"},{"🎨","Mic Theme"},{"👗","Dress"},{"🔔","Lucky Sound"},{"🎙️","Voice User"},{"🚪","Kick out record"}},d));
-        TextView o=new TextView(this);
-        o.setText("Other Tools");
-        o.setTextColor(Color.parseColor("#888888"));
-        o.setTextSize(13);
-        o.setTypeface(null,android.graphics.Typeface.BOLD);
-        o.setPadding(4,20,0,8);
-        r.addView(o);
-        r.addView(createToolsGrid(new String[][]{{"▶️","YouTube"},{"🍀","Lucky float"},{"⚔️","Room PK"},{"📡","Broadcast"}},d));
         d.setContentView(r);
         setDialog85(d);
         d.show();
@@ -1289,14 +1005,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         lb.addView(roomEditLogoText);
         root.addView(lb);
 
-        TextView th=new TextView(this);
-        th.setText("Tap logo to change - GROUP PHOTO ALADA, ID PHOTO ALADA");
-        th.setTextColor(Color.parseColor("#888888"));
-        th.setTextSize(12);
-        th.setGravity(Gravity.CENTER);
-        th.setPadding(0,0,0,20);
-        root.addView(th);
-
         View.OnClickListener og=v->{
             galleryMode="ROOM_LOGO";
             Intent i=new Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
@@ -1335,18 +1043,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         String cn=roomTitleText!=null?roomTitleText.getText().toString():"";
         en.setText(cn);
         nr.addView(en);
-
-        TextView nc=new TextView(this);
-        nc.setText(cn.length()+"/20");
-        nc.setTextColor(Color.parseColor("#999999"));
-        nc.setTextSize(12);
-        nr.addView(nc);
-
-        en.addTextChangedListener(new TextWatcher(){
-            @Override public void beforeTextChanged(CharSequence s,int st,int c,int a){}
-            @Override public void onTextChanged(CharSequence s,int st,int b,int c){nc.setText(s.length()+"/20");}
-            @Override public void afterTextChanged(Editable s){}
-        });
 
         TextView la=new TextView(this);
         la.setText("Room announcement");
