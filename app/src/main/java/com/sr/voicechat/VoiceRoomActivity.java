@@ -43,7 +43,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private ScrollView chatScrollView;
     private List<String> roomAdminList=new ArrayList<>();
     private ActivityResultLauncher<Intent> galleryLauncher;
-    // Ranking state - permanent, never change
     private String rankType="Wealth", rankPeriod="Day";
 
     @Override protected void onCreate(Bundle s){
@@ -214,7 +213,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         Map<String,Object> m=new HashMap<>();
         m.put("name",n); m.put("photoBase64",myPhotoBase64!=null?myPhotoBase64:"");
         m.put("level","0"); m.put("country",myCountry); m.put("gender",myGender); m.put("my9DigitId",key);
-        // Save real profile name + country + photo - so Online List shows correct
         databaseReference.child("rooms").child(roomOwnerId).child("online_users").child(key).setValue(m);
         databaseReference.child("rooms").child(roomOwnerId).child("online_users").child(key).onDisconnect().removeValue();
         databaseReference.child("online_users").child(key).setValue(m);
@@ -383,7 +381,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // ===== KAJ 1 - ONLINE LIST - FIXED - NO DOLL ICON =====
+    // ===== KAJ 1 ONLY - ONLINE LIST - FIXED =====
+    // Change: No gender icon, No ID, Only Name + Flag + Lv. Photo = user's own ID photo from users table
     private void showOnlineListDialog(){
         android.app.Dialog d=makeFullScreenDialog();
         LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(Color.WHITE); root.setPadding(24,20,24,24);
@@ -394,31 +393,54 @@ public class VoiceRoomActivity extends AppCompatActivity {
         TextView cnt=new TextView(this); cnt.setTextColor(Color.parseColor("#888888")); cnt.setTextSize(13); cnt.setPadding(0,4,0,10); root.addView(cnt);
         ScrollView sv=new ScrollView(this); LinearLayout list=new LinearLayout(this); list.setOrientation(LinearLayout.VERTICAL); sv.addView(list); root.addView(sv);
         pushOnlineNow();
-        // LIVE - addValueEventListener, not single
-        databaseReference.child("rooms").child(roomOwnerId).child("online_users").addValueEventListener(new ValueEventListener(){
-            @Override public void onDataChange(@NonNull DataSnapshot s){
-                list.removeAllViews();
-                if(!s.exists()){ cnt.setText("0 online"); return; }
-                cnt.setText(s.getChildrenCount()+" online");
-                List<DataSnapshot> all=new ArrayList<>(); for(DataSnapshot ds:s.getChildren()) all.add(ds);
-                // Owner first
-                all.sort((a,b)->{ if(a.getKey().equals(roomOwnerId)) return -1; if(b.getKey().equals(roomOwnerId)) return 1; return 0; });
-                for(DataSnapshot ds:all) showOneOnlineUser(list,ds,d);
+        // First load users table - real photo / name / country by my9DigitId
+        userDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener(){
+            @Override public void onDataChange(@NonNull DataSnapshot usersSnap){
+                Map<String,Map<String,String>> realMap=new HashMap<>();
+                for(DataSnapshot u:usersSnap.getChildren()){
+                    String mid=u.child("my9DigitId").getValue(String.class);
+                    if(mid==null||mid.isEmpty()) mid=u.getKey();
+                    Map<String,String> m=new HashMap<>();
+                    m.put("name", u.child("name").getValue(String.class)!=null?u.child("name").getValue(String.class):"");
+                    m.put("photo", u.child("photoBase64").getValue(String.class)!=null?u.child("photoBase64").getValue(String.class):"");
+                    m.put("country", u.child("country").getValue(String.class)!=null?u.child("country").getValue(String.class):"");
+                    m.put("level", u.child("level").getValue(String.class)!=null?u.child("level").getValue(String.class):"0");
+                    realMap.put(mid,m);
+                }
+                databaseReference.child("rooms").child(roomOwnerId).child("online_users").addValueEventListener(new ValueEventListener(){
+                    @Override public void onDataChange(@NonNull DataSnapshot s){
+                        list.removeAllViews();
+                        if(!s.exists()){ cnt.setText("0 online"); return; }
+                        cnt.setText(s.getChildrenCount()+" online");
+                        List<DataSnapshot> all=new ArrayList<>(); for(DataSnapshot ds:s.getChildren()) all.add(ds);
+                        all.sort((a,b)->{ if(a.getKey().equals(roomOwnerId)) return -1; if(b.getKey().equals(roomOwnerId)) return 1; return 0; });
+                        for(DataSnapshot ds:all){
+                            String k=ds.getKey(); if(k==null) continue;
+                            Map<String,String> real=realMap.get(k);
+                            String n=ds.child("name").getValue(String.class);
+                            String p=ds.child("photoBase64").getValue(String.class);
+                            String co=ds.child("country").getValue(String.class);
+                            String lv=ds.child("level").getValue(String.class);
+                            // Real data wins - user's own ID profile
+                            if(real!=null){
+                                if(real.get("name")!=null&&!real.get("name").isEmpty()) n=real.get("name");
+                                if(real.get("photo")!=null&&!real.get("photo").isEmpty()) p=real.get("photo");
+                                if(real.get("country")!=null&&!real.get("country").isEmpty()) co=real.get("country");
+                                if(real.get("level")!=null&&!real.get("level").isEmpty()) lv=real.get("level");
+                            }
+                            addOnlineRow(list,k,n!=null?n:"User",p!=null?p:"",lv!=null?lv:"0",co!=null?co:"",d);
+                        }
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError e){}
+                });
             }
             @Override public void onCancelled(@NonNull DatabaseError e){}
         });
         d.setContentView(root); d.show();
     }
-    private void showOneOnlineUser(LinearLayout list,DataSnapshot ds,android.app.Dialog dialog){
-        String k=ds.getKey(); if(k==null)return;
-        String n=ds.child("name").getValue(String.class); String p=ds.child("photoBase64").getValue(String.class);
-        String co=ds.child("country").getValue(String.class); String ge=ds.child("gender").getValue(String.class);
-        String lv=ds.child("level").getValue(String.class);
-        addOnlineRow(list,k,n!=null?n:"User",p!=null?p:"",lv!=null?lv:"0",ge!=null?ge:"Male",co!=null?co:"",dialog);
-    }
-    private void addOnlineRow(LinearLayout list,String uid,String name,String photo,String level,String gender,String country,android.app.Dialog dialog){
+    // KAJ 1 - No gender, No ID in list
+    private void addOnlineRow(LinearLayout list,String uid,String name,String photo,String level,String country,android.app.Dialog dialog){
         LinearLayout row=new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL); row.setGravity(Gravity.CENTER_VERTICAL); row.setPadding(6,14,6,14);
-        // Avatar - Real photo OR Letter circle, NO gallery/doll icon
         CardView cardAv=new CardView(this); LinearLayout.LayoutParams cardLp=new LinearLayout.LayoutParams(110,110); cardLp.setMargins(0,0,12,0);
         cardAv.setLayoutParams(cardLp); cardAv.setRadius(55); cardAv.setCardElevation(0);
         Bitmap bmp=decodeBase64(photo);
@@ -435,16 +457,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
         row.addView(cardAv);
         LinearLayout box=new LinearLayout(this); box.setOrientation(LinearLayout.VERTICAL); box.setPadding(16,0,0,0);
         box.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); row.addView(box);
-        // Line 1: Name + Gender + Flag
         TextView tn=new TextView(this);
-        String flag=flagForCountry(country); String gIcon=genderIcon(gender);
-        tn.setText(name+"  "+gIcon+"  "+flag);
+        tn.setText(name+"  "+flagForCountry(country));
         tn.setTextColor(Color.parseColor("#222222")); tn.setTextSize(16); tn.setTypeface(null,android.graphics.Typeface.BOLD); box.addView(tn);
-        // Line 2: ID + Level - clean, no ghichimichi
         TextView ti=new TextView(this);
-        ti.setText("ID: "+uid+"  •  Lv."+level);
+        ti.setText("Lv."+level);
         ti.setTextColor(Color.parseColor("#888888")); ti.setTextSize(13); box.addView(ti);
-        // Owner badge
         if(uid.equals(roomOwnerId)){
             TextView badge=new TextView(this); badge.setText("Owner"); badge.setTextColor(Color.WHITE); badge.setTextSize(11); badge.setTypeface(null,android.graphics.Typeface.BOLD); badge.setPadding(14,6,14,6);
             GradientDrawable g=new GradientDrawable(); g.setColor(Color.parseColor("#FF9800")); g.setCornerRadius(30); badge.setBackground(g); row.addView(badge);
@@ -452,7 +470,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         list.addView(row);
     }
 
-    // ===== HEADER - LOCKED - ONLY COPY ICON CHANGE =====
+    // ===== HEADER - LOCKED - NO CHANGE =====
     private void showRoomHeaderProfile(){
         android.app.Dialog dialog=makeFullScreenDialog();
         LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(Color.WHITE);
@@ -599,32 +617,24 @@ public class VoiceRoomActivity extends AppCompatActivity {
             } grid.addView(row);
         } return grid;
     }
-
-    // ===== KAJ 2 - IN-ROOM RANKING - FULL - CHOCOLATE + WEALTH/CHARM + DAY/WEEK/MONTH =====
     private void showInRoomRankingDialog(){
         android.app.Dialog d=makeFullScreenDialog();
         LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(Color.parseColor("#2B1A12"));
-        // Top Bar
         LinearLayout top=new LinearLayout(this); top.setOrientation(LinearLayout.HORIZONTAL); top.setGravity(Gravity.CENTER_VERTICAL); top.setPadding(20,16,20,10); root.addView(top);
         TextView title=new TextView(this); title.setText("🏆 In-Room Ranking"); title.setTextColor(Color.WHITE); title.setTextSize(18); title.setTypeface(null,android.graphics.Typeface.BOLD);
         title.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f)); top.addView(title);
         TextView close=new TextView(this); close.setText("✕"); close.setTextColor(Color.WHITE); close.setTextSize(20); close.setPadding(10,10,10,10); close.setOnClickListener(v->d.dismiss()); top.addView(close);
-        // Big Banner
         TextView banner=new TextView(this); banner.setText("👑  TOP RANKERS  👑"); banner.setTextColor(Color.WHITE); banner.setTextSize(20); banner.setTypeface(null,android.graphics.Typeface.BOLD); banner.setGravity(Gravity.CENTER); banner.setPadding(0,36,0,36);
         GradientDrawable bg=new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,new int[]{Color.parseColor("#FF9800"),Color.parseColor("#7B1FA2")}); bg.setCornerRadius(24); banner.setBackground(bg);
         LinearLayout.LayoutParams blp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT); blp.setMargins(20,6,20,14); banner.setLayoutParams(blp); root.addView(banner);
-        // Wealth / Charm
         LinearLayout typeRow=new LinearLayout(this); typeRow.setOrientation(LinearLayout.HORIZONTAL); typeRow.setGravity(Gravity.CENTER); typeRow.setPadding(20,0,20,8); root.addView(typeRow);
         TextView tabWealth=new TextView(this); TextView tabCharm=new TextView(this);
         typeRow.addView(makeRankTab(tabWealth,"Wealth",true)); typeRow.addView(makeRankTab(tabCharm,"Charm",false));
-        // Day / Week / Month
         LinearLayout periodRow=new LinearLayout(this); periodRow.setOrientation(LinearLayout.HORIZONTAL); periodRow.setGravity(Gravity.CENTER); periodRow.setPadding(20,0,20,12); root.addView(periodRow);
         TextView tabDay=new TextView(this); TextView tabWeek=new TextView(this); TextView tabMonth=new TextView(this);
         periodRow.addView(makeRankTab(tabDay,"Day",true)); periodRow.addView(makeRankTab(tabWeek,"Week",false)); periodRow.addView(makeRankTab(tabMonth,"Month",false));
-        // White List Area
         ScrollView sv=new ScrollView(this); sv.setBackgroundColor(Color.WHITE);
         LinearLayout list=new LinearLayout(this); list.setOrientation(LinearLayout.VERTICAL); list.setPadding(20,16,20,20); sv.addView(list); root.addView(sv);
-        // Podium + List container
         LinearLayout podium=new LinearLayout(this); podium.setOrientation(LinearLayout.HORIZONTAL); podium.setGravity(Gravity.BOTTOM|Gravity.CENTER); podium.setWeightSum(3); podium.setPadding(0,6,0,16); list.addView(podium);
         LinearLayout restList=new LinearLayout(this); restList.setOrientation(LinearLayout.VERTICAL); list.addView(restList);
         Runnable refresh=()->{
@@ -655,10 +665,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
     }
     private void loadRankingData(LinearLayout podium,LinearLayout restList){
         if(databaseReference==null)return;
-        // Score = coins for Wealth, gift/charm = coins/10 for Charm - permanent logic, Day/Week/Month same source now, future gift log will split
         databaseReference.child("rooms").child(roomOwnerId).child("online_users").addListenerForSingleValueEvent(new ValueEventListener(){
             @Override public void onDataChange(@NonNull DataSnapshot onlineSnap){
-                // Get coins from users table by 9DigitId
                 userDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener(){
                     @Override public void onDataChange(@NonNull DataSnapshot usersSnap){
                         Map<String,Long> scoreMap=new HashMap<>(); Map<String,Map<String,String>> info=new HashMap<>();
@@ -670,7 +678,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             long coins=0;
                             for(DataSnapshot u:usersSnap.getChildren()){ String mid=u.child("my9DigitId").getValue(String.class); if(id.equals(mid)){ Long c=u.child("coins").getValue(Long.class); if(c!=null)coins=c; break; } }
                             long score=rankType.equals("Wealth")?coins:coins/10;
-                            // Period multiplier - keeps Day/Week/Month working, real gift log will replace later
                             if(rankPeriod.equals("Week")) score=score*7; if(rankPeriod.equals("Month")) score=score*30;
                             scoreMap.put(id,score);
                         }
@@ -678,7 +685,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         List<String> ids=new ArrayList<>(info.keySet()); ids.sort((a,b)->Long.compare(scoreMap.getOrDefault(b,0L),scoreMap.getOrDefault(a,0L)));
                         podium.removeAllViews(); restList.removeAllViews();
                         if(ids.isEmpty()){ TextView e=new TextView(VoiceRoomActivity.this); e.setText("No ranking yet"); e.setGravity(Gravity.CENTER); e.setTextColor(Color.parseColor("#888888")); restList.addView(e); return; }
-                        // Top 3 Podium - 2,1,3 order like demo
                         int[] order={1,0,2}; String[] medals={"🥈","🥇","🥉"}; int[] sizes={150,190,150};
                         for(int k=0;k<Math.min(3,ids.size());k++){
                             int idx=order[k]; if(idx>=ids.size()) continue; String id=ids.get(idx);
@@ -693,7 +699,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                             TextView sc=new TextView(VoiceRoomActivity.this); sc.setText("🪙 "+scoreMap.get(id)); sc.setTextColor(Color.parseColor("#B8860B")); sc.setTextSize(13); sc.setTypeface(null,android.graphics.Typeface.BOLD); sc.setGravity(Gravity.CENTER); col.addView(sc);
                             podium.addView(col);
                         }
-                        // Rest 4+
                         for(int i=3;i<ids.size();i++){
                             String id=ids.get(i); addRankingRow(restList,i+1,id,info.get(id).get("name"),info.get(id).get("photo"),info.get(id).get("country"),scoreMap.get(id));
                         }
@@ -719,7 +724,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         TextView sc=new TextView(this); sc.setText("🪙 "+score); sc.setTextColor(Color.parseColor("#B8860B")); sc.setTextSize(14); sc.setTypeface(null,android.graphics.Typeface.BOLD); row.addView(sc);
         list.addView(row);
     }
-
     private void showRoomEditDialog(){
         BottomSheetDialog dialog=new BottomSheetDialog(this,R.style.Theme_Design_BottomSheetDialog);
         ScrollView sv=new ScrollView(this); LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(28,16,28,28); root.setBackgroundColor(Color.parseColor("#FFFFFF")); sv.addView(root);
@@ -731,7 +735,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         roomEditLogoText=new TextView(this); roomEditLogoText.setText("SR"); roomEditLogoText.setTextColor(Color.parseColor("#FF9800")); roomEditLogoText.setTextSize(28); roomEditLogoText.setTypeface(null,android.graphics.Typeface.BOLD); roomEditLogoText.setGravity(Gravity.CENTER); lb.addView(roomEditLogoText); root.addView(lb);
         View.OnClickListener og=v->{ galleryMode="ROOM_LOGO"; Intent i=new Intent(Intent.ACTION_PICK,MediaStore.Images.Media.EXTERNAL_CONTENT_URI); galleryLauncher.launch(i); };
         lb.setOnClickListener(og); roomEditLogoView.setOnClickListener(og);
-        Bitmap cur=decodeBase64(currentRoomPhotoBase64); if(cur!=null){ roomEditLogoView.setImageBitmap(cur); roomEditLogoText.setVisibility(View.GONE); pendingRoomPhotoBase64=currentRoomPhotoBase64; }
+        Bitmap cur=decodeBase64(currentRoomPhotoBase64);
+        if(cur!=null){ roomEditLogoView.setImageBitmap(cur); roomEditLogoText.setVisibility(View.GONE); pendingRoomPhotoBase64=currentRoomPhotoBase64; }
         TextView ln=new TextView(this); ln.setText("Room Name"); ln.setTextColor(Color.parseColor("#333333")); ln.setTextSize(14); ln.setTypeface(null,android.graphics.Typeface.BOLD); root.addView(ln);
         LinearLayout nr=new LinearLayout(this); nr.setOrientation(LinearLayout.HORIZONTAL); nr.setGravity(Gravity.CENTER_VERTICAL); nr.setBackgroundColor(Color.parseColor("#F5F5F5")); nr.setPadding(16,4,16,4); root.addView(nr);
         EditText en=new EditText(this); en.setHint("Room Name"); en.setTextColor(Color.parseColor("#222222")); en.setTextSize(15); en.setBackgroundColor(Color.TRANSPARENT); en.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f));
@@ -747,8 +752,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
             if(nn.isEmpty()){ Toast.makeText(this,"Room Name likho",Toast.LENGTH_SHORT).show(); return; }
             Map<String,Object> map=new HashMap<>(); map.put("roomName",nn); map.put("announcement",na); map.put("roomLabel",selectedRoomLabel); map.put("roomTheme",currentThemeName);
             if(pendingRoomPhotoBase64!=null&&!pendingRoomPhotoBase64.isEmpty()){ map.put("roomPhotoBase64",pendingRoomPhotoBase64); currentRoomPhotoBase64=pendingRoomPhotoBase64; Bitmap bmp=decodeBase64(pendingRoomPhotoBase64); if(bmp!=null&&roomHeaderProfileImg!=null)roomHeaderProfileImg.setImageBitmap(bmp); }
-            roomMetaRef.updateChildren(map); if(roomTitleText!=null)roomTitleText.setText(nn);
-            if(roomNoticeBarText!=null){ if(na.isEmpty())roomNoticeBarText.setVisibility(View.GONE); else {roomNoticeBarText.setVisibility(View.VISIBLE); roomNoticeBarText.setText(na);} }
+            roomMetaRef.updateChildren(map);
+            if(roomTitleText!=null)roomTitleText.setText(nn);
+            if(roomNoticeBarText!=null){ if(na.isEmpty())roomNoticeBarText.setVisibility(View.GONE); else { roomNoticeBarText.setVisibility(View.VISIBLE); roomNoticeBarText.setText(na); } }
             Toast.makeText(this,"Room Saved Successfully ✅",Toast.LENGTH_SHORT).show(); dialog.dismiss();
         });
         dialog.setContentView(sv); setDialog75(dialog); dialog.show();
