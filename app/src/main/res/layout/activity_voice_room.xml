@@ -5,14 +5,12 @@
     android:layout_height="match_parent"
     android:background="#F5E6B8">
 
-    <!-- Main Content Container (Header, Seats, Chat List) -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/bottomBarContainer"
         android:orientation="vertical">
 
-        <!-- Top Room Header -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -54,7 +52,6 @@
             <ImageButton android:id="@+id/btnPower" android:layout_width="36dp" android:layout_height="36dp" android:layout_marginStart="4dp" android:background="@android:color/transparent" android:src="@android:drawable/ic_lock_power_off" />
         </LinearLayout>
 
-        <!-- Seats Section -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="10dp" android:paddingEnd="10dp" android:paddingTop="6dp" android:background="#F5E6B8">
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center" android:weightSum="5">
                 <LinearLayout android:id="@+id/seat_0" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp"><TextView android:id="@+id/seatImg_0" android:layout_width="48dp" android:layout_height="48dp" android:gravity="center" android:text="🪑" android:textSize="20sp" android:background="#FFE9A8" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Host" android:textColor="#3E2F00" android:textSize="11sp" android:maxLines="1" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1" android:textColor="#8B6508" android:textSize="11sp" /></LinearLayout>
@@ -88,7 +85,6 @@
         </ScrollView>
     </LinearLayout>
 
-    <!-- 🌟 Separate Floating Chat Typing Popup (Appears right above bottom bar when typing) -->
     <LinearLayout android:id="@+id/chatPopupBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -104,7 +100,6 @@
         <TextView android:id="@+id/btnChatOption" android:layout_width="40dp" android:layout_height="40dp" android:gravity="center" android:text="↑" android:textSize="18sp" android:textColor="#FFFFFF" android:background="#FF9800" />
     </LinearLayout>
 
-    <!-- 🌟 Fixed Bottom Bar (Completely separate and strictly fixed at bottom, never moves) -->
     <LinearLayout android:id="@+id/bottomBarContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
