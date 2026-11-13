@@ -28,9 +28,9 @@
                 app:cardBackgroundColor="@android:color/transparent">
 
                 <ImageView android:id="@+id/roomHeaderProfileImg"
-                    android:layout_width="match_parent" 
+                    android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:scaleType="centerCrop" 
+                    android:scaleType="centerCrop"
                     android:src="@android:drawable/ic_menu_gallery" />
             </androidx.cardview.widget.CardView>
 
@@ -85,10 +85,11 @@
         </ScrollView>
     </LinearLayout>
 
+    <!-- FIXED: Chat bar is now at parent bottom, NOT above bottomBar. So bottomBar will NOT be pushed up. -->
     <LinearLayout android:id="@+id/chatPopupBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/bottomBarContainer"
+        android:layout_alignParentBottom="true"
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:background="#FFFFFF"
@@ -100,6 +101,7 @@
         <TextView android:id="@+id/btnChatOption" android:layout_width="40dp" android:layout_height="40dp" android:gravity="center" android:text="↑" android:textSize="18sp" android:textColor="#FFFFFF" android:background="#FF9800" />
     </LinearLayout>
 
+    <!-- Bottom bar - Gift / Game / Mic / Tools - ALL STAY HERE, NEVER MOVED UP -->
     <LinearLayout android:id="@+id/bottomBarContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
