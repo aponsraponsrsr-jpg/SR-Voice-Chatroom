@@ -398,7 +398,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // 🌟 নিখুঁত, মজবুত এবং ত্রুটিমুক্ত সিট জয়েন ও সিট চেঞ্জ লজিক
+    // 🌟 নিখুঁত, মজবুত এবং রোবাস্ট সিট জয়েন ও সিট চেঞ্জ লজিক (ইনার ক্লাস স্কোপ এরর সম্পূর্ণ ফিক্সড)
     private void setupSeatInteractions(){
         for(int i=0;i<10;i++){
             final int idx=i;
@@ -416,14 +416,15 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         DatabaseReference seatsRootRef = databaseReference.child("rooms").child(roomOwnerId).child("seats");
                         seatsRootRef.addListenerForSingleValueEvent(new ValueEventListener(){
                             @Override public void onDataChange(@NonNull DataSnapshot allSeatsSnap){
-                                String existingSeatKey = null;
+                                String tempExistingKey = null;
                                 for(DataSnapshot sSnap : allSeatsSnap.getChildren()){
                                     String uIdInSeat = sSnap.child("userId").getValue(String.class);
                                     if(uIdInSeat!=null && uIdInSeat.equals(finalMyId)){
-                                        existingSeatKey = sSnap.getKey();
+                                        tempExistingKey = sSnap.getKey();
                                         break;
                                     }
                                 }
+                                final String existingSeatKey = tempExistingKey;
 
                                 final DatabaseReference targetSeatRef = databaseReference.child("rooms").child(roomOwnerId).child("seats").child("seat_"+idx);
                                 targetSeatRef.addListenerForSingleValueEvent(new ValueEventListener(){
