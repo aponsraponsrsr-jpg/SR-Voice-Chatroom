@@ -11,8 +11,6 @@ import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Base64;
 import android.view.Gravity;
 import android.view.View;
@@ -398,7 +396,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // 🌟 নিখুঁত, মজবুত এবং ত্রুটিমুক্ত সিট জয়েন ও সিট চেঞ্জ লজিক
+    // 🌟 নিখুঁত, মজবুত এবং রোবাস্ট সিট জয়েন ও সিট চেঞ্জ লজিক
     private void setupSeatInteractions(){
         for(int i=0;i<10;i++){
             final int idx=i;
