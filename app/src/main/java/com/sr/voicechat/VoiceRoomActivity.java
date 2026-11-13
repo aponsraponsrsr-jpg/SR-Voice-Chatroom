@@ -398,7 +398,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // 🌟 নিখুঁত, মজবুত এবং রোবাস্ট সিট জয়েন ও সিট চেঞ্জ লজিক (ইনার ক্লাস স্কোপ এরর সম্পূর্ণ ফিক্সড)
+    // 🌟 নিখুঁত, মজবুত এবং ত্রুটিমুক্ত সিট জয়েন ও সিট চেঞ্জ লজিক
     private void setupSeatInteractions(){
         for(int i=0;i<10;i++){
             final int idx=i;
