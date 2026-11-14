@@ -55,7 +55,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private String currentRoomPhotoBase64 = "";
     private String rankType = "Wealth";
     private String rankPeriod = "Day";
+    private String giftTab = "Gift";
     private long myWalletCoins = 0;
+    private long myExchangeCoins = 0;
+    private long myTotalReceived = 0;
     private boolean giftListenerStarted = false;
     private String selectedGiftEmoji = "🐉";
     private String selectedGiftName = "Dragon";
@@ -88,7 +91,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private ScrollView chatScrollView;
     private List<String> roomAdminList = new ArrayList<>();
     private ActivityResultLauncher<Intent> galleryLauncher;
+    private Map<String, Map<String, String>> chatRealMap = new HashMap<>();
     private Set<String> lockedSeats = new HashSet<>();
+    private Map<String, Long> userFollowMap = new HashMap<>();
+    private Map<String, Long> userFansMap = new HashMap<>();
+    private Map<String, Long> userVisitorMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle s) {
@@ -159,8 +166,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (bt != null) bt.setOnClickListener(v -> showIconToolsDialog(isAdminOrOwner()));
         View bm = findViewById(R.id.btnMicToggle);
         if (bm != null) bm.setOnClickListener(v -> Toast.makeText(this, "Mic - Coming Soon", Toast.LENGTH_SHORT).show());
-        View bw = findViewById(getResources().getIdentifier("btnWallet", "id", getPackageName())); if (bw != null) bw.setOnClickListener(v -> showRechargeDialog());
+        // PERMANENT FIX FOR ALL USERS - btnWallet Safe, XML e na thakleo Build Fail hobe na
+        View bw = findViewById(getResources().getIdentifier("btnWallet", "id", getPackageName()));
         if (bw != null) bw.setOnClickListener(v -> showRechargeDialog());
+        if (getIntent().getBooleanExtra("OPEN_RECHARGE", false)) { new android.os.Handler().postDelayed(() -> showRechargeDialog(), 800); }
         setupChatPopup();
         setupSeatInteractions();
         ensureMyIdentity();
@@ -174,16 +183,44 @@ public class VoiceRoomActivity extends AppCompatActivity {
         listenToMyWallet();
         listenToLockedSeats();
         listenToGiftEvents();
+        loadFollowFansVisitorForAll();
     }
 
+    // PERMANENT FIX FOR ALL USERS - Owner chinbe UID + 9Digit 2 ta diye, shob user er jonno
     private boolean isAdminOrOwner() {
-        String me = my9DigitId;
-        if (me == null || me.isEmpty()) me = currentUserId;
-        if (me != null && me.equals(roomOwnerId)) return true;
-        if (me != null && roomAdminList.contains(me)) return true;
-        if (currentUserId != null && currentUserId.equals(roomOwnerId)) return true;
-        if (currentUserId != null && roomAdminList.contains(currentUserId)) return true;
+        String me9 = my9DigitId != null ? my9DigitId.trim() : "";
+        String meUid = currentUserId != null ? currentUserId.trim() : "";
+        String owner = roomOwnerId != null ? roomOwnerId.trim() : "";
+        String savedUid = prefs.getString("USER_UID", "");
+        String saved9 = prefs.getString("USER_9DIGIT_ID", "");
+        if (!me9.isEmpty() && me9.equals(owner)) return true;
+        if (saved9 != null && !saved9.isEmpty() && saved9.equals(owner)) return true;
+        if (!meUid.isEmpty() && meUid.equals(owner)) return true;
+        if (savedUid != null && !savedUid.isEmpty() && savedUid.equals(owner)) return true;
+        if (!me9.isEmpty() && roomAdminList.contains(me9)) return true;
+        if (!meUid.isEmpty() && roomAdminList.contains(meUid)) return true;
+        if (savedUid != null && !savedUid.isEmpty() && roomAdminList.contains(savedUid)) return true;
+        if (saved9 != null && !saved9.isEmpty() && roomAdminList.contains(saved9)) return true;
         return false;
+    }
+
+    private void loadFollowFansVisitorForAll() {
+        userDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                for (DataSnapshot u : snap.getChildren()) {
+                    String mid = u.child("my9DigitId").getValue(String.class);
+                    if (mid == null || mid.isEmpty()) mid = u.getKey();
+                    Long f = u.child("followCount").getValue(Long.class);
+                    if (f == null) f = u.child("following").exists() ? u.child("following").getChildrenCount() : 0L;
+                    Long fa = u.child("fansCount").getValue(Long.class);
+                    if (fa == null) fa = u.child("followers").exists() ? u.child("followers").getChildrenCount() : 0L;
+                    Long vi = u.child("visitorCount").getValue(Long.class);
+                    if (vi == null) vi = u.child("visitors").exists() ? u.child("visitors").getChildrenCount() : 0L;
+                    userFollowMap.put(mid, f); userFansMap.put(mid, fa); userVisitorMap.put(mid, vi);
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
     }
 
     private void listenToLockedSeats() {
@@ -393,31 +430,55 @@ public class VoiceRoomActivity extends AppCompatActivity {
         String msg = inputChatMessage.getText().toString().trim();
         if (msg.isEmpty() || messagesRef == null) return;
         String myId = my9DigitId; if (myId == null || myId.isEmpty()) myId = currentUserId; if (myId == null || myId.isEmpty()) myId = roomOwnerId;
+        final String finalId = myId; final String finalMsg = msg;
         Map<String, Object> m = new HashMap<>();
-        m.put("userId", myId); m.put("userName", myDisplayName); m.put("text", msg); m.put("photoBase64", myPhotoBase64 != null ? myPhotoBase64 : ""); m.put("gender", myGender); m.put("country", myCountry); m.put("level", "0"); m.put("time", System.currentTimeMillis());
+        m.put("userId", finalId); m.put("userName", myDisplayName); m.put("text", finalMsg); m.put("photoBase64", myPhotoBase64 != null ? myPhotoBase64 : ""); m.put("gender", myGender); m.put("country", myCountry); m.put("level", "0"); m.put("time", System.currentTimeMillis());
         messagesRef.push().setValue(m); hideChatPopup(); pushOnlineNow();
     }
 
     private void listenToChatRealtime() {
         if (messagesRef == null || chatListContainer == null) return;
-        messagesRef.limitToLast(100).addValueEventListener(new ValueEventListener() {
-            @Override public void onDataChange(@NonNull DataSnapshot s) {
-                chatListContainer.removeAllViews(); if (!s.exists()) return;
-                for (DataSnapshot ds : s.getChildren()) {
-                    String uname = ds.child("userName").getValue(String.class); if (uname == null) uname = "User";
-                    String txt = ds.child("text").getValue(String.class); if (txt == null) txt = "";
-                    String photo = ds.child("photoBase64").getValue(String.class); if (photo == null) photo = "";
-                    String co = ds.child("country").getValue(String.class); if (co == null) co = "";
-                    String lv = ds.child("level").getValue(String.class); if (lv == null) lv = "0";
-                    LinearLayout row = new LinearLayout(VoiceRoomActivity.this); row.setOrientation(LinearLayout.HORIZONTAL); row.setGravity(Gravity.TOP); row.setPadding(4, 6, 4, 6);
-                    CardView cardAv = makeAvatar(photo, uname, 72); cardAv.setRadius(36); row.addView(cardAv);
-                    LinearLayout box = new LinearLayout(VoiceRoomActivity.this); box.setOrientation(LinearLayout.VERTICAL); box.setPadding(10, 0, 0, 0); box.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)); row.addView(box);
-                    box.addView(makeText(uname + "  " + flagForCountry(co), 12, "#3E2F00", true, Gravity.START));
-                    box.addView(makeText("Lv." + lv, 11, "#888888", false, Gravity.START));
-                    box.addView(makeText(txt, 14, "#222222", false, Gravity.START));
-                    chatListContainer.addView(row);
+        userDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot usersSnap) {
+                chatRealMap.clear();
+                for (DataSnapshot u : usersSnap.getChildren()) {
+                    String mid = u.child("my9DigitId").getValue(String.class);
+                    if (mid == null || mid.isEmpty()) mid = u.getKey();
+                    Map<String, String> mm = new HashMap<>();
+                    mm.put("name", u.child("name").getValue(String.class) != null ? u.child("name").getValue(String.class) : "");
+                    mm.put("photo", u.child("photoBase64").getValue(String.class) != null ? u.child("photoBase64").getValue(String.class) : "");
+                    mm.put("country", u.child("country").getValue(String.class) != null ? u.child("country").getValue(String.class) : "");
+                    mm.put("level", u.child("level").getValue(String.class) != null ? u.child("level").getValue(String.class) : "0");
+                    chatRealMap.put(mid, mm);
                 }
-                if (chatScrollView != null) chatScrollView.post(() -> chatScrollView.fullScroll(View.FOCUS_DOWN));
+                messagesRef.limitToLast(100).addValueEventListener(new ValueEventListener() {
+                    @Override public void onDataChange(@NonNull DataSnapshot s) {
+                        chatListContainer.removeAllViews(); if (!s.exists()) return;
+                        for (DataSnapshot ds : s.getChildren()) {
+                            String uid = ds.child("userId").getValue(String.class); if (uid == null) uid = "";
+                            String uname = ds.child("userName").getValue(String.class); if (uname == null) uname = "User";
+                            String txt = ds.child("text").getValue(String.class); if (txt == null) txt = "";
+                            String photo = ds.child("photoBase64").getValue(String.class); if (photo == null) photo = "";
+                            String co = ds.child("country").getValue(String.class); if (co == null) co = "";
+                            String lv = ds.child("level").getValue(String.class); if (lv == null) lv = "0";
+                            Map<String, String> real = chatRealMap.get(uid);
+                            if (real != null) {
+                                if ((uname.equals("User") || uname.isEmpty()) && real.get("name") != null && !real.get("name").isEmpty()) uname = real.get("name");
+                                if (photo.isEmpty() && real.get("photo") != null && !real.get("photo").isEmpty()) photo = real.get("photo");
+                                if ((co == null || co.isEmpty()) && real.get("country") != null) co = real.get("country");
+                            }
+                            LinearLayout row = new LinearLayout(VoiceRoomActivity.this); row.setOrientation(LinearLayout.HORIZONTAL); row.setGravity(Gravity.TOP); row.setPadding(4, 6, 4, 6);
+                            CardView cardAv = makeAvatar(photo, uname, 72); cardAv.setRadius(36); row.addView(cardAv);
+                            LinearLayout box = new LinearLayout(VoiceRoomActivity.this); box.setOrientation(LinearLayout.VERTICAL); box.setPadding(10, 0, 0, 0); box.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)); row.addView(box);
+                            box.addView(makeText(uname + "  " + flagForCountry(co), 12, "#3E2F00", true, Gravity.START));
+                            box.addView(makeText("Lv." + lv, 11, "#888888", false, Gravity.START));
+                            box.addView(makeText(txt, 14, "#222222", false, Gravity.START));
+                            chatListContainer.addView(row);
+                        }
+                        if (chatScrollView != null) chatScrollView.post(() -> chatScrollView.fullScroll(View.FOCUS_DOWN));
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError e) {}
+                });
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
@@ -449,44 +510,60 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 boolean locked = lockedSeats.contains("seat_" + idx);
                 if (isEmpty) {
                     if (locked && !admin) { Toast.makeText(VoiceRoomActivity.this, "Ei seat lock kora", Toast.LENGTH_SHORT).show(); return; }
+                    if (!admin) {
+                        BottomSheetDialog dM = new BottomSheetDialog(VoiceRoomActivity.this, R.style.Theme_Design_BottomSheetDialog);
+                        LinearLayout rM = new LinearLayout(VoiceRoomActivity.this); rM.setOrientation(LinearLayout.VERTICAL); rM.setPadding(28, 24, 28, 28); rM.setBackgroundColor(Color.WHITE);
+                        rM.addView(makeText("Seat " + (idx + 1), 18, "#222222", true, Gravity.CENTER));
+                        Button btnTake = makeColorBtn("Take Mic", Color.parseColor("#FF9800"));
+                        btnTake.setOnClickListener(v -> { dM.dismiss(); takeSeat(idx, existing); }); rM.addView(btnTake);
+                        Button btnCancel = makeColorBtn("Cancel", Color.parseColor("#EEEEEE")); btnCancel.setTextColor(Color.parseColor("#666666"));
+                        btnCancel.setOnClickListener(v -> dM.dismiss()); rM.addView(btnCancel);
+                        dM.setContentView(rM); setDialog75(dM); dM.show(); return;
+                    }
                     BottomSheetDialog d1 = new BottomSheetDialog(VoiceRoomActivity.this, R.style.Theme_Design_BottomSheetDialog);
                     LinearLayout r1 = new LinearLayout(VoiceRoomActivity.this); r1.setOrientation(LinearLayout.VERTICAL); r1.setPadding(28, 24, 28, 28); r1.setBackgroundColor(Color.WHITE);
                     r1.addView(makeText("Seat " + (idx + 1), 18, "#222222", true, Gravity.CENTER));
-                    Button btnTake = makeColorBtn("Take Mic", Color.parseColor("#FF9800"));
-                    btnTake.setOnClickListener(v -> { d1.dismiss(); takeSeat(idx, existing); }); r1.addView(btnTake);
-                    if (admin) {
-                        Button btnLock = makeColorBtn(locked ? "Unlock" : "Lock", Color.parseColor("#222222"));
-                        btnLock.setOnClickListener(v -> { d1.dismiss(); if (locked) databaseReference.child("rooms").child(roomOwnerId).child("locked_seats").child("seat_" + idx).removeValue(); else databaseReference.child("rooms").child(roomOwnerId).child("locked_seats").child("seat_" + idx).setValue(true); });
-                        r1.addView(btnLock);
+                    String[] opts = {"Take Mic", "Invite", locked ? "Unlock" : "Lock"};
+                    int[] colors = {Color.parseColor("#FF9800"), Color.parseColor("#7B1FA2"), Color.parseColor("#222222")};
+                    for (int ii = 0; ii < opts.length; ii++) {
+                        String o = opts[ii]; Button btn = makeColorBtn(o, colors[ii]);
+                        btn.setOnClickListener(v -> { d1.dismiss(); if (o.contains("Take Mic")) takeSeat(idx, existing); else if (o.contains("Lock")) { databaseReference.child("rooms").child(roomOwnerId).child("locked_seats").child("seat_" + idx).setValue(true); Toast.makeText(VoiceRoomActivity.this, "Seat Locked", Toast.LENGTH_SHORT).show(); } else if (o.contains("Unlock")) { databaseReference.child("rooms").child(roomOwnerId).child("locked_seats").child("seat_" + idx).removeValue(); Toast.makeText(VoiceRoomActivity.this, "Seat Unlocked", Toast.LENGTH_SHORT).show(); } else Toast.makeText(VoiceRoomActivity.this, o + " - Coming Soon", Toast.LENGTH_SHORT).show(); });
+                        r1.addView(btn);
                     }
                     d1.setContentView(r1); setDialog75(d1); d1.show(); return;
                 }
                 if (isMine) {
                     BottomSheetDialog d2 = new BottomSheetDialog(VoiceRoomActivity.this, R.style.Theme_Design_BottomSheetDialog);
                     LinearLayout r2 = new LinearLayout(VoiceRoomActivity.this); r2.setOrientation(LinearLayout.VERTICAL); r2.setPadding(28, 24, 28, 28); r2.setBackgroundColor(Color.WHITE);
-                    Button bLeave = makeColorBtn("Leave the Mic", Color.parseColor("#FF5252"));
-                    bLeave.setOnClickListener(v -> { d2.dismiss(); databaseReference.child("rooms").child(roomOwnerId).child("seats").child("seat_" + idx).removeValue(); }); r2.addView(bLeave);
-                    Button bProf = makeColorBtn("Profile", Color.parseColor("#FF9800"));
-                    bProf.setOnClickListener(v -> { d2.dismiss(); showUserProfileCard(finalMyId); }); r2.addView(bProf);
+                    String[] opts2 = {"Leave the Mic", "Mute", "Profile"};
+                    int[] colors2 = {Color.parseColor("#FF5252"), Color.parseColor("#222222"), Color.parseColor("#FF9800")};
+                    for (int ii = 0; ii < opts2.length; ii++) {
+                        String o = opts2[ii]; Button btn = makeColorBtn(o, colors2[ii]);
+                        btn.setOnClickListener(v -> { d2.dismiss(); if (o.contains("Leave")) { databaseReference.child("rooms").child(roomOwnerId).child("seats").child("seat_" + idx).removeValue(); Toast.makeText(VoiceRoomActivity.this, "Seat theke uthe gechen", Toast.LENGTH_SHORT).show(); } else if (o.contains("Profile")) showUserProfileCard(finalMyId); else Toast.makeText(VoiceRoomActivity.this, "Mute - Coming Soon", Toast.LENGTH_SHORT).show(); });
+                        r2.addView(btn);
+                    }
                     d2.setContentView(r2); setDialog75(d2); d2.show(); return;
                 }
                 BottomSheetDialog d3 = new BottomSheetDialog(VoiceRoomActivity.this, R.style.Theme_Design_BottomSheetDialog);
                 LinearLayout r3 = new LinearLayout(VoiceRoomActivity.this); r3.setOrientation(LinearLayout.VERTICAL); r3.setPadding(28, 24, 28, 28); r3.setBackgroundColor(Color.WHITE);
                 r3.addView(makeText(seatUserName != null ? seatUserName : "User", 18, "#222222", true, Gravity.CENTER));
-                String[] otherOpts = {"Profile", "Go to chat", "Let him leave the mic", "Kick out of room"};
+                String[] otherOpts = {"Let him leave the mic", "Turn off Sound", "Mute", "Kick out of room", "Blacklist", "Go to chat", "Profile", "Set Management"};
                 for (String o : otherOpts) {
                     TextView opt = makeText(o, 16, "#222222", false, Gravity.CENTER); opt.setPadding(0, 26, 0, 26);
                     final String oo = o;
                     opt.setOnClickListener(v -> {
                         d3.dismiss();
                         if (oo.equals("Profile")) showUserProfileCard(seatUserId);
-                        else if (oo.equals("Go to chat")) showChatPopup();
                         else if (oo.equals("Kick out of room") || oo.equals("Let him leave the mic")) {
                             if (admin) { databaseReference.child("rooms").child(roomOwnerId).child("seats").child("seat_" + idx).removeValue(); Toast.makeText(VoiceRoomActivity.this, "Removed from mic", Toast.LENGTH_SHORT).show(); }
                             else Toast.makeText(VoiceRoomActivity.this, "Only Owner / Admin", Toast.LENGTH_SHORT).show();
-                        }
+                        } else if (oo.equals("Set Management")) {
+                            if (admin) showIconToolsDialog(true); else Toast.makeText(VoiceRoomActivity.this, "Only Owner / Admin", Toast.LENGTH_SHORT).show();
+                        } else if (oo.equals("Go to chat")) showChatPopup();
+                        else Toast.makeText(VoiceRoomActivity.this, oo + " - Coming Soon", Toast.LENGTH_SHORT).show();
                     });
                     r3.addView(opt);
+                    View line = new View(VoiceRoomActivity.this); line.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1)); line.setBackgroundColor(Color.parseColor("#EEEEEE")); r3.addView(line);
                 }
                 d3.setContentView(r3); setDialog85(d3); d3.show();
             }
@@ -549,16 +626,30 @@ public class VoiceRoomActivity extends AppCompatActivity {
         final String fTargetId = targetId;
         userDatabaseRef.orderByChild("my9DigitId").equalTo(fTargetId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
-                String name = myDisplayName; String photo = myPhotoBase64; String country = myCountry; String gender = myGender;
+                String name = myDisplayName; String photo = myPhotoBase64; String country = myCountry; String gender = myGender; String levelSend = "0"; String levelRecv = "0"; String agency = ""; String lang = myLanguage;
                 boolean isOwner = fTargetId.equals(roomOwnerId);
-                if (snap.exists()) { for (DataSnapshot u : snap.getChildren()) { if (u.child("name").getValue() != null) name = String.valueOf(u.child("name").getValue()); if (u.child("photoBase64").getValue() != null) photo = String.valueOf(u.child("photoBase64").getValue()); if (u.child("country").getValue() != null) country = String.valueOf(u.child("country").getValue()); if (u.child("gender").getValue() != null) gender = String.valueOf(u.child("gender").getValue()); break; } }
-                showUserProfileCardUI(fTargetId, name, photo, country, gender, isOwner);
+                if (snap.exists()) {
+                    for (DataSnapshot u : snap.getChildren()) {
+                        if (u.child("name").getValue() != null) name = String.valueOf(u.child("name").getValue());
+                        if (u.child("photoBase64").getValue() != null) photo = String.valueOf(u.child("photoBase64").getValue());
+                        if (u.child("country").getValue() != null) country = String.valueOf(u.child("country").getValue());
+                        if (u.child("gender").getValue() != null) gender = String.valueOf(u.child("gender").getValue());
+                        if (u.child("level").getValue() != null) levelSend = String.valueOf(u.child("level").getValue());
+                        if (u.child("levelSend").getValue() != null) levelSend = String.valueOf(u.child("levelSend").getValue());
+                        if (u.child("levelRecv").getValue() != null) levelRecv = String.valueOf(u.child("levelRecv").getValue());
+                        if (u.child("agency").getValue() != null) agency = String.valueOf(u.child("agency").getValue());
+                        if (u.child("agencyName").getValue() != null) agency = String.valueOf(u.child("agencyName").getValue());
+                        if (u.child("language").getValue() != null) lang = String.valueOf(u.child("language").getValue());
+                        break;
+                    }
+                }
+                showUserProfileCardUI(fTargetId, name, photo, country, gender, levelSend, levelRecv, agency, lang, isOwner);
             }
-            @Override public void onCancelled(@NonNull DatabaseError e) { showUserProfileCardUI(fTargetId, myDisplayName, myPhotoBase64, myCountry, myGender, fTargetId.equals(roomOwnerId)); }
+            @Override public void onCancelled(@NonNull DatabaseError e) { showUserProfileCardUI(fTargetId, myDisplayName, myPhotoBase64, myCountry, myGender, "0", "0", "", myLanguage, fTargetId.equals(roomOwnerId)); }
         });
     }
 
-    private void showUserProfileCardUI(String targetId, String name, String photo, String country, String gender, boolean isOwner) {
+    private void showUserProfileCardUI(String targetId, String name, String photo, String country, String gender, String levelSend, String levelRecv, String agency, String lang, boolean isOwner) {
         BottomSheetDialog d = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(Color.WHITE); root.setPadding(28, 16, 28, 28); root.setGravity(Gravity.CENTER_HORIZONTAL);
         TextView close = makeText("X", 20, "#999999", false, Gravity.END); close.setOnClickListener(v -> d.dismiss()); root.addView(close);
@@ -568,6 +659,19 @@ public class VoiceRoomActivity extends AppCompatActivity {
         else if (targetId != null && roomAdminList.contains(targetId)) { TextView badge = makeText("ADMIN", 12, "#FFFFFF", true, Gravity.CENTER); badge.setPadding(22, 8, 22, 8); GradientDrawable g = new GradientDrawable(); g.setColor(Color.parseColor("#7B1FA2")); g.setCornerRadius(30); badge.setBackground(g); root.addView(badge); }
         root.addView(makeText((name != null ? name : "User") + " " + genderIcon(gender) + " " + flagForCountry(country), 20, "#222222", true, Gravity.CENTER));
         root.addView(makeText("ID: " + targetId, 14, "#888888", false, Gravity.CENTER));
+        long f1 = userFollowMap.containsKey(targetId) ? userFollowMap.get(targetId) : 0L;
+        long f2 = userFansMap.containsKey(targetId) ? userFansMap.get(targetId) : 0L;
+        long f3 = userVisitorMap.containsKey(targetId) ? userVisitorMap.get(targetId) : 0L;
+        LinearLayout ffRow = new LinearLayout(this); ffRow.setOrientation(LinearLayout.HORIZONTAL); ffRow.setGravity(Gravity.CENTER); ffRow.setWeightSum(3); ffRow.setPadding(0, 10, 0, 4);
+        TextView a1 = makeText("Following\n" + f1, 13, "#222222", true, Gravity.CENTER); a1.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)); ffRow.addView(a1);
+        TextView a2 = makeText("Fans\n" + f2, 13, "#222222", true, Gravity.CENTER); a2.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)); ffRow.addView(a2);
+        TextView a3 = makeText("Visitor\n" + f3, 13, "#222222", true, Gravity.CENTER); a3.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)); ffRow.addView(a3);
+        root.addView(ffRow);
+        LinearLayout lvRow = new LinearLayout(this); lvRow.setOrientation(LinearLayout.HORIZONTAL); lvRow.setGravity(Gravity.CENTER); lvRow.setWeightSum(2);
+        TextView lv1 = makeText("Send Lv." + levelSend, 14, "#B8860B", true, Gravity.CENTER); lv1.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)); lvRow.addView(lv1);
+        TextView lv2 = makeText("Recv Lv." + levelRecv, 14, "#7B1FA2", true, Gravity.CENTER); lv2.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)); lvRow.addView(lv2); root.addView(lvRow);
+        root.addView(makeText("Language: " + (lang != null ? lang : "English") + " | Country: " + country, 13, "#888888", false, Gravity.CENTER));
+        root.addView(makeText(agency != null && !agency.isEmpty() ? "Agency: " + agency : "No Agency", 14, agency != null && !agency.isEmpty() ? "#222222" : "#AAAAAA", true, Gravity.CENTER));
         TextView gift = makeText("Gift", 28, "#FF9800", false, Gravity.CENTER); gift.setPadding(0, 18, 0, 8);
         gift.setOnClickListener(v -> { d.dismiss(); showPremiumGiftPanel(targetId, name); }); root.addView(gift);
         LinearLayout btnRow = new LinearLayout(this); btnRow.setOrientation(LinearLayout.HORIZONTAL); btnRow.setWeightSum(2); btnRow.setPadding(0, 14, 0, 0);
@@ -616,9 +720,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (currentUserId.isEmpty()) return;
         userDatabaseRef.child(currentUserId).addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot s) {
-                Long c = s.child("coins").getValue(Long.class); long w = c != null ? c : 0L; myWalletCoins = w;
-                if (walletTextInGift != null) walletTextInGift.setText("Coins: " + String.format("%,d", w));
-                if (textRoomCoins != null) textRoomCoins.setText(String.format("%,d", w));
+                Long c = s.child("coins").getValue(Long.class); myWalletCoins = c != null ? c : 0L;
+                Long ex = s.child("exchangeCoins").getValue(Long.class); myExchangeCoins = ex != null ? ex : 0L;
+                Long tot = s.child("totalReceived").getValue(Long.class); myTotalReceived = tot != null ? tot : 0L;
+                if (walletTextInGift != null) walletTextInGift.setText("Coins: " + String.format("%,d", myWalletCoins));
+                if (textRoomCoins != null) textRoomCoins.setText(String.format("%,d", myWalletCoins));
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
@@ -654,6 +760,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         list.addView(row);
     }
 
+    // HEADER FULL - DEMO ER MOTO - SOBAR JONNO PERMANENT
     private void showRoomHeaderProfile() {
         android.app.Dialog dialog = makeFullScreenDialog();
         LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(Color.WHITE);
@@ -671,16 +778,96 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void loadHeaderProfileData(LinearLayout pb, android.app.Dialog dialog) {
         pb.removeAllViews();
-        pb.addView(makeText("Room Profile", 18, "#222222", true, Gravity.CENTER));
-        CardView card = makeAvatar(currentRoomPhotoBase64, "Room", 200); card.setRadius(100); LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(200, 200); lp.gravity = Gravity.CENTER_HORIZONTAL; card.setLayoutParams(lp); pb.addView(card);
-        pb.addView(makeText(roomTitleText != null ? roomTitleText.getText().toString() : "Room", 18, "#222222", true, Gravity.CENTER));
-        pb.addView(makeText("ID: " + roomOwnerId, 13, "#888888", false, Gravity.CENTER));
-        pb.addView(makeText("Label: " + selectedRoomLabel, 13, "#888888", false, Gravity.CENTER));
-        Button giftB = makeColorBtn("Gift Room Owner", Color.parseColor("#FF9800")); giftB.setOnClickListener(v -> { dialog.dismiss(); showPremiumGiftPanel(roomOwnerId, "Room Owner"); }); pb.addView(giftB);
+        userDatabaseRef.orderByChild("my9DigitId").equalTo(roomOwnerId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                String oName = "Sr Official's Room";
+                String oPhoto = currentRoomPhotoBase64;
+                String oCountry = myCountry;
+                String oLang = myLanguage;
+                long oFollow = 0, oFans = 0, oVisit = 0;
+                String oLevel = "0";
+                if (snap.exists()) {
+                    for (DataSnapshot u : snap.getChildren()) {
+                        if (u.child("name").getValue() != null) oName = String.valueOf(u.child("name").getValue());
+                        if (u.child("photoBase64").getValue() != null) oPhoto = String.valueOf(u.child("photoBase64").getValue());
+                        if (u.child("country").getValue() != null) oCountry = String.valueOf(u.child("country").getValue());
+                        if (u.child("language").getValue() != null) oLang = String.valueOf(u.child("language").getValue());
+                        if (u.child("level").getValue() != null) oLevel = String.valueOf(u.child("level").getValue());
+                        if (u.child("followCount").getValue(Long.class) != null) oFollow = u.child("followCount").getValue(Long.class);
+                        if (u.child("fansCount").getValue(Long.class) != null) oFans = u.child("fansCount").getValue(Long.class);
+                        if (u.child("visitorCount").getValue(Long.class) != null) oVisit = u.child("visitorCount").getValue(Long.class);
+                        break;
+                    }
+                }
+                LinearLayout cardBox = new LinearLayout(VoiceRoomActivity.this);
+                cardBox.setOrientation(LinearLayout.HORIZONTAL);
+                cardBox.setGravity(Gravity.CENTER_VERTICAL);
+                cardBox.setPadding(16, 16, 16, 16);
+                cardBox.setBackgroundColor(Color.parseColor("#FFF8E1"));
+                pb.addView(cardBox);
+                CardView av = makeAvatar(oPhoto, oName, 130);
+                av.setRadius(65);
+                cardBox.addView(av);
+                LinearLayout txtBox = new LinearLayout(VoiceRoomActivity.this);
+                txtBox.setOrientation(LinearLayout.VERTICAL);
+                txtBox.setPadding(16, 0, 0, 0);
+                cardBox.addView(txtBox);
+                txtBox.addView(makeText(oName, 18, "#222222", true, Gravity.START));
+                txtBox.addView(makeText("ID: " + roomOwnerId, 13, "#888888", false, Gravity.START));
+                txtBox.addView(makeText(oFollow + " Following   " + oFans + " Fans   " + oVisit + " Visitor", 13, "#222222", true, Gravity.START));
+                TextView banner = makeText("Reward Event", 16, "#FFFFFF", true, Gravity.CENTER);
+                banner.setPadding(0, 24, 0, 24);
+                GradientDrawable bgB = new GradientDrawable();
+                bgB.setColor(Color.parseColor("#FF9800"));
+                bgB.setCornerRadius(20);
+                banner.setBackground(bgB);
+                pb.addView(banner);
+                addHeaderRow(pb, "Level", "Lv." + oLevel);
+                addHeaderRow(pb, "RoomOwner", oName + " (ID:" + roomOwnerId + ")");
+                addHeaderRow(pb, "Language", oLang);
+                addHeaderRow(pb, "Country", oCountry);
+                addHeaderRow(pb, "Tag", selectedRoomLabel);
+                Button giftB = makeColorBtn("Gift Room Owner", Color.parseColor("#FF9800"));
+                final String fName = oName;
+                giftB.setOnClickListener(v -> { dialog.dismiss(); showPremiumGiftPanel(roomOwnerId, fName); });
+                pb.addView(giftB);
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
+    }
+
+    private void addHeaderRow(LinearLayout pb, String left, String right) {
+        LinearLayout row = new LinearLayout(this);
+        row.setOrientation(LinearLayout.HORIZONTAL);
+        row.setPadding(0, 14, 0, 14);
+        TextView l = makeText(left, 14, "#888888", false, Gravity.START);
+        l.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        row.addView(l);
+        row.addView(makeText(right, 14, "#222222", true, Gravity.END));
+        pb.addView(row);
+        View line = new View(this);
+        line.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 1));
+        line.setBackgroundColor(Color.parseColor("#EEEEEE"));
+        pb.addView(line);
     }
 
     private void loadHeaderMembers(LinearLayout mb, android.app.Dialog dialog) {
-        mb.removeAllViews(); mb.addView(makeText("Members", 16, "#222222", true, Gravity.START));
+        mb.removeAllViews();
+        LinearLayout top = new LinearLayout(this);
+        top.setOrientation(LinearLayout.HORIZONTAL);
+        top.setPadding(0, 0, 0, 12);
+        TextView m1 = makeText("Members: 1/1000", 13, "#222222", true, Gravity.START);
+        m1.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        top.addView(m1);
+        top.addView(makeText("Admin: 1/20", 13, "#222222", true, Gravity.END));
+        mb.addView(top);
+        TextView search = makeText("Search ID", 13, "#AAAAAA", false, Gravity.START);
+        search.setPadding(20, 16, 20, 16);
+        GradientDrawable sg = new GradientDrawable();
+        sg.setColor(Color.parseColor("#F5F5F5"));
+        sg.setCornerRadius(30);
+        search.setBackground(sg);
+        mb.addView(search);
         databaseReference.child("rooms").child(roomOwnerId).child("online_users").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot s) { for (DataSnapshot ds : s.getChildren()) { String k = ds.getKey(); String n = ds.child("name").getValue(String.class); String p = ds.child("photoBase64").getValue(String.class); addOnlineRow(mb, k, n != null ? n : "User", p != null ? p : "", "0", "", dialog); } }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
@@ -712,6 +899,17 @@ public class VoiceRoomActivity extends AppCompatActivity {
         walletTextInGift = makeText("Coins: " + String.format("%,d", myWalletCoins), 13, "#888888", false, Gravity.CENTER); root.addView(walletTextInGift);
         LinearLayout seatRow = new LinearLayout(this); seatRow.setOrientation(LinearLayout.HORIZONTAL); seatRow.setPadding(0, 12, 0, 8); root.addView(seatRow);
         loadSeatUsersForGift(seatRow, d);
+        LinearLayout tabRow = new LinearLayout(this); tabRow.setOrientation(LinearLayout.HORIZONTAL); tabRow.setPadding(0, 8, 0, 8); root.addView(tabRow);
+        String[] tabs = {"Gift", "Lucky", "CP", "Activity", "Flag", "Exclusive", "Bag"};
+        for (String tb : tabs) {
+            TextView tv = makeText(tb, 12, giftTab.equals(tb) ? "#FF9800" : "#888888", giftTab.equals(tb), Gravity.CENTER);
+            tv.setPadding(16, 10, 16, 10);
+            GradientDrawable bg = new GradientDrawable(); if (giftTab.equals(tb)) { bg.setColor(Color.parseColor("#FFFDE7")); bg.setStroke(2, Color.parseColor("#FFC107")); } else { bg.setColor(Color.WHITE); bg.setStroke(1, Color.parseColor("#EEEEEE")); } bg.setCornerRadius(30); tv.setBackground(bg);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f); lp.setMargins(2, 0, 2, 0); tv.setLayoutParams(lp);
+            final String fTb = tb;
+            tv.setOnClickListener(v -> { giftTab = fTb; d.dismiss(); showPremiumGiftPanel(selectedGiftTargetId, selectedGiftTargetName); });
+            tabRow.addView(tv);
+        }
         LinearLayout grid = new LinearLayout(this); grid.setOrientation(LinearLayout.VERTICAL); root.addView(grid);
         renderGiftGrid(grid);
         LinearLayout bottom = new LinearLayout(this); bottom.setOrientation(LinearLayout.HORIZONTAL); bottom.setGravity(Gravity.CENTER_VERTICAL); bottom.setPadding(0, 12, 0, 0); root.addView(bottom);
@@ -744,7 +942,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void renderGiftGrid(LinearLayout grid) {
         grid.removeAllViews();
-        String[][] gifts = {{"🐉", "Dragon", "9999"}, {"🦁", "Lion", "4999"}, {"🌹", "Rose", "100"}, {"💎", "Diamond", "1999"}, {"🎁", "Gift Box", "500"}, {"👑", "Crown", "2999"}, {"🚀", "Rocket", "999"}, {"💖", "Heart", "200"}};
+        String[][] gifts;
+        if (giftTab.equals("Lucky")) gifts = new String[][]{{"🍀", "Lucky Clover", "500"}, {"🎰", "Slot", "1000"}, {"🎲", "Dice", "300"}, {"🧧", "Red Packet", "888"}};
+        else if (giftTab.equals("CP")) gifts = new String[][]{{"💑", "Couple", "1999"}, {"💍", "Ring", "2999"}, {"❤️", "Love", "999"}, {"🌹", "Rose CP", "500"}};
+        else if (giftTab.equals("Activity")) gifts = new String[][]{{"🎉", "Party", "1000"}, {"🎈", "Balloon", "200"}, {"🎂", "Cake", "1500"}, {"🎊", "Confetti", "300"}};
+        else if (giftTab.equals("Flag")) gifts = new String[][]{{"🇧🇩", "BD Flag", "100"}, {"🇮🇳", "IN Flag", "100"}, {"🇸🇦", "SA Flag", "100"}, {"🌍", "World Flag", "100"}};
+        else if (giftTab.equals("Exclusive")) gifts = new String[][]{{"👑", "King Crown", "9999"}, {"💎", "Royal Diamond", "8888"}, {"🐉", "Golden Dragon", "9999"}, {"🦄", "Unicorn", "7777"}};
+        else if (giftTab.equals("Bag")) gifts = new String[][]{{"🎁", "My Bag Gift", "0"}, {"🧰", "Bag Box", "0"}, {"💼", "Bag", "0"}, {"🎒", "Backpack", "0"}};
+        else gifts = new String[][]{{"🐉", "Dragon", "9999"}, {"🦁", "Lion", "4999"}, {"🌹", "Rose", "100"}, {"💎", "Diamond", "1999"}, {"🎁", "Gift Box", "500"}, {"👑", "Crown", "2999"}, {"🚀", "Rocket", "999"}, {"💖", "Heart", "200"}};
         for (int r = 0; r < 2; r++) {
             LinearLayout row = new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL); row.setWeightSum(4); grid.addView(row);
             for (int c = 0; c < 4; c++) {
@@ -773,6 +978,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 Long cur = s.child("coins").getValue(Long.class); long have = cur != null ? cur : 0;
                 if (have < fPrice) { Toast.makeText(VoiceRoomActivity.this, "Coins kom", Toast.LENGTH_SHORT).show(); return; }
                 userDatabaseRef.child(currentUserId).child("coins").setValue(have - fPrice);
+                Long sendLv = s.child("levelSend").getValue(Long.class); long sl = sendLv != null ? sendLv : 0;
+                userDatabaseRef.child(currentUserId).child("levelSend").setValue(sl + 1);
+                userDatabaseRef.child(currentUserId).child("level").setValue(String.valueOf(sl + 1));
                 addCoinsToReceiver(fTarget, fPrice);
                 Map<String, Object> g = new HashMap<>(); g.put("senderId", fSender); g.put("senderName", myDisplayName); g.put("receiverId", fTarget); g.put("receiverName", selectedGiftTargetName); g.put("emoji", fEm); g.put("giftName", fNm); g.put("price", fPrice); g.put("time", System.currentTimeMillis());
                 databaseReference.child("rooms").child(roomOwnerId).child("gift_events").push().setValue(g);
@@ -786,7 +994,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         long receive = (long) (price * 0.30);
         userDatabaseRef.orderByChild("my9DigitId").equalTo(target9Digit).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
-                if (snap.exists()) { for (DataSnapshot u : snap.getChildren()) { String key = u.getKey(); Long cur = u.child("coins").getValue(Long.class); long have = cur != null ? cur : 0; Long ex = u.child("exchangeCoins").getValue(Long.class); long exHave = ex != null ? ex : 0; Long tot = u.child("totalReceived").getValue(Long.class); long totHave = tot != null ? tot : 0; userDatabaseRef.child(key).child("coins").setValue(have + receive); userDatabaseRef.child(key).child("exchangeCoins").setValue(exHave + receive); userDatabaseRef.child(key).child("totalReceived").setValue(totHave + receive); break; } }
+                if (snap.exists()) { for (DataSnapshot u : snap.getChildren()) { String key = u.getKey(); Long cur = u.child("coins").getValue(Long.class); long have = cur != null ? cur : 0; Long ex = u.child("exchangeCoins").getValue(Long.class); long exHave = ex != null ? ex : 0; Long tot = u.child("totalReceived").getValue(Long.class); long totHave = tot != null ? tot : 0; Long rl = u.child("levelRecv").getValue(Long.class); long rlv = rl != null ? rl : 0; userDatabaseRef.child(key).child("coins").setValue(have + receive); userDatabaseRef.child(key).child("exchangeCoins").setValue(exHave + receive); userDatabaseRef.child(key).child("totalReceived").setValue(totHave + receive); userDatabaseRef.child(key).child("levelRecv").setValue(rlv + 1); break; } }
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
@@ -822,7 +1030,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
         LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(Color.WHITE); root.setPadding(28, 20, 28, 28);
         root.addView(makeText("Detailed Bill - My Wallet", 17, "#222222", true, Gravity.CENTER));
         root.addView(makeText("Balance: " + String.format("%,d", myWalletCoins), 15, "#222222", true, Gravity.START));
-        TextView e4 = makeText("Gift Send: 100% Katbe | Gift Receive: 30% Pabe", 12, "#999999", false, Gravity.START); e4.setPadding(0, 10, 0, 0); root.addView(e4);
+        root.addView(makeText("Exchange (30% Received): " + String.format("%,d", myExchangeCoins), 14, "#7B1FA2", false, Gravity.START));
+        root.addView(makeText("Total Received: " + String.format("%,d", myTotalReceived), 14, "#222222", false, Gravity.START));
+        root.addView(makeText("Recharge: Locked", 14, "#888888", false, Gravity.START));
+        root.addView(makeText("Gift Send: 100% Katbe | Gift Receive: 30% Pabe", 12, "#999999", false, Gravity.START));
         d.setContentView(root); setDialog75(d); d.show();
     }
 
@@ -845,17 +1056,38 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void showNewGiftPanel() { showPremiumGiftPanel(roomOwnerId, "Room Owner"); }
 
+    // TOOLS FULL - DEMO ER MOTO GRID - SOBAR JONNO PERMANENT
     private void showIconToolsDialog(boolean isAdmin) {
         BottomSheetDialog d = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
-        LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(Color.WHITE); root.setPadding(28, 20, 28, 28);
-        root.addView(makeText("Tools", 18, "#222222", true, Gravity.CENTER));
-        String[] opts = {"Basic", "Other", "Room Password", "Room Edit"};
-        for (String o : opts) {
-            Button b = makeColorBtn(o, Color.parseColor("#FF9800")); final String oo = o;
-            b.setOnClickListener(v -> { d.dismiss(); if (oo.equals("Room Password")) showRoomPasswordDialog(); else if (oo.equals("Room Edit")) { if (isAdmin) showRoomEditDialog(); else Toast.makeText(this, "Only Owner / Admin", Toast.LENGTH_SHORT).show(); } else Toast.makeText(this, oo + " - Coming Soon", Toast.LENGTH_SHORT).show(); });
-            root.addView(b);
+        LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(Color.parseColor("#1A1A1A")); root.setPadding(28, 20, 28, 28);
+        root.addView(makeText("Basic Tools", 16, "#FFFFFF", true, Gravity.START));
+        String[] basic = {"Lock on", "Room set", "Room Edit", "Clear charm", "Clear chat", "Change mic", "Mic Theme", "Dress", "Lucky Sound", "Voice User", "Kick out record"};
+        LinearLayout grid1 = new LinearLayout(this); grid1.setOrientation(LinearLayout.VERTICAL); root.addView(grid1);
+        for (int r = 0; r < 3; r++) {
+            LinearLayout row = new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL); row.setWeightSum(4); grid1.addView(row);
+            for (int c = 0; c < 4; c++) {
+                int idx = r * 4 + c; if (idx >= basic.length) break;
+                String name = basic[idx];
+                LinearLayout cell = new LinearLayout(this); cell.setOrientation(LinearLayout.VERTICAL); cell.setGravity(Gravity.CENTER); cell.setPadding(8, 14, 8, 14); cell.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+                cell.addView(makeText("🛠️", 26, "#FFFFFF", false, Gravity.CENTER));
+                cell.addView(makeText(name, 11, "#FFFFFF", false, Gravity.CENTER));
+                final String fn = name;
+                cell.setOnClickListener(v -> { d.dismiss(); if (fn.equals("Room Edit") || fn.equals("Room set")) { if (isAdmin) showRoomEditDialog(); else Toast.makeText(this, "Only Owner / Admin", Toast.LENGTH_SHORT).show(); } else Toast.makeText(this, fn + " - Coming Soon", Toast.LENGTH_SHORT).show(); });
+                row.addView(cell);
+            }
         }
-        d.setContentView(root); setDialog75(d); d.show();
+        root.addView(makeText("Other Tools", 16, "#FFFFFF", true, Gravity.START));
+        String[] other = {"YouTube Co-wat", "Lucky float", "Room PK", "Broadcast"};
+        LinearLayout row2 = new LinearLayout(this); row2.setOrientation(LinearLayout.HORIZONTAL); row2.setWeightSum(4); root.addView(row2);
+        for (String o : other) {
+            LinearLayout cell = new LinearLayout(this); cell.setOrientation(LinearLayout.VERTICAL); cell.setGravity(Gravity.CENTER); cell.setPadding(8, 14, 8, 14); cell.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            cell.addView(makeText("🎁", 26, "#FFFFFF", false, Gravity.CENTER));
+            cell.addView(makeText(o, 11, "#FFFFFF", false, Gravity.CENTER));
+            final String fo = o;
+            cell.setOnClickListener(v -> { d.dismiss(); Toast.makeText(this, fo + " - Coming Soon", Toast.LENGTH_SHORT).show(); });
+            row2.addView(cell);
+        }
+        d.setContentView(root); setDialog85(d); d.show();
     }
 
     private void showRoomPasswordDialog() {
@@ -894,6 +1126,18 @@ public class VoiceRoomActivity extends AppCompatActivity {
         LinearLayout periodRow = new LinearLayout(this); periodRow.setOrientation(LinearLayout.HORIZONTAL); root.addView(periodRow);
         String[] periods = {"Day", "Week", "Month"};
         for (String p : periods) { Button bp = makeColorBtn(p, rankPeriod.equals(p) ? Color.parseColor("#222222") : Color.parseColor("#999999")); final String fp = p; bp.setOnClickListener(v -> { rankPeriod = fp; d.dismiss(); showInRoomRankingDialog(); }); periodRow.addView(bp); }
+        // Podium 1-2-3
+        LinearLayout podium = new LinearLayout(this); podium.setOrientation(LinearLayout.HORIZONTAL); podium.setGravity(Gravity.BOTTOM); podium.setPadding(0, 20, 0, 8); podium.setWeightSum(3); root.addView(podium);
+        String[] podiumData = {"2", "1", "3"};
+        int[] podiumHeights = {140, 200, 100};
+        for (int i = 0; i < 3; i++) {
+            LinearLayout col = new LinearLayout(this); col.setOrientation(LinearLayout.VERTICAL); col.setGravity(Gravity.CENTER); col.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            TextView av = makeText("👤", 28, "#222222", false, Gravity.CENTER); col.addView(av);
+            TextView rank = makeText(podiumData[i], 16, "#FFFFFF", true, Gravity.CENTER); rank.setPadding(0, 10, 0, 10);
+            GradientDrawable gPod = new GradientDrawable(); gPod.setColor(i == 1 ? Color.parseColor("#FFD700") : Color.parseColor("#AAAAAA")); gPod.setCornerRadius(12); rank.setBackground(gPod);
+            LinearLayout.LayoutParams rlp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, podiumHeights[i]); rank.setLayoutParams(rlp); col.addView(rank);
+            podium.addView(col);
+        }
         TextView info = makeText(rankType + " - " + rankPeriod + " Ranking", 13, "#888888", false, Gravity.CENTER); info.setPadding(0, 14, 0, 0); root.addView(info);
         root.addView(makeText("No ranking data yet", 13, "#AAAAAA", false, Gravity.CENTER));
         d.setContentView(root); setDialog85(d); d.show();
