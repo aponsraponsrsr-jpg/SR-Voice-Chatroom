@@ -65,12 +65,8 @@ public class HomeActivity extends AppCompatActivity {
 
         View.OnClickListener createRoomListener = v -> checkAndCreateRoom();
 
-        if (btnPlus != null) {
-            btnPlus.setOnClickListener(createRoomListener);
-        }
-        if (btnCreateRoomTop != null) {
-            btnCreateRoomTop.setOnClickListener(createRoomListener);
-        }
+        if (btnPlus != null) btnPlus.setOnClickListener(createRoomListener);
+        if (btnCreateRoomTop != null) btnCreateRoomTop.setOnClickListener(createRoomListener);
 
         if (btnSearchRoom != null) {
             btnSearchRoom.setOnClickListener(v -> showSearchRoomDialog());
@@ -80,7 +76,10 @@ public class HomeActivity extends AppCompatActivity {
             roomGridView.setOnItemClickListener((parent, view, position, id) -> {
                 if (position < roomModelList.size()) {
                     RoomModel selectedRoom = roomModelList.get(position);
+                    // FIX: ROOM_ID + ROOM_OWNER_ID - ২ টাই পাঠাবো, যাতে VoiceRoom বুঝে কার রুমে ঢুকছি
+                    // আমার ID এখানে পাঠাবো না, VoiceRoom নিজে prefs থেকে আমার ID নিবে
                     Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
+                    intent.putExtra("ROOM_ID", selectedRoom.getRoomOwnerId());
                     intent.putExtra("ROOM_OWNER_ID", selectedRoom.getRoomOwnerId());
                     startActivity(intent);
                 }
@@ -89,7 +88,6 @@ public class HomeActivity extends AppCompatActivity {
 
         if (btnHomeTab != null) {
             btnHomeTab.setOnClickListener(v -> {
-                // Home ei thakbe, kothao jabe na
                 Toast.makeText(this, "Home", Toast.LENGTH_SHORT).show();
             });
         }
@@ -109,7 +107,7 @@ public class HomeActivity extends AppCompatActivity {
         }
 
         if (btnMomentTab != null) {
-            btnMomentTab.setOnClickListener(v -> 
+            btnMomentTab.setOnClickListener(v ->
                 Toast.makeText(this, "SR Moments Coming Soon!", Toast.LENGTH_SHORT).show()
             );
         }
@@ -117,27 +115,31 @@ public class HomeActivity extends AppCompatActivity {
 
     private void checkAndCreateRoom() {
         String myId = prefs.getString("MY_9_DIGIT_ID", "");
-        if (myId.isEmpty()) {
-            showCreateRoomDialog();
-        } else {
-            activeRoomsRef.child(myId).addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot snapshot) {
-                    if (snapshot.exists()) {
-                        Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
-                        intent.putExtra("ROOM_OWNER_ID", myId);
-                        startActivity(intent);
-                    } else {
-                        showCreateRoomDialog();
-                    }
-                }
+        // FIX 1: ID খালি থাকলে নতুন ID বানাবো না! Login / Edit এ পাঠাবো
+        if (myId == null || myId.isEmpty()) {
+            Toast.makeText(this, "Profile পাওয়া যায় নাই, আবার Login করো", Toast.LENGTH_LONG).show();
+            Intent i = new Intent(this, EditProfileActivity.class);
+            startActivity(i);
+            return;
+        }
 
-                @Override
-                public void onCancelled(@NonNull DatabaseError error) {
+        activeRoomsRef.child(myId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
+                    intent.putExtra("ROOM_ID", myId);
+                    intent.putExtra("ROOM_OWNER_ID", myId);
+                    startActivity(intent);
+                } else {
                     showCreateRoomDialog();
                 }
-            });
-        }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                showCreateRoomDialog();
+            }
+        });
     }
 
     private void showCreateRoomDialog() {
@@ -162,10 +164,11 @@ public class HomeActivity extends AppCompatActivity {
             String roomName = inputRoomName.getText().toString().trim();
             String roomBio = inputRoomBio.getText().toString().trim();
 
+            // FIX 2: এখানে কখনো নতুন Random ID বানাবো না - এটাই ছিলো তোমার আসল বাগ
             String myId = prefs.getString("MY_9_DIGIT_ID", "");
             if (myId == null || myId.isEmpty()) {
-                myId = String.valueOf((int)(Math.random() * 900000000) + 100000000);
-                prefs.edit().putString("MY_9_DIGIT_ID", myId).apply();
+                Toast.makeText(this, "ID পাওয়া যায় নাই, আবার Login করো", Toast.LENGTH_LONG).show();
+                return;
             }
 
             if (roomName.isEmpty()) {
@@ -175,15 +178,23 @@ public class HomeActivity extends AppCompatActivity {
                 roomBio = "Welcome to my voice chat room!";
             }
 
-            String userImage = prefs.getString("USER_PROFILE_IMAGE", prefs.getString("USER_IMAGE", ""));
+            // FIX 3: ছবির Key ঠিক করলাম - USER_PHOTO / USER_IMAGE ২ টাই চেক করবো
+            // EditProfile এ USER_PHOTO নামে সেভ হয়, তাই ওইটাই নিবো
+            String userImage = prefs.getString("USER_PHOTO", "");
+            if (userImage.isEmpty()) userImage = prefs.getString("USER_IMAGE", "");
+            if (userImage.isEmpty()) userImage = prefs.getString("USER_PROFILE_IMAGE", "");
 
+            // RULE: Room ID = আমার ID - সেম, আলাদা না
             DatabaseReference roomMetaRef = roomsRef.child("room_" + myId).child("meta");
             roomMetaRef.child("roomName").setValue(roomName);
             roomMetaRef.child("roomBio").setValue(roomBio);
             roomMetaRef.child("roomOwnerImage").setValue(userImage);
+            roomMetaRef.child("roomOwnerId").setValue(myId);
+            roomMetaRef.child("roomId").setValue(myId);
 
             DatabaseReference singleActiveRoomRef = activeRoomsRef.child(myId);
             singleActiveRoomRef.child("roomOwnerId").setValue(myId);
+            singleActiveRoomRef.child("roomId").setValue(myId);
             singleActiveRoomRef.child("roomName").setValue(roomName);
             singleActiveRoomRef.child("roomBio").setValue(roomBio);
             singleActiveRoomRef.child("roomOwnerImage").setValue(userImage);
@@ -191,6 +202,7 @@ public class HomeActivity extends AppCompatActivity {
             Toast.makeText(this, "Room Created Successfully!", Toast.LENGTH_SHORT).show();
 
             Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
+            intent.putExtra("ROOM_ID", myId);
             intent.putExtra("ROOM_OWNER_ID", myId);
             startActivity(intent);
         });
@@ -207,6 +219,7 @@ public class HomeActivity extends AppCompatActivity {
 
                 for (DataSnapshot child : snapshot.getChildren()) {
                     String ownerId = child.child("roomOwnerId").getValue(String.class);
+                    if (ownerId == null) ownerId = child.getKey(); // Key ই Owner ID
                     String roomName = child.child("roomName").getValue(String.class);
                     String roomBio = child.child("roomBio").getValue(String.class);
                     String roomImage = child.child("roomOwnerImage").getValue(String.class);
@@ -247,6 +260,7 @@ public class HomeActivity extends AppCompatActivity {
                             roomPopup.setMessage("Room Name: " + rName + "\nBio: " + rBio + "\nOwner ID: " + searchId);
                             roomPopup.setPositiveButton("Enter Room", (d, w) -> {
                                 Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
+                                intent.putExtra("ROOM_ID", searchId);
                                 intent.putExtra("ROOM_OWNER_ID", searchId);
                                 startActivity(intent);
                             });
