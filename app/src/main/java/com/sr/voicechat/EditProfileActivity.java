@@ -44,6 +44,7 @@ public class EditProfileActivity extends AppCompatActivity {
     private Button btnSaveProfile;
     private SharedPreferences prefs;
     private DatabaseReference userRef;
+    private DatabaseReference usersRef;
     private String firebaseUid = "";
     private String userEmail = "";
     private String selectedGender = "Male";
@@ -116,16 +117,14 @@ public class EditProfileActivity extends AppCompatActivity {
         if (userEmail.isEmpty()) userEmail = prefs.getString("USER_EMAIL", "");
         if (firebaseUid.isEmpty()) firebaseUid = prefs.getString("FIREBASE_UID", "");
 
-        // STRONG RULE: UID chara kokhono Firebase e jabo na
         if (firebaseUid.isEmpty()) {
             Toast.makeText(this, "Login error, please login again", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
 
-        userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
-
-        // Me theke Pencil diye asle EDIT_MODE = true asbe
+        usersRef = FirebaseDatabase.getInstance().getReference("users");
+        userRef = usersRef.child(firebaseUid);
         isEditMode = getIntent().getBooleanExtra("EDIT_MODE", false);
 
         LinearLayout root = new LinearLayout(this);
@@ -136,11 +135,8 @@ public class EditProfileActivity extends AppCompatActivity {
         root.setBackground(bg);
 
         TextView title = new TextView(this);
-        if (isEditMode) {
-            title.setText("✏️ Edit Profile");
-        } else {
-            title.setText("⚙️ Complete Your Profile (Permanent)");
-        }
+        if (isEditMode) title.setText("✏️ Edit Profile");
+        else title.setText("⚙️ Complete Your Profile (Permanent)");
         title.setTextColor(Color.parseColor("#FFD700"));
         title.setTextSize(18);
         title.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -212,11 +208,8 @@ public class EditProfileActivity extends AppCompatActivity {
         root.addView(tvSelectedCountry);
 
         btnSaveProfile = new Button(this);
-        if (isEditMode) {
-            btnSaveProfile.setText("Update Name & Photo");
-        } else {
-            btnSaveProfile.setText("Save & Enter Home");
-        }
+        if (isEditMode) btnSaveProfile.setText("Update Name & Photo");
+        else btnSaveProfile.setText("Save & Enter Home");
         btnSaveProfile.setTextColor(Color.WHITE);
         btnSaveProfile.setBackgroundColor(Color.parseColor("#FF4081"));
         LinearLayout.LayoutParams p2 = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 140);
@@ -226,7 +219,6 @@ public class EditProfileActivity extends AppCompatActivity {
         root.addView(btnSaveProfile);
 
         setContentView(root);
-
         checkIfAlreadyExists();
     }
 
@@ -248,8 +240,6 @@ public class EditProfileActivity extends AppCompatActivity {
                     String photo = s.child("photoBase64").getValue(String.class);
 
                     if (isEditMode) {
-                        // EDIT MODE: Home e jabo na. Ekhanei thakbo.
-                        // Shudhu Name + Photo change hobe. ID / Gender / Country Locked.
                         if (n != null) etProfileName.setText(n);
                         if (g != null) selectedGender = g;
                         if (c != null) selectedCountry = c;
@@ -268,7 +258,6 @@ public class EditProfileActivity extends AppCompatActivity {
                         return;
                     }
 
-                    // NORMAL MODE: Already setup - Home e jao
                     prefs.edit()
                         .putString("MY_9_DIGIT_ID", id != null ? id : "")
                         .putString("USER_NAME", n)
@@ -310,6 +299,22 @@ public class EditProfileActivity extends AppCompatActivity {
         builder.show();
     }
 
+    // FIX 3: ID Unique কিনা চেক করে তারপর Save করবো
+    private void generateUniqueIdAndSave(String name) {
+        String newId = String.valueOf(100000000 + new Random().nextInt(900000000));
+        usersRef.orderByChild("my9DigitId").equalTo(newId)
+            .addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override public void onDataChange(DataSnapshot s) {
+                    if (s.exists()) {
+                        generateUniqueIdAndSave(name); // এই ID আগে আছে, আবার বানাও
+                    } else {
+                        doTransactionSave(name, newId);
+                    }
+                }
+                @Override public void onCancelled(DatabaseError e) { doTransactionSave(name, newId); }
+            });
+    }
+
     private void saveProfileToFirebase() {
         if (isSaving) return;
         String name = etProfileName.getText().toString().trim();
@@ -320,15 +325,28 @@ public class EditProfileActivity extends AppCompatActivity {
         btnSaveProfile.setEnabled(false);
         btnSaveProfile.setText("Saving... Please Wait");
 
-        // TRANSACTION: Jodi age theke ID thake, oitai rakhbe. Na thakle ekbar e notun banabe. Kokhono overwrite hobe na.
-        // STRONG RULE: ID / Gender / Country kokhono overwrite hobe na.
+        // যদি আগে থেকে Profile থাকে, তাহলে নতুন ID লাগবে না - সরাসরি Update
+        // যদি নতুন হয়, তাহলে Unique ID বানায় Save করবো
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(DataSnapshot s) {
+                if (s.exists() && s.hasChild("my9DigitId")) {
+                    doTransactionSave(name, null);
+                } else {
+                    generateUniqueIdAndSave(name);
+                }
+            }
+            @Override public void onCancelled(DatabaseError e) { doTransactionSave(name, null); }
+        });
+    }
+
+    private void doTransactionSave(String name, String preGeneratedId) {
         userRef.runTransaction(new Transaction.Handler() {
             @Override public Transaction.Result doTransaction(MutableData currentData) {
                 if (currentData.getValue() == null) {
                     Map<String, Object> map = new HashMap<>();
                     map.put("uid", firebaseUid);
                     map.put("email", userEmail);
-                    String newId = String.valueOf(100000000 + new Random().nextInt(900000000));
+                    String newId = preGeneratedId != null ? preGeneratedId : String.valueOf(100000000 + new Random().nextInt(900000000));
                     map.put("my9DigitId", newId);
                     map.put("name", name);
                     map.put("gender", selectedGender);
@@ -339,15 +357,13 @@ public class EditProfileActivity extends AppCompatActivity {
                     map.put("visitorCount", "0");
                     currentData.setValue(map);
                 } else {
-                    // Already exists - gender/country/ID kokhono change korbo na, shudhu name/photo update korbo
-                    // Jodi my9DigitId na thake (puran user), tahole ekbar banabo
                     if (currentData.child("my9DigitId").getValue() == null) {
-                        String newId = String.valueOf(100000000 + new Random().nextInt(900000000));
+                        String newId = preGeneratedId != null ? preGeneratedId : String.valueOf(100000000 + new Random().nextInt(900000000));
                         currentData.child("my9DigitId").setValue(newId);
                     }
                     currentData.child("name").setValue(name);
                     if (!selectedPhotoBase64.isEmpty()) currentData.child("photoBase64").setValue(selectedPhotoBase64);
-                    // gender, country, uid, email - touch korbo na
+                    // gender, country, uid, email - কখনো touch করবো না
                 }
                 return Transaction.success(currentData);
             }
@@ -373,18 +389,13 @@ public class EditProfileActivity extends AppCompatActivity {
                 e.putString("USER_GENDER", finalGender != null ? finalGender : selectedGender);
                 e.putString("USER_COUNTRY", finalCountry != null ? finalCountry : selectedCountry);
                 e.putString("USER_EMAIL", userEmail);
-                // Photo khali thakle puran photo muchbo na - eita earning app er jonno strong rule
-                if (finalPhoto != null && !finalPhoto.isEmpty()) {
-                    e.putString("USER_PHOTO", finalPhoto);
-                } else if (!selectedPhotoBase64.isEmpty()) {
-                    e.putString("USER_PHOTO", selectedPhotoBase64);
-                }
+                if (finalPhoto != null && !finalPhoto.isEmpty()) e.putString("USER_PHOTO", finalPhoto);
+                else if (!selectedPhotoBase64.isEmpty()) e.putString("USER_PHOTO", selectedPhotoBase64);
                 e.putBoolean("IS_PROFILE_SETUP_DONE", true);
                 e.apply();
 
                 if (isEditMode) {
                     Toast.makeText(EditProfileActivity.this, "Profile Updated!", Toast.LENGTH_LONG).show();
-                    // Edit sesh - Me te firbo
                     finish();
                 } else {
                     Toast.makeText(EditProfileActivity.this, "Profile Saved! Your ID: " + finalId, Toast.LENGTH_LONG).show();
@@ -399,10 +410,7 @@ public class EditProfileActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if (isEditMode) {
-            super.onBackPressed();
-        } else {
-            Toast.makeText(this, "Please complete your profile setup first!", Toast.LENGTH_SHORT).show();
-        }
+        if (isEditMode) super.onBackPressed();
+        else Toast.makeText(this, "Please complete your profile setup first!", Toast.LENGTH_SHORT).show();
     }
 }
