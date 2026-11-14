@@ -60,7 +60,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private String galleryMode = "";
     private String pendingRoomPhotoBase64 = "";
     private String currentRoomPhotoBase64 = "";
-
     private long myWalletCoins = 0;
     private SharedPreferences prefs;
     private DatabaseReference databaseReference;
@@ -68,7 +67,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private DatabaseReference adminsRef;
     private DatabaseReference messagesRef;
     private DatabaseReference userDatabaseRef;
-
     private TextView roomTitleText;
     private TextView roomNoticeBarText;
     private TextView roomInfoText;
@@ -101,7 +99,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         myCountry = prefs.getString("USER_COUNTRY", "Bangladesh");
         myLanguage = prefs.getString("USER_LANGUAGE", "English");
         myGender = prefs.getString("USER_GENDER", "Male");
-
         String rid = getIntent().getStringExtra("ROOM_OWNER_ID");
         if (rid != null && !rid.isEmpty()) {
             roomOwnerId = rid;
@@ -114,13 +111,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (b != null && !b.isEmpty()) {
             currentUserId = b;
         }
-
         databaseReference = FirebaseDatabase.getInstance().getReference();
         userDatabaseRef = databaseReference.child("users");
         roomMetaRef = databaseReference.child("rooms").child(roomOwnerId).child("meta");
         adminsRef = databaseReference.child("rooms").child(roomOwnerId).child("admins");
         messagesRef = databaseReference.child("rooms").child(roomOwnerId).child("messages");
-
         roomTitleText = findViewById(R.id.roomTitleText);
         roomInfoText = findViewById(R.id.roomInfoText);
         roomNoticeBarText = findViewById(R.id.roomNoticeBarText);
@@ -133,11 +128,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
         bottomBarContainer = findViewById(R.id.bottomBarContainer);
         inputChatMessage = findViewById(R.id.inputChatMessage);
         btnChatOption = findViewById(R.id.btnChatOption);
-
         if (chatPopupBar != null) {
             chatPopupBar.setVisibility(View.GONE);
         }
-
         galleryLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             r -> {
@@ -163,7 +156,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 }
             }
         );
-
         if (roomHeaderProfileImg != null) {
             roomHeaderProfileImg.setOnClickListener(v -> showRoomHeaderProfile());
         }
@@ -173,7 +165,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (roomInfoText != null) {
             roomInfoText.setOnClickListener(v -> showRoomHeaderProfile());
         }
-
         View bo = findViewById(R.id.btnOnlineList);
         if (bo != null) {
             bo.setOnClickListener(v -> showOnlineListDialog());
@@ -202,7 +193,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (bm != null) {
             bm.setOnClickListener(v -> Toast.makeText(this, "Mic - Coming Soon 🎤", Toast.LENGTH_SHORT).show());
         }
-
         setupChatPopup();
         setupSeatInteractions();
         ensureMyIdentity();
@@ -826,7 +816,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
     }
 
-    // SEAT - ROLE WISE
     private void setupSeatInteractions() {
         for (int i = 0; i < 10; i++) {
             final int idx = i;
@@ -861,31 +850,60 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 boolean isEmpty = !targetSnap.exists();
                 String seatUserId = isEmpty ? null : targetSnap.child("userId").getValue(String.class);
                 String seatUserName = isEmpty ? null : targetSnap.child("userName").getValue(String.class);
-                boolean isMine = seatUserId != null
-                    && (seatUserId.equals(currentUserId)
-                    || seatUserId.equals(my9DigitId)
-                    || seatUserId.equals(finalMyId));
+                boolean isMine = seatUserId != null && (seatUserId.equals(currentUserId) || seatUserId.equals(my9DigitId) || seatUserId.equals(finalMyId));
                 boolean admin = isAdminOrOwner();
                 boolean locked = lockedSeats.contains("seat_" + idx);
-
                 if (isEmpty) {
                     if (locked && !admin) {
                         Toast.makeText(VoiceRoomActivity.this, "Ei seat lock kora 🔒", Toast.LENGTH_SHORT).show();
                         return;
                     }
                     if (!admin) {
-                        AlertDialog.Builder b = new AlertDialog.Builder(VoiceRoomActivity.this);
-                        b.setTitle("Seat " + (idx + 1));
-                        b.setMessage("Ei seat e boste chao?");
-                        b.setPositiveButton("🎤 Take Mic", (d, w) -> takeSeat(idx, existing));
-                        b.setNegativeButton("Cancel", (d, w) -> d.dismiss());
-                        b.show();
+                        BottomSheetDialog dMember = new BottomSheetDialog(VoiceRoomActivity.this, R.style.Theme_Design_BottomSheetDialog);
+                        LinearLayout rMember = new LinearLayout(VoiceRoomActivity.this);
+                        rMember.setOrientation(LinearLayout.VERTICAL);
+                        rMember.setPadding(28, 24, 28, 28);
+                        rMember.setBackgroundColor(Color.WHITE);
+                        TextView ttMember = new TextView(VoiceRoomActivity.this);
+                        ttMember.setText("Seat " + (idx + 1));
+                        ttMember.setTextColor(Color.parseColor("#222222"));
+                        ttMember.setTextSize(18);
+                        ttMember.setTypeface(null, android.graphics.Typeface.BOLD);
+                        ttMember.setGravity(Gravity.CENTER);
+                        ttMember.setPadding(0, 0, 0, 16);
+                        rMember.addView(ttMember);
+                        Button btnTake = new Button(VoiceRoomActivity.this);
+                        btnTake.setText("🎤 Take Mic");
+                        btnTake.setAllCaps(false);
+                        btnTake.setTextSize(16);
+                        btnTake.setTextColor(Color.WHITE);
+                        GradientDrawable gTake = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, new int[]{Color.parseColor("#FFC107"), Color.parseColor("#FF9800")});
+                        gTake.setCornerRadius(60);
+                        btnTake.setBackground(gTake);
+                        btnTake.setOnClickListener(v -> {
+                            dMember.dismiss();
+                            takeSeat(idx, existing);
+                        });
+                        rMember.addView(btnTake);
+                        Button btnCancel = new Button(VoiceRoomActivity.this);
+                        btnCancel.setText("Cancel");
+                        btnCancel.setAllCaps(false);
+                        btnCancel.setTextColor(Color.parseColor("#666666"));
+                        GradientDrawable gCancel = new GradientDrawable();
+                        gCancel.setColor(Color.parseColor("#EEEEEE"));
+                        gCancel.setCornerRadius(60);
+                        btnCancel.setBackground(gCancel);
+                        btnCancel.setOnClickListener(v -> dMember.dismiss());
+                        rMember.addView(btnCancel);
+                        dMember.setContentView(rMember);
+                        setDialog75(dMember);
+                        dMember.show();
                         return;
                     }
                     BottomSheetDialog d1 = new BottomSheetDialog(VoiceRoomActivity.this, R.style.Theme_Design_BottomSheetDialog);
                     LinearLayout r1 = new LinearLayout(VoiceRoomActivity.this);
                     r1.setOrientation(LinearLayout.VERTICAL);
-                    r1.setPadding(28, 20, 28, 28);
+                    r1.setPadding(28, 24, 28, 28);
                     r1.setBackgroundColor(Color.WHITE);
                     TextView tt1 = new TextView(VoiceRoomActivity.this);
                     tt1.setText("Seat " + (idx + 1));
@@ -893,20 +911,31 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     tt1.setTextSize(18);
                     tt1.setTypeface(null, android.graphics.Typeface.BOLD);
                     tt1.setGravity(Gravity.CENTER);
+                    tt1.setPadding(0, 0, 0, 16);
                     r1.addView(tt1);
-                    String[] opts = {"🎤 On Mic", "📩 Invite", "🔇 Mute", locked ? "🔓 Unlock" : "🔒 Lock"};
-                    for (String o : opts) {
+                    String[] opts = {"🎤 Take Mic", "📩 Invite", locked ? "🔓 Unlock" : "🔒 Lock"};
+                    int[] colors = {Color.parseColor("#FF9800"), Color.parseColor("#7B1FA2"), Color.parseColor("#222222")};
+                    for (int ii = 0; ii < opts.length; ii++) {
+                        String o = opts[ii];
                         Button btn = new Button(VoiceRoomActivity.this);
                         btn.setText(o);
                         btn.setAllCaps(false);
+                        btn.setTextSize(16);
+                        btn.setTextColor(Color.WHITE);
+                        GradientDrawable gg = new GradientDrawable();
+                        gg.setColor(colors[ii]);
+                        gg.setCornerRadius(60);
+                        btn.setBackground(gg);
                         btn.setOnClickListener(v -> {
                             d1.dismiss();
-                            if (o.contains("On Mic")) {
+                            if (o.contains("Take Mic")) {
                                 takeSeat(idx, existing);
                             } else if (o.contains("Lock")) {
                                 databaseReference.child("rooms").child(roomOwnerId).child("locked_seats").child("seat_" + idx).setValue(true);
+                                Toast.makeText(VoiceRoomActivity.this, "Seat Locked 🔒", Toast.LENGTH_SHORT).show();
                             } else if (o.contains("Unlock")) {
                                 databaseReference.child("rooms").child(roomOwnerId).child("locked_seats").child("seat_" + idx).removeValue();
+                                Toast.makeText(VoiceRoomActivity.this, "Seat Unlocked 🔓", Toast.LENGTH_SHORT).show();
                             } else {
                                 Toast.makeText(VoiceRoomActivity.this, o + " - Coming Soon", Toast.LENGTH_SHORT).show();
                             }
@@ -918,18 +947,25 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     d1.show();
                     return;
                 }
-
                 if (isMine) {
                     BottomSheetDialog d2 = new BottomSheetDialog(VoiceRoomActivity.this, R.style.Theme_Design_BottomSheetDialog);
                     LinearLayout r2 = new LinearLayout(VoiceRoomActivity.this);
                     r2.setOrientation(LinearLayout.VERTICAL);
-                    r2.setPadding(28, 20, 28, 28);
+                    r2.setPadding(28, 24, 28, 28);
                     r2.setBackgroundColor(Color.WHITE);
                     String[] opts2 = {"🚪 Leave the Mic", "🔇 Mute", "👤 Profile"};
-                    for (String o : opts2) {
+                    int[] colors2 = {Color.parseColor("#FF5252"), Color.parseColor("#222222"), Color.parseColor("#FF9800")};
+                    for (int ii = 0; ii < opts2.length; ii++) {
+                        String o = opts2[ii];
                         Button btn = new Button(VoiceRoomActivity.this);
                         btn.setText(o);
                         btn.setAllCaps(false);
+                        btn.setTextSize(16);
+                        btn.setTextColor(Color.WHITE);
+                        GradientDrawable gg = new GradientDrawable();
+                        gg.setColor(colors2[ii]);
+                        gg.setCornerRadius(60);
+                        btn.setBackground(gg);
                         btn.setOnClickListener(v -> {
                             d2.dismiss();
                             if (o.contains("Leave")) {
@@ -948,11 +984,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     d2.show();
                     return;
                 }
-
                 BottomSheetDialog d3 = new BottomSheetDialog(VoiceRoomActivity.this, R.style.Theme_Design_BottomSheetDialog);
                 LinearLayout r3 = new LinearLayout(VoiceRoomActivity.this);
                 r3.setOrientation(LinearLayout.VERTICAL);
-                r3.setPadding(28, 20, 28, 28);
+                r3.setPadding(28, 24, 28, 28);
                 r3.setBackgroundColor(Color.WHITE);
                 TextView tt3 = new TextView(VoiceRoomActivity.this);
                 tt3.setText(seatUserName != null ? seatUserName : "User");
@@ -964,6 +999,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 Button b1 = new Button(VoiceRoomActivity.this);
                 b1.setText("👤 Profile");
                 b1.setAllCaps(false);
+                b1.setTextColor(Color.WHITE);
+                GradientDrawable gP = new GradientDrawable();
+                gP.setColor(Color.parseColor("#FF9800"));
+                gP.setCornerRadius(60);
+                b1.setBackground(gP);
                 b1.setOnClickListener(v -> {
                     d3.dismiss();
                     showUserProfileCard(seatUserId);
@@ -973,6 +1013,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     Button b2 = new Button(VoiceRoomActivity.this);
                     b2.setText("🔇 Mute");
                     b2.setAllCaps(false);
+                    b2.setTextColor(Color.WHITE);
+                    GradientDrawable gM = new GradientDrawable();
+                    gM.setColor(Color.parseColor("#222222"));
+                    gM.setCornerRadius(60);
+                    b2.setBackground(gM);
                     b2.setOnClickListener(v -> {
                         d3.dismiss();
                         Toast.makeText(VoiceRoomActivity.this, "Mute - Coming Soon", Toast.LENGTH_SHORT).show();
@@ -981,6 +1026,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     Button b3 = new Button(VoiceRoomActivity.this);
                     b3.setText("🚪 Kick Out");
                     b3.setAllCaps(false);
+                    b3.setTextColor(Color.WHITE);
+                    GradientDrawable gK = new GradientDrawable();
+                    gK.setColor(Color.parseColor("#FF5252"));
+                    gK.setCornerRadius(60);
+                    b3.setBackground(gK);
                     b3.setOnClickListener(v -> {
                         d3.dismiss();
                         databaseReference.child("rooms").child(roomOwnerId).child("seats").child("seat_" + idx).removeValue();
@@ -1126,7 +1176,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         return output;
     }
 
-    // PREMIUM PROFILE CARD
     private void showUserProfileCard(String targetId) {
         if (targetId == null || targetId.isEmpty()) {
             return;
@@ -1187,24 +1236,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
             });
     }
 
-    private void showUserProfileCardUI(
-        String targetId,
-        String name,
-        String photo,
-        String country,
-        String gender,
-        String levelSend,
-        String levelRecv,
-        String agency,
-        boolean isOwner
-    ) {
+    private void showUserProfileCardUI(String targetId, String name, String photo, String country, String gender, String levelSend, String levelRecv, String agency, boolean isOwner) {
         BottomSheetDialog d = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.WHITE);
         root.setPadding(28, 16, 28, 28);
         root.setGravity(Gravity.CENTER_HORIZONTAL);
-
         TextView close = new TextView(this);
         close.setText("✕");
         close.setTextSize(20);
@@ -1212,7 +1250,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         close.setGravity(Gravity.END);
         close.setOnClickListener(v -> d.dismiss());
         root.addView(close);
-
         CardView card = new CardView(this);
         LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(220, 220);
         clp.gravity = Gravity.CENTER_HORIZONTAL;
@@ -1240,7 +1277,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             card.addView(lt);
         }
         root.addView(card);
-
         if (isOwner) {
             TextView badge = new TextView(this);
             badge.setText("👑 OWNER");
@@ -1258,8 +1294,24 @@ public class VoiceRoomActivity extends AppCompatActivity {
             blp.setMargins(0, 0, 0, 8);
             badge.setLayoutParams(blp);
             root.addView(badge);
+        } else if (targetId != null && roomAdminList.contains(targetId)) {
+            TextView badge = new TextView(this);
+            badge.setText("🛡️ ADMIN");
+            badge.setTextColor(Color.WHITE);
+            badge.setTextSize(12);
+            badge.setTypeface(null, android.graphics.Typeface.BOLD);
+            badge.setGravity(Gravity.CENTER);
+            badge.setPadding(22, 8, 22, 8);
+            GradientDrawable g = new GradientDrawable();
+            g.setColor(Color.parseColor("#7B1FA2"));
+            g.setCornerRadius(30);
+            badge.setBackground(g);
+            LinearLayout.LayoutParams blp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            blp.gravity = Gravity.CENTER_HORIZONTAL;
+            blp.setMargins(0, 0, 0, 8);
+            badge.setLayoutParams(blp);
+            root.addView(badge);
         }
-
         TextView tn = new TextView(this);
         tn.setText((name != null ? name : "User") + " " + genderIcon(gender) + " " + flagForCountry(country));
         tn.setTextColor(Color.parseColor("#222222"));
@@ -1268,7 +1320,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         tn.setGravity(Gravity.CENTER);
         tn.setPadding(0, 4, 0, 2);
         root.addView(tn);
-
         TextView tid = new TextView(this);
         tid.setText("ID: " + targetId);
         tid.setTextColor(Color.parseColor("#888888"));
@@ -1276,7 +1327,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         tid.setGravity(Gravity.CENTER);
         tid.setPadding(0, 0, 0, 10);
         root.addView(tid);
-
         LinearLayout lvRow = new LinearLayout(this);
         lvRow.setOrientation(LinearLayout.HORIZONTAL);
         lvRow.setGravity(Gravity.CENTER);
@@ -1299,7 +1349,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         lv2.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         lvRow.addView(lv2);
         root.addView(lvRow);
-
         if (agency != null && !agency.isEmpty()) {
             TextView ag = new TextView(this);
             ag.setText("🏢 Agency: " + agency);
@@ -1318,7 +1367,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             ag.setPadding(0, 6, 0, 6);
             root.addView(ag);
         }
-
         TextView gift = new TextView(this);
         gift.setText("🎁  Gift");
         gift.setTextColor(Color.parseColor("#FF9800"));
@@ -1330,12 +1378,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
             showNewGiftPanel();
         });
         root.addView(gift);
-
         LinearLayout btnRow = new LinearLayout(this);
         btnRow.setOrientation(LinearLayout.HORIZONTAL);
         btnRow.setWeightSum(2);
         btnRow.setPadding(0, 14, 0, 0);
-
         Button addF = new Button(this);
         addF.setText("➕ Add Friend");
         addF.setAllCaps(false);
@@ -1345,30 +1391,21 @@ public class VoiceRoomActivity extends AppCompatActivity {
         g1.setCornerRadius(60);
         addF.setBackground(g1);
         addF.setLayoutParams(new LinearLayout.LayoutParams(0, 120, 1f));
-        addF.setOnClickListener(v -> {
-            Toast.makeText(this, "Friend Request Sent ✅", Toast.LENGTH_SHORT).show();
-        });
+        addF.setOnClickListener(v -> Toast.makeText(this, "Friend Request Sent ✅", Toast.LENGTH_SHORT).show());
         btnRow.addView(addF);
-
         Button follow = new Button(this);
         follow.setText("⭐ Follow");
         follow.setAllCaps(false);
         follow.setTextColor(Color.WHITE);
-        GradientDrawable g2 = new GradientDrawable(
-            GradientDrawable.Orientation.LEFT_RIGHT,
-            new int[]{Color.parseColor("#FFC107"), Color.parseColor("#FF9800")}
-        );
+        GradientDrawable g2 = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, new int[]{Color.parseColor("#FFC107"), Color.parseColor("#FF9800")});
         g2.setCornerRadius(60);
         follow.setBackground(g2);
         LinearLayout.LayoutParams flp = new LinearLayout.LayoutParams(0, 120, 1f);
         flp.setMargins(16, 0, 0, 0);
         follow.setLayoutParams(flp);
-        follow.setOnClickListener(v -> {
-            Toast.makeText(this, "Followed ✅", Toast.LENGTH_SHORT).show();
-        });
+        follow.setOnClickListener(v -> Toast.makeText(this, "Followed ✅", Toast.LENGTH_SHORT).show());
         btnRow.addView(follow);
         root.addView(btnRow);
-
         d.setContentView(root);
         setDialog85(d);
         d.show();
@@ -1481,12 +1518,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.WHITE);
         root.setPadding(24, 20, 24, 24);
-
         LinearLayout top = new LinearLayout(this);
         top.setOrientation(LinearLayout.HORIZONTAL);
         top.setGravity(Gravity.CENTER_VERTICAL);
         root.addView(top);
-
         TextView t = new TextView(this);
         t.setText("Online list");
         t.setTextColor(Color.parseColor("#222222"));
@@ -1494,7 +1529,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         t.setTypeface(null, android.graphics.Typeface.BOLD);
         t.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         top.addView(t);
-
         TextView cl = new TextView(this);
         cl.setText("✕");
         cl.setTextSize(22);
@@ -1502,21 +1536,17 @@ public class VoiceRoomActivity extends AppCompatActivity {
         cl.setPadding(10, 10, 10, 10);
         cl.setOnClickListener(v -> d.dismiss());
         top.addView(cl);
-
         TextView cnt = new TextView(this);
         cnt.setTextColor(Color.parseColor("#888888"));
         cnt.setTextSize(13);
         cnt.setPadding(0, 4, 0, 10);
         root.addView(cnt);
-
         ScrollView sv = new ScrollView(this);
         LinearLayout list = new LinearLayout(this);
         list.setOrientation(LinearLayout.VERTICAL);
         sv.addView(list);
         root.addView(sv);
-
         pushOnlineNow();
-
         userDatabaseRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot usersSnap) {
@@ -1668,13 +1698,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.WHITE);
-
         LinearLayout tabRow = new LinearLayout(this);
         tabRow.setOrientation(LinearLayout.HORIZONTAL);
         tabRow.setGravity(Gravity.CENTER);
         tabRow.setPadding(0, 16, 0, 0);
         root.addView(tabRow);
-
         TextView tabProfile = new TextView(this);
         tabProfile.setText("Profile");
         tabProfile.setTextSize(17);
@@ -1682,14 +1710,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
         tabProfile.setTextColor(Color.parseColor("#222222"));
         tabProfile.setPadding(30, 10, 30, 10);
         tabRow.addView(tabProfile);
-
         TextView tabMembers = new TextView(this);
         tabMembers.setText("Members");
         tabMembers.setTextSize(17);
         tabMembers.setTextColor(Color.parseColor("#999999"));
         tabMembers.setPadding(30, 10, 30, 10);
         tabRow.addView(tabMembers);
-
         TextView cb = new TextView(this);
         cb.setText("✕");
         cb.setTextSize(20);
@@ -1697,14 +1723,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
         cb.setPadding(20, 10, 20, 10);
         cb.setOnClickListener(v -> dialog.dismiss());
         tabRow.addView(cb);
-
         ScrollView svProfile = new ScrollView(this);
         LinearLayout pb = new LinearLayout(this);
         pb.setOrientation(LinearLayout.VERTICAL);
         pb.setPadding(20, 10, 20, 20);
         svProfile.addView(pb);
         root.addView(svProfile);
-
         ScrollView svMembers = new ScrollView(this);
         LinearLayout mb = new LinearLayout(this);
         mb.setOrientation(LinearLayout.VERTICAL);
@@ -1712,14 +1736,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
         svMembers.addView(mb);
         svMembers.setVisibility(View.GONE);
         root.addView(svMembers);
-
         LinearLayout top = new LinearLayout(this);
         top.setOrientation(LinearLayout.HORIZONTAL);
         top.setGravity(Gravity.CENTER_VERTICAL);
         top.setBackgroundColor(Color.parseColor("#FFFDE7"));
         top.setPadding(20, 16, 20, 16);
         pb.addView(top);
-
         CardView cardRp = new CardView(this);
         LinearLayout.LayoutParams cardRpLp = new LinearLayout.LayoutParams(130, 130);
         cardRpLp.setMargins(0, 0, 12, 0);
@@ -1737,13 +1759,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
         cardRp.addView(rp);
         top.addView(cardRp);
-
         LinearLayout nb = new LinearLayout(this);
         nb.setOrientation(LinearLayout.VERTICAL);
         nb.setPadding(16, 0, 0, 0);
         nb.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
         top.addView(nb);
-
         String rn = roomTitleText != null ? roomTitleText.getText().toString() : "Sr Official's Room";
         TextView trn = new TextView(this);
         trn.setText(rn);
@@ -1751,31 +1771,114 @@ public class VoiceRoomActivity extends AppCompatActivity {
         trn.setTextSize(19);
         trn.setTypeface(null, android.graphics.Typeface.BOLD);
         nb.addView(trn);
-
         TextView tri = new TextView(this);
         tri.setText("ID: " + roomOwnerId);
         tri.setTextColor(Color.parseColor("#888888"));
         tri.setTextSize(13);
         nb.addView(tri);
-
+        TextView tvFollowing = new TextView(this);
+        tvFollowing.setText("1 Following    1 Fans    104 Visitor");
+        tvFollowing.setTextColor(Color.parseColor("#666666"));
+        tvFollowing.setTextSize(13);
+        tvFollowing.setPadding(0, 14, 0, 6);
+        pb.addView(tvFollowing);
+        LinearLayout banner = new LinearLayout(this);
+        banner.setOrientation(LinearLayout.HORIZONTAL);
+        banner.setGravity(Gravity.CENTER);
+        banner.setPadding(20, 18, 20, 18);
+        GradientDrawable bannerBg = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, new int[]{Color.parseColor("#FF9800"), Color.parseColor("#FF5252")});
+        bannerBg.setCornerRadius(24);
+        banner.setBackground(bannerBg);
+        TextView bannerTxt = new TextView(this);
+        bannerTxt.setText("🏆  Reward Event");
+        bannerTxt.setTextColor(Color.WHITE);
+        bannerTxt.setTextSize(17);
+        bannerTxt.setTypeface(null, android.graphics.Typeface.BOLD);
+        bannerTxt.setGravity(Gravity.CENTER);
+        banner.addView(bannerTxt);
+        pb.addView(banner);
+        TextView tvLevel = new TextView(this);
+        tvLevel.setText("Level");
+        tvLevel.setTextColor(Color.parseColor("#222222"));
+        tvLevel.setTextSize(15);
+        tvLevel.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvLevel.setPadding(0, 18, 0, 6);
+        pb.addView(tvLevel);
+        TextView tvLevelVal = new TextView(this);
+        tvLevelVal.setText("Lv.0");
+        tvLevelVal.setTextColor(Color.parseColor("#FF9800"));
+        tvLevelVal.setTextSize(14);
+        tvLevelVal.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvLevelVal.setPadding(0, 0, 0, 10);
+        pb.addView(tvLevelVal);
+        TextView tvOwner = new TextView(this);
+        tvOwner.setText("RoomOwner");
+        tvOwner.setTextColor(Color.parseColor("#222222"));
+        tvOwner.setTextSize(15);
+        tvOwner.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvOwner.setPadding(0, 6, 0, 2);
+        pb.addView(tvOwner);
+        TextView tvOwnerVal = new TextView(this);
+        tvOwnerVal.setText("Loading... (ID:" + roomOwnerId + ")");
+        tvOwnerVal.setTextColor(Color.parseColor("#666666"));
+        tvOwnerVal.setTextSize(14);
+        tvOwnerVal.setPadding(0, 0, 0, 10);
+        pb.addView(tvOwnerVal);
+        TextView tvLang = new TextView(this);
+        tvLang.setText("Language");
+        tvLang.setTextColor(Color.parseColor("#222222"));
+        tvLang.setTextSize(15);
+        tvLang.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvLang.setPadding(0, 6, 0, 2);
+        pb.addView(tvLang);
+        TextView tvLangVal = new TextView(this);
+        tvLangVal.setText("English");
+        tvLangVal.setTextColor(Color.parseColor("#222222"));
+        tvLangVal.setTextSize(14);
+        tvLangVal.setPadding(0, 0, 0, 10);
+        pb.addView(tvLangVal);
+        TextView tvCountry = new TextView(this);
+        tvCountry.setText("Country");
+        tvCountry.setTextColor(Color.parseColor("#222222"));
+        tvCountry.setTextSize(15);
+        tvCountry.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvCountry.setPadding(0, 6, 0, 2);
+        pb.addView(tvCountry);
+        TextView tvCountryVal = new TextView(this);
+        tvCountryVal.setText("Bangladesh");
+        tvCountryVal.setTextColor(Color.parseColor("#222222"));
+        tvCountryVal.setTextSize(14);
+        tvCountryVal.setPadding(0, 0, 0, 10);
+        pb.addView(tvCountryVal);
+        TextView tvTag = new TextView(this);
+        tvTag.setText("Tag");
+        tvTag.setTextColor(Color.parseColor("#222222"));
+        tvTag.setTextSize(15);
+        tvTag.setTypeface(null, android.graphics.Typeface.BOLD);
+        tvTag.setPadding(0, 6, 0, 2);
+        pb.addView(tvTag);
+        TextView tvTagVal = new TextView(this);
+        tvTagVal.setText("Friends");
+        tvTagVal.setTextColor(Color.parseColor("#222222"));
+        tvTagVal.setTextSize(14);
+        tvTagVal.setPadding(0, 0, 0, 10);
+        pb.addView(tvTagVal);
+        loadRoomOwnerProfileForHeader(tvFollowing, tvLevelVal, tvOwnerVal, tvLangVal, tvCountryVal, tvTagVal);
         TextView countTv = new TextView(this);
         countTv.setText("Members: 1/5000    Admin: 1/20");
         countTv.setTextColor(Color.parseColor("#222222"));
         countTv.setTextSize(14);
         countTv.setTypeface(null, android.graphics.Typeface.BOLD);
         mb.addView(countTv);
-
         EditText searchEt = new EditText(this);
         searchEt.setHint("Search ID");
         searchEt.setTextSize(14);
         searchEt.setPadding(24, 20, 24, 20);
         searchEt.setBackgroundColor(Color.parseColor("#F5F5F5"));
         mb.addView(searchEt);
-
         LinearLayout memberList = new LinearLayout(this);
         memberList.setOrientation(LinearLayout.VERTICAL);
         mb.addView(memberList);
-
         tabProfile.setOnClickListener(v -> {
             tabProfile.setTextColor(Color.parseColor("#222222"));
             tabMembers.setTextColor(Color.parseColor("#999999"));
@@ -1788,10 +1891,57 @@ public class VoiceRoomActivity extends AppCompatActivity {
             svProfile.setVisibility(View.GONE);
             svMembers.setVisibility(View.VISIBLE);
         });
-
         loadHeaderProfileData(countTv, memberList, searchEt);
         dialog.setContentView(root);
         dialog.show();
+    }
+
+    private void loadRoomOwnerProfileForHeader(TextView tvFollowing, TextView tvLevelVal, TextView tvOwnerVal, TextView tvLangVal, TextView tvCountryVal, TextView tvTagVal) {
+        if (userDatabaseRef == null) {
+            return;
+        }
+        userDatabaseRef.orderByChild("my9DigitId").equalTo(roomOwnerId)
+            .addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snap) {
+                    if (!snap.exists()) {
+                        return;
+                    }
+                    for (DataSnapshot u : snap.getChildren()) {
+                        String n = u.child("name").getValue(String.class);
+                        String lang = u.child("language").getValue(String.class);
+                        String country = u.child("country").getValue(String.class);
+                        String tag = u.child("tag").getValue(String.class);
+                        String level = u.child("level").getValue(String.class);
+                        String following = u.child("followingCount").getValue(String.class);
+                        String fans = u.child("fansCount").getValue(String.class);
+                        String visitor = u.child("visitorCount").getValue(String.class);
+                        if (n != null && !n.isEmpty()) {
+                            tvOwnerVal.setText(n + "   (ID:" + roomOwnerId + ")");
+                        }
+                        if (lang != null && !lang.isEmpty()) {
+                            tvLangVal.setText(lang);
+                        }
+                        if (country != null && !country.isEmpty()) {
+                            tvCountryVal.setText(country);
+                        }
+                        if (tag != null && !tag.isEmpty()) {
+                            tvTagVal.setText(tag);
+                        }
+                        if (level != null && !level.isEmpty()) {
+                            tvLevelVal.setText("Lv." + level);
+                        }
+                        String f = following != null ? following : "1";
+                        String fa = fans != null ? fans : "1";
+                        String vi = visitor != null ? visitor : "104";
+                        tvFollowing.setText(f + " Following    " + fa + " Fans    " + vi + " Visitor");
+                        break;
+                    }
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError e) {
+                }
+            });
     }
 
     private void loadHeaderProfileData(TextView countTv, LinearLayout memberList, EditText searchEt) {
@@ -1960,8 +2110,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
     }
 
     private void leaveRoomKeepHome() {
-        // MINIMIZE - ONLINE + SEAT 2 TAI THAKBE
-        // KICHU DELETE KORBO NA
+        String k = my9DigitId.isEmpty() ? currentUserId : my9DigitId;
+        if (k != null && !k.isEmpty()) {
+        }
     }
 
     private void leaveRoomAndFinish() {
@@ -2007,8 +2158,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         walletTextInGift.setGravity(Gravity.CENTER);
         walletTextInGift.setPadding(0, 8, 0, 16);
         r.addView(walletTextInGift);
-        String[][] g = {{"🌹", "Rose", "10"}, {"💎", "Diamond", "100"}, {"🚗", "Car", "1000"}, {"🏰", "Castle", "10000"}};
-        for (String[] gg : g) {
+        String[][] gifts = {{"🌹", "Rose", "10"}, {"💎", "Diamond", "100"}, {"🚗", "Car", "1000"}, {"🏰", "Castle", "10000"}};
+        for (String[] gg : gifts) {
             Button btn = new Button(this);
             btn.setText(gg[0] + " " + gg[1] + " - 🪙 " + gg[2]);
             btn.setOnClickListener(v -> {
@@ -2036,11 +2187,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         t.setGravity(Gravity.CENTER);
         t.setPadding(0, 0, 0, 16);
         r.addView(t);
-        String[][] items = {
-            {"🔒", "Lock off"}, {"⚙️", "Room set"}, {"✏️", "Room Edit"}, {"🧹", "Clear charm"},
-            {"🗑️", "Clear chat"}, {"🎤", "Change mic"}, {"🎨", "Mic Theme"}, {"👗", "Dress"},
-            {"🔔", "Lucky Sound"}, {"🎙️", "Voice User"}, {"🚪", "Kick out record"}
-        };
+        String[][] items = {{"🔒", "Lock off"}, {"⚙️", "Room set"}, {"✏️", "Room Edit"}, {"🧹", "Clear charm"}, {"🗑️", "Clear chat"}, {"🎤", "Change mic"}, {"🎨", "Mic Theme"}, {"👗", "Dress"}, {"🔔", "Lucky Sound"}, {"🎙️", "Voice User"}, {"🚪", "Kick out record"}};
         r.addView(createToolsGrid(items, d));
         d.setContentView(r);
         setDialog85(d);
