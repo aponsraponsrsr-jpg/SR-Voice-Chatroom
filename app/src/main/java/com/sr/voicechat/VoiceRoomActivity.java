@@ -75,7 +75,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             Toast.makeText(this, "ID পাওয়া যায় নাই, আবার Login করো", Toast.LENGTH_LONG).show();
             finish(); return;
         }
-        // MALIK ER ORDER: Profile ID tai Room ID
         roomId = myId;
         roomOwnerId = myId;
         activeRoomRef = FirebaseDatabase.getInstance().getReference("active_rooms").child(roomOwnerId);
@@ -110,7 +109,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (btnRoomSet != null) {
             btnRoomSet.setOnClickListener(v -> openRoomSetDialog());
         }
-        // POWER BUTTON - FIXED: Age chilo na, ekhon permanent
         ImageButton btnPower = findViewById(R.id.btnPower);
         if (btnPower != null) {
             btnPower.setOnClickListener(v -> showPowerMenu());
@@ -123,9 +121,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
             .setTitle("Room Options")
             .setItems(options, (dialog, which) -> {
                 if (which == 0) {
-                    moveTaskToBack(true);
-                } else {
+                    // Minimize = Room theke ber hoye App er Home Page e jabe
                     finish();
+                } else {
+                    // Exit Room = App theke ekbare ber hoye jabe
+                    finishAffinity();
                 }
             })
             .setNegativeButton("Cancel", null)
