@@ -1,194 +1,109 @@
-package com.example.srvoice;
+package com.sr.voicechat;
 
-import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.Toast;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.*;
-import java.util.*;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 public class MainActivity extends AppCompatActivity {
 
-    // ===== PERMANENT - কখনো চেঞ্জ হবে না =====
-    public static String myUid; // Firebase Auth UID
-    public static String my9DigitId; // 499506534 - Permanent
-    public static String myName, myPhoto, myGender, myCountry;
-
-    private DatabaseReference usersRef, roomsRef;
-    private RecyclerView rvRooms;
-    private RoomAdapter adapter;
-    private List<Room> roomList = new ArrayList<>();
-    private ImageView btnPlus;
-    private Button btnResetHome;
+    private SharedPreferences prefs;
+    private boolean isNavigating = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        // এই Activity তে কোনো Layout লাগবে না, শুধু চেক করে পাঠায় দিবে
+        // setContentView(R.layout.activity_main); // লাগলে খুলে দিও
 
-        myUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        usersRef = FirebaseDatabase.getInstance().getReference("users");
-        roomsRef = FirebaseDatabase.getInstance().getReference("rooms");
+        prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
 
-        rvRooms = findViewById(R.id.rvRooms);
-        btnPlus = findViewById(R.id.btnPlus);
-        btnResetHome = findViewById(R.id.btnResetHome);
-
-        rvRooms.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new RoomAdapter(roomList, room -> {
-            // রুমে ঢোকা - আমার ID চেঞ্জ হবে না, শুধু রুমের ID পাঠাবো
-            Intent i = new Intent(MainActivity.this, VoiceRoomActivity.class);
-            i.putExtra("ROOM_ID", room.roomId);
-            i.putExtra("ROOM_OWNER_ID", room.ownerId);
-            startActivity(i);
-        });
-        rvRooms.setAdapter(adapter);
-
-        loadMyProfile();
-        loadRooms();
-
-        // + Plus - আমার ১ টা রুম খোলা
-        btnPlus.setOnClickListener(v -> openCreateRoomDialog());
-
-        // Home Reset - নকল রুম সব মুছা
-        btnResetHome.setOnClickListener(v -> {
-            new AlertDialog.Builder(this)
-                .setTitle("Home Reset করবো?")
-                .setMessage("সব নকল রুম মুছে যাবে। তোমার নিজের রুম আবার + Plus দিয়ে খুলতে হবে।")
-                .setPositiveButton("হ্যাঁ, Reset", (d, w) -> resetHome())
-                .setNegativeButton("না", null).show();
-        });
-    }
-
-    // ===== ১. আমার প্রোফাইল লোড - ID একবারই বানবে =====
-    private void loadMyProfile() {
-        usersRef.child(myUid).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override public void onDataChange(@NonNull DataSnapshot snap) {
-                if (snap.exists() && snap.child("my9DigitId").exists()) {
-                    // আগে থেকেই ID আছে - নতুন বানাবো না
-                    my9DigitId = snap.child("my9DigitId").getValue(String.class);
-                    myName = snap.child("name").getValue(String.class);
-                    myPhoto = snap.child("photo").getValue(String.class);
-                    myGender = snap.child("gender").getValue(String.class);
-                    myCountry = snap.child("country").getValue(String.class);
-                } else {
-                    // প্রথমবার - 1 বার 9-Digit ID বানাও, Firebase এ সেভ করো
-                    my9DigitId = generate9DigitId();
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("my9DigitId", my9DigitId);
-                    map.put("uid", myUid);
-                    map.put("createdAt", System.currentTimeMillis());
-                    usersRef.child(myUid).updateChildren(map);
-                }
-            }
-            @Override public void onCancelled(@NonNull DatabaseError e) {}
-        });
-    }
-
-    private String generate9DigitId() {
-        Random r = new Random();
-        int id = 100000000 + r.nextInt(900000000);
-        return String.valueOf(id);
-    }
-
-    // ===== ২. Home এ সব রুম দেখা =====
-    private void loadRooms() {
-        roomsRef.addValueEventListener(new ValueEventListener() {
-            @Override public void onDataChange(@NonNull DataSnapshot snap) {
-                roomList.clear();
-                for (DataSnapshot s : snap.getChildren()) {
-                    Room room = s.getValue(Room.class);
-                    if (room != null) roomList.add(room);
-                }
-                adapter.notifyDataSetChanged();
-            }
-            @Override public void onCancelled(@NonNull DatabaseError e) {}
-        });
-    }
-
-    // ===== ৩. + Plus - রুম খোলা - Popup =====
-    private void openCreateRoomDialog() {
-        if (my9DigitId == null) {
-            Toast.makeText(this, "একটু অপেক্ষা করো, ID লোড হচ্ছে...", Toast.LENGTH_SHORT).show();
-            return;
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        if (user == null) {
+            // Login করা নাই - Login এ যাও
+            goToLogin();
+        } else {
+            // Login করা আছে - Profile চেক করো
+            checkProfile(user.getUid(), user.getEmail());
         }
-        // আমার রুম আগে থেকেই আছে কিনা চেক করো - থাকলে নতুন বানাবো না
-        roomsRef.child(my9DigitId).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override public void onDataChange(@NonNull DataSnapshot snap) {
-                if (snap.exists()) {
-                    // আমার রুম আছে - ওইটাই খুলবো
-                    Intent i = new Intent(MainActivity.this, VoiceRoomActivity.class);
-                    i.putExtra("ROOM_ID", my9DigitId);
-                    i.putExtra("ROOM_OWNER_ID", my9DigitId);
-                    startActivity(i);
+    }
+
+    // RULE: ID এখানে কখনো বানাবো না। ID বানাবে শুধু EditProfileActivity।
+    // RULE: UID দিয়ে খুঁজবো, Email দিয়ে না।
+    private void checkProfile(String firebaseUid, String email) {
+        if (isNavigating) return;
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(DataSnapshot s) {
+                if (s.exists() && s.hasChild("my9DigitId") && s.hasChild("gender") && s.hasChild("country")) {
+                    // Profile Complete - Home এ যাও
+                    String id = s.child("my9DigitId").getValue(String.class);
+                    String name = s.child("name").getValue(String.class);
+                    String gender = s.child("gender").getValue(String.class);
+                    String country = s.child("country").getValue(String.class);
+                    String photo = s.child("photoBase64").getValue(String.class);
+                    if (photo == null) photo = s.child("photoUrl").getValue(String.class);
+                    if (photo == null) photo = "";
+
+                    prefs.edit()
+                        .putString("FIREBASE_UID", firebaseUid)
+                        .putString("MY_9_DIGIT_ID", id != null ? id : "")
+                        .putString("USER_NAME", name != null ? name : "")
+                        .putString("USER_GENDER", gender != null ? gender : "")
+                        .putString("USER_COUNTRY", country != null ? country : "")
+                        .putString("USER_EMAIL", email != null ? email : "")
+                        .putString("USER_PHOTO", photo)
+                        .putBoolean("IS_PROFILE_SETUP_DONE", true)
+                        .apply();
+                    goToHome();
                 } else {
-                    showCreateRoomPopup();
+                    // Profile Complete না - Edit এ যাও, ID ওখানেই বানবে
+                    goToEdit(firebaseUid, email);
                 }
             }
-            @Override public void onCancelled(@NonNull DatabaseError e) {}
+            @Override public void onCancelled(DatabaseError e) {
+                // Database Error হলে Login এ পাঠাবো, আটকায় রাখবো না
+                goToLogin();
+            }
         });
     }
 
-    private void showCreateRoomPopup() {
-        View v = LayoutInflater.from(this).inflate(R.layout.dialog_create_room, null);
-        EditText etRoomName = v.findViewById(R.id.etRoomName);
-        EditText etAnnouncement = v.findViewById(R.id.etAnnouncement);
-        // Room Photo - তুমি ImagePicker দিয়ে সেট করবা
-        // ImageView ivRoomPhoto = v.findViewById(R.id.ivRoomPhoto);
-
-        new AlertDialog.Builder(this)
-            .setTitle("আমার রুম খুলবো")
-            .setView(v)
-            .setPositiveButton("Save / খুলো", (d, w) -> {
-                String roomName = etRoomName.getText().toString().trim();
-                String announcement = etAnnouncement.getText().toString().trim();
-                if (roomName.isEmpty()) roomName = myName + " Voice Room";
-
-                // RULE: Room ID = আমার ID - সেম
-                Map<String, Object> room = new HashMap<>();
-                room.put("roomId", my9DigitId);
-                room.put("ownerId", my9DigitId);
-                room.put("ownerName", myName);
-                room.put("ownerPhoto", myPhoto);
-                room.put("roomName", roomName);
-                room.put("announcement", announcement);
-                room.put("roomPhoto", myPhoto);
-                room.put("createdAt", System.currentTimeMillis());
-                room.put("admins", new HashMap<String, Boolean>());
-
-                roomsRef.child(my9DigitId).setValue(room).addOnSuccessListener(a -> {
-                    Intent i = new Intent(MainActivity.this, VoiceRoomActivity.class);
-                    i.putExtra("ROOM_ID", my9DigitId);
-                    i.putExtra("ROOM_OWNER_ID", my9DigitId);
-                    startActivity(i);
-                });
-            })
-            .setNegativeButton("বাতিল", null).show();
+    private void goToLogin() {
+        if (isNavigating) return;
+        isNavigating = true;
+        Intent i = new Intent(MainActivity.this, LoginActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(i);
+        finish();
     }
 
-    // ===== ৪. Home Reset - সব নকল রুম মুছা =====
-    private void resetHome() {
-        // সাবধান: এটা শুধু তোমার টেস্টের সময় ব্যবহার করবা
-        // সব রুম মুছে দিবে, তারপর তুমি + Plus দিয়ে নতুন করে ১ টা খুলবা
-        roomsRef.removeValue().addOnSuccessListener(a -> {
-            Toast.makeText(this, "Home Reset হয়ে গেছে। এখন + Plus দিয়ে রুম খুলো", Toast.LENGTH_LONG).show();
-        });
+    private void goToEdit(String firebaseUid, String email) {
+        if (isNavigating) return;
+        isNavigating = true;
+        prefs.edit()
+            .putString("FIREBASE_UID", firebaseUid)
+            .putString("USER_EMAIL", email != null ? email : "")
+            .putBoolean("IS_PROFILE_SETUP_DONE", false)
+            .apply();
+        Intent i = new Intent(MainActivity.this, EditProfileActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(i);
+        finish();
     }
 
-    // Room Model
-    public static class Room {
-        public String roomId, ownerId, ownerName, ownerPhoto, roomName, announcement, roomPhoto;
-        public Map<String, Boolean> admins;
-        public Room() {}
+    private void goToHome() {
+        if (isNavigating) return;
+        isNavigating = true;
+        Intent i = new Intent(MainActivity.this, HomeActivity.class);
+        i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(i);
+        finish();
     }
 }
