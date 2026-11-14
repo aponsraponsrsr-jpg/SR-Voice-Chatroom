@@ -47,7 +47,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class VoiceRoomActivity extends AppCompatActivity {
-
     private String roomOwnerId = "499506534";
     private String currentUserId = "";
     private String my9DigitId = "";
@@ -63,6 +62,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private String rankType = "Wealth";
     private String rankPeriod = "Day";
     private long myWalletCoins = 0;
+    private boolean giftListenerStarted = false;
+    private String selectedGiftEmoji = "🐉";
+    private String selectedGiftName = "Dragon";
+    private long selectedGiftPrice = 9999;
+    private String selectedGiftTargetId = "";
+    private String selectedGiftTargetName = "";
+    private String selectedGiftTargetPhoto = "";
     private SharedPreferences prefs;
     private DatabaseReference databaseReference;
     private DatabaseReference roomMetaRef;
@@ -88,7 +94,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private ActivityResultLauncher<Intent> galleryLauncher;
     private Map<String, Map<String, String>> chatRealMap = new HashMap<>();
     private Set<String> lockedSeats = new HashSet<>();
-
     @Override
     protected void onCreate(Bundle s) {
         super.onCreate(s);
@@ -207,8 +212,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         listenToChatRealtime();
         listenToMyWallet();
         listenToLockedSeats();
+        listenToGiftEvents();
     }
-
     private boolean isAdminOrOwner() {
         String me = my9DigitId;
         if (me == null || me.isEmpty()) {
@@ -228,7 +233,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
         return false;
     }
-
     private void listenToLockedSeats() {
         databaseReference.child("rooms").child(roomOwnerId).child("locked_seats")
             .addValueEventListener(new ValueEventListener() {
@@ -246,7 +250,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 }
             });
     }
-
     private void setDialog85(BottomSheetDialog d) {
         Window w = d.getWindow();
         if (w != null) {
@@ -255,7 +258,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             w.setGravity(Gravity.BOTTOM);
         }
     }
-
     private void setDialog75(BottomSheetDialog d) {
         Window w = d.getWindow();
         if (w != null) {
@@ -264,7 +266,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             w.setGravity(Gravity.BOTTOM);
         }
     }
-
     private android.app.Dialog makeFullScreenDialog() {
         android.app.Dialog d = new android.app.Dialog(this, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         Window w = d.getWindow();
@@ -275,7 +276,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
         return d;
     }
-
     private String flagForCountry(String c) {
         if (c == null) {
             return "🌍";
@@ -307,7 +307,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
         return "🌍";
     }
-
     private String genderIcon(String g) {
         if (g == null) {
             return "👤";
@@ -321,7 +320,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
         return "👤";
     }
-
     private Bitmap decodeBase64(String b64) {
         if (b64 == null || b64.isEmpty()) {
             return null;
@@ -333,7 +331,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             return null;
         }
     }
-
     private TextView makeText(String txt, int size, String color, boolean bold, int gravity) {
         TextView t = new TextView(this);
         t.setText(txt);
@@ -345,7 +342,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         t.setGravity(gravity);
         return t;
     }
-
     private Button makeColorBtn(String txt, int color) {
         Button b = new Button(this);
         b.setText(txt);
@@ -358,7 +354,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         b.setBackground(g);
         return b;
     }
-
     private CardView makeAvatar(String photo, String name, int size) {
         CardView card = new CardView(this);
         LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(size, size);
@@ -386,7 +381,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
         return card;
     }
-
     private void ensureMyIdentity() {
         if (my9DigitId == null) {
             my9DigitId = "";
@@ -437,7 +431,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             syncByUidFallback();
         }
     }
-
     private void syncByUidFallback() {
         if (currentUserId == null || currentUserId.isEmpty()) {
             pushOnlineNow();
@@ -472,7 +465,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         });
     }
-
     private void syncLatestUserProfile() {
         if (currentUserId.isEmpty() && my9DigitId.isEmpty()) {
             return;
@@ -517,7 +509,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         });
     }
-
     private void pushOnlineNow() {
         String key = my9DigitId;
         if (key == null || key.isEmpty()) {
@@ -546,7 +537,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         databaseReference.child("rooms").child(roomOwnerId).child("online_users").child(key).setValue(m);
         databaseReference.child("rooms").child(roomOwnerId).child("online_users").child(key).onDisconnect().removeValue();
     }
-
     private void listenToOnlineMembers() {
         pushOnlineNow();
         if (databaseReference == null) {
@@ -564,7 +554,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         });
     }
-
     private void showChatPopup() {
         if (bottomBarContainer != null) {
             bottomBarContainer.setVisibility(View.GONE);
@@ -580,7 +569,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         }
     }
-
     private void hideChatPopup() {
         if (chatPopupBar != null) {
             chatPopupBar.setVisibility(View.GONE);
@@ -596,7 +584,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         }
     }
-
     private void setupChatPopup() {
         View b = findViewById(R.id.btnOpenChat);
         if (b != null) {
@@ -612,7 +599,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             btnChatOption.setOnClickListener(v -> sendChatMessage());
         }
     }
-
     @Override
     public void onBackPressed() {
         if (chatPopupBar != null && chatPopupBar.getVisibility() == View.VISIBLE) {
@@ -621,7 +607,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
         super.onBackPressed();
     }
-
     private void sendChatMessage() {
         if (inputChatMessage == null) {
             return;
@@ -710,7 +695,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         });
     }
-
     private void listenToChatRealtime() {
         if (messagesRef == null || chatListContainer == null) {
             return;
@@ -811,7 +795,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         });
     }
-
     private void setupSeatInteractions() {
         for (int i = 0; i < 10; i++) {
             final int idx = i;
@@ -822,7 +805,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         }
     }
-
     private void showSeatPopup(final int idx) {
         String myId = my9DigitId.isEmpty() ? currentUserId : my9DigitId;
         if (myId == null || myId.isEmpty()) {
@@ -997,7 +979,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         });
     }
-
     private void takeSeat(int idx, String existingSeat) {
         String myId = my9DigitId.isEmpty() ? currentUserId : my9DigitId;
         if (myId == null || myId.isEmpty()) {
@@ -1018,7 +999,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         seatRef.onDisconnect().removeValue();
         Toast.makeText(VoiceRoomActivity.this, "Seat " + (idx + 1) + " e bosechen ✅", Toast.LENGTH_SHORT).show();
     }
-
     private void removeMySeat() {
         String myId = my9DigitId.isEmpty() ? currentUserId : my9DigitId;
         if (myId == null || myId.isEmpty()) {
@@ -1043,7 +1023,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         });
     }
-
     private void listenToFirebaseSeats() {
         if (databaseReference == null) {
             return;
@@ -1104,7 +1083,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         });
     }
-
     private Bitmap getCircularBitmap(Bitmap src) {
         if (src == null) {
             return null;
@@ -1123,7 +1101,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         canvas.drawBitmap(squared, 0, 0, paint);
         return output;
     }
-
     private void showUserProfileCard(String targetId) {
         if (targetId == null || targetId.isEmpty()) {
             return;
@@ -1182,7 +1159,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         });
     }
-
     private void showUserProfileCardUI(String targetId, String name, String photo, String country, String gender, String levelSend, String levelRecv, String agency, boolean isOwner) {
         BottomSheetDialog d = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout root = new LinearLayout(this);
@@ -1251,7 +1227,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         gift.setPadding(0, 18, 0, 8);
         gift.setOnClickListener(v -> {
             d.dismiss();
-            showNewGiftPanel();
+            showPremiumGiftPanel(targetId, name);
         });
         root.addView(gift);
         LinearLayout btnRow = new LinearLayout(this);
@@ -1280,7 +1256,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         setDialog85(d);
         d.show();
     }
-
     private void listenToRoomDetails() {
         if (roomMetaRef == null) {
             return;
@@ -1315,7 +1290,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         });
     }
-
     private void listenToRoomPhoto() {
         if (roomMetaRef == null) {
             return;
@@ -1337,7 +1311,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         });
     }
-
     private void listenToRoomAdmins() {
         if (adminsRef == null) {
             return;
@@ -1357,7 +1330,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         });
     }
-
     private void listenToMyWallet() {
         if (currentUserId.isEmpty()) {
             return;
@@ -1380,7 +1352,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         });
     }
-
     private void showOnlineListDialog() {
         android.app.Dialog d = makeFullScreenDialog();
         LinearLayout root = new LinearLayout(this);
@@ -1484,7 +1455,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         d.setContentView(root);
         d.show();
     }
-
     private void addOnlineRow(LinearLayout list, String uid, String name, String photo, String level, String country, android.app.Dialog dialog) {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
@@ -1520,7 +1490,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
         list.addView(row);
     }
-
     private void showRoomHeaderProfile() {
         android.app.Dialog dialog = makeFullScreenDialog();
         LinearLayout root = new LinearLayout(this);
@@ -1658,7 +1627,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         dialog.setContentView(root);
         dialog.show();
     }
-
     private void loadRoomOwnerProfileForHeader(TextView tvFollowing, TextView tvLevelVal, TextView tvOwnerVal, TextView tvLangVal, TextView tvCountryVal, TextView tvTagVal) {
         if (userDatabaseRef == null) {
             return;
@@ -1705,7 +1673,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         });
     }
-
     private void loadHeaderProfileData(TextView countTv, LinearLayout memberList, EditText searchEt) {
         if (databaseReference == null) {
             return;
@@ -1766,7 +1733,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         });
     }
-
     private void addMemberRow(LinearLayout list, String id, String name, String photo, String badge) {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
@@ -1798,7 +1764,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
         list.addView(row);
     }
-
     private void showExitDialog() {
         AlertDialog.Builder b = new AlertDialog.Builder(this);
         b.setTitle("Exit Room?");
@@ -1818,11 +1783,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         b.setNegativeButton("Cancel", (d, w) -> d.dismiss());
         b.show();
     }
-
     private void leaveRoomKeepHome() {
-        // MINIMIZE - ONLINE + SEAT 2 TAI THAKBE - KICHU DELETE KORBO NA
     }
-
     private void leaveRoomAndFinish() {
         String k = my9DigitId.isEmpty() ? currentUserId : my9DigitId;
         if (k != null && !k.isEmpty()) {
@@ -1834,7 +1796,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         startActivity(i);
         finish();
     }
-
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -1846,33 +1807,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             removeMySeat();
         }
     }
-
-    private void showNewGiftPanel() {
-        BottomSheetDialog d = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
-        LinearLayout r = new LinearLayout(this);
-        r.setOrientation(LinearLayout.VERTICAL);
-        r.setPadding(24, 20, 24, 24);
-        r.setBackgroundColor(Color.WHITE);
-        TextView t = makeText("🎁 Gift Box", 18, "#222222", true, Gravity.CENTER);
-        r.addView(t);
-        walletTextInGift = makeText("Coins: " + myWalletCoins, 14, "#B8860B", false, Gravity.CENTER);
-        walletTextInGift.setPadding(0, 8, 0, 16);
-        r.addView(walletTextInGift);
-        String[][] gifts = {{"🌹", "Rose", "10"}, {"💎", "Diamond", "100"}, {"🚗", "Car", "1000"}, {"🏰", "Castle", "10000"}};
-        for (String[] gg : gifts) {
-            Button btn = new Button(this);
-            btn.setText(gg[0] + " " + gg[1] + " - 🪙 " + gg[2]);
-            btn.setOnClickListener(v -> {
-                Toast.makeText(this, gg[1] + " Sent ✅", Toast.LENGTH_SHORT).show();
-                d.dismiss();
-            });
-            r.addView(btn);
-        }
-        d.setContentView(r);
-        setDialog75(d);
-        d.show();
-    }
-
     private void showIconToolsDialog(boolean isOwner) {
         BottomSheetDialog d = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout r = new LinearLayout(this);
@@ -1893,7 +1827,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         setDialog85(d);
         d.show();
     }
-
     private LinearLayout createToolsGrid(String[][] items, BottomSheetDialog dialog, boolean dark) {
         LinearLayout grid = new LinearLayout(this);
         grid.setOrientation(LinearLayout.VERTICAL);
@@ -1935,7 +1868,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
         return grid;
     }
-
     private void showRoomPasswordDialog() {
         BottomSheetDialog d = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout root = new LinearLayout(this);
@@ -1974,7 +1906,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         setDialog75(d);
         d.show();
     }
-
     private void showInRoomRankingDialog() {
         android.app.Dialog d = makeFullScreenDialog();
         LinearLayout root = new LinearLayout(this);
@@ -2081,7 +2012,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         d.setContentView(root);
         d.show();
     }
-
     private LinearLayout makePodiumItem(String name, String photo, int rank, int size, String crown, int bgColor) {
         LinearLayout col = new LinearLayout(this);
         col.setOrientation(LinearLayout.VERTICAL);
@@ -2103,7 +2033,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         col.addView(rk);
         return col;
     }
-
     private void loadRankingDataPremium(LinearLayout list, LinearLayout podium) {
         databaseReference.child("rooms").child(roomOwnerId).child("online_users").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -2199,7 +2128,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         });
     }
-
     private void showRoomEditDialog() {
         BottomSheetDialog dialog = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout root = new LinearLayout(this);
@@ -2235,5 +2163,360 @@ public class VoiceRoomActivity extends AppCompatActivity {
         dialog.setContentView(root);
         setDialog85(dialog);
         dialog.show();
+    }
+    private void showPremiumGiftPanel(String targetId, String targetName) {
+        selectedGiftTargetId = targetId;
+        selectedGiftTargetName = targetName;
+        selectedGiftEmoji = "🐉";
+        selectedGiftName = "Dragon";
+        selectedGiftPrice = 9999;
+        BottomSheetDialog d = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(Color.parseColor("#111111"));
+        root.setPadding(20, 16, 20, 20);
+        LinearLayout seatRow = new LinearLayout(this);
+        seatRow.setOrientation(LinearLayout.HORIZONTAL);
+        seatRow.setPadding(0, 0, 0, 12);
+        root.addView(seatRow);
+        TextView seatLabel = makeText("Select User:", 13, "#FFFFFF", true, Gravity.START);
+        seatLabel.setPadding(0, 0, 12, 0);
+        seatRow.addView(seatLabel);
+        loadSeatUsersForGift(seatRow);
+        LinearLayout tabs = new LinearLayout(this);
+        tabs.setOrientation(LinearLayout.HORIZONTAL);
+        tabs.setPadding(0, 8, 0, 12);
+        root.addView(tabs);
+        String[] tabNames = {"Gift", "Lucky", "CP", "Activity", "Flag", "Exclusive", "Bag"};
+        for (String tn2 : tabNames) {
+            TextView tt = makeText(tn2, 13, tn2.equals("Gift") ? "#FFC107" : "#999999", tn2.equals("Gift"), Gravity.CENTER);
+            tt.setPadding(20, 10, 20, 10);
+            tt.setOnClickListener(v -> Toast.makeText(this, tn2 + " - Coming Soon", Toast.LENGTH_SHORT).show());
+            tabs.addView(tt);
+        }
+        ScrollView sv = new ScrollView(this);
+        LinearLayout grid = new LinearLayout(this);
+        grid.setOrientation(LinearLayout.VERTICAL);
+        sv.addView(grid);
+        root.addView(sv);
+        String[][] gifts = {{"🐉", "Dragon", "9999"}, {"🚗", "Sports Car", "7880"}, {"👑", "Moon Crown", "16990"}, {"🚢", "Ship", "29999"}, {"🐯", "Tiger", "1999"}, {"🌹", "Rose", "10"}, {"💋", "Kiss", "66"}, {"🐼", "Panda", "9999"}};
+        LinearLayout currentRow = null;
+        for (int i = 0; i < gifts.length; i++) {
+            if (i % 4 == 0) {
+                currentRow = new LinearLayout(this);
+                currentRow.setOrientation(LinearLayout.HORIZONTAL);
+                currentRow.setWeightSum(4);
+                grid.addView(currentRow);
+            }
+            String emoji = gifts[i][0];
+            String gname = gifts[i][1];
+            String gprice = gifts[i][2];
+            LinearLayout cell = new LinearLayout(this);
+            cell.setOrientation(LinearLayout.VERTICAL);
+            cell.setGravity(Gravity.CENTER);
+            cell.setPadding(4, 14, 4, 14);
+            cell.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            TextView ic = makeText(emoji, 36, "#FFFFFF", false, Gravity.CENTER);
+            cell.addView(ic);
+            TextView pr = makeText("🪙 " + gprice, 12, "#FFC107", true, Gravity.CENTER);
+            cell.addView(pr);
+            TextView nm = makeText(gname, 10, "#FFFFFF", false, Gravity.CENTER);
+            cell.addView(nm);
+            cell.setOnClickListener(v -> {
+                selectedGiftEmoji = emoji;
+                selectedGiftName = gname;
+                selectedGiftPrice = Long.parseLong(gprice);
+                Toast.makeText(this, gname + " Selected ✅", Toast.LENGTH_SHORT).show();
+            });
+            if (currentRow != null) {
+                currentRow.addView(cell);
+            }
+        }
+        LinearLayout bottom = new LinearLayout(this);
+        bottom.setOrientation(LinearLayout.HORIZONTAL);
+        bottom.setGravity(Gravity.CENTER_VERTICAL);
+        bottom.setPadding(0, 16, 0, 0);
+        root.addView(bottom);
+        TextView coinTv = makeText("🪙 " + myWalletCoins, 14, "#FFC107", true, Gravity.START);
+        coinTv.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        bottom.addView(coinTv);
+        TextView countOne = makeText("1", 14, "#222222", true, Gravity.CENTER);
+        countOne.setPadding(28, 14, 28, 14);
+        GradientDrawable gOne = new GradientDrawable();
+        gOne.setColor(Color.parseColor("#FFC107"));
+        gOne.setCornerRadius(60);
+        countOne.setBackground(gOne);
+        bottom.addView(countOne);
+        Button sendBtn = new Button(this);
+        sendBtn.setText("Send");
+        sendBtn.setAllCaps(false);
+        sendBtn.setTextSize(16);
+        sendBtn.setTextColor(Color.parseColor("#222222"));
+        GradientDrawable gSend = new GradientDrawable();
+        gSend.setColor(Color.parseColor("#FFC107"));
+        gSend.setCornerRadius(60);
+        sendBtn.setBackground(gSend);
+        sendBtn.setPadding(40, 10, 40, 10);
+        sendBtn.setOnClickListener(v -> {
+            d.dismiss();
+            sendPremiumGift();
+        });
+        bottom.addView(sendBtn);
+        d.setContentView(root);
+        setDialog85(d);
+        d.show();
+    }
+    private void loadSeatUsersForGift(LinearLayout seatRow) {
+        databaseReference.child("rooms").child(roomOwnerId).child("seats").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot s) {
+                seatRow.removeAllViews();
+                TextView label = makeText("To: ", 13, "#FFFFFF", false, Gravity.CENTER);
+                seatRow.addView(label);
+                if (!s.exists()) {
+                    TextView empty = makeText("No one on seat", 12, "#999999", false, Gravity.CENTER);
+                    seatRow.addView(empty);
+                    return;
+                }
+                for (DataSnapshot ds : s.getChildren()) {
+                    String uid = ds.child("userId").getValue(String.class);
+                    String uname = ds.child("userName").getValue(String.class);
+                    String uphoto = ds.child("photoBase64").getValue(String.class);
+                    if (uid == null) {
+                        continue;
+                    }
+                    if (uname == null) {
+                        uname = "User";
+                    }
+                    if (uphoto == null) {
+                        uphoto = "";
+                    }
+                    CardView card = makeAvatar(uphoto, uname, 70);
+                    card.setRadius(35);
+                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(70, 70);
+                    lp.setMargins(6, 0, 6, 0);
+                    card.setLayoutParams(lp);
+                    String fUid = uid;
+                    String fName = uname;
+                    String fPhoto = uphoto;
+                    card.setOnClickListener(v -> {
+                        selectedGiftTargetId = fUid;
+                        selectedGiftTargetName = fName;
+                        selectedGiftTargetPhoto = fPhoto;
+                        Toast.makeText(VoiceRoomActivity.this, "To: " + fName, Toast.LENGTH_SHORT).show();
+                    });
+                    seatRow.addView(card);
+                }
+                CardView self = new CardView(VoiceRoomActivity.this);
+                LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(70, 70);
+                lp2.setMargins(6, 0, 6, 0);
+                self.setLayoutParams(lp2);
+                self.setRadius(35);
+                self.setCardElevation(0);
+                self.setCardBackgroundColor(Color.parseColor("#7B1FA2"));
+                TextView selfT = new TextView(VoiceRoomActivity.this);
+                selfT.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                selfT.setGravity(Gravity.CENTER);
+                selfT.setText("Me");
+                selfT.setTextColor(Color.WHITE);
+                selfT.setTypeface(null, android.graphics.Typeface.BOLD);
+                self.addView(selfT);
+                self.setOnClickListener(v -> {
+                    String myId = my9DigitId.isEmpty() ? currentUserId : my9DigitId;
+                    selectedGiftTargetId = myId;
+                    selectedGiftTargetName = myDisplayName;
+                    selectedGiftTargetPhoto = myPhotoBase64;
+                    Toast.makeText(VoiceRoomActivity.this, "Self Gift ✅", Toast.LENGTH_SHORT).show();
+                });
+                seatRow.addView(self);
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError e) {
+            }
+        });
+    }
+    private void showNewGiftPanel() {
+        String tid = roomOwnerId;
+        String tname = roomTitleText != null ? roomTitleText.getText().toString() : "User";
+        showPremiumGiftPanel(tid, tname);
+    }
+    private void sendPremiumGift() {
+        long total = selectedGiftPrice;
+        if (myWalletCoins < total) {
+            Toast.makeText(this, "Coins kom ache! Recharge koro 🪙", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        String myId = my9DigitId.isEmpty() ? currentUserId : my9DigitId;
+        if (myId == null || myId.isEmpty()) {
+            myId = roomOwnerId;
+        }
+        String senderName = myDisplayName;
+        String receiverId = selectedGiftTargetId;
+        if (receiverId == null || receiverId.isEmpty()) {
+            receiverId = roomOwnerId;
+        }
+        String receiverName = selectedGiftTargetName;
+        if (receiverName == null || receiverName.isEmpty()) {
+            receiverName = "User";
+        }
+        long receiverGet = (total * 30) / 100;
+        Map<String, Object> m = new HashMap<>();
+        m.put("senderId", myId);
+        m.put("senderName", senderName);
+        m.put("receiverId", receiverId);
+        m.put("receiverName", receiverName);
+        m.put("giftEmoji", selectedGiftEmoji);
+        m.put("giftName", selectedGiftName);
+        m.put("giftPrice", selectedGiftPrice);
+        m.put("giftCount", 1);
+        m.put("totalCoins", total);
+        m.put("receiverGet", receiverGet);
+        m.put("time", System.currentTimeMillis());
+        databaseReference.child("rooms").child(roomOwnerId).child("gifts").push().setValue(m);
+        databaseReference.child("rooms").child(roomOwnerId).child("gift_history").push().setValue(m);
+        long newSenderCoins = myWalletCoins - total;
+        myWalletCoins = newSenderCoins;
+        if (currentUserId != null && !currentUserId.isEmpty()) {
+            userDatabaseRef.child(currentUserId).child("coins").setValue(newSenderCoins);
+        }
+        addCoinsToReceiver(receiverId, receiverGet);
+        Toast.makeText(this, selectedGiftName + " Sent ✅ - Receiver gets " + receiverGet, Toast.LENGTH_SHORT).show();
+        showFlyingGiftEffect(senderName, receiverName, selectedGiftEmoji, selectedGiftName, total, receiverGet);
+    }
+    private void addCoinsToReceiver(String receiver9DigitId, long add) {
+        if (receiver9DigitId == null || receiver9DigitId.isEmpty()) {
+            return;
+        }
+        userDatabaseRef.orderByChild("my9DigitId").equalTo(receiver9DigitId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snap) {
+                if (snap.exists()) {
+                    for (DataSnapshot u : snap.getChildren()) {
+                        Long cur = u.child("coins").getValue(Long.class);
+                        long curV = cur != null ? cur : 0L;
+                        long newV = curV + add;
+                        userDatabaseRef.child(u.getKey()).child("coins").setValue(newV);
+                        userDatabaseRef.child(u.getKey()).child("totalReceived").setValue(newV);
+                        break;
+                    }
+                } else {
+                    userDatabaseRef.child(receiver9DigitId).child("coins").setValue(add);
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError e) {
+            }
+        });
+    }
+    private void showFlyingGiftEffect(String sender, String receiver, String emoji, String giftName, long total, long receiverGet) {
+        android.app.Dialog d = makeFullScreenDialog();
+        android.widget.FrameLayout root = new android.widget.FrameLayout(this);
+        root.setBackgroundColor(Color.parseColor("#88000000"));
+        TextView banner = new TextView(this);
+        banner.setText(sender + " Send " + emoji + " x1");
+        banner.setTextColor(Color.WHITE);
+        banner.setTextSize(16);
+        banner.setTypeface(null, android.graphics.Typeface.BOLD);
+        banner.setGravity(Gravity.CENTER);
+        banner.setPadding(20, 14, 20, 14);
+        GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, new int[]{Color.parseColor("#FF9800"), Color.parseColor("#FF5252")});
+        bg.setCornerRadius(60);
+        banner.setBackground(bg);
+        android.widget.FrameLayout.LayoutParams bp = new android.widget.FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        bp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
+        bp.topMargin = 100;
+        banner.setLayoutParams(bp);
+        root.addView(banner);
+        TextView fly = new TextView(this);
+        fly.setText(emoji);
+        fly.setTextSize(90);
+        fly.setGravity(Gravity.CENTER);
+        android.widget.FrameLayout.LayoutParams fp = new android.widget.FrameLayout.LayoutParams(300, 300);
+        fp.gravity = Gravity.CENTER;
+        fly.setLayoutParams(fp);
+        root.addView(fly);
+        TextView info = new TextView(this);
+        info.setText(giftName + " ➡️ " + receiver + "\n🪙 " + total + " | Receiver gets " + receiverGet + " (30%)");
+        info.setTextColor(Color.WHITE);
+        info.setTextSize(15);
+        info.setTypeface(null, android.graphics.Typeface.BOLD);
+        info.setGravity(Gravity.CENTER);
+        android.widget.FrameLayout.LayoutParams ip = new android.widget.FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        ip.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
+        ip.bottomMargin = 200;
+        info.setLayoutParams(ip);
+        root.addView(info);
+        try {
+            android.media.MediaPlayer mp = android.media.MediaPlayer.create(this, android.provider.Settings.System.DEFAULT_NOTIFICATION_URI);
+            if (mp != null) {
+                mp.start();
+            }
+        } catch (Exception e) {
+        }
+        fly.setTranslationX(-600);
+        fly.setTranslationY(-300);
+        fly.animate().translationX(0).translationY(0).setDuration(1200).withEndAction(() -> {
+            fly.animate().scaleX(1.4f).scaleY(1.4f).setDuration(600).withEndAction(() -> {
+                fly.animate().translationY(400).alpha(0.5f).setDuration(800).start();
+            }).start();
+        }).start();
+        root.setOnClickListener(v -> d.dismiss());
+        d.setContentView(root);
+        d.show();
+        new android.os.Handler().postDelayed(() -> {
+            try {
+                d.dismiss();
+            } catch (Exception e) {
+            }
+        }, 4000);
+    }
+    private void listenToGiftEvents() {
+        if (giftListenerStarted) {
+            return;
+        }
+        giftListenerStarted = true;
+        databaseReference.child("rooms").child(roomOwnerId).child("gifts").limitToLast(1).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot s) {
+                if (!s.exists()) {
+                    return;
+                }
+                for (DataSnapshot ds : s.getChildren()) {
+                    String sender = ds.child("senderName").getValue(String.class);
+                    String emoji = ds.child("giftEmoji").getValue(String.class);
+                    String gname = ds.child("giftName").getValue(String.class);
+                    Long tot = ds.child("totalCoins").getValue(Long.class);
+                    Long recvGet = ds.child("receiverGet").getValue(Long.class);
+                    String recv = ds.child("receiverName").getValue(String.class);
+                    String senderId = ds.child("senderId").getValue(String.class);
+                    String myId = my9DigitId.isEmpty() ? currentUserId : my9DigitId;
+                    if (senderId != null && senderId.equals(myId)) {
+                        return;
+                    }
+                    if (sender == null) {
+                        sender = "User";
+                    }
+                    if (emoji == null) {
+                        emoji = "🎁";
+                    }
+                    if (gname == null) {
+                        gname = "Gift";
+                    }
+                    if (tot == null) {
+                        tot = 0L;
+                    }
+                    if (recvGet == null) {
+                        recvGet = (tot * 30) / 100;
+                    }
+                    if (recv == null) {
+                        recv = "User";
+                    }
+                    showFlyingGiftEffect(sender, recv, emoji, gname, tot, recvGet);
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError e) {
+            }
+        });
     }
 }
