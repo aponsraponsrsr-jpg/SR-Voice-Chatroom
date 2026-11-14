@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
+        <ImageView android:id="@+id/imgRoomPhoto" android:layout_width="100dp" android:layout_height="100dp" android:layout_gravity="center" android:src="@android:drawable/ic_menu_gallery" />
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="Tap Photo to Change" android:textSize="12sp" />
+        <EditText android:id="@+id/etRoomName" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Room Name" android:layout_marginTop="12dp" />
+        <EditText android:id="@+id/etRoomAnnouncement" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Announcement / Welcome" android:layout_marginTop="8dp" />
+        <TextView android:id="@+id/tvSelectedTheme" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Theme: Default" android:layout_marginTop="12dp" android:textStyle="bold" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp">
+            <Button android:id="@+id/btnThemeDefault" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Default" />
+            <Button android:id="@+id/btnThemeGold" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Gold" />
+            <Button android:id="@+id/btnThemeNight" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Night" />
+        </LinearLayout>
+        <Button android:id="@+id/btnSaveRoomSet" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Save" android:layout_marginTop="16dp" />
+        <Button android:id="@+id/btnCancelRoomSet" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Cancel" />
+    </LinearLayout>
+</ScrollView>
