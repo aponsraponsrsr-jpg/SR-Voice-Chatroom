@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="#FFFFFF">
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Room Settings" android:textSize="20sp" android:textStyle="bold" android:textColor="#111111" />
+    <Button android:id="@+id/btnSettingsRoomSet" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="⚙️ Room Set - Photo / Name / Announcement / Theme" android:layout_marginTop="16dp" />
+    <Button android:id="@+id/btnSettingsClearChat" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="🧹 Clear Chat" android:layout_marginTop="8dp" />
+    <Button android:id="@+id/btnSettingsClose" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Close" android:layout_marginTop="8dp" />
+</LinearLayout>
