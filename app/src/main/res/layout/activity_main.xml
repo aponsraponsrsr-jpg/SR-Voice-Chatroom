@@ -4,15 +4,11 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="#1B1035">
-
-    <!-- UPORE CONTENT CONTAINER - SCROLL HOBE -->
     <FrameLayout
         android:id="@+id/mainContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
-
-        <!-- HOME PAGE -->
         <ScrollView
             android:id="@+id/pageHome"
             android:layout_width="match_parent"
@@ -23,7 +19,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="12dp">
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -49,7 +44,6 @@
                         android:textColor="#FFFFFF"
                         android:textSize="18sp" />
                 </LinearLayout>
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -72,14 +66,12 @@
                         android:textColor="#AAAAAA"
                         android:textSize="12sp" />
                 </LinearLayout>
-
                 <LinearLayout
                     android:id="@+id/homeRoomList"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
                     android:layout_marginTop="10dp" />
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -91,8 +83,6 @@
                     android:padding="20dp" />
             </LinearLayout>
         </ScrollView>
-
-        <!-- MOMENT PAGE -->
         <ScrollView
             android:id="@+id/pageMoment"
             android:layout_width="match_parent"
@@ -122,8 +112,6 @@
                     android:paddingTop="10dp" />
             </LinearLayout>
         </ScrollView>
-
-        <!-- INBOX PAGE -->
         <ScrollView
             android:id="@+id/pageInbox"
             android:layout_width="match_parent"
@@ -153,8 +141,6 @@
                     android:paddingTop="10dp" />
             </LinearLayout>
         </ScrollView>
-
-        <!-- ME PAGE - SCROLL HOBE -->
         <ScrollView
             android:id="@+id/pageMe"
             android:layout_width="match_parent"
@@ -167,17 +153,14 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp">
-
-                <!-- PROFILE - GOL -->
                 <LinearLayout
+                    android:id="@+id/btnMeProfileBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:gravity="center_vertical"
                     android:padding="12dp"
                     android:background="#FFFFFF">
-
-                    <!-- GOL PROFILE -->
                     <ImageView
                         android:id="@+id/meProfileImg"
                         android:layout_width="72dp"
@@ -186,7 +169,6 @@
                         android:background="@drawable/bg_profile_gradient"
                         android:padding="2dp"
                         android:src="@android:drawable/ic_menu_gallery" />
-
                     <LinearLayout
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
@@ -223,8 +205,38 @@
                         android:textColor="#AAAAAA"
                         android:textSize="22sp" />
                 </LinearLayout>
-
-                <!-- FOLLOW / FANS / VISITOR -->
+                <LinearLayout
+                    android:id="@+id/btnCoins"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="14dp"
+                    android:background="#FFFDE7"
+                    android:layout_marginTop="8dp">
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="🪙 My Wallet - Original Coins"
+                        android:textColor="#222222"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:id="@+id/meCoinsText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🪙 0"
+                        android:textColor="#FF9800"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="  >"
+                        android:textColor="#AAAAAA"
+                        android:textSize="16sp" />
+                </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -234,22 +246,75 @@
                     android:paddingBottom="14dp"
                     android:background="#FFFFFF"
                     android:layout_marginTop="8dp">
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                        <TextView android:id="@+id/meFollowCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="#222222" android:textSize="16sp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Follow" android:textColor="#888888" android:textSize="12sp" />
+                    <LinearLayout
+                        android:id="@+id/btnFollowBox"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <TextView
+                            android:id="@+id/meFollowCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#222222"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Follow"
+                            android:textColor="#888888"
+                            android:textSize="12sp" />
                     </LinearLayout>
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                        <TextView android:id="@+id/meFansCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="#222222" android:textSize="16sp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Fans" android:textColor="#888888" android:textSize="12sp" />
+                    <LinearLayout
+                        android:id="@+id/btnFansBox"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <TextView
+                            android:id="@+id/meFansCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#222222"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Fans"
+                            android:textColor="#888888"
+                            android:textSize="12sp" />
                     </LinearLayout>
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-                        <TextView android:id="@+id/meVisitorCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0" android:textColor="#222222" android:textSize="16sp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Visitor" android:textColor="#888888" android:textSize="12sp" />
+                    <LinearLayout
+                        android:id="@+id/btnVisitorBox"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <TextView
+                            android:id="@+id/meVisitorCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:textColor="#222222"
+                            android:textSize="16sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Visitor"
+                            android:textColor="#888888"
+                            android:textSize="12sp" />
                     </LinearLayout>
                 </LinearLayout>
-
-                <!-- SVIP -->
                 <LinearLayout
+                    android:id="@+id/btnSvipCenter"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
@@ -266,13 +331,13 @@
                         android:textSize="13sp"
                         android:textStyle="bold" />
                 </LinearLayout>
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:layout_marginTop="8dp">
                     <LinearLayout
+                        android:id="@+id/btnVip"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -280,10 +345,22 @@
                         android:gravity="center"
                         android:padding="12dp"
                         android:background="#FFF3E0">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="VIP" android:textColor="#FF9800" android:textSize="14sp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="check now >" android:textColor="#888888" android:textSize="11sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="VIP"
+                            android:textColor="#FF9800"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="check now >"
+                            android:textColor="#888888"
+                            android:textSize="11sp" />
                     </LinearLayout>
                     <LinearLayout
+                        android:id="@+id/btnRecharge"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
@@ -292,11 +369,21 @@
                         android:padding="12dp"
                         android:background="#FCE4EC"
                         android:layout_marginStart="8dp">
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎁 Recharge" android:textColor="#E91E63" android:textSize="14sp" android:textStyle="bold" />
-                        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Top up >" android:textColor="#888888" android:textSize="11sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🎁 Recharge"
+                            android:textColor="#E91E63"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Top up >"
+                            android:textColor="#888888"
+                            android:textSize="11sp" />
                     </LinearLayout>
                 </LinearLayout>
-
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -306,23 +393,96 @@
                     android:textStyle="bold"
                     android:paddingTop="16dp"
                     android:paddingBottom="8dp" />
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:background="#FFFFFF"
                     android:padding="10dp">
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🛍️" android:textSize="22sp" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Store" android:textColor="#333333" android:textSize="12sp" /></LinearLayout>
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👗" android:textSize="22sp" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Dress" android:textColor="#333333" android:textSize="12sp" /></LinearLayout>
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎂" android:textSize="22sp" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Birthday gift" android:textColor="#333333" android:textSize="12sp" /></LinearLayout>
-                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center"><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="📊" android:textSize="22sp" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Level" android:textColor="#333333" android:textSize="12sp" /></LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/btnStore"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🛍️"
+                            android:textSize="22sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Store"
+                            android:textColor="#333333"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/btnDress"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="👗"
+                            android:textSize="22sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Dress"
+                            android:textColor="#333333"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/btnBirthday"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🎂"
+                            android:textSize="22sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Birthday gift"
+                            android:textColor="#333333"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:id="@+id/btnLevel"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="📊"
+                            android:textSize="22sp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Level"
+                            android:textColor="#333333"
+                            android:textSize="12sp" />
+                    </LinearLayout>
                 </LinearLayout>
-
-                <!-- LIST -->
-                <LinearLayout android:id="@+id/meMenuList" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:background="#FFFFFF" android:layout_marginTop="10dp" />
-
-                <!-- SETTING ER NICHE LOGOUT (সেটিংস মেনুর স্টাইলে গোছানো) -->
+                <LinearLayout
+                    android:id="@+id/meMenuList"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:background="#FFFFFF"
+                    android:layout_marginTop="10dp" />
                 <LinearLayout
                     android:id="@+id/btnLogout"
                     android:layout_width="match_parent"
@@ -357,8 +517,6 @@
             </LinearLayout>
         </ScrollView>
     </FrameLayout>
-
-    <!-- BOTTOM BAR - FIXED - KOKHONO SORBE NA - HOME / MOMENT / INBOX / ME -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="60dp"
@@ -366,29 +524,106 @@
         android:background="#FFFFFF"
         android:paddingTop="4dp"
         android:paddingBottom="4dp">
-
-        <LinearLayout android:id="@+id/navHome" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-            <TextView android:id="@+id/navHomeIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🏠" android:textSize="20sp" />
-            <TextView android:id="@+id/navHomeText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Home" android:textColor="#FF4081" android:textSize="11sp" android:textStyle="bold" />
+        <LinearLayout
+            android:id="@+id/navHome"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+            <TextView
+                android:id="@+id/navHomeIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🏠"
+                android:textSize="20sp" />
+            <TextView
+                android:id="@+id/navHomeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Home"
+                android:textColor="#FF4081"
+                android:textSize="11sp"
+                android:textStyle="bold" />
         </LinearLayout>
-
-        <LinearLayout android:id="@+id/navMoment" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-            <TextView android:id="@+id/navMomentIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🕒" android:textSize="20sp" />
-            <TextView android:id="@+id/navMomentText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Moment" android:textColor="#888888" android:textSize="11sp" />
+        <LinearLayout
+            android:id="@+id/navMoment"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+            <TextView
+                android:id="@+id/navMomentIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🕒"
+                android:textSize="20sp" />
+            <TextView
+                android:id="@+id/navMomentText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Moment"
+                android:textColor="#888888"
+                android:textSize="11sp" />
         </LinearLayout>
-
-        <LinearLayout android:id="@+id/navCenterPlus" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-            <TextView android:layout_width="44dp" android:layout_height="44dp" android:gravity="center" android:text="+" android:textSize="22sp" android:textColor="#FFFFFF" android:background="#FF4081" />
+        <LinearLayout
+            android:id="@+id/navCenterPlus"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+            <TextView
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:gravity="center"
+                android:text="+"
+                android:textSize="22sp"
+                android:textColor="#FFFFFF"
+                android:background="#FF4081" />
         </LinearLayout>
-
-        <LinearLayout android:id="@+id/navInbox" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-            <TextView android:id="@+id/navInboxIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="💬" android:textSize="20sp" />
-            <TextView android:id="@+id/navInboxText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Inbox" android:textColor="#888888" android:textSize="11sp" />
+        <LinearLayout
+            android:id="@+id/navInbox"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+            <TextView
+                android:id="@+id/navInboxIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💬"
+                android:textSize="20sp" />
+            <TextView
+                android:id="@+id/navInboxText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Inbox"
+                android:textColor="#888888"
+                android:textSize="11sp" />
         </LinearLayout>
-
-        <LinearLayout android:id="@+id/navMe" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-            <TextView android:id="@+id/navMeIcon" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👤" android:textSize="20sp" />
-            <TextView android:id="@+id/navMeText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Me" android:textColor="#888888" android:textSize="11sp" />
+        <LinearLayout
+            android:id="@+id/navMe"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+            <TextView
+                android:id="@+id/navMeIcon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="👤"
+                android:textSize="20sp" />
+            <TextView
+                android:id="@+id/navMeText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Me"
+                android:textColor="#888888"
+                android:textSize="11sp" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>
