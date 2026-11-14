@@ -29,6 +29,24 @@
         </LinearLayout>
     </LinearLayout>
     <TextView android:id="@+id/roomNoticeBarText" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone" android:background="#FFF3CD" android:textColor="#3E2F00" android:textSize="13sp" android:padding="8dp" />
+    <!-- FIXED: JAVA FILE ER JONNO MISSING 3 TA ID EKHANE LUKANO OBOSTHAY ADD KORA - NAHOLE BUILD FAIL KORBE -->
+    <TextView
+        android:id="@+id/btnRoomEdit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Edit"
+        android:visibility="gone" />
+    <LinearLayout
+        android:id="@+id/layoutOwnerTools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="gone" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvOnline"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:weightSum="5" android:paddingTop="6dp" android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingBottom="2dp">
         <LinearLayout android:id="@+id/seat_0" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp"><TextView android:id="@+id/seatImg_0" android:layout_width="56dp" android:layout_height="56dp" android:text="🪑" android:textSize="24sp" android:gravity="center" android:background="@drawable/circle_seat_bg" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Host" android:textSize="11sp" android:textColor="#222222" /></LinearLayout>
         <LinearLayout android:id="@+id/seat_1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp"><TextView android:id="@+id/seatImg_1" android:layout_width="56dp" android:layout_height="56dp" android:text="🪑" android:textSize="24sp" android:gravity="center" android:background="@drawable/circle_seat_bg" /><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="11sp" android:textColor="#222222" /></LinearLayout>
