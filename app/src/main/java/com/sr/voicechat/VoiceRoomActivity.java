@@ -1,6 +1,5 @@
 package com.sr.voicechat;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
@@ -10,7 +9,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
@@ -39,7 +37,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private Button btnRoomSet, btnRoomEdit;
     private View layoutOwnerTools;
     private RecyclerView rvOnline;
-    private LinearLayout chatListContainer;
+    private android.widget.LinearLayout chatListContainer;
     private DatabaseReference activeRoomRef, roomMetaRef;
     private SharedPreferences prefs;
     private ImageView dialogRoomPhoto;
@@ -121,10 +119,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
             .setTitle("Room Options")
             .setItems(options, (dialog, which) -> {
                 if (which == 0) {
-                    // Minimize = Room theke ber hoye App er Home Page e jabe
                     finish();
                 } else {
-                    // Exit Room = App theke ekbare ber hoye jabe
                     finishAffinity();
                 }
             })
@@ -172,17 +168,24 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void openPremiumSettings() {
         BottomSheetDialog dialog = new BottomSheetDialog(this);
-        View view = LayoutInflater.from(this).inflate(R.layout.dialog_room_settings, null);
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_room_tools, null);
         dialog.setContentView(view);
-        view.findViewById(R.id.btnSettingsRoomSet).setOnClickListener(v -> {
-            dialog.dismiss();
-            openRoomSetDialog();
-        });
-        view.findViewById(R.id.btnSettingsClearChat).setOnClickListener(v -> {
-            dialog.dismiss();
-            clearChat();
-        });
-        view.findViewById(R.id.btnSettingsClose).setOnClickListener(v -> dialog.dismiss());
+        view.findViewById(R.id.toolRoomSet).setOnClickListener(v -> { dialog.dismiss(); openRoomSetDialog(); });
+        view.findViewById(R.id.toolRoomEdit).setOnClickListener(v -> { dialog.dismiss(); openRoomSetDialog(); });
+        view.findViewById(R.id.toolClearChat).setOnClickListener(v -> { dialog.dismiss(); clearChat(); });
+        view.findViewById(R.id.toolLock).setOnClickListener(v -> Toast.makeText(this, "Lock on - Coming Soon", Toast.LENGTH_SHORT).show());
+        view.findViewById(R.id.toolClearCharm).setOnClickListener(v -> Toast.makeText(this, "Clear charm - Coming Soon", Toast.LENGTH_SHORT).show());
+        view.findViewById(R.id.toolChangeMic).setOnClickListener(v -> Toast.makeText(this, "Change mic - Coming Soon", Toast.LENGTH_SHORT).show());
+        view.findViewById(R.id.toolMicTheme).setOnClickListener(v -> Toast.makeText(this, "Mic Theme - Coming Soon", Toast.LENGTH_SHORT).show());
+        view.findViewById(R.id.toolDress).setOnClickListener(v -> Toast.makeText(this, "Dress - Coming Soon", Toast.LENGTH_SHORT).show());
+        view.findViewById(R.id.toolLuckySound).setOnClickListener(v -> Toast.makeText(this, "Lucky Sound - Coming Soon", Toast.LENGTH_SHORT).show());
+        view.findViewById(R.id.toolVoiceUser).setOnClickListener(v -> Toast.makeText(this, "Voice User - Coming Soon", Toast.LENGTH_SHORT).show());
+        view.findViewById(R.id.toolKickRecord).setOnClickListener(v -> Toast.makeText(this, "Kick out record - Coming Soon", Toast.LENGTH_SHORT).show());
+        view.findViewById(R.id.toolYoutube).setOnClickListener(v -> Toast.makeText(this, "YouTube Co-watch - Coming Soon", Toast.LENGTH_SHORT).show());
+        view.findViewById(R.id.toolLuckyFloat).setOnClickListener(v -> Toast.makeText(this, "Lucky float - Coming Soon", Toast.LENGTH_SHORT).show());
+        view.findViewById(R.id.toolRoomPK).setOnClickListener(v -> Toast.makeText(this, "Room PK - Coming Soon", Toast.LENGTH_SHORT).show());
+        view.findViewById(R.id.toolBroadcast).setOnClickListener(v -> Toast.makeText(this, "Broadcast - Coming Soon", Toast.LENGTH_SHORT).show());
+        view.findViewById(R.id.btnToolsClose).setOnClickListener(v -> dialog.dismiss());
         dialog.show();
     }
 
