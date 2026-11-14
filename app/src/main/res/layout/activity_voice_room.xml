@@ -13,6 +13,10 @@
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:paddingStart="8dp">
             <TextView android:id="@+id/roomTitleText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sr Official's Room" android:textColor="#FFFFFF" android:textSize="16sp" android:textStyle="bold" />
             <TextView android:id="@+id/roomInfoText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ID: 499506534" android:textColor="#FFFFFF" android:textSize="11sp" />
+            <!-- JAVA FILE ER JONNO - EI 3 TA LAGBE -->
+            <TextView android:id="@+id/tvRoomName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Voice Room" android:textColor="#FFFFFF" android:textSize="14sp" android:textStyle="bold" android:visibility="gone" />
+            <TextView android:id="@+id/tvRoomId" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Room ID: " android:textColor="#FFFFFF" android:textSize="11sp" android:visibility="gone" />
+            <TextView android:id="@+id/tvMyIdInRoom" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="আমার ID: " android:textColor="#FFFFFF" android:textSize="11sp" android:visibility="gone" />
         </LinearLayout>
         <!-- RANKING + COINS - SAME AS BEFORE, NOW UP HERE -->
         <TextView android:id="@+id/btnInRoomRanking" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🏆" android:textSize="18sp" android:padding="3dp" />
@@ -29,19 +33,28 @@
         </LinearLayout>
     </LinearLayout>
     <TextView android:id="@+id/roomNoticeBarText" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone" android:background="#FFF3CD" android:textColor="#3E2F00" android:textSize="13sp" android:padding="8dp" />
-    <!-- FIXED: JAVA FILE ER JONNO MISSING 3 TA ID EKHANE LUKANO OBOSTHAY ADD KORA - NAHOLE BUILD FAIL KORBE -->
-    <TextView
-        android:id="@+id/btnRoomEdit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Edit"
-        android:visibility="gone" />
+    <!-- JAVA FILE ER JONNO OWNER TOOLS - OWNER HOLE DEKHABE, NAHOLE LUKANO THAKBE -->
     <LinearLayout
         android:id="@+id/layoutOwnerTools"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:visibility="gone" />
+        android:visibility="gone"
+        android:padding="8dp"
+        android:background="#FFFFFF">
+        <Button
+            android:id="@+id/btnRoomSet"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Room Set" />
+        <Button
+            android:id="@+id/btnRoomEdit"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Edit Room" />
+    </LinearLayout>
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvOnline"
         android:layout_width="match_parent"
