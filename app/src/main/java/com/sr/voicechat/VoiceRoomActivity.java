@@ -159,7 +159,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (bt != null) bt.setOnClickListener(v -> showIconToolsDialog(isAdminOrOwner()));
         View bm = findViewById(R.id.btnMicToggle);
         if (bm != null) bm.setOnClickListener(v -> Toast.makeText(this, "Mic - Coming Soon", Toast.LENGTH_SHORT).show());
-        View bw = findViewById(R.id.btnWallet);
+        View bw = findViewById(getResources().getIdentifier("btnWallet", "id", getPackageName())); if (bw != null) bw.setOnClickListener(v -> showRechargeDialog());
         if (bw != null) bw.setOnClickListener(v -> showRechargeDialog());
         setupChatPopup();
         setupSeatInteractions();
