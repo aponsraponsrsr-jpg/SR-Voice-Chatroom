@@ -1,7 +1,5 @@
 package com.sr.voicechat;
 
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -69,6 +67,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private String selectedGiftTargetId = "";
     private String selectedGiftTargetName = "";
     private String selectedGiftTargetPhoto = "";
+    private int selectedGiftIndex = 0;
+    private long selectedRechargeCoins = 100000;
+    private String selectedRechargePrice = "USD 0.99";
     private SharedPreferences prefs;
     private DatabaseReference databaseReference;
     private DatabaseReference roomMetaRef;
@@ -138,31 +139,28 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (chatPopupBar != null) {
             chatPopupBar.setVisibility(View.GONE);
         }
-        galleryLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            r -> {
-                if (r.getResultCode() == RESULT_OK && r.getData() != null && r.getData().getData() != null) {
-                    try {
-                        Bitmap bmp = MediaStore.Images.Media.getBitmap(getContentResolver(), r.getData().getData());
-                        java.io.ByteArrayOutputStream ba = new java.io.ByteArrayOutputStream();
-                        bmp.compress(Bitmap.CompressFormat.JPEG, 70, ba);
-                        String b64 = Base64.encodeToString(ba.toByteArray(), Base64.DEFAULT);
-                        if ("ROOM_LOGO".equals(galleryMode)) {
-                            pendingRoomPhotoBase64 = b64;
-                            if (roomEditLogoView != null) {
-                                roomEditLogoView.setImageBitmap(bmp);
-                            }
-                            if (roomEditLogoText != null) {
-                                roomEditLogoText.setVisibility(View.GONE);
-                            }
-                            Toast.makeText(this, "Room Photo Selected ✅", Toast.LENGTH_SHORT).show();
+        galleryLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), r -> {
+            if (r.getResultCode() == RESULT_OK && r.getData() != null && r.getData().getData() != null) {
+                try {
+                    Bitmap bmp = MediaStore.Images.Media.getBitmap(getContentResolver(), r.getData().getData());
+                    java.io.ByteArrayOutputStream ba = new java.io.ByteArrayOutputStream();
+                    bmp.compress(Bitmap.CompressFormat.JPEG, 70, ba);
+                    String b64 = Base64.encodeToString(ba.toByteArray(), Base64.DEFAULT);
+                    if ("ROOM_LOGO".equals(galleryMode)) {
+                        pendingRoomPhotoBase64 = b64;
+                        if (roomEditLogoView != null) {
+                            roomEditLogoView.setImageBitmap(bmp);
                         }
-                    } catch (Exception e) {
-                        Toast.makeText(this, "Pic nite pari nai", Toast.LENGTH_SHORT).show();
+                        if (roomEditLogoText != null) {
+                            roomEditLogoText.setVisibility(View.GONE);
+                        }
+                        Toast.makeText(this, "Room Photo Selected ✅", Toast.LENGTH_SHORT).show();
                     }
+                } catch (Exception e) {
+                    Toast.makeText(this, "Pic nite pari nai", Toast.LENGTH_SHORT).show();
                 }
             }
-        );
+        });
         if (roomHeaderProfileImg != null) {
             roomHeaderProfileImg.setOnClickListener(v -> showRoomHeaderProfile());
         }
@@ -200,6 +198,13 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (bm != null) {
             bm.setOnClickListener(v -> Toast.makeText(this, "Mic - Coming Soon 🎤", Toast.LENGTH_SHORT).show());
         }
+        View bw = findViewById(R.id.btnWallet);
+        if (bw != null) {
+            bw.setOnClickListener(v -> showRechargeDialog());
+        }
+        if (getIntent().getBooleanExtra("OPEN_RECHARGE", false)) {
+            new android.os.Handler().postDelayed(() -> showRechargeDialog(), 800);
+        }
         setupChatPopup();
         setupSeatInteractions();
         ensureMyIdentity();
@@ -234,21 +239,20 @@ public class VoiceRoomActivity extends AppCompatActivity {
         return false;
     }
     private void listenToLockedSeats() {
-        databaseReference.child("rooms").child(roomOwnerId).child("locked_seats")
-            .addValueEventListener(new ValueEventListener() {
-                @Override
-                public void onDataChange(@NonNull DataSnapshot s) {
-                    lockedSeats.clear();
-                    for (DataSnapshot ds : s.getChildren()) {
-                        if (Boolean.TRUE.equals(ds.getValue(Boolean.class))) {
-                            lockedSeats.add(ds.getKey());
-                        }
+        databaseReference.child("rooms").child(roomOwnerId).child("locked_seats").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot s) {
+                lockedSeats.clear();
+                for (DataSnapshot ds : s.getChildren()) {
+                    if (Boolean.TRUE.equals(ds.getValue(Boolean.class))) {
+                        lockedSeats.add(ds.getKey());
                     }
                 }
-                @Override
-                public void onCancelled(@NonNull DatabaseError e) {
-                }
-            });
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError e) {
+            }
+        });
     }
     private void setDialog85(BottomSheetDialog d) {
         Window w = d.getWindow();
@@ -395,38 +399,37 @@ public class VoiceRoomActivity extends AppCompatActivity {
             myPhotoBase64 = prefs.getString("USER_PHOTO_BASE64", "");
         }
         if (!my9DigitId.isEmpty()) {
-            userDatabaseRef.orderByChild("my9DigitId").equalTo(my9DigitId)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snap) {
-                        if (snap.exists()) {
-                            for (DataSnapshot u : snap.getChildren()) {
-                                currentUserId = u.getKey();
-                                if (u.child("name").getValue() != null) {
-                                    myDisplayName = String.valueOf(u.child("name").getValue());
-                                }
-                                if (u.child("photoBase64").getValue() != null) {
-                                    myPhotoBase64 = String.valueOf(u.child("photoBase64").getValue());
-                                }
-                                if (u.child("country").getValue() != null) {
-                                    myCountry = String.valueOf(u.child("country").getValue());
-                                }
-                                if (u.child("gender").getValue() != null) {
-                                    myGender = String.valueOf(u.child("gender").getValue());
-                                }
-                                prefs.edit().putString("USER_UID", currentUserId).putString("USER_NAME", myDisplayName).putString("USER_PHOTO_BASE64", myPhotoBase64).putString("USER_COUNTRY", myCountry).putString("USER_GENDER", myGender).apply();
-                                pushOnlineNow();
-                                break;
+            userDatabaseRef.orderByChild("my9DigitId").equalTo(my9DigitId).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snap) {
+                    if (snap.exists()) {
+                        for (DataSnapshot u : snap.getChildren()) {
+                            currentUserId = u.getKey();
+                            if (u.child("name").getValue() != null) {
+                                myDisplayName = String.valueOf(u.child("name").getValue());
                             }
-                        } else {
-                            syncByUidFallback();
+                            if (u.child("photoBase64").getValue() != null) {
+                                myPhotoBase64 = String.valueOf(u.child("photoBase64").getValue());
+                            }
+                            if (u.child("country").getValue() != null) {
+                                myCountry = String.valueOf(u.child("country").getValue());
+                            }
+                            if (u.child("gender").getValue() != null) {
+                                myGender = String.valueOf(u.child("gender").getValue());
+                            }
+                            prefs.edit().putString("USER_UID", currentUserId).putString("USER_NAME", myDisplayName).putString("USER_PHOTO_BASE64", myPhotoBase64).putString("USER_COUNTRY", myCountry).putString("USER_GENDER", myGender).apply();
+                            pushOnlineNow();
+                            break;
                         }
-                    }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError e) {
+                    } else {
                         syncByUidFallback();
                     }
-                });
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError e) {
+                    syncByUidFallback();
+                }
+            });
         } else {
             syncByUidFallback();
         }
@@ -1807,6 +1810,563 @@ public class VoiceRoomActivity extends AppCompatActivity {
             removeMySeat();
         }
     }
+    private void showPremiumGiftPanel(String targetId, String targetName) {
+        selectedGiftTargetId = targetId;
+        selectedGiftTargetName = targetName;
+        selectedGiftEmoji = "🐉";
+        selectedGiftName = "Dragon";
+        selectedGiftPrice = 9999;
+        selectedGiftIndex = 0;
+        BottomSheetDialog d = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(Color.parseColor("#111111"));
+        root.setPadding(20, 16, 20, 20);
+        TextView toLabel = makeText("To:", 14, "#FFFFFF", true, Gravity.START);
+        toLabel.setPadding(0, 0, 0, 10);
+        root.addView(toLabel);
+        LinearLayout seatRow = new LinearLayout(this);
+        seatRow.setOrientation(LinearLayout.HORIZONTAL);
+        seatRow.setPadding(0, 0, 0, 12);
+        root.addView(seatRow);
+        loadSeatUsersForGift(seatRow);
+        LinearLayout tabs = new LinearLayout(this);
+        tabs.setOrientation(LinearLayout.HORIZONTAL);
+        tabs.setPadding(0, 8, 0, 12);
+        root.addView(tabs);
+        String[] tabNames = {"Gift", "Lucky", "CP", "Activity", "Flag", "Exclusive", "Bag"};
+        for (String tn2 : tabNames) {
+            TextView tt = new TextView(this);
+            tt.setText(tn2);
+            tt.setTextSize(13);
+            tt.setPadding(20, 10, 20, 10);
+            if (tn2.equals("Gift")) {
+                tt.setTextColor(Color.parseColor("#FFC107"));
+                tt.setTypeface(null, android.graphics.Typeface.BOLD);
+            } else {
+                tt.setTextColor(Color.parseColor("#999999"));
+            }
+            tt.setOnClickListener(v -> Toast.makeText(this, tn2 + " - Coming Soon", Toast.LENGTH_SHORT).show());
+            tabs.addView(tt);
+        }
+        ScrollView sv = new ScrollView(this);
+        LinearLayout grid = new LinearLayout(this);
+        grid.setOrientation(LinearLayout.VERTICAL);
+        sv.addView(grid);
+        root.addView(sv);
+        String[][] gifts = {{"🐉", "Dragon", "9999"}, {"🚗", "Sports Car", "7880"}, {"👑", "Moon Crown", "16990"}, {"🚢", "Ship", "29999"}, {"🐯", "Tiger", "1999"}, {"🌹", "Rose", "10"}, {"💋", "Kiss", "66"}, {"🐼", "Panda", "9999"}};
+        renderGiftGrid(grid, gifts);
+        LinearLayout bottom = new LinearLayout(this);
+        bottom.setOrientation(LinearLayout.HORIZONTAL);
+        bottom.setGravity(Gravity.CENTER_VERTICAL);
+        bottom.setPadding(0, 16, 0, 0);
+        root.addView(bottom);
+        TextView coinTv = makeText("🪙 " + myWalletCoins, 14, "#FFC107", true, Gravity.START);
+        coinTv.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+        bottom.addView(coinTv);
+        TextView countOne = makeText("1", 14, "#222222", true, Gravity.CENTER);
+        countOne.setPadding(28, 14, 28, 14);
+        GradientDrawable gOne = new GradientDrawable();
+        gOne.setColor(Color.parseColor("#FFC107"));
+        gOne.setCornerRadius(60);
+        countOne.setBackground(gOne);
+        bottom.addView(countOne);
+        Button sendBtn = new Button(this);
+        sendBtn.setText("Send");
+        sendBtn.setAllCaps(false);
+        sendBtn.setTextSize(16);
+        sendBtn.setTextColor(Color.parseColor("#222222"));
+        GradientDrawable gSend = new GradientDrawable();
+        gSend.setColor(Color.parseColor("#FFC107"));
+        gSend.setCornerRadius(60);
+        sendBtn.setBackground(gSend);
+        sendBtn.setPadding(40, 10, 40, 10);
+        sendBtn.setOnClickListener(v -> {
+            d.dismiss();
+            sendPremiumGift();
+        });
+        bottom.addView(sendBtn);
+        d.setContentView(root);
+        setDialog85(d);
+        d.show();
+    }
+    private void renderGiftGrid(LinearLayout grid, String[][] gifts) {
+        grid.removeAllViews();
+        LinearLayout currentRow = null;
+        for (int i = 0; i < gifts.length; i++) {
+            if (i % 4 == 0) {
+                currentRow = new LinearLayout(this);
+                currentRow.setOrientation(LinearLayout.HORIZONTAL);
+                currentRow.setWeightSum(4);
+                grid.addView(currentRow);
+            }
+            String emoji = gifts[i][0];
+            String gname = gifts[i][1];
+            String gprice = gifts[i][2];
+            boolean isSel = (i == selectedGiftIndex);
+            LinearLayout cell = new LinearLayout(this);
+            cell.setOrientation(LinearLayout.VERTICAL);
+            cell.setGravity(Gravity.CENTER);
+            cell.setPadding(4, 14, 4, 14);
+            cell.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            GradientDrawable bg = new GradientDrawable();
+            if (isSel) {
+                bg.setColor(Color.parseColor("#3A2E00"));
+                bg.setStroke(3, Color.parseColor("#FFC107"));
+            } else {
+                bg.setColor(Color.TRANSPARENT);
+                bg.setStroke(1, Color.parseColor("#333333"));
+            }
+            bg.setCornerRadius(20);
+            cell.setBackground(bg);
+            TextView mark = makeText(isSel ? "✅" : "", 14, "#FFFFFF", false, Gravity.CENTER);
+            cell.addView(mark);
+            TextView ic = makeText(emoji, 36, "#FFFFFF", false, Gravity.CENTER);
+            cell.addView(ic);
+            TextView pr = makeText("🪙 " + gprice, 12, "#FFC107", true, Gravity.CENTER);
+            cell.addView(pr);
+            TextView nm = makeText(gname, 10, isSel ? "#FFC107" : "#FFFFFF", true, Gravity.CENTER);
+            cell.addView(nm);
+            final int fI = i;
+            final String fEmoji = emoji;
+            final String fName = gname;
+            final String fPrice = gprice;
+            cell.setOnClickListener(v -> {
+                selectedGiftIndex = fI;
+                selectedGiftEmoji = fEmoji;
+                selectedGiftName = fName;
+                selectedGiftPrice = Long.parseLong(fPrice);
+                renderGiftGrid(grid, gifts);
+                Toast.makeText(this, fName + " Selected ✅", Toast.LENGTH_SHORT).show();
+            });
+            if (currentRow != null) {
+                currentRow.addView(cell);
+            }
+        }
+    }
+    private void loadSeatUsersForGift(LinearLayout seatRow) {
+        databaseReference.child("rooms").child(roomOwnerId).child("seats").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot s) {
+                seatRow.removeAllViews();
+                if (!s.exists()) {
+                    TextView empty = makeText("No one on seat - Self Gift hobe", 12, "#999999", false, Gravity.START);
+                    seatRow.addView(empty);
+                }
+                for (DataSnapshot ds : s.getChildren()) {
+                    String uid = ds.child("userId").getValue(String.class);
+                    String uname = ds.child("userName").getValue(String.class);
+                    String uphoto = ds.child("photoBase64").getValue(String.class);
+                    if (uid == null) {
+                        continue;
+                    }
+                    if (uname == null) {
+                        uname = "User";
+                    }
+                    if (uphoto == null) {
+                        uphoto = "";
+                    }
+                    boolean isSel = uid.equals(selectedGiftTargetId);
+                    LinearLayout cell = new LinearLayout(VoiceRoomActivity.this);
+                    cell.setOrientation(LinearLayout.VERTICAL);
+                    cell.setGravity(Gravity.CENTER);
+                    cell.setPadding(8, 8, 8, 8);
+                    GradientDrawable bg = new GradientDrawable();
+                    if (isSel) {
+                        bg.setColor(Color.parseColor("#3A2E00"));
+                        bg.setStroke(3, Color.parseColor("#FFC107"));
+                    } else {
+                        bg.setColor(Color.TRANSPARENT);
+                        bg.setStroke(1, Color.parseColor("#333333"));
+                    }
+                    bg.setCornerRadius(20);
+                    cell.setBackground(bg);
+                    TextView mark = makeText(isSel ? "✅" : "", 12, "#FFFFFF", false, Gravity.CENTER);
+                    cell.addView(mark);
+                    CardView card = new CardView(VoiceRoomActivity.this);
+                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(70, 70);
+                    card.setLayoutParams(lp);
+                    card.setRadius(35);
+                    card.setCardElevation(0);
+                    Bitmap bmp = decodeBase64(uphoto);
+                    if (bmp != null) {
+                        card.setCardBackgroundColor(Color.TRANSPARENT);
+                        ImageView av = new ImageView(VoiceRoomActivity.this);
+                        av.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                        av.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                        av.setImageBitmap(bmp);
+                        card.addView(av);
+                    } else {
+                        card.setCardBackgroundColor(Color.parseColor("#FF9800"));
+                        TextView lt = new TextView(VoiceRoomActivity.this);
+                        lt.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                        lt.setGravity(Gravity.CENTER);
+                        lt.setTextSize(20);
+                        lt.setTextColor(Color.WHITE);
+                        lt.setTypeface(null, android.graphics.Typeface.BOLD);
+                        lt.setText(uname.substring(0, 1).toUpperCase());
+                        card.addView(lt);
+                    }
+                    cell.addView(card);
+                    TextView nm2 = makeText(uname, 10, isSel ? "#FFC107" : "#FFFFFF", true, Gravity.CENTER);
+                    cell.addView(nm2);
+                    String fUid = uid;
+                    String fName = uname;
+                    String fPhoto = uphoto;
+                    cell.setOnClickListener(v -> {
+                        selectedGiftTargetId = fUid;
+                        selectedGiftTargetName = fName;
+                        selectedGiftTargetPhoto = fPhoto;
+                        loadSeatUsersForGift(seatRow);
+                        Toast.makeText(VoiceRoomActivity.this, "To: " + fName + " ✅", Toast.LENGTH_SHORT).show();
+                    });
+                    seatRow.addView(cell);
+                }
+                LinearLayout meCell = new LinearLayout(VoiceRoomActivity.this);
+                meCell.setOrientation(LinearLayout.VERTICAL);
+                meCell.setGravity(Gravity.CENTER);
+                meCell.setPadding(8, 8, 8, 8);
+                String myIdForCheck = my9DigitId.isEmpty() ? currentUserId : my9DigitId;
+                boolean isMeSel = myIdForCheck.equals(selectedGiftTargetId);
+                GradientDrawable bgMe = new GradientDrawable();
+                if (isMeSel) {
+                    bgMe.setColor(Color.parseColor("#3A2E00"));
+                    bgMe.setStroke(3, Color.parseColor("#FFC107"));
+                } else {
+                    bgMe.setColor(Color.TRANSPARENT);
+                    bgMe.setStroke(1, Color.parseColor("#333333"));
+                }
+                bgMe.setCornerRadius(20);
+                meCell.setBackground(bgMe);
+                TextView markMe = makeText(isMeSel ? "✅" : "", 12, "#FFFFFF", false, Gravity.CENTER);
+                meCell.addView(markMe);
+                CardView self = new CardView(VoiceRoomActivity.this);
+                LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(70, 70);
+                self.setLayoutParams(lp2);
+                self.setRadius(35);
+                self.setCardElevation(0);
+                self.setCardBackgroundColor(Color.parseColor("#7B1FA2"));
+                TextView selfT = new TextView(VoiceRoomActivity.this);
+                selfT.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+                selfT.setGravity(Gravity.CENTER);
+                selfT.setText("Me");
+                selfT.setTextColor(Color.WHITE);
+                selfT.setTypeface(null, android.graphics.Typeface.BOLD);
+                self.addView(selfT);
+                meCell.addView(self);
+                TextView meNm = makeText("Me", 10, isMeSel ? "#FFC107" : "#FFFFFF", true, Gravity.CENTER);
+                meCell.addView(meNm);
+                meCell.setOnClickListener(v -> {
+                    String myId = my9DigitId.isEmpty() ? currentUserId : my9DigitId;
+                    selectedGiftTargetId = myId;
+                    selectedGiftTargetName = myDisplayName;
+                    selectedGiftTargetPhoto = myPhotoBase64;
+                    loadSeatUsersForGift(seatRow);
+                    Toast.makeText(VoiceRoomActivity.this, "Self Gift ✅", Toast.LENGTH_SHORT).show();
+                });
+                seatRow.addView(meCell);
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError e) {
+            }
+        });
+    }
+    private void showNewGiftPanel() {
+        String tid = roomOwnerId;
+        String tname = roomTitleText != null ? roomTitleText.getText().toString() : "User";
+        showPremiumGiftPanel(tid, tname);
+    }
+    private void sendPremiumGift() {
+        long total = selectedGiftPrice;
+        if (myWalletCoins < total) {
+            Toast.makeText(this, "Coins kom ache! Recharge koro 🪙", Toast.LENGTH_SHORT).show();
+            showRechargeDialog();
+            return;
+        }
+        String myId = my9DigitId.isEmpty() ? currentUserId : my9DigitId;
+        if (myId == null || myId.isEmpty()) {
+            myId = roomOwnerId;
+        }
+        String senderName = myDisplayName;
+        String receiverId = selectedGiftTargetId;
+        if (receiverId == null || receiverId.isEmpty()) {
+            receiverId = roomOwnerId;
+        }
+        String receiverName = selectedGiftTargetName;
+        if (receiverName == null || receiverName.isEmpty()) {
+            receiverName = "User";
+        }
+        long receiverGet = (total * 30) / 100;
+        Map<String, Object> m = new HashMap<>();
+        m.put("senderId", myId);
+        m.put("senderName", senderName);
+        m.put("receiverId", receiverId);
+        m.put("receiverName", receiverName);
+        m.put("giftEmoji", selectedGiftEmoji);
+        m.put("giftName", selectedGiftName);
+        m.put("giftPrice", selectedGiftPrice);
+        m.put("giftCount", 1);
+        m.put("totalCoins", total);
+        m.put("receiverGet", receiverGet);
+        m.put("time", System.currentTimeMillis());
+        databaseReference.child("rooms").child(roomOwnerId).child("gifts").push().setValue(m);
+        databaseReference.child("rooms").child(roomOwnerId).child("gift_history").push().setValue(m);
+        long newSenderCoins = myWalletCoins - total;
+        myWalletCoins = newSenderCoins;
+        if (currentUserId != null && !currentUserId.isEmpty()) {
+            userDatabaseRef.child(currentUserId).child("coins").setValue(newSenderCoins);
+        }
+        addCoinsToReceiver(receiverId, receiverGet);
+        Toast.makeText(this, selectedGiftName + " Sent ✅ - Receiver gets " + receiverGet + " (30%)", Toast.LENGTH_SHORT).show();
+        showFlyingGiftEffect(senderName, receiverName, selectedGiftEmoji, selectedGiftName, total, receiverGet);
+    }
+    private void addCoinsToReceiver(String receiver9DigitId, long add) {
+        if (receiver9DigitId == null || receiver9DigitId.isEmpty()) {
+            return;
+        }
+        userDatabaseRef.orderByChild("my9DigitId").equalTo(receiver9DigitId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snap) {
+                if (snap.exists()) {
+                    for (DataSnapshot u : snap.getChildren()) {
+                        Long cur = u.child("coins").getValue(Long.class);
+                        long curV = cur != null ? cur : 0L;
+                        long newV = curV + add;
+                        userDatabaseRef.child(u.getKey()).child("coins").setValue(newV);
+                        Long ex = u.child("exchangeCoins").getValue(Long.class);
+                        long exV = ex != null ? ex : 0L;
+                        userDatabaseRef.child(u.getKey()).child("exchangeCoins").setValue(exV + add);
+                        Long totR = u.child("totalReceived").getValue(Long.class);
+                        long totRV = totR != null ? totR : 0L;
+                        userDatabaseRef.child(u.getKey()).child("totalReceived").setValue(totRV + add);
+                        break;
+                    }
+                } else {
+                    userDatabaseRef.child(receiver9DigitId).child("coins").setValue(add);
+                    userDatabaseRef.child(receiver9DigitId).child("exchangeCoins").setValue(add);
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError e) {
+            }
+        });
+    }
+    private void showRechargeDialog() {
+        BottomSheetDialog d = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(Color.WHITE);
+        root.setPadding(28, 20, 28, 28);
+        TextView title = makeText("Coins", 18, "#222222", true, Gravity.CENTER);
+        title.setPadding(0, 0, 0, 6);
+        root.addView(title);
+        TextView bal = makeText("🪙 " + myWalletCoins, 28, "#222222", true, Gravity.CENTER);
+        bal.setPadding(0, 0, 0, 4);
+        root.addView(bal);
+        TextView sub = makeText("My Wallet - Original Coins", 13, "#888888", false, Gravity.CENTER);
+        sub.setPadding(0, 0, 0, 4);
+        root.addView(sub);
+        TextView bill = makeText("Detailed Bill >", 13, "#888888", false, Gravity.START);
+        bill.setPadding(0, 8, 0, 16);
+        bill.setOnClickListener(v -> showDetailedBillDialog());
+        root.addView(bill);
+        TextView rTitle = makeText("Recharge", 16, "#222222", true, Gravity.START);
+        rTitle.setPadding(0, 0, 0, 12);
+        root.addView(rTitle);
+        String[][] packs = {{"100000", "USD 0.99"}, {"500000", "USD 4.99"}, {"1000000", "USD 9.99"}, {"5000000", "USD 49.99"}, {"10000000", "USD 99.99"}};
+        for (String[] p : packs) {
+            String coinStr = p[0];
+            String priceStr = p[1];
+            boolean isSel = Long.parseLong(coinStr) == selectedRechargeCoins;
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            row.setGravity(Gravity.CENTER_VERTICAL);
+            row.setPadding(20, 20, 20, 20);
+            GradientDrawable bg = new GradientDrawable();
+            if (isSel) {
+                bg.setColor(Color.parseColor("#FFFDE7"));
+                bg.setStroke(2, Color.parseColor("#FFC107"));
+            } else {
+                bg.setColor(Color.WHITE);
+                bg.setStroke(1, Color.parseColor("#EEEEEE"));
+            }
+            bg.setCornerRadius(20);
+            row.setBackground(bg);
+            TextView left = makeText("🪙 " + coinStr, 15, "#222222", true, Gravity.START);
+            left.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
+            row.addView(left);
+            TextView right = makeText(priceStr, 14, "#888888", false, Gravity.END);
+            row.addView(right);
+            TextView lock = makeText(isSel ? "✅ 🔒" : "🔒", 14, "#999999", false, Gravity.CENTER);
+            lock.setPadding(12, 0, 0, 0);
+            row.addView(lock);
+            row.setOnClickListener(v -> {
+                selectedRechargeCoins = Long.parseLong(coinStr);
+                selectedRechargePrice = priceStr;
+                d.dismiss();
+                showRechargeDialog();
+            });
+            root.addView(row);
+            View sp = new View(this);
+            sp.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 12));
+            root.addView(sp);
+        }
+        Button charge = makeColorBtn("🔒 Charge - Locked", Color.parseColor("#FFC107"));
+        charge.setTextColor(Color.parseColor("#222222"));
+        charge.setOnClickListener(v -> Toast.makeText(this, "🔒 Locked - Coming Soon. Aapatoto kena jabe na.", Toast.LENGTH_LONG).show());
+        root.addView(charge);
+        TextView note = makeText("1 Dollar = 100,000 Coins | 5 Dollar = 500,000 | 10 Dollar = 1,000,000", 11, "#999999", false, Gravity.CENTER);
+        note.setPadding(0, 12, 0, 0);
+        root.addView(note);
+        TextView note2 = makeText("Recharge + Game Win + Gift Receive (30%) - Sob ekhane joma hobe", 11, "#999999", false, Gravity.CENTER);
+        note2.setPadding(0, 6, 0, 0);
+        root.addView(note2);
+        d.setContentView(root);
+        setDialog85(d);
+        d.show();
+    }
+    private void showDetailedBillDialog() {
+        BottomSheetDialog d = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
+        LinearLayout root = new LinearLayout(this);
+        root.setOrientation(LinearLayout.VERTICAL);
+        root.setBackgroundColor(Color.WHITE);
+        root.setPadding(28, 20, 28, 28);
+        TextView t = makeText("Detailed Bill - My Wallet", 17, "#222222", true, Gravity.CENTER);
+        t.setPadding(0, 0, 0, 16);
+        root.addView(t);
+        TextView bal = makeText("Balance: 🪙 " + myWalletCoins, 15, "#222222", true, Gravity.START);
+        bal.setPadding(0, 0, 0, 10);
+        root.addView(bal);
+        if (currentUserId != null && !currentUserId.isEmpty()) {
+            userDatabaseRef.child(currentUserId).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot s) {
+                    Long ex = s.child("exchangeCoins").getValue(Long.class);
+                    long exV = ex != null ? ex : 0;
+                    Long totR = s.child("totalReceived").getValue(Long.class);
+                    long totRV = totR != null ? totR : 0;
+                    TextView e1 = makeText("Exchange (30% Received): 🪙 " + exV, 14, "#7B1FA2", false, Gravity.START);
+                    e1.setPadding(0, 0, 0, 8);
+                    root.addView(e1);
+                    TextView e2 = makeText("Total Received: 🪙 " + totRV, 14, "#222222", false, Gravity.START);
+                    e2.setPadding(0, 0, 0, 8);
+                    root.addView(e2);
+                    TextView e3 = makeText("Recharge: Aapatoto Locked 🔒", 14, "#888888", false, Gravity.START);
+                    root.addView(e3);
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError e) {
+                }
+            });
+        }
+        d.setContentView(root);
+        setDialog75(d);
+        d.show();
+    }
+    private void showFlyingGiftEffect(String sender, String receiver, String emoji, String giftName, long total, long receiverGet) {
+        android.app.Dialog d = makeFullScreenDialog();
+        android.widget.FrameLayout root = new android.widget.FrameLayout(this);
+        root.setBackgroundColor(Color.parseColor("#88000000"));
+        TextView banner = new TextView(this);
+        banner.setText(sender + " Send " + emoji + " x1");
+        banner.setTextColor(Color.WHITE);
+        banner.setTextSize(16);
+        banner.setTypeface(null, android.graphics.Typeface.BOLD);
+        banner.setGravity(Gravity.CENTER);
+        banner.setPadding(20, 14, 20, 14);
+        GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, new int[]{Color.parseColor("#FF9800"), Color.parseColor("#FF5252")});
+        bg.setCornerRadius(60);
+        banner.setBackground(bg);
+        android.widget.FrameLayout.LayoutParams bp = new android.widget.FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        bp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
+        bp.topMargin = 100;
+        banner.setLayoutParams(bp);
+        root.addView(banner);
+        TextView fly = new TextView(this);
+        fly.setText(emoji);
+        fly.setTextSize(90);
+        fly.setGravity(Gravity.CENTER);
+        android.widget.FrameLayout.LayoutParams fp = new android.widget.FrameLayout.LayoutParams(300, 300);
+        fp.gravity = Gravity.CENTER;
+        fly.setLayoutParams(fp);
+        root.addView(fly);
+        TextView info = new TextView(this);
+        info.setText(giftName + " ➡️ " + receiver + "\n🪙 " + total + " | Receiver gets " + receiverGet + " (30%)");
+        info.setTextColor(Color.WHITE);
+        info.setTextSize(15);
+        info.setTypeface(null, android.graphics.Typeface.BOLD);
+        info.setGravity(Gravity.CENTER);
+        android.widget.FrameLayout.LayoutParams ip = new android.widget.FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        ip.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
+        ip.bottomMargin = 200;
+        info.setLayoutParams(ip);
+        root.addView(info);
+        fly.setTranslationX(-600);
+        fly.setTranslationY(-300);
+        fly.animate().translationX(0).translationY(0).setDuration(1200).withEndAction(() -> {
+            fly.animate().scaleX(1.4f).scaleY(1.4f).setDuration(600).withEndAction(() -> {
+                fly.animate().translationY(400).alpha(0.5f).setDuration(800).start();
+            }).start();
+        }).start();
+        root.setOnClickListener(v -> d.dismiss());
+        d.setContentView(root);
+        d.show();
+        new android.os.Handler().postDelayed(() -> {
+            try {
+                d.dismiss();
+            } catch (Exception e) {
+            }
+        }, 4000);
+    }
+    private void listenToGiftEvents() {
+        if (giftListenerStarted) {
+            return;
+        }
+        giftListenerStarted = true;
+        databaseReference.child("rooms").child(roomOwnerId).child("gifts").limitToLast(1).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot s) {
+                if (!s.exists()) {
+                    return;
+                }
+                for (DataSnapshot ds : s.getChildren()) {
+                    String sender = ds.child("senderName").getValue(String.class);
+                    String emoji = ds.child("giftEmoji").getValue(String.class);
+                    String gname = ds.child("giftName").getValue(String.class);
+                    Long tot = ds.child("totalCoins").getValue(Long.class);
+                    Long recvGet = ds.child("receiverGet").getValue(Long.class);
+                    String recv = ds.child("receiverName").getValue(String.class);
+                    String senderId = ds.child("senderId").getValue(String.class);
+                    String myId = my9DigitId.isEmpty() ? currentUserId : my9DigitId;
+                    if (senderId != null && senderId.equals(myId)) {
+                        return;
+                    }
+                    if (sender == null) {
+                        sender = "User";
+                    }
+                    if (emoji == null) {
+                        emoji = "🎁";
+                    }
+                    if (gname == null) {
+                        gname = "Gift";
+                    }
+                    if (tot == null) {
+                        tot = 0L;
+                    }
+                    if (recvGet == null) {
+                        recvGet = (tot * 30) / 100;
+                    }
+                    if (recv == null) {
+                        recv = "User";
+                    }
+                    showFlyingGiftEffect(sender, recv, emoji, gname, tot, recvGet);
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError e) {
+            }
+        });
+    }
     private void showIconToolsDialog(boolean isOwner) {
         BottomSheetDialog d = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
         LinearLayout r = new LinearLayout(this);
@@ -2161,362 +2721,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
         root.addView(save);
         dialog.setContentView(root);
-        setDialog85(dialog);
+       ```java
+        dialog.setContentView(root);
+        setDialog75(dialog);
         dialog.show();
-    }
-    private void showPremiumGiftPanel(String targetId, String targetName) {
-        selectedGiftTargetId = targetId;
-        selectedGiftTargetName = targetName;
-        selectedGiftEmoji = "🐉";
-        selectedGiftName = "Dragon";
-        selectedGiftPrice = 9999;
-        BottomSheetDialog d = new BottomSheetDialog(this, R.style.Theme_Design_BottomSheetDialog);
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.parseColor("#111111"));
-        root.setPadding(20, 16, 20, 20);
-        LinearLayout seatRow = new LinearLayout(this);
-        seatRow.setOrientation(LinearLayout.HORIZONTAL);
-        seatRow.setPadding(0, 0, 0, 12);
-        root.addView(seatRow);
-        TextView seatLabel = makeText("Select User:", 13, "#FFFFFF", true, Gravity.START);
-        seatLabel.setPadding(0, 0, 12, 0);
-        seatRow.addView(seatLabel);
-        loadSeatUsersForGift(seatRow);
-        LinearLayout tabs = new LinearLayout(this);
-        tabs.setOrientation(LinearLayout.HORIZONTAL);
-        tabs.setPadding(0, 8, 0, 12);
-        root.addView(tabs);
-        String[] tabNames = {"Gift", "Lucky", "CP", "Activity", "Flag", "Exclusive", "Bag"};
-        for (String tn2 : tabNames) {
-            TextView tt = makeText(tn2, 13, tn2.equals("Gift") ? "#FFC107" : "#999999", tn2.equals("Gift"), Gravity.CENTER);
-            tt.setPadding(20, 10, 20, 10);
-            tt.setOnClickListener(v -> Toast.makeText(this, tn2 + " - Coming Soon", Toast.LENGTH_SHORT).show());
-            tabs.addView(tt);
-        }
-        ScrollView sv = new ScrollView(this);
-        LinearLayout grid = new LinearLayout(this);
-        grid.setOrientation(LinearLayout.VERTICAL);
-        sv.addView(grid);
-        root.addView(sv);
-        String[][] gifts = {{"🐉", "Dragon", "9999"}, {"🚗", "Sports Car", "7880"}, {"👑", "Moon Crown", "16990"}, {"🚢", "Ship", "29999"}, {"🐯", "Tiger", "1999"}, {"🌹", "Rose", "10"}, {"💋", "Kiss", "66"}, {"🐼", "Panda", "9999"}};
-        LinearLayout currentRow = null;
-        for (int i = 0; i < gifts.length; i++) {
-            if (i % 4 == 0) {
-                currentRow = new LinearLayout(this);
-                currentRow.setOrientation(LinearLayout.HORIZONTAL);
-                currentRow.setWeightSum(4);
-                grid.addView(currentRow);
-            }
-            String emoji = gifts[i][0];
-            String gname = gifts[i][1];
-            String gprice = gifts[i][2];
-            LinearLayout cell = new LinearLayout(this);
-            cell.setOrientation(LinearLayout.VERTICAL);
-            cell.setGravity(Gravity.CENTER);
-            cell.setPadding(4, 14, 4, 14);
-            cell.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-            TextView ic = makeText(emoji, 36, "#FFFFFF", false, Gravity.CENTER);
-            cell.addView(ic);
-            TextView pr = makeText("🪙 " + gprice, 12, "#FFC107", true, Gravity.CENTER);
-            cell.addView(pr);
-            TextView nm = makeText(gname, 10, "#FFFFFF", false, Gravity.CENTER);
-            cell.addView(nm);
-            cell.setOnClickListener(v -> {
-                selectedGiftEmoji = emoji;
-                selectedGiftName = gname;
-                selectedGiftPrice = Long.parseLong(gprice);
-                Toast.makeText(this, gname + " Selected ✅", Toast.LENGTH_SHORT).show();
-            });
-            if (currentRow != null) {
-                currentRow.addView(cell);
-            }
-        }
-        LinearLayout bottom = new LinearLayout(this);
-        bottom.setOrientation(LinearLayout.HORIZONTAL);
-        bottom.setGravity(Gravity.CENTER_VERTICAL);
-        bottom.setPadding(0, 16, 0, 0);
-        root.addView(bottom);
-        TextView coinTv = makeText("🪙 " + myWalletCoins, 14, "#FFC107", true, Gravity.START);
-        coinTv.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        bottom.addView(coinTv);
-        TextView countOne = makeText("1", 14, "#222222", true, Gravity.CENTER);
-        countOne.setPadding(28, 14, 28, 14);
-        GradientDrawable gOne = new GradientDrawable();
-        gOne.setColor(Color.parseColor("#FFC107"));
-        gOne.setCornerRadius(60);
-        countOne.setBackground(gOne);
-        bottom.addView(countOne);
-        Button sendBtn = new Button(this);
-        sendBtn.setText("Send");
-        sendBtn.setAllCaps(false);
-        sendBtn.setTextSize(16);
-        sendBtn.setTextColor(Color.parseColor("#222222"));
-        GradientDrawable gSend = new GradientDrawable();
-        gSend.setColor(Color.parseColor("#FFC107"));
-        gSend.setCornerRadius(60);
-        sendBtn.setBackground(gSend);
-        sendBtn.setPadding(40, 10, 40, 10);
-        sendBtn.setOnClickListener(v -> {
-            d.dismiss();
-            sendPremiumGift();
-        });
-        bottom.addView(sendBtn);
-        d.setContentView(root);
-        setDialog85(d);
-        d.show();
-    }
-    private void loadSeatUsersForGift(LinearLayout seatRow) {
-        databaseReference.child("rooms").child(roomOwnerId).child("seats").addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot s) {
-                seatRow.removeAllViews();
-                TextView label = makeText("To: ", 13, "#FFFFFF", false, Gravity.CENTER);
-                seatRow.addView(label);
-                if (!s.exists()) {
-                    TextView empty = makeText("No one on seat", 12, "#999999", false, Gravity.CENTER);
-                    seatRow.addView(empty);
-                    return;
-                }
-                for (DataSnapshot ds : s.getChildren()) {
-                    String uid = ds.child("userId").getValue(String.class);
-                    String uname = ds.child("userName").getValue(String.class);
-                    String uphoto = ds.child("photoBase64").getValue(String.class);
-                    if (uid == null) {
-                        continue;
-                    }
-                    if (uname == null) {
-                        uname = "User";
-                    }
-                    if (uphoto == null) {
-                        uphoto = "";
-                    }
-                    CardView card = makeAvatar(uphoto, uname, 70);
-                    card.setRadius(35);
-                    LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(70, 70);
-                    lp.setMargins(6, 0, 6, 0);
-                    card.setLayoutParams(lp);
-                    String fUid = uid;
-                    String fName = uname;
-                    String fPhoto = uphoto;
-                    card.setOnClickListener(v -> {
-                        selectedGiftTargetId = fUid;
-                        selectedGiftTargetName = fName;
-                        selectedGiftTargetPhoto = fPhoto;
-                        Toast.makeText(VoiceRoomActivity.this, "To: " + fName, Toast.LENGTH_SHORT).show();
-                    });
-                    seatRow.addView(card);
-                }
-                CardView self = new CardView(VoiceRoomActivity.this);
-                LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(70, 70);
-                lp2.setMargins(6, 0, 6, 0);
-                self.setLayoutParams(lp2);
-                self.setRadius(35);
-                self.setCardElevation(0);
-                self.setCardBackgroundColor(Color.parseColor("#7B1FA2"));
-                TextView selfT = new TextView(VoiceRoomActivity.this);
-                selfT.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
-                selfT.setGravity(Gravity.CENTER);
-                selfT.setText("Me");
-                selfT.setTextColor(Color.WHITE);
-                selfT.setTypeface(null, android.graphics.Typeface.BOLD);
-                self.addView(selfT);
-                self.setOnClickListener(v -> {
-                    String myId = my9DigitId.isEmpty() ? currentUserId : my9DigitId;
-                    selectedGiftTargetId = myId;
-                    selectedGiftTargetName = myDisplayName;
-                    selectedGiftTargetPhoto = myPhotoBase64;
-                    Toast.makeText(VoiceRoomActivity.this, "Self Gift ✅", Toast.LENGTH_SHORT).show();
-                });
-                seatRow.addView(self);
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError e) {
-            }
-        });
-    }
-    private void showNewGiftPanel() {
-        String tid = roomOwnerId;
-        String tname = roomTitleText != null ? roomTitleText.getText().toString() : "User";
-        showPremiumGiftPanel(tid, tname);
-    }
-    private void sendPremiumGift() {
-        long total = selectedGiftPrice;
-        if (myWalletCoins < total) {
-            Toast.makeText(this, "Coins kom ache! Recharge koro 🪙", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        String myId = my9DigitId.isEmpty() ? currentUserId : my9DigitId;
-        if (myId == null || myId.isEmpty()) {
-            myId = roomOwnerId;
-        }
-        String senderName = myDisplayName;
-        String receiverId = selectedGiftTargetId;
-        if (receiverId == null || receiverId.isEmpty()) {
-            receiverId = roomOwnerId;
-        }
-        String receiverName = selectedGiftTargetName;
-        if (receiverName == null || receiverName.isEmpty()) {
-            receiverName = "User";
-        }
-        long receiverGet = (total * 30) / 100;
-        Map<String, Object> m = new HashMap<>();
-        m.put("senderId", myId);
-        m.put("senderName", senderName);
-        m.put("receiverId", receiverId);
-        m.put("receiverName", receiverName);
-        m.put("giftEmoji", selectedGiftEmoji);
-        m.put("giftName", selectedGiftName);
-        m.put("giftPrice", selectedGiftPrice);
-        m.put("giftCount", 1);
-        m.put("totalCoins", total);
-        m.put("receiverGet", receiverGet);
-        m.put("time", System.currentTimeMillis());
-        databaseReference.child("rooms").child(roomOwnerId).child("gifts").push().setValue(m);
-        databaseReference.child("rooms").child(roomOwnerId).child("gift_history").push().setValue(m);
-        long newSenderCoins = myWalletCoins - total;
-        myWalletCoins = newSenderCoins;
-        if (currentUserId != null && !currentUserId.isEmpty()) {
-            userDatabaseRef.child(currentUserId).child("coins").setValue(newSenderCoins);
-        }
-        addCoinsToReceiver(receiverId, receiverGet);
-        Toast.makeText(this, selectedGiftName + " Sent ✅ - Receiver gets " + receiverGet, Toast.LENGTH_SHORT).show();
-        showFlyingGiftEffect(senderName, receiverName, selectedGiftEmoji, selectedGiftName, total, receiverGet);
-    }
-    private void addCoinsToReceiver(String receiver9DigitId, long add) {
-        if (receiver9DigitId == null || receiver9DigitId.isEmpty()) {
-            return;
-        }
-        userDatabaseRef.orderByChild("my9DigitId").equalTo(receiver9DigitId).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snap) {
-                if (snap.exists()) {
-                    for (DataSnapshot u : snap.getChildren()) {
-                        Long cur = u.child("coins").getValue(Long.class);
-                        long curV = cur != null ? cur : 0L;
-                        long newV = curV + add;
-                        userDatabaseRef.child(u.getKey()).child("coins").setValue(newV);
-                        userDatabaseRef.child(u.getKey()).child("totalReceived").setValue(newV);
-                        break;
-                    }
-                } else {
-                    userDatabaseRef.child(receiver9DigitId).child("coins").setValue(add);
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError e) {
-            }
-        });
-    }
-    private void showFlyingGiftEffect(String sender, String receiver, String emoji, String giftName, long total, long receiverGet) {
-        android.app.Dialog d = makeFullScreenDialog();
-        android.widget.FrameLayout root = new android.widget.FrameLayout(this);
-        root.setBackgroundColor(Color.parseColor("#88000000"));
-        TextView banner = new TextView(this);
-        banner.setText(sender + " Send " + emoji + " x1");
-        banner.setTextColor(Color.WHITE);
-        banner.setTextSize(16);
-        banner.setTypeface(null, android.graphics.Typeface.BOLD);
-        banner.setGravity(Gravity.CENTER);
-        banner.setPadding(20, 14, 20, 14);
-        GradientDrawable bg = new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT, new int[]{Color.parseColor("#FF9800"), Color.parseColor("#FF5252")});
-        bg.setCornerRadius(60);
-        banner.setBackground(bg);
-        android.widget.FrameLayout.LayoutParams bp = new android.widget.FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        bp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-        bp.topMargin = 100;
-        banner.setLayoutParams(bp);
-        root.addView(banner);
-        TextView fly = new TextView(this);
-        fly.setText(emoji);
-        fly.setTextSize(90);
-        fly.setGravity(Gravity.CENTER);
-        android.widget.FrameLayout.LayoutParams fp = new android.widget.FrameLayout.LayoutParams(300, 300);
-        fp.gravity = Gravity.CENTER;
-        fly.setLayoutParams(fp);
-        root.addView(fly);
-        TextView info = new TextView(this);
-        info.setText(giftName + " ➡️ " + receiver + "\n🪙 " + total + " | Receiver gets " + receiverGet + " (30%)");
-        info.setTextColor(Color.WHITE);
-        info.setTextSize(15);
-        info.setTypeface(null, android.graphics.Typeface.BOLD);
-        info.setGravity(Gravity.CENTER);
-        android.widget.FrameLayout.LayoutParams ip = new android.widget.FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        ip.gravity = Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL;
-        ip.bottomMargin = 200;
-        info.setLayoutParams(ip);
-        root.addView(info);
-        try {
-            android.media.MediaPlayer mp = android.media.MediaPlayer.create(this, android.provider.Settings.System.DEFAULT_NOTIFICATION_URI);
-            if (mp != null) {
-                mp.start();
-            }
-        } catch (Exception e) {
-        }
-        fly.setTranslationX(-600);
-        fly.setTranslationY(-300);
-        fly.animate().translationX(0).translationY(0).setDuration(1200).withEndAction(() -> {
-            fly.animate().scaleX(1.4f).scaleY(1.4f).setDuration(600).withEndAction(() -> {
-                fly.animate().translationY(400).alpha(0.5f).setDuration(800).start();
-            }).start();
-        }).start();
-        root.setOnClickListener(v -> d.dismiss());
-        d.setContentView(root);
-        d.show();
-        new android.os.Handler().postDelayed(() -> {
-            try {
-                d.dismiss();
-            } catch (Exception e) {
-            }
-        }, 4000);
-    }
-    private void listenToGiftEvents() {
-        if (giftListenerStarted) {
-            return;
-        }
-        giftListenerStarted = true;
-        databaseReference.child("rooms").child(roomOwnerId).child("gifts").limitToLast(1).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot s) {
-                if (!s.exists()) {
-                    return;
-                }
-                for (DataSnapshot ds : s.getChildren()) {
-                    String sender = ds.child("senderName").getValue(String.class);
-                    String emoji = ds.child("giftEmoji").getValue(String.class);
-                    String gname = ds.child("giftName").getValue(String.class);
-                    Long tot = ds.child("totalCoins").getValue(Long.class);
-                    Long recvGet = ds.child("receiverGet").getValue(Long.class);
-                    String recv = ds.child("receiverName").getValue(String.class);
-                    String senderId = ds.child("senderId").getValue(String.class);
-                    String myId = my9DigitId.isEmpty() ? currentUserId : my9DigitId;
-                    if (senderId != null && senderId.equals(myId)) {
-                        return;
-                    }
-                    if (sender == null) {
-                        sender = "User";
-                    }
-                    if (emoji == null) {
-                        emoji = "🎁";
-                    }
-                    if (gname == null) {
-                        gname = "Gift";
-                    }
-                    if (tot == null) {
-                        tot = 0L;
-                    }
-                    if (recvGet == null) {
-                        recvGet = (tot * 30) / 100;
-                    }
-                    if (recv == null) {
-                        recv = "User";
-                    }
-                    showFlyingGiftEffect(sender, recv, emoji, gname, tot, recvGet);
-                }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError e) {
-            }
-        });
     }
 }
