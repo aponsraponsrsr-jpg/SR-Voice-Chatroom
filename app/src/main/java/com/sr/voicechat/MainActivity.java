@@ -103,7 +103,8 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.navMoment).setOnClickListener(v -> showPage(1));
         findViewById(R.id.navInbox).setOnClickListener(v -> showPage(2));
         findViewById(R.id.navMe).setOnClickListener(v -> showPage(3));
-        findViewById(R.id.navCenterPlus).setOnClickListener(v -> Toast.makeText(this, "Create Room / Post - Coming Soon", Toast.LENGTH_SHORT).show());
+        // *** PLUS ICON FIX - SUDHU EI LINE TA CHANGE - AGE TOAST CHILO, EKHON NIJER ROOM KHULBE ***
+        findViewById(R.id.navCenterPlus).setOnClickListener(v -> openMyOwnRoom());
         if (meIdText != null) {
             meIdText.setOnClickListener(v -> {
                 String idToCopy = my9DigitId.isEmpty() ? myUid : my9DigitId;
@@ -152,6 +153,23 @@ public class MainActivity extends AppCompatActivity {
         loadFollowFansVisitor();
         loadRooms();
         showPage(0);
+    }
+
+    // *** PLUS ICON - NIJER ROOM - NOTUN METHOD, SUDHU EITA ADD ***
+    private void openMyOwnRoom() {
+        String myRoomId = my9DigitId;
+        if (myRoomId == null || myRoomId.isEmpty()) myRoomId = myUid;
+        if (myRoomId == null || myRoomId.isEmpty()) {
+            Toast.makeText(this, "ID loading... ektu pore abar try koro", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        // Nijer ID diye nijer room - ami e owner
+        Intent i = new Intent(this, VoiceRoomActivity.class);
+        i.putExtra("ROOM_OWNER_ID", myRoomId);
+        i.putExtra("MY_9DIGIT_ID", my9DigitId);
+        i.putExtra("MY_UID", myUid);
+        i.putExtra("IS_OWN_ROOM", true);
+        startActivity(i);
     }
 
     private TextView makeText(String txt, int size, String color, boolean bold, int gravity) {
