@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -109,6 +110,26 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (btnRoomSet != null) {
             btnRoomSet.setOnClickListener(v -> openRoomSetDialog());
         }
+        // POWER BUTTON - FIXED: Age chilo na, ekhon permanent
+        ImageButton btnPower = findViewById(R.id.btnPower);
+        if (btnPower != null) {
+            btnPower.setOnClickListener(v -> showPowerMenu());
+        }
+    }
+
+    private void showPowerMenu() {
+        String[] options = {"Minimize", "Exit Room"};
+        new AlertDialog.Builder(this)
+            .setTitle("Room Options")
+            .setItems(options, (dialog, which) -> {
+                if (which == 0) {
+                    moveTaskToBack(true);
+                } else {
+                    finish();
+                }
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
     }
 
     private void checkMyRole() {
