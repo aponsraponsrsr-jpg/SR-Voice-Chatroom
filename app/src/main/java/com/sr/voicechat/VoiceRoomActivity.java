@@ -1,5 +1,8 @@
 package com.sr.voicechat;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -74,7 +77,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         return "";
     }
 
-    // FIX - Headwear phone e save thakle ekhan theke nibe
     private String getMyHeadwearFromAllPlaces() {
         if (prefs == null) return "";
         String[] keys = {"HEADWEAR_IMAGE","headwearImage","HEADWEAR_URL","headwearUrl","HEADWEAR","headwear","HEADWEAR_PHOTO"};
@@ -85,7 +87,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         return "";
     }
 
-    // FIX - Age ekhane Android er sym_def_app_icon chilo, tai Header e Android icon asto. Ekhon soray disi - chobi na thakle khali thakbe, icon asbe na.
+    // FIX - SMS + Online List er charkona photo GOL korar jonno Base64 keo Glide circleCrop diye bosano holo
     private void loadPhotoInto(ImageView iv, String url) {
         if (iv == null) return;
         if (url == null || url.trim().isEmpty() || url.equals("null")) {
@@ -99,15 +101,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 Glide.with(this).load(Uri.parse(url.trim())).circleCrop().into(iv);
             } else {
                 byte[] bytes = Base64.decode(url.trim(), Base64.DEFAULT);
-                Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
-                if (bmp != null) iv.setImageBitmap(bmp);
+                Glide.with(this).load(bytes).circleCrop().into(iv);
             }
-        } catch (Exception e) {
-            // Chobi load na holeo Android icon dekhabe na
-        }
+        } catch (Exception e) {}
     }
 
-    // FIX - Headwear er chobi dekhabe, na thakle lukay rakhbe
     private void loadHeadwearInto(ImageView iv, String url) {
         if (iv == null) return;
         if (url == null || url.trim().isEmpty() || url.equals("null")) {
@@ -129,6 +127,128 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
+    // ADD - HEADER POPUP - dialog_user_profile.xml diye khulbe, GLOBAL - jekono user er room e tar Owner er info asbe
+    private void openRoomHeaderPopup() {
+        BottomSheetDialog d = new BottomSheetDialog(this);
+        View v = LayoutInflater.from(this).inflate(R.layout.dialog_user_profile, null);
+        d.setContentView(v);
+
+        ImageView ivProfile = v.findViewById(R.id.imgUserProfile);
+        TextView tvName = v.findViewById(R.id.txtUserName);
+        TextView tvGroup = v.findViewById(R.id.txtGroupName);
+        TextView tvId = v.findViewById(R.id.txtUserId);
+        TextView tvLevel = v.findViewById(R.id.txtUserLevel);
+        TextView tvOwner = v.findViewById(R.id.txtRoomOwner);
+        TextView tvLang = v.findViewById(R.id.txtHeaderLanguage);
+        TextView tvCountry = v.findViewById(R.id.txtHeaderCountry);
+        TextView tvTag = v.findViewById(R.id.txtHeaderTag);
+        View rewardBanner = v.findViewById(R.id.layoutRewardBanner);
+        RecyclerView rvMembers = v.findViewById(R.id.rvHeaderMembersList);
+        TextView tvMembersCount = v.findViewById(R.id.txtMembersCount);
+
+        // Header e Follow thakbe na - tumi bolcho, tai GONE
+        View btnFollow = v.findViewById(R.id.btnFollow);
+        if (btnFollow != null) btnFollow.setVisibility(View.GONE);
+
+        // Room er info - Owner er ID diye Firebase theke anbo, amar ID diye na
+        if (tvName != null) tvName.setText(roomTitleText != null ? roomTitleText.getText().toString() : "Room");
+        if (tvGroup != null) tvGroup.setText(roomTitleText != null ? roomTitleText.getText().toString() : "");
+        if (tvId != null) tvId.setText("ID: " + roomOwnerId + " 📋");
+        if (tvLevel != null) tvLevel.setText("⭐ Level " + myLevel);
+        if (tvOwner != null) tvOwner.setText("Owner (ID:" + roomOwnerId + ")");
+        if (tvLang != null) tvLang.setText(prefs.getString("USER_LANGUAGE", "English"));
+        if (tvCountry != null) tvCountry.setText(myCountry);
+        if (tvTag != null) tvTag.setText("Friends");
+        if (ivProfile != null) loadPhotoInto(ivProfile, currentRoomPhotoUrl != null && !currentRoomPhotoUrl.isEmpty() ? currentRoomPhotoUrl : myPhoto);
+
+        // ID Copy
+        if (tvId != null) tvId.setOnClickListener(x -> {
+            ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+            if (cm != null) cm.setPrimaryClip(ClipData.newPlainText("Room ID", roomOwnerId));
+            Toast.makeText(this, "ID Copy হয়ে গেছে", Toast.LENGTH_SHORT).show();
+        });
+
+        // Reward Banner - Public dekhte parbe
+        if (rewardBanner != null) rewardBanner.setOnClickListener(x -> openRewardEvent());
+
+        // Members List - Owner upore, tarpor Admin, tarpor Member
+        if (rvMembers != null) {
+            rvMembers.setLayoutManager(new LinearLayoutManager(this));
+            List<Map<String, String>> members = new ArrayList<>();
+            RecyclerView.Adapter adapter = new RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+                @NonNull @Override public RecyclerView.ViewHolder onCreateViewHolder(@NonNull android.view.ViewGroup p, int t) {
+                    View item = LayoutInflater.from(p.getContext()).inflate(R.layout.item_user, p, false);
+                    return new RecyclerView.ViewHolder(item) {};
+                }
+                @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder h, int pos) {
+                    Map<String, String> u = members.get(pos);
+                    ImageView iv = h.itemView.findViewById(R.id.imgChatPhoto);
+                    TextView tvH = h.itemView.findViewById(R.id.userName);
+                    TextView tvM = h.itemView.findViewById(R.id.tvChatMsg);
+                    loadPhotoInto(iv, u.get("photo"));
+                    if (tvH != null) tvH.setText(u.get("name") + "  Lv." + u.get("level"));
+                    if (tvM != null) tvM.setText("ID: " + u.get("id") + "  " + u.get("role"));
+                }
+                @Override public int getItemCount() { return members.size(); }
+            };
+            rvMembers.setAdapter(adapter);
+            activeRoomRef.child("online_users").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                    members.clear();
+                    List<Map<String, String>> temp = new ArrayList<>();
+                    for (DataSnapshot c : snap.getChildren()) {
+                        Map<String, String> m = new HashMap<>();
+                        m.put("name", c.child("name").getValue(String.class) == null ? "User" : c.child("name").getValue(String.class));
+                        String ph = c.child("photo").getValue(String.class);
+                        if (ph == null || ph.isEmpty()) ph = c.child("photoUrl").getValue(String.class);
+                        m.put("photo", ph == null ? "" : ph);
+                        Object lvl = c.child("level").getValue();
+                        m.put("level", lvl == null ? "0" : String.valueOf(lvl));
+                        m.put("id", c.getKey());
+                        m.put("role", "Member");
+                        temp.add(m);
+                    }
+                    // Owner ke sobar upore anbo
+                    for (Map<String, String> m : temp) if (m.get("id").equals(roomOwnerId)) { m.put("role", "Owner"); members.add(m); }
+                    // Tarpor Admin - active_rooms / admins theke
+                    activeRoomRef.child("admins").addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override public void onDataChange(@NonNull DataSnapshot aSnap) {
+                            for (Map<String, String> m : temp) {
+                                if (!m.get("id").equals(roomOwnerId) && aSnap.hasChild(m.get("id"))) { m.put("role", "Admin"); members.add(m); }
+                            }
+                            for (Map<String, String> m : temp) {
+                                if (!m.get("id").equals(roomOwnerId) && !aSnap.hasChild(m.get("id"))) members.add(m);
+                            }
+                            if (tvMembersCount != null) tvMembersCount.setText("Members: " + members.size() + "/1000    Admin: " + aSnap.getChildrenCount() + "/20");
+                            adapter.notifyDataSetChanged();
+                        }
+                        @Override public void onCancelled(@NonNull DatabaseError e) {}
+                    });
+                }
+                @Override public void onCancelled(@NonNull DatabaseError e) {}
+            });
+        }
+        d.show();
+    }
+
+    // ADD - REWARD EVENT - 20M porjonto 5%, tarpor 10% - Public dekhte parbe
+    private void openRewardEvent() {
+        String msg = "🏆 Room Reward Event\n\n" +
+                "Weekly Contribution joma hobe\nProti Sombar 00:00 (GMT+3) e hisab hobe\nClaim korle sorasori Wallet e jabe\n\n" +
+                "3.0M Sending = 150K Reward\n" +
+                "6.0M Sending = 300K Reward\n" +
+                "10.0M Sending = 500K Reward\n" +
+                "14.0M Sending = 700K Reward\n" +
+                "20.0M Sending = 1.0M Reward\n" +
+                "30.0M Sending = 2.0M Reward\n" +
+                "50.0M Sending = 4.0M Reward\n" +
+                "100.0M Sending = 9.0M Reward\n" +
+                "200.0M Sending = 19.0M Reward\n" +
+                "500.0M Sending = 49.0M Reward\n\n" +
+                "Niyom: 3M - 20M porjonto 5%, 20M er por theke 10%";
+        new AlertDialog.Builder(this).setTitle("Reward Event").setMessage(msg).setPositiveButton("OK", null).show();
+    }
+
     private void syncMyPhotoFromFirebase() {
         FirebaseDatabase.getInstance().getReference("users")
             .orderByChild("my9DigitId").equalTo(myId)
@@ -146,7 +266,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         if (roomHeaderProfileImg != null) loadPhotoInto(roomHeaderProfileImg, myPhoto);
                         markMeOnline();
                     }
-                    // FIX - HEADWEAR - Firebase theke Headwear nibe, sob nam e khujbe
                     String hw = null;
                     if (ds.child("headwearImage").getValue() != null) hw = String.valueOf(ds.child("headwearImage").getValue());
                     if ((hw == null || hw.isEmpty()) && ds.child("headwearUrl").getValue() != null) hw = String.valueOf(ds.child("headwearUrl").getValue());
@@ -199,7 +318,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         chatListContainer = findViewById(R.id.chatListContainer);
         if (rvOnline != null) rvOnline.setLayoutManager(new LinearLayoutManager(this));
         if (roomHeaderProfileImg != null) loadPhotoInto(roomHeaderProfileImg, myPhoto);
-        // FIX - Header e Headwear sathe sathe dekhabe
         if (roomHeaderHeadwearImg != null) loadHeadwearInto(roomHeaderHeadwearImg, getMyHeadwearFromAllPlaces());
         if (tvRoomId != null) tvRoomId.setText("Room ID: " + roomId);
         if (roomInfoText != null) roomInfoText.setText("ID: " + roomId);
@@ -211,6 +329,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
         loadRoomInfo();
         syncMyPhotoFromFirebase();
         markMeOnline();
+        // ADD - Header e click korle Popup khulbe - Profile photo + Title + ID sobgulatei click
+        if (roomHeaderProfileImg != null) roomHeaderProfileImg.setOnClickListener(v -> openRoomHeaderPopup());
+        if (roomTitleText != null) roomTitleText.setOnClickListener(v -> openRoomHeaderPopup());
+        if (roomInfoText != null) roomInfoText.setOnClickListener(v -> openRoomHeaderPopup());
         View btnOpenChat = findViewById(R.id.btnOpenChat);
         if (btnOpenChat != null) btnOpenChat.setOnClickListener(v -> openChatInput());
         View btnOnlineList = findViewById(R.id.btnOnlineList);
