@@ -259,7 +259,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder h, int pos) {
                 Map<String, String> u = list.get(pos);
                 ImageView iv = h.itemView.findViewById(R.id.imgChatPhoto);
-                TextView tvH = h.itemView.findViewById(R.id.tvChatHeader);
+                TextView tvH = h.itemView.findViewById(R.id.userName);
                 TextView tvM = h.itemView.findViewById(R.id.tvChatMsg);
                 if (u.get("photo") != null && !u.get("photo").isEmpty()) Glide.with(VoiceRoomActivity.this).load(u.get("photo")).circleCrop().into(iv);
                 tvH.setText(u.get("name") + "  Lv." + u.get("level") + "  " + getFlag(u.get("country")));
