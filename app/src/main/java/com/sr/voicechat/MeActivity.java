@@ -1,9 +1,11 @@
 package com.sr.voicechat;
 
+import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -24,6 +26,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -41,6 +44,14 @@ public class MeActivity extends AppCompatActivity {
     private DatabaseReference userRef;
     private String followCount = "0", fansCount = "0", visitorCount = "0";
 
+    // NEW - Edit থেকে Save করলেই সাথে সাথে নতুন ছবি
+    private BroadcastReceiver profileReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            showFromPrefs();
+            loadMeData();
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,7 +65,6 @@ public class MeActivity extends AppCompatActivity {
             userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
         }
 
-        // ===== ROOT - ScrollView (সম্পূর্ণ পেজ স্মুথলি স্ক্রোল হবে, হেডার ফিক্সড থাকবে না) =====
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
         scroll.setBackgroundColor(Color.parseColor("#0A0518"));
@@ -63,25 +73,22 @@ public class MeActivity extends AppCompatActivity {
         root.setOrientation(LinearLayout.VERTICAL);
         scroll.addView(root);
 
-        // ===== TOP HEADER PROFILE SECTION (ডার্ক প্রিমিয়াম ব্যাকগ্রাউন্ড ও গোল অবতার) =====
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.VERTICAL);
         header.setPadding(30, 40, 30, 25);
         header.setBackgroundColor(Color.parseColor("#1B1035"));
         root.addView(header);
 
-        // Top Row - Avatar + Name + Profile Arrow ( > )
         LinearLayout topRow = new LinearLayout(this);
         topRow.setOrientation(LinearLayout.HORIZONTAL);
         topRow.setGravity(Gravity.CENTER_VERTICAL);
         header.addView(topRow);
 
-        // 🌟 গোল প্রোফাইল পিকচারের জন্য CardView (CornerRadius 35dp)
         CardView cardAvatar = new CardView(this);
         LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(160, 160);
         cardParams.setMargins(0, 0, 25, 0);
         cardAvatar.setLayoutParams(cardParams);
-        cardAvatar.setRadius(80); // গোল করার জন্য রেডিয়াস
+        cardAvatar.setRadius(80);
         cardAvatar.setCardElevation(4);
         cardAvatar.setCardBackgroundColor(Color.TRANSPARENT);
         cardAvatar.setOnClickListener(v -> goProfile());
@@ -144,7 +151,6 @@ public class MeActivity extends AppCompatActivity {
         btnProfileArrow.setOnClickListener(v -> goProfile());
         topRow.addView(btnProfileArrow);
 
-        // ===== Copy ID Full Row =====
         LinearLayout copyIdBar = new LinearLayout(this);
         copyIdBar.setOrientation(LinearLayout.HORIZONTAL);
         copyIdBar.setBackgroundColor(Color.parseColor("#140B26"));
@@ -163,7 +169,6 @@ public class MeActivity extends AppCompatActivity {
         copyIdBar.addView(tvCopyTitle);
         root.addView(copyIdBar);
 
-        // ===== Stats Bar (Follow / Fans / Visitor) =====
         LinearLayout countRow = new LinearLayout(this);
         countRow.setOrientation(LinearLayout.HORIZONTAL);
         countRow.setGravity(Gravity.CENTER);
@@ -175,16 +180,13 @@ public class MeActivity extends AppCompatActivity {
         txtFans = addCountItem(countRow, "0", "Fans", () -> showCountDialog("Fans", fansCount));
         txtVisitor = addCountItem(countRow, "0", "Visitor", () -> showCountDialog("Visitor", visitorCount));
 
-        // ===== Scrollable Menu Items Container =====
         LinearLayout menuContainer = new LinearLayout(this);
         menuContainer.setOrientation(LinearLayout.VERTICAL);
         menuContainer.setPadding(20, 20, 20, 30);
         root.addView(menuContainer);
 
-        // SVIP Center
         addMenuCard(menuContainer, "👑 SVIP Center", "Get SVIP and enjoy privileges", () -> Toast.makeText(this, "SVIP Locked - Coming Soon", Toast.LENGTH_SHORT).show());
         
-        // VIP & Recharge Row
         LinearLayout vipRow = new LinearLayout(this);
         vipRow.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams vipRowLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -206,7 +208,6 @@ public class MeActivity extends AppCompatActivity {
         rechargeBox.setLayoutParams(recLp);
         vipRow.addView(rechargeBox);
 
-        // General Tools Title
         TextView toolsTitle = new TextView(this);
         toolsTitle.setText("General Tools");
         toolsTitle.setTextColor(Color.parseColor("#B0BEC5"));
@@ -230,7 +231,6 @@ public class MeActivity extends AppCompatActivity {
         addToolItem(toolsRow, "🎂", "Birthday");
         addToolItem(toolsRow, "📊", "Level");
 
-        // List Menu Items (Arrow > সহ)
         LinearLayout listBox = new LinearLayout(this);
         listBox.setOrientation(LinearLayout.VERTICAL);
         listBox.setBackgroundColor(Color.parseColor("#1B1035"));
@@ -248,7 +248,6 @@ public class MeActivity extends AppCompatActivity {
         addMenuRow(listBox, "📅 Daily Tasks");
         addMenuRow(listBox, "⚙️ Setting");
 
-        // ===== Logout Button (সেটিংস ও অন্যান্য মেনুর ঠিক নিচে প্রিমিয়াম কার্ড স্টাইলে) =====
         LinearLayout logoutLayout = new LinearLayout(this);
         logoutLayout.setOrientation(LinearLayout.HORIZONTAL);
         logoutLayout.setGravity(Gravity.CENTER);
@@ -281,8 +280,15 @@ public class MeActivity extends AppCompatActivity {
         menuContainer.addView(logoutLayout);
 
         setContentView(scroll);
+        // Broadcast শুনবো
+        registerReceiver(profileReceiver, new IntentFilter("com.sr.voicechat.PROFILE_UPDATED"));
         showFromPrefs();
         loadMeData();
+    }
+
+    @Override protected void onDestroy() {
+        super.onDestroy();
+        try { unregisterReceiver(profileReceiver); } catch (Exception ignored) {}
     }
 
     private TextView addCountItem(LinearLayout parent, String num, String label, Runnable onClick) {
@@ -434,12 +440,13 @@ public class MeActivity extends AppCompatActivity {
 
     private void showFromPrefs() {
         String name = prefs.getString("USER_NAME", "User");
-        String photoBase64 = prefs.getString("USER_PHOTO", "");
+        String photo = prefs.getString("USER_PHOTO", "");
+        if (photo.isEmpty()) photo = prefs.getString("PROFILE_PHOTO", "");
         my9DigitId = prefs.getString("MY_9_DIGIT_ID", my9DigitId);
         if (txtName != null) txtName.setText(name);
         if (txtId != null) txtId.setText("ID: " + my9DigitId);
         if (txtGenderCountry != null) txtGenderCountry.setText(getGenderCountryText());
-        showBase64Image(photoBase64, imgAvatar);
+        showPhoto(photo, imgAvatar);
     }
 
     private void loadMeData() {
@@ -453,8 +460,10 @@ public class MeActivity extends AppCompatActivity {
                     String id = getStr(snap, "my9DigitId", my9DigitId);
                     String country = getStr(snap, "country", prefs.getString("USER_COUNTRY", ""));
                     String gender = getStr(snap, "gender", prefs.getString("USER_GENDER", ""));
-                    String photoBase64 = getStr(snap, "photoBase64", "");
-                    if (photoBase64.isEmpty()) photoBase64 = getStr(snap, "photoUrl", "");
+                    // FIX - আগে photoUrl দেখবো, তারপর photo, তারপর পুরানো Base64
+                    String photo = getStr(snap, "photoUrl", "");
+                    if (photo.isEmpty()) photo = getStr(snap, "photo", "");
+                    if (photo.isEmpty()) photo = getStr(snap, "photoBase64", "");
                     followCount = getStr(snap, "followCount", "0");
                     fansCount = getStr(snap, "fansCount", "0");
                     visitorCount = getStr(snap, "visitorCount", "0");
@@ -467,7 +476,8 @@ public class MeActivity extends AppCompatActivity {
                         .putString("USER_NAME", name)
                         .putString("USER_COUNTRY", country)
                         .putString("USER_GENDER", gender)
-                        .putString("USER_PHOTO", photoBase64)
+                        .putString("USER_PHOTO", photo)
+                        .putString("PROFILE_PHOTO", photo)
                         .apply();
 
                     if (txtName != null) txtName.setText(name);
@@ -476,11 +486,23 @@ public class MeActivity extends AppCompatActivity {
                     if (txtFollow != null) txtFollow.setText(followCount);
                     if (txtFans != null) txtFans.setText(fansCount);
                     if (txtVisitor != null) txtVisitor.setText(visitorCount);
-                    showBase64Image(photoBase64, imgAvatar);
+                    showPhoto(photo, imgAvatar);
                 } catch (Exception ignored) {}
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
+    }
+
+    // FIX - লিংক হলে Glide, Base64 হলে পুরানো নিয়ম - ২টাই চলবে, কারো ছবি হারাবে না
+    private void showPhoto(String photo, ImageView iv) {
+        if (iv == null || photo == null || photo.isEmpty()) return;
+        try {
+            if (photo.startsWith("http")) {
+                Glide.with(this).load(photo).circleCrop().into(iv);
+            } else {
+                showBase64Image(photo, iv);
+            }
+        } catch (Exception ignored) {}
     }
 
     private void showBase64Image(String base64, ImageView iv) {
