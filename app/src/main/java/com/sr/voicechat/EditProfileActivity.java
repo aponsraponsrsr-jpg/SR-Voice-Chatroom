@@ -80,7 +80,6 @@ public class EditProfileActivity extends AppCompatActivity {
                         } else {
                             pickedBitmap = bmp;
                         }
-                        // FIX - Gol kore dekhano
                         Glide.with(EditProfileActivity.this).load(pickedBitmap).circleCrop().into(ivProfilePhoto);
                         selectedPhotoBase64 = bitmapToBase64(pickedBitmap);
                         Toast.makeText(this, "Photo Selected - Now Press Save", Toast.LENGTH_SHORT).show();
@@ -137,9 +136,9 @@ public class EditProfileActivity extends AppCompatActivity {
         LinearLayout photoLayout = new LinearLayout(this); photoLayout.setOrientation(LinearLayout.VERTICAL); photoLayout.setGravity(Gravity.CENTER); photoLayout.setPadding(0,0,0,10);
         ivProfilePhoto = new ImageView(this);
         ivProfilePhoto.setImageResource(android.R.drawable.ic_menu_camera);
-        ivProfilePhoto.setBackgroundColor(Color.parseColor("#2A1B4E"));
+        // FIX - Eitai charkonar karon chilo - #2A1B4E Beguni Charkona ekhon Transparent
+        ivProfilePhoto.setBackgroundColor(Color.TRANSPARENT);
         ivProfilePhoto.setPadding(0,0,0,0);
-        // FIX - Charkona na, ekhon Gol hobe
         ivProfilePhoto.setClipToOutline(true);
         ivProfilePhoto.setScaleType(ImageView.ScaleType.CENTER_CROP);
         ivProfilePhoto.setOutlineProvider(new ViewOutlineProvider() {
@@ -256,18 +255,12 @@ public class EditProfileActivity extends AppCompatActivity {
                 selectedPhotoUrl = uri.toString();
                 selectedPhotoBase64 = "";
                 proceedToSave(name);
-            }).addOnFailureListener(e -> {
-                // FIX - Voy er lekha tule dilam, chupchap backup diye save hobe
-                proceedToSave(name);
-            }));
+            }).addOnFailureListener(e -> proceedToSave(name)));
             task.addOnFailureListener(e -> {
-                // FIX - Voy er lekha tule dilam, chupchap backup diye save hobe
                 selectedPhotoUrl = oldPhotoUrl;
                 proceedToSave(name);
             });
-        } catch (Exception e) {
-            proceedToSave(name);
-        }
+        } catch (Exception e) { proceedToSave(name); }
     }
 
     private void proceedToSave(String name) {
