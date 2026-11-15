@@ -25,8 +25,6 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         h.name.setText(u.getName());
         if(u.isSpeaking()) h.name.setBackgroundResource(R.drawable.bg_speaking);
         else h.name.setBackgroundResource(R.drawable.bg_user);
-
-        // FIX - নতুন photoUrl থাকলে ওইটাই, না থাকলে পুরানো Base64
         if (h.avatar != null) {
             String photo = "";
             try { photo = u.getPhotoUrl(); } catch (Exception ignored) {}
@@ -52,8 +50,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         public ViewHolder(@NonNull View v) {
             super(v);
             name = v.findViewById(R.id.userName);
-            // তোমার item_user.xml এ ImageView এর id userAvatar হতে হবে
-            try { avatar = v.findViewById(R.id.userAvatar); } catch (Exception e) { avatar = null; }
+            avatar = v.findViewById(R.id.imgChatPhoto);
         }
     }
 }
