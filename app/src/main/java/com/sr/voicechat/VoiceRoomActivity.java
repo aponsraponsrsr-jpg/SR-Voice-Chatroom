@@ -39,7 +39,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private boolean amIOwner = false, amIAdmin = false;
     private TextView tvRoomId, tvRoomName, tvMyIdInRoom;
     private TextView roomTitleText, roomInfoText;
-    private ImageView roomHeaderProfileImg;
+    private ImageView roomHeaderProfileImg, roomHeaderHeadwearImg;
     private Button btnRoomSet, btnRoomEdit;
     private View layoutOwnerTools;
     private RecyclerView rvOnline;
@@ -74,32 +74,62 @@ public class VoiceRoomActivity extends AppCompatActivity {
         return "";
     }
 
-    // FIX - লিংক হলে Glide, Base64 হলে পুরানো নিয়ম
+    // FIX - Headwear phone e save thakle ekhan theke nibe
+    private String getMyHeadwearFromAllPlaces() {
+        if (prefs == null) return "";
+        String[] keys = {"HEADWEAR_IMAGE","headwearImage","HEADWEAR_URL","headwearUrl","HEADWEAR","headwear","HEADWEAR_PHOTO"};
+        for (String k : keys) {
+            String v = prefs.getString(k, "");
+            if (v != null && !v.trim().isEmpty() && !v.equals("null")) return v.trim();
+        }
+        return "";
+    }
+
+    // FIX - Age ekhane Android er sym_def_app_icon chilo, tai Header e Android icon asto. Ekhon soray disi - chobi na thakle khali thakbe, icon asbe na.
     private void loadPhotoInto(ImageView iv, String url) {
         if (iv == null) return;
         if (url == null || url.trim().isEmpty() || url.equals("null")) {
-            iv.setImageResource(android.R.drawable.sym_def_app_icon);
+            iv.setImageDrawable(null);
             return;
         }
         try {
             if (url.trim().startsWith("http")) {
-                Glide.with(this).load(url).circleCrop()
-                    .placeholder(android.R.drawable.sym_def_app_icon)
-                    .error(android.R.drawable.sym_def_app_icon)
-                    .into(iv);
+                Glide.with(this).load(url).circleCrop().into(iv);
+            } else if (url.trim().startsWith("content://") || url.trim().startsWith("file://")) {
+                Glide.with(this).load(Uri.parse(url.trim())).circleCrop().into(iv);
             } else {
                 byte[] bytes = Base64.decode(url.trim(), Base64.DEFAULT);
                 Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
                 if (bmp != null) iv.setImageBitmap(bmp);
-                else iv.setImageResource(android.R.drawable.sym_def_app_icon);
             }
         } catch (Exception e) {
-            iv.setImageResource(android.R.drawable.sym_def_app_icon);
+            // Chobi load na holeo Android icon dekhabe na
+        }
+    }
+
+    // FIX - Headwear er chobi dekhabe, na thakle lukay rakhbe
+    private void loadHeadwearInto(ImageView iv, String url) {
+        if (iv == null) return;
+        if (url == null || url.trim().isEmpty() || url.equals("null")) {
+            iv.setVisibility(View.GONE);
+            return;
+        }
+        iv.setVisibility(View.VISIBLE);
+        try {
+            if (url.trim().startsWith("http") || url.trim().startsWith("content://") || url.trim().startsWith("file://")) {
+                Glide.with(this).load(url.trim()).into(iv);
+            } else {
+                byte[] bytes = Base64.decode(url.trim(), Base64.DEFAULT);
+                Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                if (bmp != null) iv.setImageBitmap(bmp);
+                else iv.setVisibility(View.GONE);
+            }
+        } catch (Exception e) {
+            iv.setVisibility(View.GONE);
         }
     }
 
     private void syncMyPhotoFromFirebase() {
-        // FIX - users এর চাবি firebaseUid, তাই my9DigitId দিয়ে খুঁজতে হবে
         FirebaseDatabase.getInstance().getReference("users")
             .orderByChild("my9DigitId").equalTo(myId)
             .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -115,6 +145,16 @@ public class VoiceRoomActivity extends AppCompatActivity {
                         prefs.edit().putString("USER_PHOTO", p).putString("PROFILE_PHOTO", p).apply();
                         if (roomHeaderProfileImg != null) loadPhotoInto(roomHeaderProfileImg, myPhoto);
                         markMeOnline();
+                    }
+                    // FIX - HEADWEAR - Firebase theke Headwear nibe, sob nam e khujbe
+                    String hw = null;
+                    if (ds.child("headwearImage").getValue() != null) hw = String.valueOf(ds.child("headwearImage").getValue());
+                    if ((hw == null || hw.isEmpty()) && ds.child("headwearUrl").getValue() != null) hw = String.valueOf(ds.child("headwearUrl").getValue());
+                    if ((hw == null || hw.isEmpty()) && ds.child("headwearBase64").getValue() != null) hw = String.valueOf(ds.child("headwearBase64").getValue());
+                    if ((hw == null || hw.isEmpty()) && ds.child("HEADWEAR_IMAGE").getValue() != null) hw = String.valueOf(ds.child("HEADWEAR_IMAGE").getValue());
+                    if (hw != null && !hw.isEmpty()) {
+                        prefs.edit().putString("HEADWEAR_IMAGE", hw).apply();
+                        if (roomHeaderHeadwearImg != null) loadHeadwearInto(roomHeaderHeadwearImg, hw);
                     }
                     break;
                 }
@@ -139,7 +179,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             Toast.makeText(this, "ID পাওয়া যায় নাই, আবার Login করো", Toast.LENGTH_LONG).show();
             finish(); return;
         }
-        // FIX - Intent থেকে আসল রুম নিবো, নিজের ID দিয়ে না
         String intentRoomId = getIntent().getStringExtra("ROOM_ID");
         String intentOwnerId = getIntent().getStringExtra("ROOM_OWNER_ID");
         if (intentRoomId != null && !intentRoomId.isEmpty()) roomId = intentRoomId; else roomId = myId;
@@ -156,9 +195,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
         roomTitleText = findViewById(R.id.roomTitleText);
         roomInfoText = findViewById(R.id.roomInfoText);
         roomHeaderProfileImg = findViewById(R.id.roomHeaderProfileImg);
+        roomHeaderHeadwearImg = findViewById(R.id.roomHeaderHeadwearImg);
         chatListContainer = findViewById(R.id.chatListContainer);
         if (rvOnline != null) rvOnline.setLayoutManager(new LinearLayoutManager(this));
         if (roomHeaderProfileImg != null) loadPhotoInto(roomHeaderProfileImg, myPhoto);
+        // FIX - Header e Headwear sathe sathe dekhabe
+        if (roomHeaderHeadwearImg != null) loadHeadwearInto(roomHeaderHeadwearImg, getMyHeadwearFromAllPlaces());
         if (tvRoomId != null) tvRoomId.setText("Room ID: " + roomId);
         if (roomInfoText != null) roomInfoText.setText("ID: " + roomId);
         if (tvMyIdInRoom != null) tvMyIdInRoom.setText("আমার ID: " + myId + " | " + myName);
@@ -395,7 +437,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         view.findViewById(R.id.toolLock).setOnClickListener(v -> Toast.makeText(this, "Lock on - Coming Soon", Toast.LENGTH_SHORT).show());
         view.findViewById(R.id.toolClearCharm).setOnClickListener(v -> Toast.makeText(this, "Clear charm - Coming Soon", Toast.LENGTH_SHORT).show());
         view.findViewById(R.id.toolChangeMic).setOnClickListener(v -> Toast.makeText(this, "Change mic - Coming Soon", Toast.LENGTH_SHORT).show());
-        view.findViewById(R.id.toolMicTheme).setOnClickListener(v -> Toast.makeText(this, "Mic Theme - Coming Soon", Toast.LENGTH_SHORT).show());
         view.findViewById(R.id.toolDress).setOnClickListener(v -> Toast.makeText(this, "Dress - Coming Soon", Toast.LENGTH_SHORT).show());
         view.findViewById(R.id.toolLuckySound).setOnClickListener(v -> Toast.makeText(this, "Lucky Sound - Coming Soon", Toast.LENGTH_SHORT).show());
         view.findViewById(R.id.toolVoiceUser).setOnClickListener(v -> Toast.makeText(this, "Voice User - Coming Soon", Toast.LENGTH_SHORT).show());
