@@ -91,11 +91,17 @@ public class MeActivity extends AppCompatActivity {
         cardAvatar.setRadius(80);
         cardAvatar.setCardElevation(4);
         cardAvatar.setCardBackgroundColor(Color.TRANSPARENT);
+        // FIX - Charkona kona jate na thake
+        cardAvatar.setPreventCornerOverlap(false);
+        cardAvatar.setUseCompatPadding(false);
         cardAvatar.setOnClickListener(v -> goProfile());
 
         imgAvatar = new ImageView(this);
+        // FIX - Chobi ke Card er soman boro kore dilam, nahole vitore choto charkona hoye thakto
+        imgAvatar.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         imgAvatar.setImageResource(android.R.drawable.ic_menu_my_calendar);
         imgAvatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        imgAvatar.setBackgroundColor(Color.TRANSPARENT);
         cardAvatar.addView(imgAvatar);
         topRow.addView(cardAvatar);
 
@@ -280,7 +286,6 @@ public class MeActivity extends AppCompatActivity {
         menuContainer.addView(logoutLayout);
 
         setContentView(scroll);
-        // FIX - Me te click korlei crash er karon eitai chilo. Android 13+ te RECEIVER_NOT_EXPORTED na dile crash kore.
         try {
             IntentFilter filter = new IntentFilter("com.sr.voicechat.PROFILE_UPDATED");
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -517,7 +522,8 @@ public class MeActivity extends AppCompatActivity {
             BitmapFactory.Options opt = new BitmapFactory.Options();
             opt.inSampleSize = 2;
             Bitmap b = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, opt);
-            if (b != null) iv.setImageBitmap(b);
+            // FIX - Age setImageBitmap diye charkona dekhato, ekhon Glide diye Gol kore dekhabe
+            if (b != null) Glide.with(this).load(b).circleCrop().into(iv);
         } catch (Exception ignored) {}
     }
 
