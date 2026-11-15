@@ -1,6 +1,9 @@
 package com.sr.voicechat;
 
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
@@ -31,6 +34,12 @@ public class HomeActivity extends AppCompatActivity {
     private DatabaseReference activeRoomsRef, roomsRef;
     private SharedPreferences prefs;
 
+    private BroadcastReceiver profileReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            loadActiveRooms();
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,6 +58,7 @@ public class HomeActivity extends AppCompatActivity {
         roomModelList = new ArrayList<>();
         roomGridAdapter = new RoomGridAdapter(this, roomModelList);
         if (roomGridView != null) roomGridView.setAdapter(roomGridAdapter);
+        registerReceiver(profileReceiver, new IntentFilter("com.sr.voicechat.PROFILE_UPDATED"));
         loadActiveRooms();
         View.OnClickListener createRoomListener = v -> checkAndCreateRoom();
         if (btnPlus != null) btnPlus.setOnClickListener(createRoomListener);
@@ -69,6 +79,11 @@ public class HomeActivity extends AppCompatActivity {
         if (btnInboxTab != null) btnInboxTab.setOnClickListener(v -> { Intent intent = new Intent(HomeActivity.this, InboxActivity.class); startActivity(intent); });
         if (btnMeTab != null) btnMeTab.setOnClickListener(v -> { Intent intent = new Intent(HomeActivity.this, MeActivity.class); startActivity(intent); });
         if (btnMomentTab != null) btnMomentTab.setOnClickListener(v -> Toast.makeText(this, "SR Moments Coming Soon!", Toast.LENGTH_SHORT).show());
+    }
+
+    @Override protected void onDestroy() {
+        super.onDestroy();
+        try { unregisterReceiver(profileReceiver); } catch (Exception ignored) {}
     }
 
     private void checkAndCreateRoom() {
@@ -102,7 +117,9 @@ public class HomeActivity extends AppCompatActivity {
             if (myId == null || myId.isEmpty()) { Toast.makeText(this, "ID পাওয়া যায় নাই, আবার Login করো", Toast.LENGTH_LONG).show(); return; }
             if (roomName.isEmpty()) roomName = prefs.getString("USER_NAME", "User") + "'s Room";
             if (roomBio.isEmpty()) roomBio = "Welcome to my voice chat room!";
+            // FIX - USER_PHOTO তে এখন নতুন photoUrl থাকে, ওইটাই রুমে যাবে
             String userImage = prefs.getString("USER_PHOTO", "");
+            if (userImage.isEmpty()) userImage = prefs.getString("PROFILE_PHOTO", "");
             if (userImage.isEmpty()) userImage = prefs.getString("USER_IMAGE", "");
             if (userImage.isEmpty()) userImage = prefs.getString("USER_PROFILE_IMAGE", "");
             DatabaseReference roomMetaRef = roomsRef.child("room_" + myId).child("meta");
@@ -135,12 +152,40 @@ public class HomeActivity extends AppCompatActivity {
                     String roomName = child.child("roomName").getValue(String.class);
                     String roomBio = child.child("roomBio").getValue(String.class);
                     String roomImage = child.child("roomOwnerImage").getValue(String.class);
-                    if (ownerId != null) roomModelList.add(new RoomModel(ownerId, roomName, roomBio, roomImage));
+                    if (ownerId != null) {
+                        RoomModel rm = new RoomModel(ownerId, roomName, roomBio, roomImage);
+                        roomModelList.add(rm);
+                        // FIX - রুমের পুরানো ছবি না, users থেকে নতুন ছবি আনবো
+                        refreshRoomImage(rm);
+                    }
                 }
                 roomGridAdapter.notifyDataSetChanged();
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
+    }
+
+    // FIX - প্রতিটা রুমের মালিকের নতুন ছবি users থেকে আনবে
+    private void refreshRoomImage(RoomModel rm) {
+        try {
+            FirebaseDatabase.getInstance().getReference("users")
+                .orderByChild("my9DigitId").equalTo(rm.getRoomOwnerId())
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                        for (DataSnapshot ds : snap.getChildren()) {
+                            String fresh = null;
+                            if (ds.child("photoUrl").getValue() != null) fresh = String.valueOf(ds.child("photoUrl").getValue());
+                            if ((fresh == null || fresh.isEmpty()) && ds.child("photo").getValue() != null) fresh = String.valueOf(ds.child("photo").getValue());
+                            if (fresh != null && !fresh.isEmpty() && !fresh.equals(rm.getRoomImage())) {
+                                rm.setRoomImage(fresh);
+                                if (roomGridAdapter != null) roomGridAdapter.notifyDataSetChanged();
+                            }
+                            break;
+                        }
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError e) {}
+                });
+        } catch (Exception ignored) {}
     }
 
     private void showSearchRoomDialog() {
