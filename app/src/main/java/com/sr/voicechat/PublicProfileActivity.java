@@ -34,7 +34,7 @@ import com.google.firebase.database.ValueEventListener;
 
 public class PublicProfileActivity extends AppCompatActivity {
     private String targetId = "", myId = "";
-    private TextView txtName, txtId, txtFollow, txtFans, txtVisitor;
+    private TextView txtName, txtId, txtFollow, txtFans, txtVisitor, txtLevelBadge;
     private ImageView imgAvatar, imgCover, imgHeadwear;
     private LinearLayout tabProfileContent, tabAlbumContent, tabMomentsContent, tabIntimacyContent;
     private TextView tabProfile, tabAlbum, tabMoments, tabIntimacy;
@@ -57,15 +57,20 @@ public class PublicProfileActivity extends AppCompatActivity {
         boolean isMine = targetId.equals(myId);
 
         ScrollView scroll = new ScrollView(this);
+        scroll.setFillViewport(true);
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(Color.parseColor("#F5F0D8"));
+        root.setBackgroundColor(Color.parseColor("#0A1F16"));
         scroll.addView(root);
 
+        // ===== HEADER - VIDEO STYLE DEEP GREEN =====
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.VERTICAL);
         header.setPadding(40, 20, 40, 30);
-        header.setBackgroundColor(Color.parseColor("#C9E8A8"));
+        GradientDrawable headerBg = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
+                new int[]{Color.parseColor("#1E7A4C"), Color.parseColor("#0F4D2E")});
+        headerBg.setCornerRadius(0);
+        header.setBackground(headerBg);
         root.addView(header);
 
         LinearLayout topBar = new LinearLayout(this);
@@ -77,7 +82,8 @@ public class PublicProfileActivity extends AppCompatActivity {
         btnBack.setText("← Back");
         btnBack.setTextSize(14);
         btnBack.setTypeface(null, Typeface.BOLD);
-        btnBack.setTextColor(Color.parseColor("#333333"));
+        btnBack.setTextColor(Color.WHITE);
+        btnBack.setPadding(10, 10, 10, 10);
         btnBack.setOnClickListener(v -> finish());
         topBar.addView(btnBack);
 
@@ -105,11 +111,11 @@ public class PublicProfileActivity extends AppCompatActivity {
             topBar.addView(btnPencil);
         }
 
+        // Cover
         imgCover = new ImageView(this);
         imgCover.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 280));
         imgCover.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        // FIX - Age ekhane Android er gallery icon chilo, tai Headwear / Cover na thakle Android icon asto. Ekhon khali thakbe, icon asbe na.
-        imgCover.setBackgroundColor(Color.parseColor("#C9E8A8"));
+        imgCover.setBackgroundColor(Color.parseColor("#14532D"));
         imgCover.setPadding(0, 20, 0, 10);
         imgCover.setOnClickListener(v -> {
             if (isMine) Toast.makeText(this, "Cover Photo - Next Step e change korbo", Toast.LENGTH_SHORT).show();
@@ -119,13 +125,23 @@ public class PublicProfileActivity extends AppCompatActivity {
         LinearLayout topRow = new LinearLayout(this);
         topRow.setOrientation(LinearLayout.HORIZONTAL);
         topRow.setGravity(Gravity.CENTER_VERTICAL);
+        topRow.setPadding(0, 10, 0, 0);
         header.addView(topRow);
+
+        // Avatar - round with white border effect via padding container
+        LinearLayout avatarWrap = new LinearLayout(this);
+        avatarWrap.setPadding(6, 6, 6, 6);
+        GradientDrawable avBg = new GradientDrawable();
+        avBg.setColor(Color.WHITE);
+        avBg.setCornerRadius(90);
+        avatarWrap.setBackground(avBg);
+        topRow.addView(avatarWrap);
 
         imgAvatar = new ImageView(this);
         imgAvatar.setLayoutParams(new LinearLayout.LayoutParams(170, 170));
-        // FIX - Age ekhane Android er camera icon chilo. Ekhon khali background thakbe.
         imgAvatar.setBackgroundColor(Color.parseColor("#DDDDDD"));
-        topRow.addView(imgAvatar);
+        imgAvatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        avatarWrap.addView(imgAvatar);
 
         LinearLayout nameBox = new LinearLayout(this);
         nameBox.setOrientation(LinearLayout.VERTICAL);
@@ -137,12 +153,12 @@ public class PublicProfileActivity extends AppCompatActivity {
         txtName.setText("Loading...");
         txtName.setTextSize(20);
         txtName.setTypeface(null, Typeface.BOLD);
-        txtName.setTextColor(Color.parseColor("#222222"));
+        txtName.setTextColor(Color.WHITE);
         nameBox.addView(txtName);
 
         txtId = new TextView(this);
         txtId.setText("ID: " + targetId + "  📋 Tap to Copy");
-        txtId.setTextColor(Color.parseColor("#555555"));
+        txtId.setTextColor(Color.parseColor("#D1FAE5"));
         txtId.setTextSize(13);
         txtId.setOnClickListener(v -> {
             ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
@@ -151,27 +167,48 @@ public class PublicProfileActivity extends AppCompatActivity {
         });
         nameBox.addView(txtId);
 
-        // FIX - Headwear er chobi dekhanor jonno choto ImageView. Save hole ekhane show hobe.
+        txtLevelBadge = new TextView(this);
+        txtLevelBadge.setText("  Level 0  ");
+        txtLevelBadge.setTextColor(Color.parseColor("#FFD700"));
+        txtLevelBadge.setTextSize(12);
+        txtLevelBadge.setTypeface(null, Typeface.BOLD);
+        txtLevelBadge.setPadding(18, 8, 18, 8);
+        GradientDrawable lbg = new GradientDrawable();
+        lbg.setColor(Color.parseColor("#1A1A1A"));
+        lbg.setCornerRadius(30);
+        txtLevelBadge.setBackground(lbg);
+        LinearLayout.LayoutParams lbLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lbLp.setMargins(0, 10, 0, 0);
+        txtLevelBadge.setLayoutParams(lbLp);
+        nameBox.addView(txtLevelBadge);
+
         imgHeadwear = new ImageView(this);
         imgHeadwear.setLayoutParams(new LinearLayout.LayoutParams(120, 120));
         imgHeadwear.setScaleType(ImageView.ScaleType.CENTER_CROP);
         imgHeadwear.setVisibility(View.GONE);
         topRow.addView(imgHeadwear);
 
-        LinearLayout countRow = new LinearLayout(this);
-        countRow.setOrientation(LinearLayout.HORIZONTAL);
-        countRow.setPadding(0, 25, 0, 0);
-        header.addView(countRow);
-        txtFollow = addCount(countRow, "0", "Follow");
-        txtFans = addCount(countRow, "0", "Fans");
-        txtVisitor = addCount(countRow, "0", "Visitor");
+        // Follow / Fans / Visitor - white card inside header
+        LinearLayout countCard = new LinearLayout(this);
+        countCard.setOrientation(LinearLayout.HORIZONTAL);
+        countCard.setPadding(20, 20, 20, 20);
+        GradientDrawable countBg = new GradientDrawable();
+        countBg.setColor(Color.parseColor("#FFFFFF"));
+        countBg.setCornerRadius(25);
+        countCard.setBackground(countBg);
+        LinearLayout.LayoutParams countLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        countLp.setMargins(0, 25, 0, 0);
+        countCard.setLayoutParams(countLp);
+        header.addView(countCard);
+        txtFollow = addCount(countCard, "0", "Follow", "#111111", "#888888");
+        txtFans = addCount(countCard, "0", "Fans", "#111111", "#888888");
+        txtVisitor = addCount(countCard, "0", "Visitor", "#111111", "#888888");
 
         if (!isMine) {
             LinearLayout btnRow = new LinearLayout(this);
             btnRow.setOrientation(LinearLayout.HORIZONTAL);
             btnRow.setPadding(0, 25, 0, 0);
             header.addView(btnRow);
-
             TextView btnFollow = makeBtn("+ Follow", "#FF9800");
             btnFollow.setOnClickListener(v -> Toast.makeText(this, "Followed! ❤️", Toast.LENGTH_SHORT).show());
             btnRow.addView(btnFollow);
@@ -180,10 +217,11 @@ public class PublicProfileActivity extends AppCompatActivity {
             btnRow.addView(btnGift);
         }
 
+        // Tabs
         LinearLayout tabRow = new LinearLayout(this);
         tabRow.setOrientation(LinearLayout.HORIZONTAL);
-        tabRow.setBackgroundColor(Color.WHITE);
-        tabRow.setPadding(10, 10, 10, 10);
+        tabRow.setBackgroundColor(Color.parseColor("#0A1F16"));
+        tabRow.setPadding(10, 15, 10, 10);
         root.addView(tabRow);
         tabProfile = makeTab(tabRow, "Profile", true);
         tabAlbum = makeTab(tabRow, "Photo album", false);
@@ -192,24 +230,24 @@ public class PublicProfileActivity extends AppCompatActivity {
 
         tabProfileContent = new LinearLayout(this);
         tabProfileContent.setOrientation(LinearLayout.VERTICAL);
-        tabProfileContent.setPadding(30, 20, 30, 20);
+        tabProfileContent.setPadding(30, 10, 30, 20);
         root.addView(tabProfileContent);
 
         tabAlbumContent = new LinearLayout(this);
         tabAlbumContent.setOrientation(LinearLayout.VERTICAL);
-        tabAlbumContent.setPadding(30, 20, 30, 20);
+        tabAlbumContent.setPadding(30, 10, 30, 20);
         tabAlbumContent.setVisibility(View.GONE);
         root.addView(tabAlbumContent);
 
         tabMomentsContent = new LinearLayout(this);
         tabMomentsContent.setOrientation(LinearLayout.VERTICAL);
-        tabMomentsContent.setPadding(30, 20, 30, 20);
+        tabMomentsContent.setPadding(30, 10, 30, 20);
         tabMomentsContent.setVisibility(View.GONE);
         root.addView(tabMomentsContent);
 
         tabIntimacyContent = new LinearLayout(this);
         tabIntimacyContent.setOrientation(LinearLayout.VERTICAL);
-        tabIntimacyContent.setPadding(30, 20, 30, 20);
+        tabIntimacyContent.setPadding(30, 10, 30, 20);
         tabIntimacyContent.setVisibility(View.GONE);
         root.addView(tabIntimacyContent);
 
@@ -219,7 +257,6 @@ public class PublicProfileActivity extends AppCompatActivity {
         buildIntimacyTab();
 
         setContentView(scroll);
-        // FIX 1 - Eitai crash er karon chilo. Android 13+ e RECEIVER_NOT_EXPORTED na dile Profile khultei ber kore dito.
         try {
             IntentFilter filter = new IntentFilter("com.sr.voicechat.PROFILE_UPDATED");
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -241,31 +278,123 @@ public class PublicProfileActivity extends AppCompatActivity {
         loadUser();
     }
 
+    // ===== PROFILE TAB - VIDEO STYLE BADGE GRID =====
     private void buildProfileTab() {
-        // FIX - Headwear er nam thakle nam dekhabe, na thakle View dekhabe
         String headwearText = "View >";
         try {
             if (user.headwearName != null && !user.headwearName.isEmpty()) headwearText = user.headwearName;
             else if (prefs.getString("HEADWEAR_NAME", "").length() > 0) headwearText = prefs.getString("HEADWEAR_NAME", "");
             else if (prefs.getString("headwearName", "").length() > 0) headwearText = prefs.getString("headwearName", "");
         } catch (Exception ignored) {}
-        addProfileRow(tabProfileContent, "🏷️ Nameplate", "Level " + user.level);
-        addProfileRow(tabProfileContent, "💎 Supporter", user.supporterName.isEmpty() ? "No supporter yet" : user.supporterName);
-        addProfileRow(tabProfileContent, "🏅 Medal (" + user.medalCount + ")", "View Medals >");
-        addProfileRow(tabProfileContent, "👨‍👩‍👧 Family", user.getFamilyDisplay());
-        addProfileRow(tabProfileContent, "🎩 Headwear (" + user.headwearCount + ")", headwearText);
-        addProfileRow(tabProfileContent, "🚗 Car (" + user.carCount + ")", "View >");
+
+        // Section title
+        TextView title = new TextView(this);
+        title.setText("My Collection");
+        title.setTextColor(Color.WHITE);
+        title.setTextSize(16);
+        title.setTypeface(null, Typeface.BOLD);
+        title.setPadding(5, 15, 5, 15);
+        tabProfileContent.addView(title);
+
+        // Row 1 - 2 cards
+        LinearLayout row1 = new LinearLayout(this);
+        row1.setOrientation(LinearLayout.HORIZONTAL);
+        tabProfileContent.addView(row1);
+        row1.addView(makeBadgeCard("🏷️", "Nameplate", "Level " + user.level, 1));
+        row1.addView(makeBadgeCard("💎", "Supporter", user.supporterName.isEmpty() ? "No supporter yet" : user.supporterName, 1));
+
+        LinearLayout row2 = new LinearLayout(this);
+        row2.setOrientation(LinearLayout.HORIZONTAL);
+        tabProfileContent.addView(row2);
+        row2.addView(makeBadgeCard("🏅", "Medal (" + user.medalCount + ")", "View Medals >", 1));
+        row2.addView(makeBadgeCard("👨‍👩‍👧", "Family", user.getFamilyDisplay(), 1));
+
+        LinearLayout row3 = new LinearLayout(this);
+        row3.setOrientation(LinearLayout.HORIZONTAL);
+        tabProfileContent.addView(row3);
+        row3.addView(makeBadgeCard("🎩", "Headwear (" + user.headwearCount + ")", headwearText, 1));
+        row3.addView(makeBadgeCard("🚗", "Car (" + user.carCount + ")", "View >", 1));
+
+        // Gift full width
         addProfileRow(tabProfileContent, "🎁 Gift (" + user.giftCount + ")", "All gifts - Dollar is Private");
     }
 
+    private LinearLayout makeBadgeCard(String icon, String title, String value, int weight) {
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setPadding(25, 22, 25, 22);
+        GradientDrawable bg = new GradientDrawable();
+        bg.setColor(Color.WHITE);
+        bg.setCornerRadius(25);
+        card.setBackground(bg);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+        lp.setMargins(8, 8, 8, 8);
+        card.setLayoutParams(lp);
+        card.setOnClickListener(v -> Toast.makeText(this, title + " - Coming Soon", Toast.LENGTH_SHORT).show());
+
+        TextView tIcon = new TextView(this);
+        tIcon.setText(icon);
+        tIcon.setTextSize(22);
+        card.addView(tIcon);
+
+        TextView tTitle = new TextView(this);
+        tTitle.setText(title);
+        tTitle.setTextColor(Color.parseColor("#111111"));
+        tTitle.setTextSize(13);
+        tTitle.setTypeface(null, Typeface.BOLD);
+        tTitle.setPadding(0, 8, 0, 0);
+        card.addView(tTitle);
+
+        TextView tVal = new TextView(this);
+        tVal.setText(value);
+        tVal.setTextColor(Color.parseColor("#777777"));
+        tVal.setTextSize(12);
+        tVal.setPadding(0, 4, 0, 0);
+        card.addView(tVal);
+        return card;
+    }
+
     private void buildAlbumTab() {
+        TextView head = new TextView(this);
+        head.setText("Photo Album");
+        head.setTextColor(Color.WHITE);
+        head.setTextSize(16);
+        head.setTypeface(null, Typeface.BOLD);
+        head.setPadding(5, 10, 5, 15);
+        tabAlbumContent.addView(head);
+
+        // 3-column square placeholders - video style
+        for (int r = 0; r < 2; r++) {
+            LinearLayout row = new LinearLayout(this);
+            row.setOrientation(LinearLayout.HORIZONTAL);
+            tabAlbumContent.addView(row);
+            for (int c = 0; c < 3; c++) {
+                LinearLayout box = new LinearLayout(this);
+                box.setGravity(Gravity.CENTER);
+                box.setPadding(10, 30, 10, 30);
+                GradientDrawable bg = new GradientDrawable();
+                bg.setColor(Color.parseColor("#1E3A2E"));
+                bg.setCornerRadius(20);
+                box.setBackground(bg);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+                lp.setMargins(8, 8, 8, 8);
+                box.setLayoutParams(lp);
+                TextView t = new TextView(this);
+                t.setText(r == 0 && c == 0 ? "+ Upload" : "Photo");
+                t.setTextColor(Color.WHITE);
+                t.setTextSize(13);
+                t.setGravity(Gravity.CENTER);
+                box.addView(t);
+                box.setOnClickListener(v -> Toast.makeText(this, "Photo Upload - Next Step", Toast.LENGTH_SHORT).show());
+                row.addView(box);
+            }
+        }
         TextView t = new TextView(this);
-        t.setText("+ Upload Photo\n\nNo photos yet");
+        t.setText("No photos yet - Upload korle ekhane sobai dekhbe");
         t.setTextColor(Color.parseColor("#888888"));
-        t.setTextSize(14);
+        t.setTextSize(12);
         t.setGravity(Gravity.CENTER);
-        t.setPadding(0, 30, 0, 30);
-        t.setOnClickListener(v -> Toast.makeText(this, "Photo Upload - Next Step", Toast.LENGTH_SHORT).show());
+        t.setPadding(0, 20, 0, 0);
         tabAlbumContent.addView(t);
     }
 
@@ -325,7 +454,7 @@ public class PublicProfileActivity extends AppCompatActivity {
         tv.setPadding(15, 15, 15, 15);
         tv.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         tv.setTypeface(null, active ? Typeface.BOLD : Typeface.NORMAL);
-        tv.setTextColor(active ? Color.parseColor("#4CAF50") : Color.parseColor("#888888"));
+        tv.setTextColor(active ? Color.WHITE : Color.parseColor("#8AB4A0"));
         tv.setOnClickListener(v -> selectTab(title));
         parent.addView(tv);
         return tv;
@@ -336,13 +465,13 @@ public class PublicProfileActivity extends AppCompatActivity {
         tabAlbumContent.setVisibility(title.equals("Photo album") ? View.VISIBLE : View.GONE);
         tabMomentsContent.setVisibility(title.equals("Moments") ? View.VISIBLE : View.GONE);
         tabIntimacyContent.setVisibility(title.equals("Intimacy") ? View.VISIBLE : View.GONE);
-        tabProfile.setTextColor(title.equals("Profile") ? Color.parseColor("#4CAF50") : Color.parseColor("#888888"));
-        tabAlbum.setTextColor(title.equals("Photo album") ? Color.parseColor("#4CAF50") : Color.parseColor("#888888"));
-        tabMoments.setTextColor(title.equals("Moments") ? Color.parseColor("#4CAF50") : Color.parseColor("#888888"));
-        tabIntimacy.setTextColor(title.equals("Intimacy") ? Color.parseColor("#4CAF50") : Color.parseColor("#888888"));
+        tabProfile.setTextColor(title.equals("Profile") ? Color.WHITE : Color.parseColor("#8AB4A0"));
+        tabAlbum.setTextColor(title.equals("Photo album") ? Color.WHITE : Color.parseColor("#8AB4A0"));
+        tabMoments.setTextColor(title.equals("Moments") ? Color.WHITE : Color.parseColor("#8AB4A0"));
+        tabIntimacy.setTextColor(title.equals("Intimacy") ? Color.WHITE : Color.parseColor("#8AB4A0"));
     }
 
-    private TextView addCount(LinearLayout parent, String num, String label) {
+    private TextView addCount(LinearLayout parent, String num, String label, String numColor, String labelColor) {
         LinearLayout box = new LinearLayout(this);
         box.setOrientation(LinearLayout.VERTICAL);
         box.setGravity(Gravity.CENTER);
@@ -352,12 +481,13 @@ public class PublicProfileActivity extends AppCompatActivity {
         tvNum.setText(num);
         tvNum.setTextSize(16);
         tvNum.setTypeface(null, Typeface.BOLD);
+        tvNum.setTextColor(Color.parseColor(numColor));
         tvNum.setGravity(Gravity.CENTER);
         box.addView(tvNum);
         TextView tvLabel = new TextView(this);
         tvLabel.setText(label);
         tvLabel.setTextSize(12);
-        tvLabel.setTextColor(Color.parseColor("#666666"));
+        tvLabel.setTextColor(Color.parseColor(labelColor));
         tvLabel.setGravity(Gravity.CENTER);
         box.addView(tvLabel);
         return tvNum;
@@ -401,7 +531,6 @@ public class PublicProfileActivity extends AppCompatActivity {
         if (targetId.equals(myId) && !cachedPhoto.isEmpty()) {
             showPhoto(cachedPhoto, imgAvatar);
         }
-        // FIX - Headwear phone e save thakle sathe sathe dekhabe, Firebase er jonno wait korbe na
         String cachedHeadwear = prefs.getString("HEADWEAR_IMAGE", "");
         if (cachedHeadwear.isEmpty()) cachedHeadwear = prefs.getString("headwearImage", "");
         if (cachedHeadwear.isEmpty()) cachedHeadwear = prefs.getString("HEADWEAR_URL", "");
@@ -437,7 +566,6 @@ public class PublicProfileActivity extends AppCompatActivity {
                             } catch (Exception ignored) {}
                         }
                     }
-                    // FIX - Cover er link thakleo dekhabe
                     if (ds.child("coverUrl").getValue() != null) coverUrl = String.valueOf(ds.child("coverUrl").getValue());
                     if (coverUrl.isEmpty() && ds.child("coverPhoto").getValue() != null) coverUrl = String.valueOf(ds.child("coverPhoto").getValue());
                     if (coverUrl.isEmpty() && ds.child("coverImage").getValue() != null) coverUrl = String.valueOf(ds.child("coverImage").getValue());
@@ -449,7 +577,6 @@ public class PublicProfileActivity extends AppCompatActivity {
                     if (ds.child("visitorCount").getValue() != null) user.visitorCount = String.valueOf(ds.child("visitorCount").getValue());
                     if (ds.child("familyName").getValue() != null) user.familyName = String.valueOf(ds.child("familyName").getValue());
 
-                    // FIX 2 - HEADWEAR - Age ei gulo porai hoto na, tai sobsomoy 0 dekhato. Ekhon sob nam e khujbe, jetai Save hok na keno pabe.
                     if (ds.child("headwearCount").getValue() != null) user.headwearCount = String.valueOf(ds.child("headwearCount").getValue());
                     if (ds.child("headwearName").getValue() != null) headwearName = String.valueOf(ds.child("headwearName").getValue());
                     if (headwearName.isEmpty() && ds.child("headwear").getValue() != null) headwearName = String.valueOf(ds.child("headwear").getValue());
@@ -466,6 +593,7 @@ public class PublicProfileActivity extends AppCompatActivity {
                 }
                 txtName.setText(user.name + "  " + user.getFlag() + "  " + user.getGenderIcon());
                 txtId.setText("ID: " + targetId + "  •  Level " + user.level + "  •  " + user.country + "  📋");
+                if (txtLevelBadge != null) txtLevelBadge.setText("  Level " + user.level + "  ");
                 txtFollow.setText(user.followCount);
                 txtFans.setText(user.fansCount);
                 txtVisitor.setText(user.visitorCount);
@@ -478,7 +606,6 @@ public class PublicProfileActivity extends AppCompatActivity {
                 if (!coverUrl.isEmpty()) {
                     showPhoto(coverUrl, imgCover);
                 }
-                // Headwear show + phone e save kore rakha, jate pore sathe sathe dekhay
                 if (!headwearImage.isEmpty()) {
                     try {
                         if (user.headwearCount == null || user.headwearCount.equals("0") || user.headwearCount.isEmpty()) user.headwearCount = "1";
