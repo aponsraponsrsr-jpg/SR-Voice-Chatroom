@@ -1,33 +1,59 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:gravity="center_vertical"
-    android:padding="10dp"
-    android:background="@android:color/transparent">
-    <ImageView
-        android:id="@+id/imgChatPhoto"
-        android:layout_width="44dp"
-        android:layout_height="44dp"
-        android:background="#E0E0E0"
-        android:scaleType="centerCrop" />
-    <LinearLayout
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:orientation="vertical"
-        android:paddingStart="10dp">
-        <TextView android:id="@+id/userName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#222222"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-        <TextView android:id="@+id/tvChatMsg"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="#666666"
-            android:textSize="12sp" />
-    </LinearLayout>
-</LinearLayout>
+package com.sr.voicechat;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+import com.bumptech.glide.Glide;
+import java.util.List;
+
+public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
+    List<UserModel> list;
+    public UserAdapter(List<UserModel> list) { this.list = list; }
+    @NonNull @Override public ViewHolder onCreateViewHolder(@NonNull ViewGroup p, int t) {
+        View v = LayoutInflater.from(p.getContext()).inflate(R.layout.item_user, p, false);
+        return new ViewHolder(v);
+    }
+    @Override public void onBindViewHolder(@NonNull ViewHolder h, int i) {
+        UserModel u = list.get(i);
+        h.name.setText(u.getName());
+        if(u.isSpeaking()) h.name.setBackgroundResource(R.drawable.bg_speaking);
+        else h.name.setBackgroundResource(R.drawable.bg_user);
+
+        // FIX - তোমার layout এর id = imgChatPhoto, ওইটাতেই ছবি দেখাবে
+        if (h.avatar != null) {
+            String photo = "";
+            try { photo = u.getPhotoUrl(); } catch (Exception ignored) {}
+            if (photo == null || photo.isEmpty()) photo = u.photoBase64 != null ? u.photoBase64 : "";
+            if (photo != null && photo.startsWith("http")) {
+                try { Glide.with(h.itemView.getContext()).load(photo).circleCrop().into(h.avatar); } catch (Exception ignored) {}
+            } else if (photo != null && !photo.isEmpty()) {
+                try {
+                    byte[] bytes = Base64.decode(photo, Base64.DEFAULT);
+                    Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                    if (bmp != null) h.avatar.setImageBitmap(bmp);
+                    else h.avatar.setImageResource(android.R.drawable.ic_menu_camera);
+                } catch (Exception e) { h.avatar.setImageResource(android.R.drawable.ic_menu_camera); }
+            } else {
+                h.avatar.setImageResource(android.R.drawable.ic_menu_camera);
+            }
+        }
+    }
+    @Override public int getItemCount() { return list.size(); }
+    static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView name;
+        ImageView avatar;
+        public ViewHolder(@NonNull View v) {
+            super(v);
+            name = v.findViewById(R.id.userName);
+            // তোমার item_user.xml এর আসল id
+            avatar = v.findViewById(R.id.imgChatPhoto);
+        }
+    }
+}
