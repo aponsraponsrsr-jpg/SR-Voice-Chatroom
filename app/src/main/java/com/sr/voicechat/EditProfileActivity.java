@@ -9,6 +9,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Base64;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -48,12 +49,12 @@ public class EditProfileActivity extends AppCompatActivity {
     private SharedPreferences prefs;
     private DatabaseReference userRef, usersRef;
     private String firebaseUid = "", userEmail = "", selectedGender = "Male", selectedCountry = "Bangladesh";
-    private String selectedPhotoUrl = ""; // PERMANENT https link
+    private String selectedPhotoUrl = "";
+    private String selectedPhotoBase64 = ""; // FIX - Storage fail hole ei backup diye save hobe
     private String oldPhotoUrl = "";
     private Uri pickedImageUri = null;
     private Bitmap pickedBitmap = null;
     private boolean isLocked = false, isSaving = false, isEditMode = false;
-    // GLOBAL - সব দেশ থেকে ইউজার আসতে পারবে
     private final String[] countriesList = {"Bangladesh","Saudi Arabia","India","United Arab Emirates","Pakistan","United States","United Kingdom","Malaysia","Oman","Qatar","Kuwait","Bahrain","Iraq","Canada","Nepal","Sri Lanka","Indonesia","Philippines","Egypt","Turkey","Iran","Afghanistan","Myanmar","Thailand","Vietnam","China","Japan","South Korea","Australia","Germany","France","Italy","Spain","Netherlands","Russia","Brazil","Mexico","South Africa","Nigeria","Kenya","Morocco","Algeria","Jordan","Lebanon","Yemen","Syria","Uzbekistan","Kazakhstan","Singapore","Hong Kong","New Zealand"};
 
     private final ActivityResultLauncher<Intent> pickImageLauncher = registerForActivityResult(
@@ -67,13 +68,33 @@ public class EditProfileActivity extends AppCompatActivity {
                         InputStream is = getContentResolver().openInputStream(uri);
                         Bitmap bmp = BitmapFactory.decodeStream(is);
                         if (bmp == null) return;
-                        pickedBitmap = Bitmap.createScaledBitmap(bmp, 300, 300, true);
+                        // FIX - Boro chobi ke choto kore fela, jate Firebase e dhuke
+                        int w = bmp.getWidth(); int h = bmp.getHeight();
+                        int max = 400;
+                        if (w > max || h > max) {
+                            float ratio = Math.min((float)max / w, (float)max / h);
+                            pickedBitmap = Bitmap.createScaledBitmap(bmp, (int)(w*ratio), (int)(h*ratio), true);
+                            try { bmp.recycle(); } catch (Exception ignored) {}
+                        } else {
+                            pickedBitmap = bmp;
+                        }
                         ivProfilePhoto.setImageBitmap(pickedBitmap);
+                        // FIX - Age thekei Base64 baniye rakha, Storage fail hole sathe sathe kaje lagbe
+                        selectedPhotoBase64 = bitmapToBase64(pickedBitmap);
                         Toast.makeText(this, "Photo Selected - Now Press Save", Toast.LENGTH_SHORT).show();
                     } catch (Exception e) { Toast.makeText(this, "Photo Failed", Toast.LENGTH_SHORT).show(); }
                 }
             }
         });
+
+    private String bitmapToBase64(Bitmap bmp) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bmp.compress(Bitmap.CompressFormat.JPEG, 60, baos);
+            byte[] data = baos.toByteArray();
+            return Base64.encodeToString(data, Base64.DEFAULT);
+        } catch (Exception e) { return ""; }
+    }
 
     private String getFlag(String c) {
         if (c == null) return "";
@@ -133,7 +154,7 @@ public class EditProfileActivity extends AppCompatActivity {
             try { Glide.with(this).load(url).circleCrop().into(ivProfilePhoto); return; } catch (Exception ignored) {}
         }
         if (base64 != null && !base64.isEmpty()) {
-            try { byte[] bytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT); Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length); if (bmp != null) ivProfilePhoto.setImageBitmap(bmp); } catch (Exception ignored) {}
+            try { byte[] bytes = Base64.decode(base64, Base64.DEFAULT); Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length); if (bmp != null) ivProfilePhoto.setImageBitmap(bmp); } catch (Exception ignored) {}
         }
     }
 
@@ -213,22 +234,40 @@ public class EditProfileActivity extends AppCompatActivity {
     private void uploadPhotoThenSave(String name) {
         try {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            pickedBitmap.compress(Bitmap.CompressFormat.JPEG, 70, baos);
+            pickedBitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
             byte[] data = baos.toByteArray();
+            // FIX - Age Storage fail holei sesh hoye jeto. Ekhon fail hole Base64 backup diye Database e save hobe.
             StorageReference ref = FirebaseStorage.getInstance().getReference("profile_photos/" + firebaseUid + ".jpg");
             UploadTask task = ref.putBytes(data);
             task.addOnSuccessListener(t -> ref.getDownloadUrl().addOnSuccessListener(uri -> {
                 selectedPhotoUrl = uri.toString();
-                userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override public void onDataChange(DataSnapshot s) {
-                        if (s.exists() && s.hasChild("my9DigitId")) doTransactionSave(name, null);
-                        else generateUniqueIdAndSave(name);
-                    }
-                    @Override public void onCancelled(DatabaseError e) { doTransactionSave(name, null); }
-                });
-            }).addOnFailureListener(e -> saveFailed()));
-            task.addOnFailureListener(e -> saveFailed());
-        } catch (Exception e) { saveFailed(); }
+                selectedPhotoBase64 = ""; // Storage success - Base64 lagbe na
+                proceedToSave(name);
+            }).addOnFailureListener(e -> {
+                // URL pawa jay nai - Base64 diye save koro
+                Toast.makeText(this, "Storage slow - Saving with backup...", Toast.LENGTH_SHORT).show();
+                proceedToSave(name);
+            }));
+            task.addOnFailureListener(e -> {
+                // FIX - Storage Fail = Ekhon ar "Failed" dibe na, Base64 backup cholbe
+                Toast.makeText(this, "Storage failed (" + e.getMessage() + ") - Saving with backup...", Toast.LENGTH_LONG).show();
+                selectedPhotoUrl = oldPhotoUrl; // Purano URL thakle rakha
+                proceedToSave(name);
+            });
+        } catch (Exception e) {
+            Toast.makeText(this, "Saving with backup...", Toast.LENGTH_SHORT).show();
+            proceedToSave(name);
+        }
+    }
+
+    private void proceedToSave(String name) {
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(DataSnapshot s) {
+                if (s.exists() && s.hasChild("my9DigitId")) doTransactionSave(name, null);
+                else generateUniqueIdAndSave(name);
+            }
+            @Override public void onCancelled(DatabaseError e) { doTransactionSave(name, null); }
+        });
     }
 
     private void saveFailed() {
@@ -249,6 +288,9 @@ public class EditProfileActivity extends AppCompatActivity {
                         map.put("photoUrl", selectedPhotoUrl);
                         map.put("photo", selectedPhotoUrl);
                     }
+                    if (selectedPhotoBase64 != null && !selectedPhotoBase64.isEmpty()) {
+                        map.put("photoBase64", selectedPhotoBase64);
+                    }
                     map.put("followCount","0"); map.put("fansCount","0"); map.put("visitorCount","0");
                     currentData.setValue(map);
                 } else {
@@ -260,6 +302,11 @@ public class EditProfileActivity extends AppCompatActivity {
                     if (selectedPhotoUrl != null && !selectedPhotoUrl.isEmpty()) {
                         currentData.child("photoUrl").setValue(selectedPhotoUrl);
                         currentData.child("photo").setValue(selectedPhotoUrl);
+                    }
+                    // FIX - Storage fail hole Base64 save hobe, ar Storage success hole purano Base64 muche jabe
+                    if (selectedPhotoBase64 != null && !selectedPhotoBase64.isEmpty()) {
+                        currentData.child("photoBase64").setValue(selectedPhotoBase64);
+                    } else if (selectedPhotoUrl != null && !selectedPhotoUrl.isEmpty()) {
                         currentData.child("photoBase64").setValue(null);
                     }
                 }
@@ -275,14 +322,15 @@ public class EditProfileActivity extends AppCompatActivity {
                 String finalGender = s.child("gender").getValue(String.class);
                 String finalCountry = s.child("country").getValue(String.class);
                 String finalPhoto = s.child("photoUrl").getValue(String.class);
+                if (finalPhoto == null || finalPhoto.isEmpty()) finalPhoto = s.child("photoBase64").getValue(String.class);
                 if (finalPhoto == null) finalPhoto = selectedPhotoUrl;
+                if (finalPhoto == null) finalPhoto = selectedPhotoBase64;
                 SharedPreferences.Editor e = prefs.edit();
                 e.putString("FIREBASE_UID", firebaseUid); e.putString("MY_9_DIGIT_ID", finalId != null ? finalId : "");
                 e.putString("USER_NAME", name); e.putString("USER_GENDER", finalGender != null ? finalGender : selectedGender);
                 e.putString("USER_COUNTRY", finalCountry != null ? finalCountry : selectedCountry); e.putString("USER_EMAIL", userEmail);
                 if (finalPhoto != null && !finalPhoto.isEmpty()) { e.putString("USER_PHOTO", finalPhoto); e.putString("PROFILE_PHOTO", finalPhoto); }
                 e.putBoolean("IS_PROFILE_SETUP_DONE", true); e.apply();
-                // NEW - সব স্ক্রিনকে জানায় দিলাম ছবি বদলাইছে, সাথে সাথে নতুন ছবি দেখাও
                 Intent broadcast = new Intent("com.sr.voicechat.PROFILE_UPDATED");
                 broadcast.putExtra("NEW_PHOTO", finalPhoto != null ? finalPhoto : "");
                 broadcast.putExtra("NEW_NAME", name);
