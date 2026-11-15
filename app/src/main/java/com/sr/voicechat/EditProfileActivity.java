@@ -53,7 +53,8 @@ public class EditProfileActivity extends AppCompatActivity {
     private Uri pickedImageUri = null;
     private Bitmap pickedBitmap = null;
     private boolean isLocked = false, isSaving = false, isEditMode = false;
-    private final String[] countriesList = {"Bangladesh","Saudi Arabia","India","United Arab Emirates","Pakistan","United States","United Kingdom","Malaysia","Oman","Qatar","Kuwait","Bahrain","Iraq","Canada"};
+    // GLOBAL - সব দেশ থেকে ইউজার আসতে পারবে
+    private final String[] countriesList = {"Bangladesh","Saudi Arabia","India","United Arab Emirates","Pakistan","United States","United Kingdom","Malaysia","Oman","Qatar","Kuwait","Bahrain","Iraq","Canada","Nepal","Sri Lanka","Indonesia","Philippines","Egypt","Turkey","Iran","Afghanistan","Myanmar","Thailand","Vietnam","China","Japan","South Korea","Australia","Germany","France","Italy","Spain","Netherlands","Russia","Brazil","Mexico","South Africa","Nigeria","Kenya","Morocco","Algeria","Jordan","Lebanon","Yemen","Syria","Uzbekistan","Kazakhstan","Singapore","Hong Kong","New Zealand"};
 
     private final ActivityResultLauncher<Intent> pickImageLauncher = registerForActivityResult(
         new ActivityResultContracts.StartActivityForResult(),
@@ -66,7 +67,6 @@ public class EditProfileActivity extends AppCompatActivity {
                         InputStream is = getContentResolver().openInputStream(uri);
                         Bitmap bmp = BitmapFactory.decodeStream(is);
                         if (bmp == null) return;
-                        // 300x300 - হালকা, দ্রুত, সবার জন্য সমান
                         pickedBitmap = Bitmap.createScaledBitmap(bmp, 300, 300, true);
                         ivProfilePhoto.setImageBitmap(pickedBitmap);
                         Toast.makeText(this, "Photo Selected - Now Press Save", Toast.LENGTH_SHORT).show();
@@ -82,7 +82,13 @@ public class EditProfileActivity extends AppCompatActivity {
             case "United Arab Emirates": return "🇦🇪"; case "Pakistan": return "🇵🇰"; case "United States": return "🇺🇸";
             case "United Kingdom": return "🇬🇧"; case "Malaysia": return "🇲🇾"; case "Oman": return "🇴🇲";
             case "Qatar": return "🇶🇦"; case "Kuwait": return "🇰🇼"; case "Bahrain": return "🇧🇭";
-            case "Iraq": return "🇮🇶"; case "Canada": return "🇨🇦"; default: return "🌍";
+            case "Iraq": return "🇮🇶"; case "Canada": return "🇨🇦"; case "Nepal": return "🇳🇵";
+            case "Sri Lanka": return "🇱🇰"; case "Indonesia": return "🇮🇩"; case "Philippines": return "🇵🇭";
+            case "Egypt": return "🇪🇬"; case "Turkey": return "🇹🇷"; case "Australia": return "🇦🇺";
+            case "Germany": return "🇩🇪"; case "France": return "🇫🇷"; case "Italy": return "🇮🇹";
+            case "Spain": return "🇪🇸"; case "Japan": return "🇯🇵"; case "South Korea": return "🇰🇷";
+            case "China": return "🇨🇳"; case "Brazil": return "🇧🇷"; case "Russia": return "🇷🇺";
+            default: return "🌍";
         }
     }
 
@@ -123,7 +129,6 @@ public class EditProfileActivity extends AppCompatActivity {
     private void openGallery() { Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI); intent.setType("image/*"); pickImageLauncher.launch(intent); }
 
     private void loadPhoto(String url, String base64) {
-        // নতুন photoUrl থাকলে ওইটা, না থাকলে পুরানো Base64 - কারো ছবি হারাবে না
         if (url != null && !url.isEmpty() && url.startsWith("http")) {
             try { Glide.with(this).load(url).circleCrop().into(ivProfilePhoto); return; } catch (Exception ignored) {}
         }
@@ -192,7 +197,6 @@ public class EditProfileActivity extends AppCompatActivity {
         if (name.isEmpty()) { Toast.makeText(this, "Please enter your name!", Toast.LENGTH_SHORT).show(); return; }
         if (firebaseUid.isEmpty()) { Toast.makeText(this, "Login error, please login again", Toast.LENGTH_SHORT).show(); return; }
         isSaving = true; btnSaveProfile.setEnabled(false); btnSaveProfile.setText("Saving... Please Wait");
-        // যদি নতুন ছবি বাছা থাকে, আগে Storage এ আপলোড, তারপর Database এ সেভ - এটাই পার্মানেন্ট
         if (pickedBitmap != null) {
             uploadPhotoThenSave(name);
         } else {
@@ -211,7 +215,6 @@ public class EditProfileActivity extends AppCompatActivity {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             pickedBitmap.compress(Bitmap.CompressFormat.JPEG, 70, baos);
             byte[] data = baos.toByteArray();
-            // একই ইউজারের ছবি সবসময় একই জায়গায় - পুরানো ছবি নিজে নিজে বদলে যাবে, জায়গা নষ্ট হবে না
             StorageReference ref = FirebaseStorage.getInstance().getReference("profile_photos/" + firebaseUid + ".jpg");
             UploadTask task = ref.putBytes(data);
             task.addOnSuccessListener(t -> ref.getDownloadUrl().addOnSuccessListener(uri -> {
@@ -257,7 +260,6 @@ public class EditProfileActivity extends AppCompatActivity {
                     if (selectedPhotoUrl != null && !selectedPhotoUrl.isEmpty()) {
                         currentData.child("photoUrl").setValue(selectedPhotoUrl);
                         currentData.child("photo").setValue(selectedPhotoUrl);
-                        // পুরানো ভারী Base64 মুছে দিলাম, এখন থেকে শুধু হালকা লিংক থাকবে
                         currentData.child("photoBase64").setValue(null);
                     }
                 }
@@ -280,7 +282,18 @@ public class EditProfileActivity extends AppCompatActivity {
                 e.putString("USER_COUNTRY", finalCountry != null ? finalCountry : selectedCountry); e.putString("USER_EMAIL", userEmail);
                 if (finalPhoto != null && !finalPhoto.isEmpty()) { e.putString("USER_PHOTO", finalPhoto); e.putString("PROFILE_PHOTO", finalPhoto); }
                 e.putBoolean("IS_PROFILE_SETUP_DONE", true); e.apply();
-                if (isEditMode) { Toast.makeText(EditProfileActivity.this, "Profile Updated!", Toast.LENGTH_LONG).show(); finish(); }
+                // NEW - সব স্ক্রিনকে জানায় দিলাম ছবি বদলাইছে, সাথে সাথে নতুন ছবি দেখাও
+                Intent broadcast = new Intent("com.sr.voicechat.PROFILE_UPDATED");
+                broadcast.putExtra("NEW_PHOTO", finalPhoto != null ? finalPhoto : "");
+                broadcast.putExtra("NEW_NAME", name);
+                sendBroadcast(broadcast);
+                if (isEditMode) {
+                    Toast.makeText(EditProfileActivity.this, "Profile Updated!", Toast.LENGTH_LONG).show();
+                    Intent back = new Intent();
+                    back.putExtra("NEW_PHOTO", finalPhoto != null ? finalPhoto : "");
+                    setResult(RESULT_OK, back);
+                    finish();
+                }
                 else {
                     Toast.makeText(EditProfileActivity.this, "Profile Saved! Your ID: " + finalId, Toast.LENGTH_LONG).show();
                     Intent intent = new Intent(EditProfileActivity.this, HomeActivity.class);
