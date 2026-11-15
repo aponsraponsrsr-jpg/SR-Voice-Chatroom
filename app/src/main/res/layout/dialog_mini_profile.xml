@@ -44,12 +44,15 @@
         android:id="@+id/txtMiniGenderCountry"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="♂  🇧🇩 Bangladesh"
+        android:text="♂  🇧🇩"
         android:textColor="#D1FAE5"
-        android:textSize="13sp"
+        android:textSize="16sp"
+        android:textStyle="bold"
         android:layout_marginTop="4dp" />
 
+    <!-- Level / Sending / Receiving - ID রাখা আছে, শুধু লুকানো। ভবিষ্যতে লাগলে GONE -> VISIBLE করলেই হবে -->
     <LinearLayout
+        android:id="@+id/layoutMiniStats"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -57,7 +60,8 @@
         android:background="#22000000"
         android:paddingHorizontal="12dp"
         android:paddingVertical="6dp"
-        android:layout_marginTop="8dp">
+        android:layout_marginTop="8dp"
+        android:visibility="gone">
         <TextView
             android:id="@+id/txtMiniLevel"
             android:layout_width="wrap_content"
@@ -88,7 +92,7 @@
         android:id="@+id/txtMiniId"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="ID: 123456789  📋 Tap to Copy"
+        android:text="ID: 123456789  📋"
         android:textColor="#FFD700"
         android:textSize="14sp"
         android:textStyle="bold"
