@@ -20,6 +20,10 @@ public class UserModel {
     public String medalCount = "0";
     public String supporterName = "";
     public String headwearCount = "0";
+    // FIX - Ei 3 ta line sudhu baraisi, age ei gulo chilo na tai Build fail korto
+    public String headwearName = "";
+    public String headwearImage = "";
+    public String headwearUrl = "";
     public String carCount = "0";
     public String agency = ""; // Agency / Host
     public boolean speaking = false;
