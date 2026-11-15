@@ -9,7 +9,6 @@ import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Base64;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -22,6 +21,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -31,6 +31,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -44,7 +47,11 @@ public class EditProfileActivity extends AppCompatActivity {
     private Button btnSaveProfile;
     private SharedPreferences prefs;
     private DatabaseReference userRef, usersRef;
-    private String firebaseUid = "", userEmail = "", selectedGender = "Male", selectedCountry = "Bangladesh", selectedPhotoBase64 = "";
+    private String firebaseUid = "", userEmail = "", selectedGender = "Male", selectedCountry = "Bangladesh";
+    private String selectedPhotoUrl = ""; // PERMANENT https link
+    private String oldPhotoUrl = "";
+    private Uri pickedImageUri = null;
+    private Bitmap pickedBitmap = null;
     private boolean isLocked = false, isSaving = false, isEditMode = false;
     private final String[] countriesList = {"Bangladesh","Saudi Arabia","India","United Arab Emirates","Pakistan","United States","United Kingdom","Malaysia","Oman","Qatar","Kuwait","Bahrain","Iraq","Canada"};
 
@@ -55,14 +62,13 @@ public class EditProfileActivity extends AppCompatActivity {
                 Uri uri = result.getData().getData();
                 if (uri != null) {
                     try {
+                        pickedImageUri = uri;
                         InputStream is = getContentResolver().openInputStream(uri);
                         Bitmap bmp = BitmapFactory.decodeStream(is);
                         if (bmp == null) return;
-                        Bitmap scaled = Bitmap.createScaledBitmap(bmp, 300, 300, true);
-                        ivProfilePhoto.setImageBitmap(scaled);
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        scaled.compress(Bitmap.CompressFormat.JPEG, 70, baos);
-                        selectedPhotoBase64 = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+                        // 300x300 - হালকা, দ্রুত, সবার জন্য সমান
+                        pickedBitmap = Bitmap.createScaledBitmap(bmp, 300, 300, true);
+                        ivProfilePhoto.setImageBitmap(pickedBitmap);
                         Toast.makeText(this, "Photo Selected - Now Press Save", Toast.LENGTH_SHORT).show();
                     } catch (Exception e) { Toast.makeText(this, "Photo Failed", Toast.LENGTH_SHORT).show(); }
                 }
@@ -116,6 +122,16 @@ public class EditProfileActivity extends AppCompatActivity {
 
     private void openGallery() { Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI); intent.setType("image/*"); pickImageLauncher.launch(intent); }
 
+    private void loadPhoto(String url, String base64) {
+        // নতুন photoUrl থাকলে ওইটা, না থাকলে পুরানো Base64 - কারো ছবি হারাবে না
+        if (url != null && !url.isEmpty() && url.startsWith("http")) {
+            try { Glide.with(this).load(url).circleCrop().into(ivProfilePhoto); return; } catch (Exception ignored) {}
+        }
+        if (base64 != null && !base64.isEmpty()) {
+            try { byte[] bytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT); Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length); if (bmp != null) ivProfilePhoto.setImageBitmap(bmp); } catch (Exception ignored) {}
+        }
+    }
+
     private void checkIfAlreadyExists() {
         if (firebaseUid.isEmpty()) return;
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -125,21 +141,21 @@ public class EditProfileActivity extends AppCompatActivity {
                     String n = s.child("name").getValue(String.class);
                     String g = s.child("gender").getValue(String.class);
                     String c = s.child("country").getValue(String.class);
-                    String photo = s.child("photoBase64").getValue(String.class);
+                    String photoUrl = s.child("photoUrl").getValue(String.class);
+                    if (photoUrl == null) photoUrl = s.child("photo").getValue(String.class);
+                    String base64 = s.child("photoBase64").getValue(String.class);
+                    if (photoUrl != null) { oldPhotoUrl = photoUrl; selectedPhotoUrl = photoUrl; }
                     if (isEditMode) {
                         if (n != null) etProfileName.setText(n);
                         if (g != null) selectedGender = g;
                         if (c != null) selectedCountry = c;
-                        if (photo != null && !photo.isEmpty()) {
-                            selectedPhotoBase64 = photo;
-                            try { byte[] bytes = Base64.decode(photo, Base64.DEFAULT); Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length); if (bmp != null) ivProfilePhoto.setImageBitmap(bmp); } catch (Exception ignored) {}
-                        }
+                        loadPhoto(photoUrl, base64);
                         if (id != null) tvPermanentId.setText("Permanent ID: " + id + " (Locked - Cannot Change)");
                         if (g != null) tvSelectedGender.setText("Gender: " + g + " (Locked)");
                         if (c != null) tvSelectedCountry.setText("Country: " + c + " " + getFlag(c) + " (Locked)");
                         isLocked = true; return;
                     }
-                    prefs.edit().putString("MY_9_DIGIT_ID", id != null ? id : "").putString("USER_NAME", n).putString("USER_GENDER", g).putString("USER_COUNTRY", c).putBoolean("IS_PROFILE_SETUP_DONE", true).apply();
+                    prefs.edit().putString("MY_9_DIGIT_ID", id != null ? id : "").putString("USER_NAME", n).putString("USER_GENDER", g).putString("USER_COUNTRY", c).putString("USER_PHOTO", photoUrl != null ? photoUrl : "").putBoolean("IS_PROFILE_SETUP_DONE", true).apply();
                     Intent intent = new Intent(EditProfileActivity.this, HomeActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); startActivity(intent); finish();
                 }
@@ -176,13 +192,46 @@ public class EditProfileActivity extends AppCompatActivity {
         if (name.isEmpty()) { Toast.makeText(this, "Please enter your name!", Toast.LENGTH_SHORT).show(); return; }
         if (firebaseUid.isEmpty()) { Toast.makeText(this, "Login error, please login again", Toast.LENGTH_SHORT).show(); return; }
         isSaving = true; btnSaveProfile.setEnabled(false); btnSaveProfile.setText("Saving... Please Wait");
-        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override public void onDataChange(DataSnapshot s) {
-                if (s.exists() && s.hasChild("my9DigitId")) doTransactionSave(name, null);
-                else generateUniqueIdAndSave(name);
-            }
-            @Override public void onCancelled(DatabaseError e) { doTransactionSave(name, null); }
-        });
+        // যদি নতুন ছবি বাছা থাকে, আগে Storage এ আপলোড, তারপর Database এ সেভ - এটাই পার্মানেন্ট
+        if (pickedBitmap != null) {
+            uploadPhotoThenSave(name);
+        } else {
+            userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override public void onDataChange(DataSnapshot s) {
+                    if (s.exists() && s.hasChild("my9DigitId")) doTransactionSave(name, null);
+                    else generateUniqueIdAndSave(name);
+                }
+                @Override public void onCancelled(DatabaseError e) { doTransactionSave(name, null); }
+            });
+        }
+    }
+
+    private void uploadPhotoThenSave(String name) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            pickedBitmap.compress(Bitmap.CompressFormat.JPEG, 70, baos);
+            byte[] data = baos.toByteArray();
+            // একই ইউজারের ছবি সবসময় একই জায়গায় - পুরানো ছবি নিজে নিজে বদলে যাবে, জায়গা নষ্ট হবে না
+            StorageReference ref = FirebaseStorage.getInstance().getReference("profile_photos/" + firebaseUid + ".jpg");
+            UploadTask task = ref.putBytes(data);
+            task.addOnSuccessListener(t -> ref.getDownloadUrl().addOnSuccessListener(uri -> {
+                selectedPhotoUrl = uri.toString();
+                userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override public void onDataChange(DataSnapshot s) {
+                        if (s.exists() && s.hasChild("my9DigitId")) doTransactionSave(name, null);
+                        else generateUniqueIdAndSave(name);
+                    }
+                    @Override public void onCancelled(DatabaseError e) { doTransactionSave(name, null); }
+                });
+            }).addOnFailureListener(e -> saveFailed()));
+            task.addOnFailureListener(e -> saveFailed());
+        } catch (Exception e) { saveFailed(); }
+    }
+
+    private void saveFailed() {
+        isSaving = false; btnSaveProfile.setEnabled(true);
+        btnSaveProfile.setText(isEditMode ? "Update Name & Photo" : "Save & Enter Home");
+        Toast.makeText(this, "Photo Upload Failed, Try Again", Toast.LENGTH_LONG).show();
     }
 
     private void doTransactionSave(String name, String preGeneratedId) {
@@ -193,7 +242,10 @@ public class EditProfileActivity extends AppCompatActivity {
                     map.put("uid", firebaseUid); map.put("email", userEmail);
                     String newId = preGeneratedId != null ? preGeneratedId : String.valueOf(100000000 + new Random().nextInt(900000000));
                     map.put("my9DigitId", newId); map.put("name", name); map.put("gender", selectedGender); map.put("country", selectedCountry);
-                    if (!selectedPhotoBase64.isEmpty()) map.put("photoBase64", selectedPhotoBase64);
+                    if (selectedPhotoUrl != null && !selectedPhotoUrl.isEmpty()) {
+                        map.put("photoUrl", selectedPhotoUrl);
+                        map.put("photo", selectedPhotoUrl);
+                    }
                     map.put("followCount","0"); map.put("fansCount","0"); map.put("visitorCount","0");
                     currentData.setValue(map);
                 } else {
@@ -202,7 +254,12 @@ public class EditProfileActivity extends AppCompatActivity {
                         currentData.child("my9DigitId").setValue(newId);
                     }
                     currentData.child("name").setValue(name);
-                    if (!selectedPhotoBase64.isEmpty()) currentData.child("photoBase64").setValue(selectedPhotoBase64);
+                    if (selectedPhotoUrl != null && !selectedPhotoUrl.isEmpty()) {
+                        currentData.child("photoUrl").setValue(selectedPhotoUrl);
+                        currentData.child("photo").setValue(selectedPhotoUrl);
+                        // পুরানো ভারী Base64 মুছে দিলাম, এখন থেকে শুধু হালকা লিংক থাকবে
+                        currentData.child("photoBase64").setValue(null);
+                    }
                 }
                 return Transaction.success(currentData);
             }
@@ -215,13 +272,13 @@ public class EditProfileActivity extends AppCompatActivity {
                 String finalId = s.child("my9DigitId").getValue(String.class);
                 String finalGender = s.child("gender").getValue(String.class);
                 String finalCountry = s.child("country").getValue(String.class);
-                String finalPhoto = s.child("photoBase64").getValue(String.class);
+                String finalPhoto = s.child("photoUrl").getValue(String.class);
+                if (finalPhoto == null) finalPhoto = selectedPhotoUrl;
                 SharedPreferences.Editor e = prefs.edit();
                 e.putString("FIREBASE_UID", firebaseUid); e.putString("MY_9_DIGIT_ID", finalId != null ? finalId : "");
                 e.putString("USER_NAME", name); e.putString("USER_GENDER", finalGender != null ? finalGender : selectedGender);
                 e.putString("USER_COUNTRY", finalCountry != null ? finalCountry : selectedCountry); e.putString("USER_EMAIL", userEmail);
-                if (finalPhoto != null && !finalPhoto.isEmpty()) e.putString("USER_PHOTO", finalPhoto);
-                else if (!selectedPhotoBase64.isEmpty()) e.putString("USER_PHOTO", selectedPhotoBase64);
+                if (finalPhoto != null && !finalPhoto.isEmpty()) { e.putString("USER_PHOTO", finalPhoto); e.putString("PROFILE_PHOTO", finalPhoto); }
                 e.putBoolean("IS_PROFILE_SETUP_DONE", true); e.apply();
                 if (isEditMode) { Toast.makeText(EditProfileActivity.this, "Profile Updated!", Toast.LENGTH_LONG).show(); finish(); }
                 else {
