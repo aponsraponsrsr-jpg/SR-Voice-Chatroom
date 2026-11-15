@@ -59,7 +59,16 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private String currentRoomPhotoUrl = "";
     private String rankingTab = "daily";
 
-    // PREMIUM CHAT: Join time - er ager SMS kokhono dekhabe na
+    // ===== SEAT SYSTEM - 10 Seats seat_0 to seat_9 =====
+    private View[] seatViews = new View[10];
+    private TextView[] seatImgViews = new TextView[10];
+    private TextView[] seatNameViews = new TextView[10];
+    private Map<String, String> seatUserId = new HashMap<>();
+    private Map<String, String> seatUserName = new HashMap<>();
+    private Map<String, String> seatUserPhoto = new HashMap<>();
+    private Map<String, Boolean> seatMuted = new HashMap<>();
+    private Map<String, Boolean> seatLocked = new HashMap<>();
+
     private long joinTime = 0;
     private ChildEventListener chatListener = null;
     private Query chatQuery = null;
@@ -70,7 +79,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         uri -> {
             if (uri != null) {
                 pickedRoomPhotoUri = uri;
-                // GLOBAL FIX: content:// sobar phone e khule na, tai Base64 banay rakhbo
                 try {
                     InputStream is = getContentResolver().openInputStream(uri);
                     Bitmap bmp = BitmapFactory.decodeStream(is);
@@ -128,11 +136,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
         } catch (Exception e) {}
     }
 
-    // PREMIUM HEADER: Room photo ONLY - ID photo kokhono asbe na
     private void loadRoomPhotoInto(ImageView iv) {
         if (iv == null) return;
         String url = currentRoomPhotoUrl;
-        // Puraton content:// photo onno phone e khulbe na - tai ignore
         if (url == null || url.trim().isEmpty() || url.equals("null") || url.trim().startsWith("content://") || url.trim().startsWith("file://")) {
             try { iv.setImageResource(R.mipmap.ic_launcher); } catch (Exception e) { iv.setImageDrawable(null); }
             return;
@@ -161,7 +167,286 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // HEADER POPUP - dialog_user_profile.xml - GLOBAL
+    // ===== SEAT: Setup - XML er seat_0 to seat_9 ke click er sathe jukto kora =====
+    private void setupSeats() {
+        for (int i = 0; i < 10; i++) {
+            int seatId = getResources().getIdentifier("seat_" + i, "id", getPackageName());
+            int imgId = getResources().getIdentifier("seatImg_" + i, "id", getPackageName());
+            View seat = findViewById(seatId);
+            TextView img = findViewById(imgId);
+            seatViews[i] = seat;
+            seatImgViews[i] = img;
+            if (seat instanceof android.widget.LinearLayout) {
+                android.widget.LinearLayout ll = (android.widget.LinearLayout) seat;
+                if (ll.getChildCount() >= 2 && ll.getChildAt(1) instanceof TextView) {
+                    seatNameViews[i] = (TextView) ll.getChildAt(1);
+                }
+            }
+            final int seatIndex = i;
+            if (seat != null) seat.setOnClickListener(v -> onSeatClicked(seatIndex));
+            if (img != null) img.setOnClickListener(v -> onSeatClicked(seatIndex));
+        }
+        listenSeats();
+    }
+
+    private void listenSeats() {
+        activeRoomRef.child("seats").addValueEventListener(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                seatUserId.clear(); seatUserName.clear(); seatUserPhoto.clear(); seatMuted.clear(); seatLocked.clear();
+                for (DataSnapshot c : snap.getChildren()) {
+                    String key = c.getKey();
+                    if (key == null) continue;
+                    String uid = c.child("userId").getValue(String.class);
+                    if (uid == null || uid.isEmpty()) continue;
+                    seatUserId.put(key, uid);
+                    String n = c.child("name").getValue(String.class);
+                    seatUserName.put(key, n == null ? "User" : n);
+                    String ph = c.child("photo").getValue(String.class);
+                    seatUserPhoto.put(key, ph == null ? "" : ph);
+                    Boolean m = c.child("muted").getValue(Boolean.class);
+                    seatMuted.put(key, m != null && m);
+                    Boolean l = c.child("locked").getValue(Boolean.class);
+                    seatLocked.put(key, l != null && l);
+                }
+                updateAllSeatsUI();
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
+    }
+
+    private void updateAllSeatsUI() {
+        for (int i = 0; i < 10; i++) {
+            String key = "seat_" + i;
+            TextView img = seatImgViews[i];
+            TextView nameTv = seatNameViews[i];
+            if (img == null) continue;
+            String uid = seatUserId.get(key);
+            if (uid == null || uid.isEmpty()) {
+                boolean locked = seatLocked.get(key) != null && seatLocked.get(key);
+                img.setText(locked ? "🔒" : "🪑");
+                if (nameTv != null) nameTv.setText(i == 0 ? "Host" : (locked ? "Locked" : ""));
+            } else {
+                String name = seatUserName.get(key);
+                if (name == null) name = "User";
+                boolean muted = seatMuted.get(key) != null && seatMuted.get(key);
+                String first = name.isEmpty() ? "U" : name.substring(0, 1).toUpperCase();
+                img.setText(muted ? "🔇" : first);
+                if (nameTv != null) nameTv.setText(name + (muted ? " 🔇" : ""));
+            }
+        }
+    }
+
+    private int mySeatIndex() {
+        for (int i = 0; i < 10; i++) {
+            String uid = seatUserId.get("seat_" + i);
+            if (myId.equals(uid)) return i;
+        }
+        return -1;
+    }
+
+    private void onSeatClicked(int seatIndex) {
+        String key = "seat_" + seatIndex;
+        String occupantId = seatUserId.get(key);
+        boolean isEmpty = occupantId == null || occupantId.isEmpty();
+        boolean locked = seatLocked.get(key) != null && seatLocked.get(key);
+        boolean isMine = myId.equals(occupantId);
+        boolean iAmOwnerOrAdmin = amIOwner || amIAdmin;
+
+        List<String> options = new ArrayList<>();
+        List<Runnable> actions = new ArrayList<>();
+
+        if (isEmpty) {
+            if (locked && !iAmOwnerOrAdmin) {
+                Toast.makeText(this, "This seat is Locked 🔒", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // Khali seat
+            if (mySeatIndex() == -1) {
+                options.add("🎤 Take Mic - Ei Seat e Bosbo");
+                actions.add(() -> takeSeat(seatIndex));
+            } else {
+                options.add("🔄 Change Seat - Ei Seat e Jabo");
+                actions.add(() -> { leaveSeat(mySeatIndex()); takeSeat(seatIndex); });
+            }
+            if (iAmOwnerOrAdmin) {
+                options.add("📩 Invite - Kauke Bosabo");
+                actions.add(() -> inviteToSeat(seatIndex));
+                options.add(locked ? "🔓 Unlock Seat" : "🔒 Lock Seat");
+                actions.add(() -> toggleLockSeat(seatIndex));
+            } else {
+                if (locked) {
+                    options.add("🔓 Unlock - Owner ke bolo");
+                    actions.add(() -> Toast.makeText(this, "Only Owner can Unlock", Toast.LENGTH_SHORT).show());
+                }
+            }
+        } else if (isMine) {
+            // Nijer seat
+            boolean muted = seatMuted.get(key) != null && seatMuted.get(key);
+            options.add("⬇️ Leave Mic - Seat theke Nambo");
+            actions.add(() -> leaveSeat(seatIndex));
+            options.add(muted ? "🔊 Unmute Me" : "🔇 Mute Me");
+            actions.add(() -> toggleMuteSeat(seatIndex));
+            if (iAmOwnerOrAdmin) {
+                options.add(locked ? "🔓 Unlock Seat" : "🔒 Lock Seat");
+                actions.add(() -> toggleLockSeat(seatIndex));
+            }
+        } else {
+            // Onner seat
+            String occName = seatUserName.get(key);
+            if (occName == null) occName = "User";
+            boolean muted = seatMuted.get(key) != null && seatMuted.get(key);
+            if (iAmOwnerOrAdmin) {
+                // Owner er option - NiuChat style: On Mic / Mute / Kick / Lock
+                options.add("👤 View Profile - " + occName);
+                actions.add(() -> openUserProfile(occupantId, occName));
+                options.add(muted ? "🔊 Unmute - " + occName : "🔇 Mute - " + occName);
+                actions.add(() -> toggleMuteSeat(seatIndex));
+                options.add("👢 Kick - Seat theke Namiye Dao");
+                actions.add(() -> kickSeat(seatIndex));
+                options.add(locked ? "🔓 Unlock Seat" : "🔒 Lock Seat");
+                actions.add(() -> toggleLockSeat(seatIndex));
+            } else {
+                options.add("👤 View Profile - " + occName);
+                actions.add(() -> openUserProfile(occupantId, occName));
+            }
+        }
+
+        if (options.isEmpty()) return;
+        String title = "Seat " + (seatIndex + 1) + (isEmpty ? " - Khali" : " - " + seatUserName.get(key));
+        new AlertDialog.Builder(this).setTitle(title)
+            .setItems(options.toArray(new String[0]), (d, w) -> actions.get(w).run())
+            .setNegativeButton("Cancel", null).show();
+    }
+
+    private void takeSeat(int seatIndex) {
+        String key = "seat_" + seatIndex;
+        if (seatLocked.get(key) != null && seatLocked.get(key) && !amIOwner && !amIAdmin) {
+            Toast.makeText(this, "This seat is Locked 🔒", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (mySeatIndex() != -1 && mySeatIndex() != seatIndex) {
+            Toast.makeText(this, "Tumi age onno seat e bosa, age Leave Mic dao", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        Map<String, Object> m = new HashMap<>();
+        m.put("userId", myId);
+        m.put("name", myName);
+        m.put("photo", getMyPhotoFromAllPlaces());
+        m.put("muted", false);
+        m.put("locked", seatLocked.get(key) != null && seatLocked.get(key));
+        activeRoomRef.child("seats").child(key).setValue(m);
+        Toast.makeText(this, "Seat " + (seatIndex + 1) + " e Boscho 🎤", Toast.LENGTH_SHORT).show();
+    }
+
+    private void leaveSeat(int seatIndex) {
+        activeRoomRef.child("seats").child("seat_" + seatIndex).removeValue();
+        Toast.makeText(this, "Seat theke Nemecho", Toast.LENGTH_SHORT).show();
+    }
+
+    private void kickSeat(int seatIndex) {
+        activeRoomRef.child("seats").child("seat_" + seatIndex).removeValue();
+        Toast.makeText(this, "Kicked from Seat", Toast.LENGTH_SHORT).show();
+    }
+
+    private void toggleMuteSeat(int seatIndex) {
+        String key = "seat_" + seatIndex;
+        boolean cur = seatMuted.get(key) != null && seatMuted.get(key);
+        activeRoomRef.child("seats").child(key).child("muted").setValue(!cur);
+        Toast.makeText(this, !cur ? "Muted 🔇" : "Unmuted 🔊", Toast.LENGTH_SHORT).show();
+    }
+
+    private void toggleLockSeat(int seatIndex) {
+        String key = "seat_" + seatIndex;
+        boolean cur = seatLocked.get(key) != null && seatLocked.get(key);
+        // Lock obosthay jodi keu bosa thake, take namano hobe na - sudhu lock flag bodlabe
+        // Khali seat er jonno lock entry banate hobe jate sobai dekhte pay
+        if (seatUserId.get(key) == null) {
+            if (!cur) {
+                Map<String, Object> m = new HashMap<>();
+                m.put("userId", "");
+                m.put("name", "");
+                m.put("photo", "");
+                m.put("muted", false);
+                m.put("locked", true);
+                activeRoomRef.child("seats").child(key).setValue(m);
+            } else {
+                activeRoomRef.child("seats").child(key).removeValue();
+            }
+        } else {
+            activeRoomRef.child("seats").child(key).child("locked").setValue(!cur);
+        }
+        Toast.makeText(this, !cur ? "Seat Locked 🔒" : "Seat Unlocked 🔓", Toast.LENGTH_SHORT).show();
+    }
+
+    private void inviteToSeat(final int seatIndex) {
+        BottomSheetDialog d = new BottomSheetDialog(this);
+        View v = LayoutInflater.from(this).inflate(R.layout.dialog_online_list, null);
+        d.setContentView(v);
+        RecyclerView rv = v.findViewById(R.id.rvOnlineList);
+        if (rv != null) rv.setLayoutManager(new LinearLayoutManager(this));
+        List<Map<String, String>> list = new ArrayList<>();
+        RecyclerView.Adapter adapter = new RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+            @NonNull @Override public RecyclerView.ViewHolder onCreateViewHolder(@NonNull android.view.ViewGroup p, int t) {
+                View item = LayoutInflater.from(p.getContext()).inflate(R.layout.item_user, p, false);
+                return new RecyclerView.ViewHolder(item) {};
+            }
+            @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder h, int pos) {
+                Map<String, String> u = list.get(pos);
+                ImageView iv = h.itemView.findViewById(R.id.imgChatPhoto);
+                TextView tvH = h.itemView.findViewById(R.id.userName);
+                TextView tvM = h.itemView.findViewById(R.id.tvChatMsg);
+                loadPhotoInto(iv, u.get("photo"));
+                if (tvH != null) tvH.setText(u.get("name") + "  Lv." + u.get("level"));
+                if (tvM != null) tvM.setText("ID: " + u.get("id") + " - Tap to Invite");
+                h.itemView.setOnClickListener(x -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("userId", u.get("id"));
+                    m.put("name", u.get("name"));
+                    m.put("photo", u.get("photo"));
+                    m.put("muted", false);
+                    m.put("locked", false);
+                    activeRoomRef.child("seats").child("seat_" + seatIndex).setValue(m);
+                    Toast.makeText(VoiceRoomActivity.this, u.get("name") + " ke Seat e Bosano Holo", Toast.LENGTH_SHORT).show();
+                    d.dismiss();
+                });
+            }
+            @Override public int getItemCount() { return list.size(); }
+        };
+        if (rv != null) rv.setAdapter(adapter);
+        activeRoomRef.child("online_users").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                list.clear();
+                for (DataSnapshot c : snap.getChildren()) {
+                    Map<String, String> m = new HashMap<>();
+                    m.put("name", c.child("name").getValue(String.class) == null ? "User" : c.child("name").getValue(String.class));
+                    String ph = c.child("photo").getValue(String.class);
+                    if (ph == null || ph.isEmpty()) ph = c.child("photoUrl").getValue(String.class);
+                    m.put("photo", ph == null ? "" : ph);
+                    Object lvl = c.child("level").getValue();
+                    m.put("level", lvl == null ? "0" : String.valueOf(lvl));
+                    m.put("id", c.getKey());
+                    if (!c.getKey().equals(myId)) list.add(m);
+                }
+                adapter.notifyDataSetChanged();
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
+        View btnClose = v.findViewById(R.id.btnCloseOnline);
+        if (btnClose != null) btnClose.setOnClickListener(x -> d.dismiss());
+        d.show();
+    }
+
+    private void openUserProfile(String targetId, String targetName) {
+        try {
+            android.content.Intent i = new android.content.Intent(this, PublicProfileActivity.class);
+            i.putExtra("TARGET_9DIGIT_ID", targetId);
+            i.putExtra("TARGET_NAME", targetName);
+            startActivity(i);
+        } catch (Exception e) {
+            Toast.makeText(this, "Profile khola jay nai", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void openRoomHeaderPopup() {
         BottomSheetDialog d = new BottomSheetDialog(this);
         View v = LayoutInflater.from(this).inflate(R.layout.dialog_user_profile, null);
@@ -257,7 +542,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         new AlertDialog.Builder(this).setTitle("Reward Event").setMessage(msg).setPositiveButton("OK", null).show();
     }
 
-    // RANKING - ONLY SHOW, NO REWARD - GENERIC FOR ALL ROOMS
     private void openRanking() {
         BottomSheetDialog d = new BottomSheetDialog(this);
         View v = LayoutInflater.from(this).inflate(R.layout.dialog_room_ranking, null);
@@ -331,7 +615,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     if (p != null && !p.isEmpty()) {
                         myPhoto = p;
                         prefs.edit().putString("USER_PHOTO", p).putString("PROFILE_PHOTO", p).apply();
-                        // FIX: Header e ID photo kokhono bosabo na
                         markMeOnline();
                     }
                     String hw = null;
@@ -386,7 +669,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         roomHeaderHeadwearImg = findViewById(R.id.roomHeaderHeadwearImg);
         chatListContainer = findViewById(R.id.chatListContainer);
         if (rvOnline != null) rvOnline.setLayoutManager(new LinearLayoutManager(this));
-        // FIX: Header e surutei Room photo, ID photo na
         if (roomHeaderProfileImg != null) loadRoomPhotoInto(roomHeaderProfileImg);
         if (roomHeaderHeadwearImg != null) loadHeadwearInto(roomHeaderHeadwearImg, getMyHeadwearFromAllPlaces());
         if (tvRoomId != null) tvRoomId.setText("Room ID: " + roomId);
@@ -399,6 +681,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         loadRoomInfo();
         syncMyPhotoFromFirebase();
         markMeOnline();
+        setupSeats();
         if (roomHeaderProfileImg != null) roomHeaderProfileImg.setOnClickListener(v -> openRoomHeaderPopup());
         if (roomTitleText != null) roomTitleText.setOnClickListener(v -> openRoomHeaderPopup());
         if (roomInfoText != null) roomInfoText.setOnClickListener(v -> openRoomHeaderPopup());
@@ -497,7 +780,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private void listenChatRealtime() {
         if (chatListContainer != null) chatListContainer.removeAllViews();
         if (chatListener != null && chatQuery != null) { try { chatQuery.removeEventListener(chatListener); } catch (Exception e) {} }
-        // PREMIUM: Sudhu joinTime er PORER message - ager history kokhono asbe na
         chatQuery = activeRoomRef.child("chats").orderByChild("time").startAt(joinTime + 1);
         chatListener = new ChildEventListener() {
             @Override public void onChildAdded(@NonNull DataSnapshot snap, String p) {
@@ -717,6 +999,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
         super.onDestroy();
         try { if (chatListener != null && chatQuery != null) chatQuery.removeEventListener(chatListener); } catch (Exception e) {}
         try { if (chatListContainer != null) chatListContainer.removeAllViews(); } catch (Exception e) {}
+        // Seat theke nije namiye jao - nahole seat atke thakbe
+        try {
+            int mySeat = mySeatIndex();
+            if (mySeat != -1) activeRoomRef.child("seats").child("seat_" + mySeat).removeValue();
+        } catch (Exception e) {}
         try { activeRoomRef.child("online_users").child(myId).removeValue(); } catch (Exception e) {}
     }
 }
