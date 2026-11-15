@@ -167,7 +167,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // ===== SEAT: Setup - XML er seat_0 to seat_9 ke click er sathe jukto kora =====
+    // ===== SEAT: Setup =====
     private void setupSeats() {
         for (int i = 0; i < 10; i++) {
             int seatId = getResources().getIdentifier("seat_" + i, "id", getPackageName());
@@ -197,7 +197,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     String key = c.getKey();
                     if (key == null) continue;
                     String uid = c.child("userId").getValue(String.class);
-                    if (uid == null || uid.isEmpty()) continue;
+                    if (uid == null || uid.isEmpty()) {
+                        Boolean l2 = c.child("locked").getValue(Boolean.class);
+                        if (l2 != null && l2) seatLocked.put(key, true);
+                        continue;
+                    }
                     seatUserId.put(key, uid);
                     String n = c.child("name").getValue(String.class);
                     seatUserName.put(key, n == null ? "User" : n);
@@ -260,54 +264,61 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 Toast.makeText(this, "This seat is Locked 🔒", Toast.LENGTH_SHORT).show();
                 return;
             }
-            // Khali seat
             if (mySeatIndex() == -1) {
                 options.add("🎤 Take Mic - Ei Seat e Bosbo");
-                actions.add(() -> takeSeat(seatIndex));
+                final int fSeat = seatIndex;
+                actions.add(() -> takeSeat(fSeat));
             } else {
                 options.add("🔄 Change Seat - Ei Seat e Jabo");
-                actions.add(() -> { leaveSeat(mySeatIndex()); takeSeat(seatIndex); });
+                final int fSeat2 = seatIndex;
+                final int fMySeat = mySeatIndex();
+                actions.add(() -> { leaveSeat(fMySeat); takeSeat(fSeat2); });
             }
             if (iAmOwnerOrAdmin) {
                 options.add("📩 Invite - Kauke Bosabo");
-                actions.add(() -> inviteToSeat(seatIndex));
-                options.add(locked ? "🔓 Unlock Seat" : "🔒 Lock Seat");
-                actions.add(() -> toggleLockSeat(seatIndex));
-            } else {
-                if (locked) {
-                    options.add("🔓 Unlock - Owner ke bolo");
-                    actions.add(() -> Toast.makeText(this, "Only Owner can Unlock", Toast.LENGTH_SHORT).show());
-                }
+                final int fSeat3 = seatIndex;
+                actions.add(() -> inviteToSeat(fSeat3));
+                final boolean fLocked = locked;
+                final int fSeat4 = seatIndex;
+                options.add(fLocked ? "🔓 Unlock Seat" : "🔒 Lock Seat");
+                actions.add(() -> toggleLockSeat(fSeat4));
             }
         } else if (isMine) {
-            // Nijer seat
             boolean muted = seatMuted.get(key) != null && seatMuted.get(key);
+            final int fSeat5 = seatIndex;
             options.add("⬇️ Leave Mic - Seat theke Nambo");
-            actions.add(() -> leaveSeat(seatIndex));
+            actions.add(() -> leaveSeat(fSeat5));
+            final int fSeat6 = seatIndex;
             options.add(muted ? "🔊 Unmute Me" : "🔇 Mute Me");
-            actions.add(() -> toggleMuteSeat(seatIndex));
+            actions.add(() -> toggleMuteSeat(fSeat6));
             if (iAmOwnerOrAdmin) {
-                options.add(locked ? "🔓 Unlock Seat" : "🔒 Lock Seat");
-                actions.add(() -> toggleLockSeat(seatIndex));
+                final boolean fLocked2 = locked;
+                final int fSeat7 = seatIndex;
+                options.add(fLocked2 ? "🔓 Unlock Seat" : "🔒 Lock Seat");
+                actions.add(() -> toggleLockSeat(fSeat7));
             }
         } else {
-            // Onner seat
-            String occName = seatUserName.get(key);
-            if (occName == null) occName = "User";
+            // Onner seat - FIX: final variable diye Build error solve kora
+            final String finalOccupantId = occupantId;
+            final String finalOccName = seatUserName.get(key) == null ? "User" : seatUserName.get(key);
             boolean muted = seatMuted.get(key) != null && seatMuted.get(key);
+            final boolean fMuted = muted;
+            final int fSeat8 = seatIndex;
             if (iAmOwnerOrAdmin) {
-                // Owner er option - NiuChat style: On Mic / Mute / Kick / Lock
-                options.add("👤 View Profile - " + occName);
-                actions.add(() -> openUserProfile(occupantId, occName));
-                options.add(muted ? "🔊 Unmute - " + occName : "🔇 Mute - " + occName);
-                actions.add(() -> toggleMuteSeat(seatIndex));
+                options.add("👤 View Profile - " + finalOccName);
+                actions.add(() -> openUserProfile(finalOccupantId, finalOccName));
+                options.add(fMuted ? "🔊 Unmute - " + finalOccName : "🔇 Mute - " + finalOccName);
+                actions.add(() -> toggleMuteSeat(fSeat8));
+                final int fSeat9 = seatIndex;
                 options.add("👢 Kick - Seat theke Namiye Dao");
-                actions.add(() -> kickSeat(seatIndex));
-                options.add(locked ? "🔓 Unlock Seat" : "🔒 Lock Seat");
-                actions.add(() -> toggleLockSeat(seatIndex));
+                actions.add(() -> kickSeat(fSeat9));
+                final boolean fLocked3 = locked;
+                final int fSeat10 = seatIndex;
+                options.add(fLocked3 ? "🔓 Unlock Seat" : "🔒 Lock Seat");
+                actions.add(() -> toggleLockSeat(fSeat10));
             } else {
-                options.add("👤 View Profile - " + occName);
-                actions.add(() -> openUserProfile(occupantId, occName));
+                options.add("👤 View Profile - " + finalOccName);
+                actions.add(() -> openUserProfile(finalOccupantId, finalOccName));
             }
         }
 
@@ -358,8 +369,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private void toggleLockSeat(int seatIndex) {
         String key = "seat_" + seatIndex;
         boolean cur = seatLocked.get(key) != null && seatLocked.get(key);
-        // Lock obosthay jodi keu bosa thake, take namano hobe na - sudhu lock flag bodlabe
-        // Khali seat er jonno lock entry banate hobe jate sobai dekhte pay
         if (seatUserId.get(key) == null) {
             if (!cur) {
                 Map<String, Object> m = new HashMap<>();
@@ -999,7 +1008,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         super.onDestroy();
         try { if (chatListener != null && chatQuery != null) chatQuery.removeEventListener(chatListener); } catch (Exception e) {}
         try { if (chatListContainer != null) chatListContainer.removeAllViews(); } catch (Exception e) {}
-        // Seat theke nije namiye jao - nahole seat atke thakbe
         try {
             int mySeat = mySeatIndex();
             if (mySeat != -1) activeRoomRef.child("seats").child("seat_" + mySeat).removeValue();
