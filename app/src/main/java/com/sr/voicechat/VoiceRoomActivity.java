@@ -1,8 +1,11 @@
 package com.sr.voicechat;
 
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -60,7 +63,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     );
 
-    // --- PHOTO FIX: সব জায়গা থেকে ছবি খুঁজবে ---
     private String getMyPhotoFromAllPlaces() {
         if (prefs == null) return "";
         String[] keys = {"USER_PHOTO","PROFILE_PHOTO","USER_PHOTO_URL","PHOTO_URL","photo","profile_photo","USER_IMAGE","PROFILE_IMAGE","userPhoto","imageUrl","avatar","profileImage"};
@@ -72,6 +74,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         return "";
     }
 
+    // FIX - লিংক হলে Glide, Base64 হলে পুরানো নিয়ম
     private void loadPhotoInto(ImageView iv, String url) {
         if (iv == null) return;
         if (url == null || url.trim().isEmpty() || url.equals("null")) {
@@ -79,31 +82,41 @@ public class VoiceRoomActivity extends AppCompatActivity {
             return;
         }
         try {
-            Glide.with(this).load(url).circleCrop()
-                .placeholder(android.R.drawable.sym_def_app_icon)
-                .error(android.R.drawable.sym_def_app_icon)
-                .into(iv);
+            if (url.trim().startsWith("http")) {
+                Glide.with(this).load(url).circleCrop()
+                    .placeholder(android.R.drawable.sym_def_app_icon)
+                    .error(android.R.drawable.sym_def_app_icon)
+                    .into(iv);
+            } else {
+                byte[] bytes = Base64.decode(url.trim(), Base64.DEFAULT);
+                Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                if (bmp != null) iv.setImageBitmap(bmp);
+                else iv.setImageResource(android.R.drawable.sym_def_app_icon);
+            }
         } catch (Exception e) {
             iv.setImageResource(android.R.drawable.sym_def_app_icon);
         }
     }
 
     private void syncMyPhotoFromFirebase() {
-        // প্রোফাইলে সেভ করা ছবি Firebase থেকে আনবে, যাতে রুমে কালো না আসে
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(myId);
-        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+        // FIX - users এর চাবি firebaseUid, তাই my9DigitId দিয়ে খুঁজতে হবে
+        FirebaseDatabase.getInstance().getReference("users")
+            .orderByChild("my9DigitId").equalTo(myId)
+            .addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 if (!snap.exists()) return;
-                String p = null;
-                if (snap.child("photo").exists()) p = snap.child("photo").getValue(String.class);
-                if ((p == null || p.isEmpty()) && snap.child("profilePhoto").exists()) p = snap.child("profilePhoto").getValue(String.class);
-                if ((p == null || p.isEmpty()) && snap.child("photoUrl").exists()) p = snap.child("photoUrl").getValue(String.class);
-                if ((p == null || p.isEmpty()) && snap.child("image").exists()) p = snap.child("image").getValue(String.class);
-                if (p != null && !p.isEmpty()) {
-                    myPhoto = p;
-                    prefs.edit().putString("USER_PHOTO", p).putString("PROFILE_PHOTO", p).apply();
-                    if (roomHeaderProfileImg != null) loadPhotoInto(roomHeaderProfileImg, myPhoto);
-                    markMeOnline();
+                for (DataSnapshot ds : snap.getChildren()) {
+                    String p = null;
+                    if (ds.child("photoUrl").getValue() != null) p = String.valueOf(ds.child("photoUrl").getValue());
+                    if ((p == null || p.isEmpty()) && ds.child("photo").getValue() != null) p = String.valueOf(ds.child("photo").getValue());
+                    if ((p == null || p.isEmpty()) && ds.child("photoBase64").getValue() != null) p = String.valueOf(ds.child("photoBase64").getValue());
+                    if (p != null && !p.isEmpty()) {
+                        myPhoto = p;
+                        prefs.edit().putString("USER_PHOTO", p).putString("PROFILE_PHOTO", p).apply();
+                        if (roomHeaderProfileImg != null) loadPhotoInto(roomHeaderProfileImg, myPhoto);
+                        markMeOnline();
+                    }
+                    break;
                 }
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
@@ -126,8 +139,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
             Toast.makeText(this, "ID পাওয়া যায় নাই, আবার Login করো", Toast.LENGTH_LONG).show();
             finish(); return;
         }
-        roomId = myId;
-        roomOwnerId = myId;
+        // FIX - Intent থেকে আসল রুম নিবো, নিজের ID দিয়ে না
+        String intentRoomId = getIntent().getStringExtra("ROOM_ID");
+        String intentOwnerId = getIntent().getStringExtra("ROOM_OWNER_ID");
+        if (intentRoomId != null && !intentRoomId.isEmpty()) roomId = intentRoomId; else roomId = myId;
+        if (intentOwnerId != null && !intentOwnerId.isEmpty()) roomOwnerId = intentOwnerId; else roomOwnerId = roomId;
         activeRoomRef = FirebaseDatabase.getInstance().getReference("active_rooms").child(roomOwnerId);
         roomMetaRef = FirebaseDatabase.getInstance().getReference("rooms").child("room_" + roomOwnerId).child("meta");
         tvRoomId = findViewById(R.id.tvRoomId);
@@ -196,6 +212,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         Map<String, Object> m = new HashMap<>();
         m.put("name", myName);
         m.put("photo", myPhoto == null ? "" : myPhoto);
+        m.put("photoUrl", myPhoto == null ? "" : myPhoto);
         m.put("country", myCountry);
         m.put("level", myLevel);
         m.put("id", myId);
@@ -308,7 +325,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 for (DataSnapshot c : snap.getChildren()) {
                     Map<String, String> m = new HashMap<>();
                     m.put("name", c.child("name").getValue(String.class) == null ? "User" : c.child("name").getValue(String.class));
-                    m.put("photo", c.child("photo").getValue(String.class) == null ? "" : c.child("photo").getValue(String.class));
+                    String ph = c.child("photo").getValue(String.class);
+                    if (ph == null || ph.isEmpty()) ph = c.child("photoUrl").getValue(String.class);
+                    m.put("photo", ph == null ? "" : ph);
                     m.put("country", c.child("country").getValue(String.class) == null ? "" : c.child("country").getValue(String.class));
                     Object lvlObj = c.child("level").getValue();
                     m.put("level", lvlObj == null ? "0" : String.valueOf(lvlObj));
