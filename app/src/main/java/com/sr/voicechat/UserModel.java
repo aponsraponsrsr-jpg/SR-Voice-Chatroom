@@ -8,6 +8,8 @@ public class UserModel {
     public String country = "Bangladesh"; // LOCKED
     public String birthday = ""; // LOCKED
     public String photoBase64 = "";
+    public String photoUrl = ""; // NEW - Firebase Storage link, Save করলেই সাথে সাথে আসবে
+    public String photo = ""; // NEW - photoUrl এর মতোই, ২টা নামেই সেভ হবে
     public String level = "1";
     public long coins = 0;
     public String giftCount = "0";
@@ -33,6 +35,13 @@ public class UserModel {
     public String getName() { return name; }
     public boolean isSpeaking() { return speaking; }
     public boolean isMale() { return gender != null && gender.equalsIgnoreCase("Male"); }
+
+    // সব জায়গায় এই একটা ফাংশন দিয়ে ছবি আনবে - photoUrl থাকলে ওইটাই, না থাকলে photo, না থাকলে Base64
+    public String getPhotoUrl() {
+        if (photoUrl != null && !photoUrl.isEmpty()) return photoUrl;
+        if (photo != null && !photo.isEmpty()) return photo;
+        return "";
+    }
 
     // Flag - Country onujayi - Permanent
     public String getFlag() {
