@@ -31,7 +31,10 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -51,15 +54,34 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private SharedPreferences prefs;
     private ImageView dialogRoomPhoto;
     private Uri pickedRoomPhotoUri = null;
+    private String pickedRoomPhotoBase64 = null;
     private String selectedTheme = "Default";
     private String currentRoomPhotoUrl = "";
     private String rankingTab = "daily";
+
+    // PREMIUM CHAT: Join time - er ager SMS kokhono dekhabe na
+    private long joinTime = 0;
+    private ChildEventListener chatListener = null;
+    private Query chatQuery = null;
+    private boolean isExiting = false;
 
     private ActivityResultLauncher<String> pickRoomPhoto = registerForActivityResult(
         new ActivityResultContracts.GetContent(),
         uri -> {
             if (uri != null) {
                 pickedRoomPhotoUri = uri;
+                // GLOBAL FIX: content:// sobar phone e khule na, tai Base64 banay rakhbo
+                try {
+                    InputStream is = getContentResolver().openInputStream(uri);
+                    Bitmap bmp = BitmapFactory.decodeStream(is);
+                    if (is != null) is.close();
+                    if (bmp != null) {
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        Bitmap scaled = Bitmap.createScaledBitmap(bmp, 400, 400, true);
+                        scaled.compress(Bitmap.CompressFormat.JPEG, 70, baos);
+                        pickedRoomPhotoBase64 = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+                    }
+                } catch (Exception e) { pickedRoomPhotoBase64 = null; }
                 if (dialogRoomPhoto != null) {
                     Glide.with(this).load(uri).circleCrop().into(dialogRoomPhoto);
                 }
@@ -106,6 +128,18 @@ public class VoiceRoomActivity extends AppCompatActivity {
         } catch (Exception e) {}
     }
 
+    // PREMIUM HEADER: Room photo ONLY - ID photo kokhono asbe na
+    private void loadRoomPhotoInto(ImageView iv) {
+        if (iv == null) return;
+        String url = currentRoomPhotoUrl;
+        // Puraton content:// photo onno phone e khulbe na - tai ignore
+        if (url == null || url.trim().isEmpty() || url.equals("null") || url.trim().startsWith("content://") || url.trim().startsWith("file://")) {
+            try { iv.setImageResource(R.mipmap.ic_launcher); } catch (Exception e) { iv.setImageDrawable(null); }
+            return;
+        }
+        loadPhotoInto(iv, url);
+    }
+
     private void loadHeadwearInto(ImageView iv, String url) {
         if (iv == null) return;
         if (url == null || url.trim().isEmpty() || url.equals("null")) {
@@ -127,7 +161,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
 
-    // HEADER POPUP - dialog_user_profile.xml - GLOBAL, jekono room er Owner er info
+    // HEADER POPUP - dialog_user_profile.xml - GLOBAL
     private void openRoomHeaderPopup() {
         BottomSheetDialog d = new BottomSheetDialog(this);
         View v = LayoutInflater.from(this).inflate(R.layout.dialog_user_profile, null);
@@ -154,7 +188,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (tvLang != null) tvLang.setText(prefs.getString("USER_LANGUAGE", "English"));
         if (tvCountry != null) tvCountry.setText(myCountry);
         if (tvTag != null) tvTag.setText("Friends");
-        if (ivProfile != null) loadPhotoInto(ivProfile, currentRoomPhotoUrl != null && !currentRoomPhotoUrl.isEmpty() ? currentRoomPhotoUrl : myPhoto);
+        if (ivProfile != null) loadRoomPhotoInto(ivProfile);
         if (tvId != null) tvId.setOnClickListener(x -> {
             ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
             if (cm != null) cm.setPrimaryClip(ClipData.newPlainText("Room ID", roomOwnerId));
@@ -218,13 +252,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
         d.show();
     }
 
-    // REWARD EVENT - Public dekhte parbe, Claim pore Owner only korbo
     private void openRewardEvent() {
         String msg = "🏆 Room Reward Event\n\nWeekly Contribution joma hobe\nProti Sombar 00:00 (GMT+3) e hisab hobe\nClaim korle sorasori Wallet e jabe\n\n3.0M Sending = 150K Reward\n6.0M Sending = 300K Reward\n10.0M Sending = 500K Reward\n14.0M Sending = 700K Reward\n20.0M Sending = 1.0M Reward\n30.0M Sending = 2.0M Reward\n50.0M Sending = 4.0M Reward\n100.0M Sending = 9.0M Reward\n200.0M Sending = 19.0M Reward\n500.0M Sending = 49.0M Reward\n\nNiyom: 3M - 20M porjonto 5%, 20M er por theke 10%";
         new AlertDialog.Builder(this).setTitle("Reward Event").setMessage(msg).setPositiveButton("OK", null).show();
     }
 
-    // RANKING - ONLY SHOW, NO REWARD - GENERIC FOR ALL ROOMS - FIXED: dialog_room_ranking use korbe
+    // RANKING - ONLY SHOW, NO REWARD - GENERIC FOR ALL ROOMS
     private void openRanking() {
         BottomSheetDialog d = new BottomSheetDialog(this);
         View v = LayoutInflater.from(this).inflate(R.layout.dialog_room_ranking, null);
@@ -239,7 +272,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             if (bDaily != null) { bDaily.setBackgroundTintList(android.content.res.ColorStateList.valueOf(rankingTab.equals("daily") ? 0xFFFFD700 : 0xFF2A1B4E)); bDaily.setTextColor(rankingTab.equals("daily") ? 0xFF000000 : 0xFFFFFFFF); }
             if (bWeekly != null) { bWeekly.setBackgroundTintList(android.content.res.ColorStateList.valueOf(rankingTab.equals("weekly") ? 0xFFFFD700 : 0xFF2A1B4E)); bWeekly.setTextColor(rankingTab.equals("weekly") ? 0xFF000000 : 0xFFFFFFFF); }
             if (bMonthly != null) { bMonthly.setBackgroundTintList(android.content.res.ColorStateList.valueOf(rankingTab.equals("monthly") ? 0xFFFFD700 : 0xFF2A1B4E)); bMonthly.setTextColor(rankingTab.equals("monthly") ? 0xFF000000 : 0xFFFFFFFF); }
-            // Firebase: active_rooms / roomOwnerId / ranking / daily-weekly-monthly / userId
             activeRoomRef.child("ranking").child(rankingTab).addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override public void onDataChange(@NonNull DataSnapshot snap) {
                     if (container != null) container.removeAllViews();
@@ -299,7 +331,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     if (p != null && !p.isEmpty()) {
                         myPhoto = p;
                         prefs.edit().putString("USER_PHOTO", p).putString("PROFILE_PHOTO", p).apply();
-                        if (roomHeaderProfileImg != null) loadPhotoInto(roomHeaderProfileImg, myPhoto);
+                        // FIX: Header e ID photo kokhono bosabo na
                         markMeOnline();
                     }
                     String hw = null;
@@ -322,6 +354,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_voice_room);
+        joinTime = System.currentTimeMillis();
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
         myId = prefs.getString("MY_9_DIGIT_ID", "");
         myName = prefs.getString("USER_NAME", "User");
@@ -353,7 +386,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         roomHeaderHeadwearImg = findViewById(R.id.roomHeaderHeadwearImg);
         chatListContainer = findViewById(R.id.chatListContainer);
         if (rvOnline != null) rvOnline.setLayoutManager(new LinearLayoutManager(this));
-        if (roomHeaderProfileImg != null) loadPhotoInto(roomHeaderProfileImg, myPhoto);
+        // FIX: Header e surutei Room photo, ID photo na
+        if (roomHeaderProfileImg != null) loadRoomPhotoInto(roomHeaderProfileImg);
         if (roomHeaderHeadwearImg != null) loadHeadwearInto(roomHeaderHeadwearImg, getMyHeadwearFromAllPlaces());
         if (tvRoomId != null) tvRoomId.setText("Room ID: " + roomId);
         if (roomInfoText != null) roomInfoText.setText("ID: " + roomId);
@@ -368,7 +402,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (roomHeaderProfileImg != null) roomHeaderProfileImg.setOnClickListener(v -> openRoomHeaderPopup());
         if (roomTitleText != null) roomTitleText.setOnClickListener(v -> openRoomHeaderPopup());
         if (roomInfoText != null) roomInfoText.setOnClickListener(v -> openRoomHeaderPopup());
-        // RANKING BUTTON - XML er btnInRoomRanking
         View btnRanking = findViewById(R.id.btnInRoomRanking);
         if (btnRanking != null) btnRanking.setOnClickListener(v -> openRanking());
         View btnOpenChat = findViewById(R.id.btnOpenChat);
@@ -462,9 +495,15 @@ public class VoiceRoomActivity extends AppCompatActivity {
     }
 
     private void listenChatRealtime() {
-        activeRoomRef.child("chats").limitToLast(50).addChildEventListener(new ChildEventListener() {
+        if (chatListContainer != null) chatListContainer.removeAllViews();
+        if (chatListener != null && chatQuery != null) { try { chatQuery.removeEventListener(chatListener); } catch (Exception e) {} }
+        // PREMIUM: Sudhu joinTime er PORER message - ager history kokhono asbe na
+        chatQuery = activeRoomRef.child("chats").orderByChild("time").startAt(joinTime + 1);
+        chatListener = new ChildEventListener() {
             @Override public void onChildAdded(@NonNull DataSnapshot snap, String p) {
                 if (snap == null || !snap.exists()) return;
+                Long t = snap.child("time").getValue(Long.class);
+                if (t == null || t <= joinTime) return;
                 String name = snap.child("senderName").getValue(String.class);
                 String photo = snap.child("senderPhoto").getValue(String.class);
                 String country = snap.child("senderCountry").getValue(String.class);
@@ -482,7 +521,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
             @Override public void onChildMoved(@NonNull DataSnapshot s, String p) {}
             @Override public void onCancelled(@NonNull DatabaseError e) {}
-        });
+        };
+        chatQuery.addChildEventListener(chatListener);
     }
 
     private void addChatToScreen(String name, String photo, String country, String level, String msg) {
@@ -547,7 +587,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private void showPowerMenu() {
         String[] options = {"Minimize", "Exit Room"};
         new AlertDialog.Builder(this).setTitle("Room Options").setItems(options, (dialog, which) -> {
-            if (which == 0) finish(); else finishAffinity();
+            if (which == 0) { isExiting = false; finish(); }
+            else { isExiting = true; finishAffinity(); }
         }).setNegativeButton("Cancel", null).show();
     }
 
@@ -571,12 +612,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     if (tvRoomName != null) tvRoomName.setText(rName);
                     if (roomTitleText != null) roomTitleText.setText(rName);
                 }
-                if (rPhoto != null && !rPhoto.isEmpty()) {
+                if (rPhoto != null && !rPhoto.isEmpty() && !rPhoto.equals("null") && !rPhoto.startsWith("content://") && !rPhoto.startsWith("file://")) {
                     currentRoomPhotoUrl = rPhoto;
-                    if (roomHeaderProfileImg != null) loadPhotoInto(roomHeaderProfileImg, rPhoto);
-                } else if (myPhoto != null && !myPhoto.isEmpty()) {
-                    currentRoomPhotoUrl = myPhoto;
+                } else {
+                    currentRoomPhotoUrl = "";
                 }
+                if (roomHeaderProfileImg != null) loadRoomPhotoInto(roomHeaderProfileImg);
                 if (rAnnounce != null && !rAnnounce.isEmpty()) {
                     TextView notice = findViewById(R.id.roomNoticeBarText);
                     if (notice != null) { notice.setVisibility(View.VISIBLE); notice.setText(rAnnounce); }
@@ -617,6 +658,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void openRoomSetDialog() {
         if (!amIOwner && !amIAdmin) { Toast.makeText(this, "Only Room Owner / Admin can change", Toast.LENGTH_SHORT).show(); return; }
+        pickedRoomPhotoUri = null;
+        pickedRoomPhotoBase64 = null;
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_room_set, null);
         builder.setView(view);
@@ -626,8 +669,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         EditText etAnnounce = view.findViewById(R.id.etRoomAnnouncement);
         TextView tvTheme = view.findViewById(R.id.tvSelectedTheme);
         if (tvRoomName != null) etName.setText(tvRoomName.getText().toString());
-        if (currentRoomPhotoUrl != null && !currentRoomPhotoUrl.isEmpty()) loadPhotoInto(dialogRoomPhoto, currentRoomPhotoUrl);
-        else if (myPhoto != null && !myPhoto.isEmpty()) loadPhotoInto(dialogRoomPhoto, myPhoto);
+        if (dialogRoomPhoto != null) loadRoomPhotoInto(dialogRoomPhoto);
         tvTheme.setText("Theme: " + selectedTheme);
         dialogRoomPhoto.setOnClickListener(v -> pickRoomPhoto.launch("image/*"));
         view.findViewById(R.id.btnThemeDefault).setOnClickListener(v -> { selectedTheme = "Default"; tvTheme.setText("Theme: Default"); });
@@ -638,24 +680,25 @@ public class VoiceRoomActivity extends AppCompatActivity {
             String newAnnounce = etAnnounce.getText().toString().trim();
             if (newName.isEmpty()) { Toast.makeText(this, "Room Name দাও", Toast.LENGTH_SHORT).show(); return; }
             String finalPhoto = currentRoomPhotoUrl;
-            if (pickedRoomPhotoUri != null) finalPhoto = pickedRoomPhotoUri.toString();
+            if (pickedRoomPhotoBase64 != null && !pickedRoomPhotoBase64.isEmpty()) finalPhoto = pickedRoomPhotoBase64;
             Map<String, Object> map = new HashMap<>();
             map.put("roomName", newName);
             map.put("announcement", newAnnounce);
             map.put("theme", selectedTheme);
-            map.put("roomPhoto", finalPhoto);
-            map.put("roomId", myId);
-            map.put("ownerId", myId);
+            map.put("roomPhoto", finalPhoto == null ? "" : finalPhoto);
+            map.put("roomId", roomOwnerId);
+            map.put("ownerId", roomOwnerId);
             roomMetaRef.updateChildren(map);
             Map<String, Object> activeMap = new HashMap<>();
             activeMap.put("roomName", newName);
-            activeMap.put("roomPhoto", finalPhoto);
+            activeMap.put("roomPhoto", finalPhoto == null ? "" : finalPhoto);
             activeRoomRef.updateChildren(activeMap);
+            currentRoomPhotoUrl = finalPhoto == null ? "" : finalPhoto;
             if (tvRoomName != null) tvRoomName.setText(newName);
             if (roomTitleText != null) roomTitleText.setText(newName);
-            if (roomHeaderProfileImg != null && finalPhoto != null && !finalPhoto.isEmpty()) loadPhotoInto(roomHeaderProfileImg, finalPhoto);
-            currentRoomPhotoUrl = finalPhoto;
+            if (roomHeaderProfileImg != null) loadRoomPhotoInto(roomHeaderProfileImg);
             pickedRoomPhotoUri = null;
+            pickedRoomPhotoBase64 = null;
             Toast.makeText(this, "Room Save হয়ে গেছে", Toast.LENGTH_SHORT).show();
             dialog.dismiss();
         });
@@ -672,6 +715,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     @Override protected void onDestroy() {
         super.onDestroy();
+        try { if (chatListener != null && chatQuery != null) chatQuery.removeEventListener(chatListener); } catch (Exception e) {}
+        try { if (chatListContainer != null) chatListContainer.removeAllViews(); } catch (Exception e) {}
         try { activeRoomRef.child("online_users").child(myId).removeValue(); } catch (Exception e) {}
     }
 }
