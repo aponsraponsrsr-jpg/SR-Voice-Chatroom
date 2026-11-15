@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -9,15 +10,22 @@
     android:layout_gravity="center">
 
     <!-- User Profile Picture (Circular) -->
-    <ImageView
-        android:id="@+id/imgUserProfile"
+    <!-- FIX - Age ekhane ic_menu_myplaces chilo, tai Android icon asto. Ekhon soray disi. -->
+    <androidx.cardview.widget.CardView
         android:layout_width="100dp"
         android:layout_height="100dp"
-        android:scaleType="centerCrop"
-        android:src="@android:drawable/ic_menu_myplaces"
-        android:layout_marginBottom="12dp"/>
+        app:cardCornerRadius="50dp"
+        app:cardElevation="0dp"
+        android:layout_marginBottom="12dp">
+        <ImageView
+            android:id="@+id/imgUserProfile"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:background="#FFE0B2" />
+    </androidx.cardview.widget.CardView>
 
-    <!-- User Name -->
+    <!-- User Name - ager ta e ache -->
     <TextView
         android:id="@+id/txtUserName"
         android:layout_width="wrap_content"
@@ -27,7 +35,17 @@
         android:textSize="20sp"
         android:textStyle="bold" />
 
-    <!-- ID & Level Badges (Click to Copy ID feature support) -->
+    <!-- ADD - Group Name - Demo onujayi, User Profile e ja set korbe -->
+    <TextView
+        android:id="@+id/txtGroupName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Group Name"
+        android:textColor="#FFFFFF"
+        android:textSize="13sp"
+        android:layout_marginTop="2dp" />
+
+    <!-- ID & Level Badges (Click to Copy ID feature support) - ager ta e ache -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -61,7 +79,121 @@
             android:textStyle="bold"/>
     </LinearLayout>
 
-    <!-- Action Buttons (Follow, Add Friend, Gift) -->
+    <!-- ADD - Header Info - RoomOwner / Language / Country / Tag - Sob Firebase theke Auto asbe, GLOBAL -->
+    <LinearLayout
+        android:id="@+id/layoutHeaderInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#22000000"
+        android:padding="12dp">
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="3dp" android:paddingBottom="3dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="RoomOwner" android:textColor="#FFFFFF" android:textSize="14sp" />
+            <TextView android:id="@+id/txtRoomOwner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Owner (ID:)" android:textColor="#FFD700" android:textSize="14sp" android:textStyle="bold" />
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="3dp" android:paddingBottom="3dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Language" android:textColor="#FFFFFF" android:textSize="14sp" />
+            <TextView android:id="@+id/txtHeaderLanguage" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="English" android:textColor="#FFFFFF" android:textSize="14sp" />
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="3dp" android:paddingBottom="3dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Country" android:textColor="#FFFFFF" android:textSize="14sp" />
+            <TextView android:id="@+id/txtHeaderCountry" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="India" android:textColor="#FFFFFF" android:textSize="14sp" />
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="3dp" android:paddingBottom="3dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Tag" android:textColor="#FFFFFF" android:textSize="14sp" />
+            <TextView android:id="@+id/txtHeaderTag" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Friends" android:textColor="#FFFFFF" android:textSize="14sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ADD - Reward Event Banner - Click korle Reward khulbe, Public dekhte parbe -->
+    <LinearLayout
+        android:id="@+id/layoutRewardBanner"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#FF9800"
+        android:padding="12dp"
+        android:layout_marginTop="12dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="🏆  Reward Event"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/txtRewardValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="498 >"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- ADD - Members / Admin - Owner upore, tarpor Admin, tarpor Member -->
+    <LinearLayout
+        android:id="@+id/layoutMembersSection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingTop="12dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/txtMembersTab"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Members"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:gravity="center" />
+
+            <TextView
+                android:id="@+id/txtAdminTab"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Admin"
+                android:textSize="15sp"
+                android:textColor="#FFFFFF"
+                android:gravity="center" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txtMembersCount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Members: 1/1000    Admin: 1/20"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:paddingTop="4dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvHeaderMembersList"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:layout_marginTop="8dp" />
+    </LinearLayout>
+
+    <!-- Action Buttons (Follow, Add Friend, Gift) - ager ta e ache, kichu kati nai -->
+    <!-- Header e khulle code diye btnFollow GONE kore dibo, karon tumi bolcho Header e Follow thakbe na -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
