@@ -1,9 +1,11 @@
 package com.sr.voicechat;
 
+import android.content.BroadcastReceiver;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -22,6 +24,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import com.bumptech.glide.Glide;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -36,6 +39,12 @@ public class PublicProfileActivity extends AppCompatActivity {
     private TextView tabProfile, tabAlbum, tabMoments, tabIntimacy;
     private UserModel user = new UserModel();
     private SharedPreferences prefs;
+
+    private BroadcastReceiver profileReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context context, Intent intent) {
+            loadUser();
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,14 +61,12 @@ public class PublicProfileActivity extends AppCompatActivity {
         root.setBackgroundColor(Color.parseColor("#F5F0D8"));
         scroll.addView(root);
 
-        // ===== HEADER - Green + Ghiya - Demo er moto =====
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.VERTICAL);
         header.setPadding(40, 20, 40, 30);
         header.setBackgroundColor(Color.parseColor("#C9E8A8"));
         root.addView(header);
 
-        // ===== TOP BAR - Back + Pencil (Only Mine) =====
         LinearLayout topBar = new LinearLayout(this);
         topBar.setOrientation(LinearLayout.HORIZONTAL);
         topBar.setGravity(Gravity.CENTER_VERTICAL);
@@ -77,8 +84,6 @@ public class PublicProfileActivity extends AppCompatActivity {
         spacer.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         topBar.addView(spacer);
 
-        // PENCIL - Sudhu nijer profile e dekhabe - Onner profile e dekhabe NA
-        // Demo er moto - upore dan pashe
         if (isMine) {
             TextView btnPencil = new TextView(this);
             btnPencil.setText("✏️ Edit");
@@ -92,7 +97,6 @@ public class PublicProfileActivity extends AppCompatActivity {
             pbg.setCornerRadius(40);
             btnPencil.setBackground(pbg);
             btnPencil.setOnClickListener(v -> {
-                // Ekhon Edit khulbe - Sudhu Name + Photo
                 Intent i = new Intent(PublicProfileActivity.this, EditProfileActivity.class);
                 i.putExtra("EDIT_MODE", true);
                 startActivity(i);
@@ -100,13 +104,11 @@ public class PublicProfileActivity extends AppCompatActivity {
             topBar.addView(btnPencil);
         }
 
-        // ===== COVER - Background photo =====
         imgCover = new ImageView(this);
         imgCover.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 280));
         imgCover.setScaleType(ImageView.ScaleType.CENTER_CROP);
         imgCover.setImageResource(android.R.drawable.ic_menu_gallery);
         imgCover.setPadding(0, 20, 0, 10);
-        // Cover e chap dile pore change kora jabe - ekhon sudhu toast
         imgCover.setOnClickListener(v -> {
             if (isMine) Toast.makeText(this, "Cover Photo - Next Step e change korbo", Toast.LENGTH_SHORT).show();
         });
@@ -154,8 +156,6 @@ public class PublicProfileActivity extends AppCompatActivity {
         txtFans = addCount(countRow, "0", "Fans");
         txtVisitor = addCount(countRow, "0", "Visitor");
 
-        // Follow / Gift - Nijer hole button thakbe NA - karon upore pencil ache
-        // Onner hole Follow + Gift thakbe
         if (!isMine) {
             LinearLayout btnRow = new LinearLayout(this);
             btnRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -170,7 +170,6 @@ public class PublicProfileActivity extends AppCompatActivity {
             btnRow.addView(btnGift);
         }
 
-        // ===== TABS =====
         LinearLayout tabRow = new LinearLayout(this);
         tabRow.setOrientation(LinearLayout.HORIZONTAL);
         tabRow.setBackgroundColor(Color.WHITE);
@@ -210,12 +209,17 @@ public class PublicProfileActivity extends AppCompatActivity {
         buildIntimacyTab();
 
         setContentView(scroll);
+        registerReceiver(profileReceiver, new IntentFilter("com.sr.voicechat.PROFILE_UPDATED"));
         loadUser();
+    }
+
+    @Override protected void onDestroy() {
+        super.onDestroy();
+        try { unregisterReceiver(profileReceiver); } catch (Exception ignored) {}
     }
 
     @Override protected void onResume() {
         super.onResume();
-        // Edit theke fire asle photo abar load hobe - harabe NA
         loadUser();
     }
 
@@ -352,27 +356,41 @@ public class PublicProfileActivity extends AppCompatActivity {
         return btn;
     }
 
-    private void loadUser() {
-        // 1. Age local cache theke photo dekhay dibo - tai chobi harabe NA
-        String cachedPhoto = prefs.getString("USER_PHOTO", "");
-        if (targetId.equals(myId) && !cachedPhoto.isEmpty()) {
-            try {
-                byte[] b = Base64.decode(cachedPhoto, Base64.DEFAULT);
+    // FIX - লিংক হলে Glide, Base64 হলে পুরানো নিয়ম
+    private void showPhoto(String photo, ImageView iv) {
+        if (iv == null || photo == null || photo.isEmpty()) return;
+        try {
+            if (photo.startsWith("http")) {
+                Glide.with(this).load(photo).circleCrop().into(iv);
+            } else {
+                byte[] b = Base64.decode(photo, Base64.DEFAULT);
                 BitmapFactory.Options o = new BitmapFactory.Options();
                 o.inSampleSize = 2;
                 Bitmap bmp = BitmapFactory.decodeByteArray(b, 0, b.length, o);
-                if (bmp != null) imgAvatar.setImageBitmap(bmp);
-            } catch (Exception ignored) {}
+                if (bmp != null) iv.setImageBitmap(bmp);
+            }
+        } catch (Exception ignored) {}
+    }
+
+    private void loadUser() {
+        String cachedPhoto = prefs.getString("USER_PHOTO", "");
+        if (targetId.equals(myId) && !cachedPhoto.isEmpty()) {
+            showPhoto(cachedPhoto, imgAvatar);
         }
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users");
         ref.orderByChild("my9DigitId").equalTo(targetId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 if (!snap.exists()) return;
+                String newPhotoUrl = "";
                 for (DataSnapshot ds : snap.getChildren()) {
                     if (ds.child("name").getValue() != null) user.name = String.valueOf(ds.child("name").getValue());
                     if (ds.child("gender").getValue() != null) user.gender = String.valueOf(ds.child("gender").getValue());
                     if (ds.child("country").getValue() != null) user.country = String.valueOf(ds.child("country").getValue());
                     if (ds.child("photoBase64").getValue() != null) user.photoBase64 = String.valueOf(ds.child("photoBase64").getValue());
+                    // FIX - আগে photoUrl দেখবো
+                    if (ds.child("photoUrl").getValue() != null) newPhotoUrl = String.valueOf(ds.child("photoUrl").getValue());
+                    if (newPhotoUrl.isEmpty() && ds.child("photo").getValue() != null) newPhotoUrl = String.valueOf(ds.child("photo").getValue());
+                    if (!newPhotoUrl.isEmpty()) { user.photoUrl = newPhotoUrl; user.photo = newPhotoUrl; }
                     if (ds.child("coverBase64").getValue() != null) {
                         String cover = String.valueOf(ds.child("coverBase64").getValue());
                         if (!cover.isEmpty()) {
@@ -398,17 +416,12 @@ public class PublicProfileActivity extends AppCompatActivity {
                 txtFollow.setText(user.followCount);
                 txtFans.setText(user.fansCount);
                 txtVisitor.setText(user.visitorCount);
-                if (!user.photoBase64.isEmpty()) {
-                    try {
-                        byte[] bytes = Base64.decode(user.photoBase64, Base64.DEFAULT);
-                        BitmapFactory.Options opt = new BitmapFactory.Options();
-                        opt.inSampleSize = 2;
-                        Bitmap b = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, opt);
-                        if (b != null) {
-                            imgAvatar.setImageBitmap(b);
-                            if (targetId.equals(myId)) prefs.edit().putString("USER_PHOTO", user.photoBase64).apply();
-                        }
-                    } catch (Exception ignored) {}
+                // FIX - নতুন photoUrl থাকলে ওইটাই দেখাবে
+                String finalPhoto = user.getPhotoUrl();
+                if (finalPhoto.isEmpty()) finalPhoto = user.photoBase64;
+                if (!finalPhoto.isEmpty()) {
+                    showPhoto(finalPhoto, imgAvatar);
+                    if (targetId.equals(myId)) prefs.edit().putString("USER_PHOTO", finalPhoto).putString("PROFILE_PHOTO", finalPhoto).apply();
                 }
                 tabProfileContent.removeAllViews();
                 buildProfileTab();
