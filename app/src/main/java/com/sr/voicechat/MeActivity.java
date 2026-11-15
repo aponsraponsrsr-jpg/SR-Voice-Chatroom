@@ -12,6 +12,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Base64;
 import android.view.Gravity;
@@ -44,7 +45,6 @@ public class MeActivity extends AppCompatActivity {
     private DatabaseReference userRef;
     private String followCount = "0", fansCount = "0", visitorCount = "0";
 
-    // NEW - Edit থেকে Save করলেই সাথে সাথে নতুন ছবি
     private BroadcastReceiver profileReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             showFromPrefs();
@@ -280,8 +280,15 @@ public class MeActivity extends AppCompatActivity {
         menuContainer.addView(logoutLayout);
 
         setContentView(scroll);
-        // Broadcast শুনবো
-        registerReceiver(profileReceiver, new IntentFilter("com.sr.voicechat.PROFILE_UPDATED"));
+        // FIX - Me te click korlei crash er karon eitai chilo. Android 13+ te RECEIVER_NOT_EXPORTED na dile crash kore.
+        try {
+            IntentFilter filter = new IntentFilter("com.sr.voicechat.PROFILE_UPDATED");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(profileReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+            } else {
+                registerReceiver(profileReceiver, filter);
+            }
+        } catch (Exception ignored) {}
         showFromPrefs();
         loadMeData();
     }
@@ -460,7 +467,6 @@ public class MeActivity extends AppCompatActivity {
                     String id = getStr(snap, "my9DigitId", my9DigitId);
                     String country = getStr(snap, "country", prefs.getString("USER_COUNTRY", ""));
                     String gender = getStr(snap, "gender", prefs.getString("USER_GENDER", ""));
-                    // FIX - আগে photoUrl দেখবো, তারপর photo, তারপর পুরানো Base64
                     String photo = getStr(snap, "photoUrl", "");
                     if (photo.isEmpty()) photo = getStr(snap, "photo", "");
                     if (photo.isEmpty()) photo = getStr(snap, "photoBase64", "");
@@ -493,7 +499,6 @@ public class MeActivity extends AppCompatActivity {
         });
     }
 
-    // FIX - লিংক হলে Glide, Base64 হলে পুরানো নিয়ম - ২টাই চলবে, কারো ছবি হারাবে না
     private void showPhoto(String photo, ImageView iv) {
         if (iv == null || photo == null || photo.isEmpty()) return;
         try {
