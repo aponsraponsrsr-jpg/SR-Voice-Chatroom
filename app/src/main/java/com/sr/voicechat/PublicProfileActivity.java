@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Outline;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
@@ -18,6 +19,7 @@ import android.util.Base64;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -63,7 +65,6 @@ public class PublicProfileActivity extends AppCompatActivity {
         root.setBackgroundColor(Color.parseColor("#0A1F16"));
         scroll.addView(root);
 
-        // ===== HEADER - VIDEO STYLE DEEP GREEN =====
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.VERTICAL);
         header.setPadding(40, 20, 40, 30);
@@ -111,7 +112,6 @@ public class PublicProfileActivity extends AppCompatActivity {
             topBar.addView(btnPencil);
         }
 
-        // Cover
         imgCover = new ImageView(this);
         imgCover.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 280));
         imgCover.setScaleType(ImageView.ScaleType.CENTER_CROP);
@@ -128,19 +128,29 @@ public class PublicProfileActivity extends AppCompatActivity {
         topRow.setPadding(0, 10, 0, 0);
         header.addView(topRow);
 
-        // Avatar - round with white border effect via padding container
+        // Avatar - round with white border
         LinearLayout avatarWrap = new LinearLayout(this);
         avatarWrap.setPadding(6, 6, 6, 6);
         GradientDrawable avBg = new GradientDrawable();
         avBg.setColor(Color.WHITE);
-        avBg.setCornerRadius(90);
+        avBg.setShape(GradientDrawable.OVAL);
         avatarWrap.setBackground(avBg);
         topRow.addView(avatarWrap);
 
         imgAvatar = new ImageView(this);
         imgAvatar.setLayoutParams(new LinearLayout.LayoutParams(170, 170));
-        imgAvatar.setBackgroundColor(Color.parseColor("#DDDDDD"));
+        // FIX - Eitai asol dosh chilo - #DDDDDD Charkona Background ekhon Transparent
+        imgAvatar.setBackgroundColor(Color.TRANSPARENT);
+        imgAvatar.setPadding(0, 0, 0, 0);
         imgAvatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        // FIX - ImageView nijei Gol hoye jabe, pichone ar charkona thakbe na
+        imgAvatar.setClipToOutline(true);
+        imgAvatar.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                outline.setOval(0, 0, view.getWidth(), view.getHeight());
+            }
+        });
         avatarWrap.addView(imgAvatar);
 
         LinearLayout nameBox = new LinearLayout(this);
@@ -185,10 +195,10 @@ public class PublicProfileActivity extends AppCompatActivity {
         imgHeadwear = new ImageView(this);
         imgHeadwear.setLayoutParams(new LinearLayout.LayoutParams(120, 120));
         imgHeadwear.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        imgHeadwear.setBackgroundColor(Color.TRANSPARENT);
         imgHeadwear.setVisibility(View.GONE);
         topRow.addView(imgHeadwear);
 
-        // Follow / Fans / Visitor - white card inside header
         LinearLayout countCard = new LinearLayout(this);
         countCard.setOrientation(LinearLayout.HORIZONTAL);
         countCard.setPadding(20, 20, 20, 20);
@@ -217,7 +227,6 @@ public class PublicProfileActivity extends AppCompatActivity {
             btnRow.addView(btnGift);
         }
 
-        // Tabs
         LinearLayout tabRow = new LinearLayout(this);
         tabRow.setOrientation(LinearLayout.HORIZONTAL);
         tabRow.setBackgroundColor(Color.parseColor("#0A1F16"));
@@ -278,7 +287,6 @@ public class PublicProfileActivity extends AppCompatActivity {
         loadUser();
     }
 
-    // ===== PROFILE TAB - VIDEO STYLE BADGE GRID =====
     private void buildProfileTab() {
         String headwearText = "View >";
         try {
@@ -287,7 +295,6 @@ public class PublicProfileActivity extends AppCompatActivity {
             else if (prefs.getString("headwearName", "").length() > 0) headwearText = prefs.getString("headwearName", "");
         } catch (Exception ignored) {}
 
-        // Section title
         TextView title = new TextView(this);
         title.setText("My Collection");
         title.setTextColor(Color.WHITE);
@@ -296,7 +303,6 @@ public class PublicProfileActivity extends AppCompatActivity {
         title.setPadding(5, 15, 5, 15);
         tabProfileContent.addView(title);
 
-        // Row 1 - 2 cards
         LinearLayout row1 = new LinearLayout(this);
         row1.setOrientation(LinearLayout.HORIZONTAL);
         tabProfileContent.addView(row1);
@@ -315,7 +321,6 @@ public class PublicProfileActivity extends AppCompatActivity {
         row3.addView(makeBadgeCard("🎩", "Headwear (" + user.headwearCount + ")", headwearText, 1));
         row3.addView(makeBadgeCard("🚗", "Car (" + user.carCount + ")", "View >", 1));
 
-        // Gift full width
         addProfileRow(tabProfileContent, "🎁 Gift (" + user.giftCount + ")", "All gifts - Dollar is Private");
     }
 
@@ -363,7 +368,6 @@ public class PublicProfileActivity extends AppCompatActivity {
         head.setPadding(5, 10, 5, 15);
         tabAlbumContent.addView(head);
 
-        // 3-column square placeholders - video style
         for (int r = 0; r < 2; r++) {
             LinearLayout row = new LinearLayout(this);
             row.setOrientation(LinearLayout.HORIZONTAL);
@@ -521,7 +525,8 @@ public class PublicProfileActivity extends AppCompatActivity {
                 BitmapFactory.Options o = new BitmapFactory.Options();
                 o.inSampleSize = 2;
                 Bitmap bmp = BitmapFactory.decodeByteArray(b, 0, b.length, o);
-                if (bmp != null) iv.setImageBitmap(bmp);
+                // FIX - Age setImageBitmap diye charkona dekhato, ekhon Glide diye Gol
+                if (bmp != null) Glide.with(this).load(bmp).circleCrop().into(iv);
             }
         } catch (Exception ignored) {}
     }
