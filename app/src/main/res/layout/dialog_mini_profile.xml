@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layoutMiniRoot"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#1B1035"
+    android:padding="20dp"
+    android:gravity="center">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tap to View Full Profile →"
+        android:textColor="#AAAAAA"
+        android:textSize="11sp"
+        android:paddingBottom="8dp" />
+
+    <androidx.cardview.widget.CardView
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        app:cardCornerRadius="50dp"
+        app:cardElevation="0dp"
+        android:layout_marginBottom="10dp">
+        <ImageView
+            android:id="@+id/imgMiniPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:background="#FFE0B2" />
+    </androidx.cardview.widget.CardView>
+
+    <TextView
+        android:id="@+id/txtMiniName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="User Name"
+        android:textColor="#FFFFFF"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/txtMiniGenderCountry"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="♂  🇧🇩 Bangladesh"
+        android:textColor="#D1FAE5"
+        android:textSize="13sp"
+        android:layout_marginTop="4dp" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:background="#22000000"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="6dp"
+        android:layout_marginTop="8dp">
+        <TextView
+            android:id="@+id/txtMiniLevel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⭐ Level 0"
+            android:textColor="#FFD700"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:layout_marginEnd="10dp" />
+        <TextView
+            android:id="@+id/txtMiniSending"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⬆️ Sending: 0"
+            android:textColor="#00E676"
+            android:textSize="12sp"
+            android:layout_marginEnd="10dp" />
+        <TextView
+            android:id="@+id/txtMiniReceiving"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⬇️ Receiving: 0"
+            android:textColor="#00B0FF"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/txtMiniId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ID: 123456789  📋 Tap to Copy"
+        android:textColor="#FFD700"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:background="#22000000"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp"
+        android:layout_marginTop="10dp" />
+
+    <LinearLayout
+        android:id="@+id/layoutMiniAgency"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#22000000"
+        android:padding="10dp"
+        android:layout_marginTop="10dp"
+        android:visibility="gone">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="🏢 Agency"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+        <TextView
+            android:id="@+id/txtMiniAgency"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#FFD700"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layoutMiniHost"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="#22000000"
+        android:padding="10dp"
+        android:layout_marginTop="8dp"
+        android:visibility="gone">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="🎙️ Host"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+        <TextView
+            android:id="@+id/txtMiniHost"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#FFD700"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="14dp">
+        <Button
+            android:id="@+id/btnMiniAddLeft"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="👥 Add Friend"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:backgroundTint="#00B0FF"
+            android:layout_marginEnd="6dp" />
+        <Button
+            android:id="@+id/btnMiniGift"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="🎁 Gift"
+            android:textColor="#FFFFFF"
+            android:textStyle="bold"
+            android:backgroundTint="#FF4081"
+            android:layout_marginEnd="6dp" />
+        <Button
+            android:id="@+id/btnMiniFollowRight"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:text="➕ Follow"
+            android:textColor="#000000"
+            android:textStyle="bold"
+            android:backgroundTint="#00E676" />
+    </LinearLayout>
+</LinearLayout>
