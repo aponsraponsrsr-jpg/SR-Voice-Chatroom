@@ -105,14 +105,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (btnRoomEdit != null) btnRoomEdit.setVisibility(View.GONE);
         checkMyRole();
         loadRoomInfo();
-        // --- NOTUN: ami room e dhuklam, online e uthlam ---
         markMeOnline();
-        // --- NOTUN: CHAT BAR - tomr XML er asol ID btnOpenChat ---
         View btnOpenChat = findViewById(R.id.btnOpenChat);
         if (btnOpenChat != null) {
             btnOpenChat.setOnClickListener(v -> openChatInput());
         }
-        // --- NOTUN: ONLINE ICON - tomr XML er asol ID btnOnlineList + textOnlineCount ---
         View btnOnlineList = findViewById(R.id.btnOnlineList);
         if (btnOnlineList != null) {
             btnOnlineList.setOnClickListener(v -> openOnlineList());
@@ -132,7 +129,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (btnPower != null) {
             btnPower.setOnClickListener(v -> showPowerMenu());
         }
-        // --- NOTUN: chat + online count realtime sunbo ---
         listenChatRealtime();
         listenOnlineCount();
     }
@@ -186,6 +182,15 @@ public class VoiceRoomActivity extends AppCompatActivity {
         View v = LayoutInflater.from(this).inflate(R.layout.dialog_room_chat, null);
         d.setContentView(v);
         EditText et = v.findViewById(R.id.etChatInput);
+        et.requestFocus();
+        if (d.getWindow() != null) {
+            d.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+        }
+        d.setOnShowListener(dialog -> {
+            et.requestFocus();
+            android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            if (imm != null) imm.showSoftInput(et, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT);
+        });
         v.findViewById(R.id.btnSendChat).setOnClickListener(x -> {
             String msg = et.getText().toString().trim();
             if (msg.isEmpty()) return;
@@ -248,7 +253,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         List<Map<String, String>> list = new ArrayList<>();
         RecyclerView.Adapter adapter = new RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             @NonNull @Override public RecyclerView.ViewHolder onCreateViewHolder(@NonNull android.view.ViewGroup p, int t) {
-                View item = LayoutInflater.from(p.getContext()).inflate(R.layout.item_chat, p, false);
+                View item = LayoutInflater.from(p.getContext()).inflate(R.layout.item_user, p, false);
                 return new RecyclerView.ViewHolder(item) {};
             }
             @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder h, int pos) {
@@ -257,8 +262,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 TextView tvH = h.itemView.findViewById(R.id.tvChatHeader);
                 TextView tvM = h.itemView.findViewById(R.id.tvChatMsg);
                 if (u.get("photo") != null && !u.get("photo").isEmpty()) Glide.with(VoiceRoomActivity.this).load(u.get("photo")).circleCrop().into(iv);
-                tvH.setText(u.get("name") + "  Lv." + u.get("level"));
-                tvM.setText("ID: " + u.get("id") + "  " + getFlag(u.get("country")));
+                tvH.setText(u.get("name") + "  Lv." + u.get("level") + "  " + getFlag(u.get("country")));
+                tvM.setText("ID: " + u.get("id"));
             }
             @Override public int getItemCount() { return list.size(); }
         };
