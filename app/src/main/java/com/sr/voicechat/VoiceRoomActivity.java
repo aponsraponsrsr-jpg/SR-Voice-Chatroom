@@ -23,6 +23,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
@@ -59,6 +60,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private String selectedTheme = "Default";
     private String currentRoomPhotoUrl = "";
     private String rankingTab = "daily";
+
+    // ===== Gift Selection =====
+    private String selectedGiftName = "Rose";
+    private int selectedGiftPrice = 10;
 
     private View[] seatViews = new View[10];
     private ImageView[] seatImgViews = new ImageView[10];
@@ -379,25 +384,37 @@ public class VoiceRoomActivity extends AppCompatActivity {
         d.show();
     }
 
-    // ===== Gift Dialog - Using your dialog_gift.xml =====
+    // ===== Gift Dialog - FIXED: Using your dialog_gift_panel.xml =====
     private void openGiftDialog(String targetId, String targetName) {
         BottomSheetDialog d = new BottomSheetDialog(this);
         View v;
-        try { v = LayoutInflater.from(this).inflate(R.layout.dialog_gift, null); } catch (Exception e) { Toast.makeText(this, "Gift - Coming Soon", Toast.LENGTH_SHORT).show(); return; }
+        try { v = LayoutInflater.from(this).inflate(R.layout.dialog_gift_panel, null); } catch (Exception e) { Toast.makeText(this, "Gift - Coming Soon", Toast.LENGTH_SHORT).show(); return; }
         d.setContentView(v);
         EditText etTarget = v.findViewById(R.id.editTargetSeat);
         if (etTarget != null) etTarget.setText(targetName + " (ID: " + targetId + ")");
         TextView tvBal = v.findViewById(R.id.txtUserCoinBalance);
         if (tvBal != null) tvBal.setText("💰 " + prefs.getString("USER_COINS", "0") + " Coins");
         View btnSend = v.findViewById(R.id.btnSendGift);
-        if (btnSend != null) btnSend.setOnClickListener(x -> { Toast.makeText(this, "Gift sent to " + targetName + " 🎁", Toast.LENGTH_SHORT).show(); d.dismiss(); });
+        if (btnSend != null) btnSend.setOnClickListener(x -> { Toast.makeText(this, "Gift " + selectedGiftName + " sent to " + targetName + " 🎁", Toast.LENGTH_SHORT).show(); d.dismiss(); });
         RecyclerView rv = v.findViewById(R.id.rvGifts);
-        if (rv != null) { rv.setLayoutManager(new LinearLayoutManager(this)); List<String> gifts = new ArrayList<>(); gifts.add("🌹 Rose - 10"); gifts.add("❤️ Heart - 50"); gifts.add("💎 Diamond - 100"); gifts.add("👑 Crown - 500"); gifts.add("🚀 Rocket - 1000");
+        if (rv != null) {
+            rv.setLayoutManager(new GridLayoutManager(this, 4));
+            String[] giftNames = {"Rose", "Heart", "Cake", "Diamond", "Car", "Crown", "Plane", "Castle"};
+            String[] giftEmojis = {"🌹", "❤️", "🎂", "💎", "🚗", "👑", "✈️", "🏰"};
+            int[] giftPrices = {10, 50, 200, 100, 500, 1000, 2000, 5000};
+            selectedGiftName = giftNames[0];
+            selectedGiftPrice = giftPrices[0];
             RecyclerView.Adapter a = new RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-                @NonNull @Override public RecyclerView.ViewHolder onCreateViewHolder(@NonNull android.view.ViewGroup p, int t) { TextView tv = new TextView(p.getContext()); tv.setTextColor(0xFFFFFFFF); tv.setTextSize(15); tv.setPadding(20, 20, 20, 20); return new RecyclerView.ViewHolder(tv) {}; }
-                @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder h, int pos) { ((TextView) h.itemView).setText(gifts.get(pos)); h.itemView.setOnClickListener(x -> Toast.makeText(VoiceRoomActivity.this, gifts.get(pos) + " selected", Toast.LENGTH_SHORT).show()); }
-                @Override public int getItemCount() { return gifts.size(); }
-            }; rv.setAdapter(a);
+                @NonNull @Override public RecyclerView.ViewHolder onCreateViewHolder(@NonNull android.view.ViewGroup p, int t) { TextView tv = new TextView(p.getContext()); tv.setLayoutParams(new android.view.ViewGroup.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, 160)); tv.setGravity(android.view.Gravity.CENTER); tv.setTextColor(0xFFFFFFFF); tv.setTextSize(13); tv.setPadding(8, 8, 8, 8); tv.setBackgroundColor(0xFF2A1B4E); return new RecyclerView.ViewHolder(tv) {}; }
+                @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder h, int pos) {
+                    TextView tv = (TextView) h.itemView;
+                    tv.setText(giftEmojis[pos] + "\n" + giftNames[pos] + "\n" + giftPrices[pos] + " Coins");
+                    tv.setBackgroundColor(giftNames[pos].equals(selectedGiftName) ? 0xFFFF4081 : 0xFF2A1B4E);
+                    tv.setOnClickListener(x -> { selectedGiftName = giftNames[pos]; selectedGiftPrice = giftPrices[pos]; notifyDataSetChanged(); Toast.makeText(VoiceRoomActivity.this, "Selected: " + selectedGiftName, Toast.LENGTH_SHORT).show(); });
+                }
+                @Override public int getItemCount() { return giftNames.length; }
+            };
+            rv.setAdapter(a);
         }
         d.show();
     }
