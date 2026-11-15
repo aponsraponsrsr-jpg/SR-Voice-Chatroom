@@ -12,6 +12,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Base64;
 import android.view.Gravity;
@@ -34,7 +35,7 @@ import com.google.firebase.database.ValueEventListener;
 public class PublicProfileActivity extends AppCompatActivity {
     private String targetId = "", myId = "";
     private TextView txtName, txtId, txtFollow, txtFans, txtVisitor;
-    private ImageView imgAvatar, imgCover;
+    private ImageView imgAvatar, imgCover, imgHeadwear;
     private LinearLayout tabProfileContent, tabAlbumContent, tabMomentsContent, tabIntimacyContent;
     private TextView tabProfile, tabAlbum, tabMoments, tabIntimacy;
     private UserModel user = new UserModel();
@@ -107,7 +108,8 @@ public class PublicProfileActivity extends AppCompatActivity {
         imgCover = new ImageView(this);
         imgCover.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 280));
         imgCover.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        imgCover.setImageResource(android.R.drawable.ic_menu_gallery);
+        // FIX - Age ekhane Android er gallery icon chilo, tai Headwear / Cover na thakle Android icon asto. Ekhon khali thakbe, icon asbe na.
+        imgCover.setBackgroundColor(Color.parseColor("#C9E8A8"));
         imgCover.setPadding(0, 20, 0, 10);
         imgCover.setOnClickListener(v -> {
             if (isMine) Toast.makeText(this, "Cover Photo - Next Step e change korbo", Toast.LENGTH_SHORT).show();
@@ -121,7 +123,8 @@ public class PublicProfileActivity extends AppCompatActivity {
 
         imgAvatar = new ImageView(this);
         imgAvatar.setLayoutParams(new LinearLayout.LayoutParams(170, 170));
-        imgAvatar.setImageResource(android.R.drawable.ic_menu_camera);
+        // FIX - Age ekhane Android er camera icon chilo. Ekhon khali background thakbe.
+        imgAvatar.setBackgroundColor(Color.parseColor("#DDDDDD"));
         topRow.addView(imgAvatar);
 
         LinearLayout nameBox = new LinearLayout(this);
@@ -147,6 +150,13 @@ public class PublicProfileActivity extends AppCompatActivity {
             Toast.makeText(this, "ID Copied", Toast.LENGTH_SHORT).show();
         });
         nameBox.addView(txtId);
+
+        // FIX - Headwear er chobi dekhanor jonno choto ImageView. Save hole ekhane show hobe.
+        imgHeadwear = new ImageView(this);
+        imgHeadwear.setLayoutParams(new LinearLayout.LayoutParams(120, 120));
+        imgHeadwear.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        imgHeadwear.setVisibility(View.GONE);
+        topRow.addView(imgHeadwear);
 
         LinearLayout countRow = new LinearLayout(this);
         countRow.setOrientation(LinearLayout.HORIZONTAL);
@@ -209,7 +219,15 @@ public class PublicProfileActivity extends AppCompatActivity {
         buildIntimacyTab();
 
         setContentView(scroll);
-        registerReceiver(profileReceiver, new IntentFilter("com.sr.voicechat.PROFILE_UPDATED"));
+        // FIX 1 - Eitai crash er karon chilo. Android 13+ e RECEIVER_NOT_EXPORTED na dile Profile khultei ber kore dito.
+        try {
+            IntentFilter filter = new IntentFilter("com.sr.voicechat.PROFILE_UPDATED");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(profileReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+            } else {
+                registerReceiver(profileReceiver, filter);
+            }
+        } catch (Exception ignored) {}
         loadUser();
     }
 
@@ -224,11 +242,18 @@ public class PublicProfileActivity extends AppCompatActivity {
     }
 
     private void buildProfileTab() {
+        // FIX - Headwear er nam thakle nam dekhabe, na thakle View dekhabe
+        String headwearText = "View >";
+        try {
+            if (user.headwearName != null && !user.headwearName.isEmpty()) headwearText = user.headwearName;
+            else if (prefs.getString("HEADWEAR_NAME", "").length() > 0) headwearText = prefs.getString("HEADWEAR_NAME", "");
+            else if (prefs.getString("headwearName", "").length() > 0) headwearText = prefs.getString("headwearName", "");
+        } catch (Exception ignored) {}
         addProfileRow(tabProfileContent, "🏷️ Nameplate", "Level " + user.level);
         addProfileRow(tabProfileContent, "💎 Supporter", user.supporterName.isEmpty() ? "No supporter yet" : user.supporterName);
         addProfileRow(tabProfileContent, "🏅 Medal (" + user.medalCount + ")", "View Medals >");
         addProfileRow(tabProfileContent, "👨‍👩‍👧 Family", user.getFamilyDisplay());
-        addProfileRow(tabProfileContent, "🎩 Headwear (" + user.headwearCount + ")", "View >");
+        addProfileRow(tabProfileContent, "🎩 Headwear (" + user.headwearCount + ")", headwearText);
         addProfileRow(tabProfileContent, "🚗 Car (" + user.carCount + ")", "View >");
         addProfileRow(tabProfileContent, "🎁 Gift (" + user.giftCount + ")", "All gifts - Dollar is Private");
     }
@@ -356,7 +381,6 @@ public class PublicProfileActivity extends AppCompatActivity {
         return btn;
     }
 
-    // FIX - লিংক হলে Glide, Base64 হলে পুরানো নিয়ম
     private void showPhoto(String photo, ImageView iv) {
         if (iv == null || photo == null || photo.isEmpty()) return;
         try {
@@ -377,17 +401,27 @@ public class PublicProfileActivity extends AppCompatActivity {
         if (targetId.equals(myId) && !cachedPhoto.isEmpty()) {
             showPhoto(cachedPhoto, imgAvatar);
         }
+        // FIX - Headwear phone e save thakle sathe sathe dekhabe, Firebase er jonno wait korbe na
+        String cachedHeadwear = prefs.getString("HEADWEAR_IMAGE", "");
+        if (cachedHeadwear.isEmpty()) cachedHeadwear = prefs.getString("headwearImage", "");
+        if (cachedHeadwear.isEmpty()) cachedHeadwear = prefs.getString("HEADWEAR_URL", "");
+        if (!cachedHeadwear.isEmpty() && imgHeadwear != null) {
+            imgHeadwear.setVisibility(View.VISIBLE);
+            showPhoto(cachedHeadwear, imgHeadwear);
+        }
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users");
         ref.orderByChild("my9DigitId").equalTo(targetId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 if (!snap.exists()) return;
                 String newPhotoUrl = "";
+                String headwearImage = "";
+                String headwearName = "";
+                String coverUrl = "";
                 for (DataSnapshot ds : snap.getChildren()) {
                     if (ds.child("name").getValue() != null) user.name = String.valueOf(ds.child("name").getValue());
                     if (ds.child("gender").getValue() != null) user.gender = String.valueOf(ds.child("gender").getValue());
                     if (ds.child("country").getValue() != null) user.country = String.valueOf(ds.child("country").getValue());
                     if (ds.child("photoBase64").getValue() != null) user.photoBase64 = String.valueOf(ds.child("photoBase64").getValue());
-                    // FIX - আগে photoUrl দেখবো
                     if (ds.child("photoUrl").getValue() != null) newPhotoUrl = String.valueOf(ds.child("photoUrl").getValue());
                     if (newPhotoUrl.isEmpty() && ds.child("photo").getValue() != null) newPhotoUrl = String.valueOf(ds.child("photo").getValue());
                     if (!newPhotoUrl.isEmpty()) { user.photoUrl = newPhotoUrl; user.photo = newPhotoUrl; }
@@ -403,12 +437,31 @@ public class PublicProfileActivity extends AppCompatActivity {
                             } catch (Exception ignored) {}
                         }
                     }
+                    // FIX - Cover er link thakleo dekhabe
+                    if (ds.child("coverUrl").getValue() != null) coverUrl = String.valueOf(ds.child("coverUrl").getValue());
+                    if (coverUrl.isEmpty() && ds.child("coverPhoto").getValue() != null) coverUrl = String.valueOf(ds.child("coverPhoto").getValue());
+                    if (coverUrl.isEmpty() && ds.child("coverImage").getValue() != null) coverUrl = String.valueOf(ds.child("coverImage").getValue());
+
                     if (ds.child("level").getValue() != null) user.level = String.valueOf(ds.child("level").getValue());
                     if (ds.child("giftCount").getValue() != null) user.giftCount = String.valueOf(ds.child("giftCount").getValue());
                     if (ds.child("followCount").getValue() != null) user.followCount = String.valueOf(ds.child("followCount").getValue());
                     if (ds.child("fansCount").getValue() != null) user.fansCount = String.valueOf(ds.child("fansCount").getValue());
                     if (ds.child("visitorCount").getValue() != null) user.visitorCount = String.valueOf(ds.child("visitorCount").getValue());
                     if (ds.child("familyName").getValue() != null) user.familyName = String.valueOf(ds.child("familyName").getValue());
+
+                    // FIX 2 - HEADWEAR - Age ei gulo porai hoto na, tai sobsomoy 0 dekhato. Ekhon sob nam e khujbe, jetai Save hok na keno pabe.
+                    if (ds.child("headwearCount").getValue() != null) user.headwearCount = String.valueOf(ds.child("headwearCount").getValue());
+                    if (ds.child("headwearName").getValue() != null) headwearName = String.valueOf(ds.child("headwearName").getValue());
+                    if (headwearName.isEmpty() && ds.child("headwear").getValue() != null) headwearName = String.valueOf(ds.child("headwear").getValue());
+                    if (headwearName.isEmpty() && ds.child("HEADWEAR_NAME").getValue() != null) headwearName = String.valueOf(ds.child("HEADWEAR_NAME").getValue());
+                    if (ds.child("headwearImage").getValue() != null) headwearImage = String.valueOf(ds.child("headwearImage").getValue());
+                    if (headwearImage.isEmpty() && ds.child("headwearUrl").getValue() != null) headwearImage = String.valueOf(ds.child("headwearUrl").getValue());
+                    if (headwearImage.isEmpty() && ds.child("headwearBase64").getValue() != null) headwearImage = String.valueOf(ds.child("headwearBase64").getValue());
+                    if (headwearImage.isEmpty() && ds.child("HEADWEAR_IMAGE").getValue() != null) headwearImage = String.valueOf(ds.child("HEADWEAR_IMAGE").getValue());
+
+                    if (ds.child("medalCount").getValue() != null) user.medalCount = String.valueOf(ds.child("medalCount").getValue());
+                    if (ds.child("carCount").getValue() != null) user.carCount = String.valueOf(ds.child("carCount").getValue());
+                    if (ds.child("supporterName").getValue() != null) user.supporterName = String.valueOf(ds.child("supporterName").getValue());
                     break;
                 }
                 txtName.setText(user.name + "  " + user.getFlag() + "  " + user.getGenderIcon());
@@ -416,12 +469,24 @@ public class PublicProfileActivity extends AppCompatActivity {
                 txtFollow.setText(user.followCount);
                 txtFans.setText(user.fansCount);
                 txtVisitor.setText(user.visitorCount);
-                // FIX - নতুন photoUrl থাকলে ওইটাই দেখাবে
                 String finalPhoto = user.getPhotoUrl();
                 if (finalPhoto.isEmpty()) finalPhoto = user.photoBase64;
                 if (!finalPhoto.isEmpty()) {
                     showPhoto(finalPhoto, imgAvatar);
                     if (targetId.equals(myId)) prefs.edit().putString("USER_PHOTO", finalPhoto).putString("PROFILE_PHOTO", finalPhoto).apply();
+                }
+                if (!coverUrl.isEmpty()) {
+                    showPhoto(coverUrl, imgCover);
+                }
+                // Headwear show + phone e save kore rakha, jate pore sathe sathe dekhay
+                if (!headwearImage.isEmpty()) {
+                    try {
+                        if (user.headwearCount == null || user.headwearCount.equals("0") || user.headwearCount.isEmpty()) user.headwearCount = "1";
+                        if (user.headwearName == null || user.headwearName.isEmpty()) user.headwearName = headwearName;
+                        imgHeadwear.setVisibility(View.VISIBLE);
+                        showPhoto(headwearImage, imgHeadwear);
+                        if (targetId.equals(myId)) prefs.edit().putString("HEADWEAR_IMAGE", headwearImage).putString("HEADWEAR_NAME", headwearName).apply();
+                    } catch (Exception ignored) {}
                 }
                 tabProfileContent.removeAllViews();
                 buildProfileTab();
