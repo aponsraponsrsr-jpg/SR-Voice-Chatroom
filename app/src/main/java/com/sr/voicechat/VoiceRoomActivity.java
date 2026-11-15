@@ -224,10 +224,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
         new AlertDialog.Builder(this).setTitle("Reward Event").setMessage(msg).setPositiveButton("OK", null).show();
     }
 
-    // RANKING - ONLY SHOW, NO REWARD - GENERIC FOR ALL ROOMS
+    // RANKING - ONLY SHOW, NO REWARD - GENERIC FOR ALL ROOMS - FIXED: dialog_room_ranking use korbe
     private void openRanking() {
         BottomSheetDialog d = new BottomSheetDialog(this);
-        View v = LayoutInflater.from(this).inflate(R.layout.dialog_ranking, null);
+        View v = LayoutInflater.from(this).inflate(R.layout.dialog_room_ranking, null);
         d.setContentView(v);
         android.widget.LinearLayout container = v.findViewById(R.id.rankingListContainer);
         Button bDaily = v.findViewById(R.id.btnTabDaily);
