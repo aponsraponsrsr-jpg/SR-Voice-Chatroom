@@ -13,7 +13,7 @@
         app:cardElevation="0dp"
         xmlns:app="http://schemas.android.com/apk/res-auto">
         <ImageView
-            android:id="@+id/imgOnlinePhoto"
+            android:id="@+id/imgChatPhoto"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
@@ -26,14 +26,14 @@
         android:orientation="vertical"
         android:paddingStart="10dp">
         <TextView
-            android:id="@+id/tvOnlineName"
+            android:id="@+id/tvChatHeader"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="#222222"
             android:textSize="14sp"
             android:textStyle="bold" />
         <TextView
-            android:id="@+id/tvOnlineId"
+            android:id="@+id/tvChatMsg"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="#666666"
