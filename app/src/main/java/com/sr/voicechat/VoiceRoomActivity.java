@@ -299,7 +299,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         View btnClose = v.findViewById(R.id.btnCloseOnline); if (btnClose != null) btnClose.setOnClickListener(x -> d.dismiss()); d.show();
     }
 
-    // ===== NEW: 1st Click = Mini Profile (65-70%), 2nd Click = Full Profile =====
+    // ===== NEW: 1st Click = Mini Profile, 2nd Click = Full Profile - GLOBAL for ALL users =====
     private void openUserProfile(String targetId, String targetName, String targetPhoto) { openMiniProfile(targetId, targetName, targetPhoto); }
 
     private void openMiniProfile(String targetId, String targetName, String targetPhoto) {
@@ -308,6 +308,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         d.setContentView(v);
         ImageView img = v.findViewById(R.id.imgMiniPhoto);
         TextView tvName = v.findViewById(R.id.txtMiniName);
+        TextView tvGenderIcon = v.findViewById(R.id.txtMiniGenderIcon);
+        TextView tvFlag = v.findViewById(R.id.txtMiniFlag);
         TextView tvGenderCountry = v.findViewById(R.id.txtMiniGenderCountry);
         TextView tvLevel = v.findViewById(R.id.txtMiniLevel);
         TextView tvSending = v.findViewById(R.id.txtMiniSending);
@@ -333,7 +335,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (btnFollow != null) btnFollow.setOnClickListener(x -> Toast.makeText(this, "Followed! ❤️", Toast.LENGTH_SHORT).show());
         if (btnGift != null) btnGift.setOnClickListener(x -> { d.dismiss(); openGiftDialog(targetId, fName); });
 
-        // Load real data from users - For ALL users
+        // Load real data from users - For ALL users, NOT only my ID
+        // targetId দিয়ে ওই ইউজারের gender / country / level আনা হচ্ছে
         FirebaseDatabase.getInstance().getReference("users").orderByChild("my9DigitId").equalTo(targetId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 if (!snap.exists()) return;
@@ -349,9 +352,20 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     String sending = ds.child("sending").getValue() == null ? (ds.child("totalSending").getValue() == null ? "0" : String.valueOf(ds.child("totalSending").getValue())) : String.valueOf(ds.child("sending").getValue());
                     String receiving = ds.child("receiving").getValue() == null ? (ds.child("totalReceiving").getValue() == null ? "0" : String.valueOf(ds.child("totalReceiving").getValue())) : String.valueOf(ds.child("receiving").getValue());
                     if (tvName != null) tvName.setText(name);
-                    String gIcon = gender.toLowerCase().contains("female") ? "♀" : (gender.toLowerCase().contains("male") ? "♂" : "⚧");
+                    // GLOBAL: Gender Icon + Color + Flag - Same line as Name
+                    String gLow = gender.toLowerCase();
+                    boolean isFemale = gLow.contains("female");
+                    boolean isMale = !isFemale && gLow.contains("male");
+                    String gIcon = isFemale ? "♀" : (isMale ? "♂" : "⚧");
+                    if (tvGenderIcon != null) {
+                        tvGenderIcon.setText(gIcon);
+                        if (isFemale) tvGenderIcon.setTextColor(0xFFFF69B4);
+                        else if (isMale) tvGenderIcon.setTextColor(0xFF00B0FF);
+                        else tvGenderIcon.setTextColor(0xFFFFFFFF);
+                    }
+                    if (tvFlag != null) tvFlag.setText(getFlag(country));
                     if (tvGenderCountry != null) tvGenderCountry.setText(gIcon + "  " + getFlag(country));
-                    if (tvLevel != null) tvLevel.setText("⭐ Level " + level);
+                    if (tvLevel != null) tvLevel.setText("⭐ Lv." + level);
                     if (tvSending != null) tvSending.setText("⬆️ Sending: " + sending);
                     if (tvReceiving != null) tvReceiving.setText("⬇️ Receiving: " + receiving);
                     if (!photo.isEmpty() && img != null) loadPhotoInto(img, photo);
