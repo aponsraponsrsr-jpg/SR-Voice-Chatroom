@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -58,7 +59,17 @@ public class HomeActivity extends AppCompatActivity {
         roomModelList = new ArrayList<>();
         roomGridAdapter = new RoomGridAdapter(this, roomModelList);
         if (roomGridView != null) roomGridView.setAdapter(roomGridAdapter);
-        registerReceiver(profileReceiver, new IntentFilter("com.sr.voicechat.PROFILE_UPDATED"));
+
+        // FIX - Android 13/14 te RECEIVER_NOT_EXPORTED na dile Home khultei crash korto, eitai Login er por ber kore dito
+        try {
+            IntentFilter filter = new IntentFilter("com.sr.voicechat.PROFILE_UPDATED");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                registerReceiver(profileReceiver, filter, Context.RECEIVER_NOT_EXPORTED);
+            } else {
+                registerReceiver(profileReceiver, filter);
+            }
+        } catch (Exception ignored) {}
+
         loadActiveRooms();
         View.OnClickListener createRoomListener = v -> checkAndCreateRoom();
         if (btnPlus != null) btnPlus.setOnClickListener(createRoomListener);
@@ -117,7 +128,6 @@ public class HomeActivity extends AppCompatActivity {
             if (myId == null || myId.isEmpty()) { Toast.makeText(this, "ID পাওয়া যায় নাই, আবার Login করো", Toast.LENGTH_LONG).show(); return; }
             if (roomName.isEmpty()) roomName = prefs.getString("USER_NAME", "User") + "'s Room";
             if (roomBio.isEmpty()) roomBio = "Welcome to my voice chat room!";
-            // FIX - USER_PHOTO তে এখন নতুন photoUrl থাকে, ওইটাই রুমে যাবে
             String userImage = prefs.getString("USER_PHOTO", "");
             if (userImage.isEmpty()) userImage = prefs.getString("PROFILE_PHOTO", "");
             if (userImage.isEmpty()) userImage = prefs.getString("USER_IMAGE", "");
@@ -155,7 +165,6 @@ public class HomeActivity extends AppCompatActivity {
                     if (ownerId != null) {
                         RoomModel rm = new RoomModel(ownerId, roomName, roomBio, roomImage);
                         roomModelList.add(rm);
-                        // FIX - রুমের পুরানো ছবি না, users থেকে নতুন ছবি আনবো
                         refreshRoomImage(rm);
                     }
                 }
@@ -165,7 +174,6 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
 
-    // FIX - প্রতিটা রুমের মালিকের নতুন ছবি users থেকে আনবে
     private void refreshRoomImage(RoomModel rm) {
         try {
             FirebaseDatabase.getInstance().getReference("users")
