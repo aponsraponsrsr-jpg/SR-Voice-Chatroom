@@ -5,13 +5,16 @@ import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Outline;
 import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Base64;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -50,7 +53,7 @@ public class EditProfileActivity extends AppCompatActivity {
     private DatabaseReference userRef, usersRef;
     private String firebaseUid = "", userEmail = "", selectedGender = "Male", selectedCountry = "Bangladesh";
     private String selectedPhotoUrl = "";
-    private String selectedPhotoBase64 = ""; // FIX - Storage fail hole ei backup diye save hobe
+    private String selectedPhotoBase64 = "";
     private String oldPhotoUrl = "";
     private Uri pickedImageUri = null;
     private Bitmap pickedBitmap = null;
@@ -68,7 +71,6 @@ public class EditProfileActivity extends AppCompatActivity {
                         InputStream is = getContentResolver().openInputStream(uri);
                         Bitmap bmp = BitmapFactory.decodeStream(is);
                         if (bmp == null) return;
-                        // FIX - Boro chobi ke choto kore fela, jate Firebase e dhuke
                         int w = bmp.getWidth(); int h = bmp.getHeight();
                         int max = 400;
                         if (w > max || h > max) {
@@ -78,8 +80,8 @@ public class EditProfileActivity extends AppCompatActivity {
                         } else {
                             pickedBitmap = bmp;
                         }
-                        ivProfilePhoto.setImageBitmap(pickedBitmap);
-                        // FIX - Age thekei Base64 baniye rakha, Storage fail hole sathe sathe kaje lagbe
+                        // FIX - Gol kore dekhano
+                        Glide.with(EditProfileActivity.this).load(pickedBitmap).circleCrop().into(ivProfilePhoto);
                         selectedPhotoBase64 = bitmapToBase64(pickedBitmap);
                         Toast.makeText(this, "Photo Selected - Now Press Save", Toast.LENGTH_SHORT).show();
                     } catch (Exception e) { Toast.makeText(this, "Photo Failed", Toast.LENGTH_SHORT).show(); }
@@ -133,7 +135,19 @@ public class EditProfileActivity extends AppCompatActivity {
         title.setText(isEditMode ? "✏️ Edit Profile" : "⚙️ Complete Your Profile (Permanent)");
         title.setTextColor(Color.parseColor("#FFD700")); title.setTextSize(18); title.setTypeface(null, android.graphics.Typeface.BOLD); title.setGravity(Gravity.CENTER); title.setPadding(0,0,0,20); root.addView(title);
         LinearLayout photoLayout = new LinearLayout(this); photoLayout.setOrientation(LinearLayout.VERTICAL); photoLayout.setGravity(Gravity.CENTER); photoLayout.setPadding(0,0,0,10);
-        ivProfilePhoto = new ImageView(this); ivProfilePhoto.setImageResource(android.R.drawable.ic_menu_camera); ivProfilePhoto.setBackgroundColor(Color.parseColor("#2A1B4E")); ivProfilePhoto.setPadding(30,30,30,30);
+        ivProfilePhoto = new ImageView(this);
+        ivProfilePhoto.setImageResource(android.R.drawable.ic_menu_camera);
+        ivProfilePhoto.setBackgroundColor(Color.parseColor("#2A1B4E"));
+        ivProfilePhoto.setPadding(0,0,0,0);
+        // FIX - Charkona na, ekhon Gol hobe
+        ivProfilePhoto.setClipToOutline(true);
+        ivProfilePhoto.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        ivProfilePhoto.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                outline.setOval(0, 0, view.getWidth(), view.getHeight());
+            }
+        });
         LinearLayout.LayoutParams photoParams = new LinearLayout.LayoutParams(260,260); photoParams.setMargins(0,0,0,10); ivProfilePhoto.setLayoutParams(photoParams); ivProfilePhoto.setOnClickListener(v -> openGallery()); photoLayout.addView(ivProfilePhoto);
         TextView tvTapPhoto = new TextView(this); tvTapPhoto.setText("📷 Tap to Select Profile Photo"); tvTapPhoto.setTextColor(Color.parseColor("#B0BEC5")); tvTapPhoto.setTextSize(13); tvTapPhoto.setGravity(Gravity.CENTER); tvTapPhoto.setOnClickListener(v -> openGallery()); photoLayout.addView(tvTapPhoto); root.addView(photoLayout);
         tvPermanentId = new TextView(this); tvPermanentId.setText("Permanent ID: Will be generated on Save (One Time)"); tvPermanentId.setTextColor(Color.parseColor("#B0BEC5")); tvPermanentId.setTextSize(14); tvPermanentId.setPadding(0,10,0,20); tvPermanentId.setGravity(Gravity.CENTER); root.addView(tvPermanentId);
@@ -154,7 +168,7 @@ public class EditProfileActivity extends AppCompatActivity {
             try { Glide.with(this).load(url).circleCrop().into(ivProfilePhoto); return; } catch (Exception ignored) {}
         }
         if (base64 != null && !base64.isEmpty()) {
-            try { byte[] bytes = Base64.decode(base64, Base64.DEFAULT); Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length); if (bmp != null) ivProfilePhoto.setImageBitmap(bmp); } catch (Exception ignored) {}
+            try { byte[] bytes = Base64.decode(base64, Base64.DEFAULT); Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length); if (bmp != null) Glide.with(this).load(bmp).circleCrop().into(ivProfilePhoto); } catch (Exception ignored) {}
         }
     }
 
@@ -236,26 +250,22 @@ public class EditProfileActivity extends AppCompatActivity {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             pickedBitmap.compress(Bitmap.CompressFormat.JPEG, 60, baos);
             byte[] data = baos.toByteArray();
-            // FIX - Age Storage fail holei sesh hoye jeto. Ekhon fail hole Base64 backup diye Database e save hobe.
             StorageReference ref = FirebaseStorage.getInstance().getReference("profile_photos/" + firebaseUid + ".jpg");
             UploadTask task = ref.putBytes(data);
             task.addOnSuccessListener(t -> ref.getDownloadUrl().addOnSuccessListener(uri -> {
                 selectedPhotoUrl = uri.toString();
-                selectedPhotoBase64 = ""; // Storage success - Base64 lagbe na
+                selectedPhotoBase64 = "";
                 proceedToSave(name);
             }).addOnFailureListener(e -> {
-                // URL pawa jay nai - Base64 diye save koro
-                Toast.makeText(this, "Storage slow - Saving with backup...", Toast.LENGTH_SHORT).show();
+                // FIX - Voy er lekha tule dilam, chupchap backup diye save hobe
                 proceedToSave(name);
             }));
             task.addOnFailureListener(e -> {
-                // FIX - Storage Fail = Ekhon ar "Failed" dibe na, Base64 backup cholbe
-                Toast.makeText(this, "Storage failed (" + e.getMessage() + ") - Saving with backup...", Toast.LENGTH_LONG).show();
-                selectedPhotoUrl = oldPhotoUrl; // Purano URL thakle rakha
+                // FIX - Voy er lekha tule dilam, chupchap backup diye save hobe
+                selectedPhotoUrl = oldPhotoUrl;
                 proceedToSave(name);
             });
         } catch (Exception e) {
-            Toast.makeText(this, "Saving with backup...", Toast.LENGTH_SHORT).show();
             proceedToSave(name);
         }
     }
@@ -303,7 +313,6 @@ public class EditProfileActivity extends AppCompatActivity {
                         currentData.child("photoUrl").setValue(selectedPhotoUrl);
                         currentData.child("photo").setValue(selectedPhotoUrl);
                     }
-                    // FIX - Storage fail hole Base64 save hobe, ar Storage success hole purano Base64 muche jabe
                     if (selectedPhotoBase64 != null && !selectedPhotoBase64.isEmpty()) {
                         currentData.child("photoBase64").setValue(selectedPhotoBase64);
                     } else if (selectedPhotoUrl != null && !selectedPhotoUrl.isEmpty()) {
