@@ -324,7 +324,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
         final String fName = targetName == null ? "User" : targetName;
         if (tvName != null) tvName.setText(fName);
-        if (tvId != null) tvId.setText("ID: " + targetId + "  📋 Tap to Copy");
+        if (tvId != null) tvId.setText("ID: " + targetId + "  📋");
         if (img != null && targetPhoto != null && !targetPhoto.isEmpty()) loadPhotoInto(img, targetPhoto);
         if (tvId != null) tvId.setOnClickListener(x -> { ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE); if (cm != null) cm.setPrimaryClip(ClipData.newPlainText("ID", targetId)); Toast.makeText(this, "ID Copied", Toast.LENGTH_SHORT).show(); });
         // 2nd Click - Full Profile
@@ -350,7 +350,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     String receiving = ds.child("receiving").getValue() == null ? (ds.child("totalReceiving").getValue() == null ? "0" : String.valueOf(ds.child("totalReceiving").getValue())) : String.valueOf(ds.child("receiving").getValue());
                     if (tvName != null) tvName.setText(name);
                     String gIcon = gender.toLowerCase().contains("female") ? "♀" : (gender.toLowerCase().contains("male") ? "♂" : "⚧");
-                    if (tvGenderCountry != null) tvGenderCountry.setText(gIcon + "  " + getFlag(country) + " " + country + (gender.isEmpty() ? "" : "  •  " + gender));
+                    if (tvGenderCountry != null) tvGenderCountry.setText(gIcon + "  " + getFlag(country));
                     if (tvLevel != null) tvLevel.setText("⭐ Level " + level);
                     if (tvSending != null) tvSending.setText("⬆️ Sending: " + sending);
                     if (tvReceiving != null) tvReceiving.setText("⬇️ Receiving: " + receiving);
