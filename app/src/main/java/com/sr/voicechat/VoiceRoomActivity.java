@@ -20,16 +20,19 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class VoiceRoomActivity extends AppCompatActivity {
-    private String roomId, roomOwnerId, myId, myName, myGender, myCountry, myPhoto;
+    private String roomId, roomOwnerId, myId, myName, myGender, myCountry, myPhoto, myLevel = "0";
     private boolean amIOwner = false, amIAdmin = false;
     private TextView tvRoomId, tvRoomName, tvMyIdInRoom;
     private TextView roomTitleText, roomInfoText;
@@ -65,10 +68,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
         myId = prefs.getString("MY_9_DIGIT_ID", "");
         myName = prefs.getString("USER_NAME", "User");
         myGender = prefs.getString("USER_GENDER", "");
-        myCountry = prefs.getString("USER_COUNTRY", "");
+        myCountry = prefs.getString("USER_COUNTRY", "Bangladesh");
         myPhoto = prefs.getString("USER_PHOTO", "");
         if (myPhoto == null || myPhoto.isEmpty()) myPhoto = prefs.getString("PROFILE_PHOTO", "");
         if (myPhoto == null || myPhoto.isEmpty()) myPhoto = prefs.getString("USER_PHOTO_URL", "");
+        myLevel = prefs.getString("USER_LEVEL", "0");
+        if (myLevel == null) myLevel = "0";
         if (myId == null || myId.isEmpty()) {
             Toast.makeText(this, "ID পাওয়া যায় নাই, আবার Login করো", Toast.LENGTH_LONG).show();
             finish(); return;
@@ -100,6 +105,22 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (btnRoomEdit != null) btnRoomEdit.setVisibility(View.GONE);
         checkMyRole();
         loadRoomInfo();
+        // --- NOTUN: ami room e dhuklam, online e uthlam ---
+        markMeOnline();
+        // --- NOTUN: CHAT BAR - tomr XML er asol ID btnOpenChat ---
+        View btnOpenChat = findViewById(R.id.btnOpenChat);
+        if (btnOpenChat != null) {
+            btnOpenChat.setOnClickListener(v -> openChatInput());
+        }
+        // --- NOTUN: ONLINE ICON - tomr XML er asol ID btnOnlineList + textOnlineCount ---
+        View btnOnlineList = findViewById(R.id.btnOnlineList);
+        if (btnOnlineList != null) {
+            btnOnlineList.setOnClickListener(v -> openOnlineList());
+        }
+        View tvOnlineCount = findViewById(R.id.textOnlineCount);
+        if (tvOnlineCount != null) {
+            tvOnlineCount.setOnClickListener(v -> openOnlineList());
+        }
         View btnRoomTools = findViewById(R.id.btnRoomTools);
         if (btnRoomTools != null) {
             btnRoomTools.setOnClickListener(v -> openPremiumSettings());
@@ -111,6 +132,156 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (btnPower != null) {
             btnPower.setOnClickListener(v -> showPowerMenu());
         }
+        // --- NOTUN: chat + online count realtime sunbo ---
+        listenChatRealtime();
+        listenOnlineCount();
+    }
+
+    private String getFlag(String country) {
+        if (country == null) return "🌍";
+        String c = country.toLowerCase();
+        if (c.contains("bangladesh")) return "🇧🇩";
+        if (c.contains("india")) return "🇮🇳";
+        if (c.contains("pakistan")) return "🇵🇰";
+        if (c.contains("nepal")) return "🇳🇵";
+        if (c.contains("sri lanka")) return "🇱🇰";
+        if (c.contains("usa") || c.contains("america")) return "🇺🇸";
+        if (c.contains("uk") || c.contains("england")) return "🇬🇧";
+        if (c.contains("saudi")) return "🇸🇦";
+        if (c.contains("uae") || c.contains("emirates")) return "🇦🇪";
+        if (c.contains("qatar")) return "🇶🇦";
+        if (c.contains("kuwait")) return "🇰🇼";
+        if (c.contains("malaysia")) return "🇲🇾";
+        if (c.contains("indonesia")) return "🇮🇩";
+        if (c.contains("philippines")) return "🇵🇭";
+        if (c.contains("turkey")) return "🇹🇷";
+        if (c.contains("canada")) return "🇨🇦";
+        if (c.contains("australia")) return "🇦🇺";
+        return "🌍";
+    }
+
+    private void markMeOnline() {
+        Map<String, Object> m = new HashMap<>();
+        m.put("name", myName);
+        m.put("photo", myPhoto == null ? "" : myPhoto);
+        m.put("country", myCountry);
+        m.put("level", myLevel);
+        m.put("id", myId);
+        activeRoomRef.child("online_users").child(myId).setValue(m);
+        activeRoomRef.child("online_users").child(myId).onDisconnect().removeValue();
+    }
+
+    private void listenOnlineCount() {
+        activeRoomRef.child("online_users").addValueEventListener(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                TextView tvC = findViewById(R.id.textOnlineCount);
+                if (tvC != null) tvC.setText(String.valueOf(snap.getChildrenCount()));
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
+    }
+
+    private void openChatInput() {
+        BottomSheetDialog d = new BottomSheetDialog(this);
+        View v = LayoutInflater.from(this).inflate(R.layout.dialog_room_chat, null);
+        d.setContentView(v);
+        EditText et = v.findViewById(R.id.etChatInput);
+        v.findViewById(R.id.btnSendChat).setOnClickListener(x -> {
+            String msg = et.getText().toString().trim();
+            if (msg.isEmpty()) return;
+            Map<String, Object> m = new HashMap<>();
+            m.put("senderId", myId);
+            m.put("senderName", myName);
+            m.put("senderPhoto", myPhoto == null ? "" : myPhoto);
+            m.put("senderCountry", myCountry);
+            m.put("senderLevel", myLevel);
+            m.put("msg", msg);
+            m.put("time", System.currentTimeMillis());
+            activeRoomRef.child("chats").push().setValue(m);
+            d.dismiss();
+        });
+        d.show();
+    }
+
+    private void listenChatRealtime() {
+        activeRoomRef.child("chats").limitToLast(50).addChildEventListener(new ChildEventListener() {
+            @Override public void onChildAdded(@NonNull DataSnapshot snap, String p) {
+                if (snap == null || !snap.exists()) return;
+                String name = snap.child("senderName").getValue(String.class);
+                String photo = snap.child("senderPhoto").getValue(String.class);
+                String country = snap.child("senderCountry").getValue(String.class);
+                String level = snap.child("senderLevel").getValue(String.class);
+                String msg = snap.child("msg").getValue(String.class);
+                if (name == null) name = "User";
+                if (msg == null) msg = "";
+                if (country == null) country = "";
+                if (level == null) level = "0";
+                addChatToScreen(name, photo, country, level, msg);
+            }
+            @Override public void onChildChanged(@NonNull DataSnapshot s, String p) {}
+            @Override public void onChildRemoved(@NonNull DataSnapshot s) {
+                if (chatListContainer != null) chatListContainer.removeAllViews();
+            }
+            @Override public void onChildMoved(@NonNull DataSnapshot s, String p) {}
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
+    }
+
+    private void addChatToScreen(String name, String photo, String country, String level, String msg) {
+        if (chatListContainer == null) return;
+        View v = LayoutInflater.from(this).inflate(R.layout.item_chat, chatListContainer, false);
+        ImageView iv = v.findViewById(R.id.imgChatPhoto);
+        TextView tvH = v.findViewById(R.id.tvChatHeader);
+        TextView tvM = v.findViewById(R.id.tvChatMsg);
+        if (photo != null && !photo.isEmpty()) Glide.with(this).load(photo).circleCrop().into(iv);
+        tvH.setText(name + "  Lv." + level + "  " + getFlag(country));
+        tvM.setText(msg);
+        chatListContainer.addView(v);
+    }
+
+    private void openOnlineList() {
+        BottomSheetDialog d = new BottomSheetDialog(this);
+        View v = LayoutInflater.from(this).inflate(R.layout.dialog_online_list, null);
+        d.setContentView(v);
+        RecyclerView rv = v.findViewById(R.id.rvOnlineList);
+        rv.setLayoutManager(new LinearLayoutManager(this));
+        List<Map<String, String>> list = new ArrayList<>();
+        RecyclerView.Adapter adapter = new RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+            @NonNull @Override public RecyclerView.ViewHolder onCreateViewHolder(@NonNull android.view.ViewGroup p, int t) {
+                View item = LayoutInflater.from(p.getContext()).inflate(R.layout.item_chat, p, false);
+                return new RecyclerView.ViewHolder(item) {};
+            }
+            @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder h, int pos) {
+                Map<String, String> u = list.get(pos);
+                ImageView iv = h.itemView.findViewById(R.id.imgChatPhoto);
+                TextView tvH = h.itemView.findViewById(R.id.tvChatHeader);
+                TextView tvM = h.itemView.findViewById(R.id.tvChatMsg);
+                if (u.get("photo") != null && !u.get("photo").isEmpty()) Glide.with(VoiceRoomActivity.this).load(u.get("photo")).circleCrop().into(iv);
+                tvH.setText(u.get("name") + "  Lv." + u.get("level"));
+                tvM.setText("ID: " + u.get("id") + "  " + getFlag(u.get("country")));
+            }
+            @Override public int getItemCount() { return list.size(); }
+        };
+        rv.setAdapter(adapter);
+        activeRoomRef.child("online_users").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                list.clear();
+                for (DataSnapshot c : snap.getChildren()) {
+                    Map<String, String> m = new HashMap<>();
+                    m.put("name", c.child("name").getValue(String.class) == null ? "User" : c.child("name").getValue(String.class));
+                    m.put("photo", c.child("photo").getValue(String.class) == null ? "" : c.child("photo").getValue(String.class));
+                    m.put("country", c.child("country").getValue(String.class) == null ? "" : c.child("country").getValue(String.class));
+                    Object lvlObj = c.child("level").getValue();
+                    m.put("level", lvlObj == null ? "0" : String.valueOf(lvlObj));
+                    m.put("id", c.getKey());
+                    list.add(m);
+                }
+                adapter.notifyDataSetChanged();
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
+        v.findViewById(R.id.btnCloseOnline).setOnClickListener(x -> d.dismiss());
+        d.show();
     }
 
     private void showPowerMenu() {
@@ -256,5 +427,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
         Map<String,Object> map = new HashMap<>();
         map.put("admins/" + targetUser9DigitId, true);
         activeRoomRef.updateChildren(map);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        try { activeRoomRef.child("online_users").child(myId).removeValue(); } catch (Exception e) {}
     }
 }
