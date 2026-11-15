@@ -60,6 +60,56 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     );
 
+    // --- PHOTO FIX: সব জায়গা থেকে ছবি খুঁজবে ---
+    private String getMyPhotoFromAllPlaces() {
+        if (prefs == null) return "";
+        String[] keys = {"USER_PHOTO","PROFILE_PHOTO","USER_PHOTO_URL","PHOTO_URL","photo","profile_photo","USER_IMAGE","PROFILE_IMAGE","userPhoto","imageUrl","avatar","profileImage"};
+        for (String k : keys) {
+            String v = prefs.getString(k, "");
+            if (v != null && !v.trim().isEmpty() && !v.equals("null")) return v.trim();
+        }
+        if (myPhoto != null && !myPhoto.trim().isEmpty()) return myPhoto.trim();
+        return "";
+    }
+
+    private void loadPhotoInto(ImageView iv, String url) {
+        if (iv == null) return;
+        if (url == null || url.trim().isEmpty() || url.equals("null")) {
+            iv.setImageResource(android.R.drawable.sym_def_app_icon);
+            return;
+        }
+        try {
+            Glide.with(this).load(url).circleCrop()
+                .placeholder(android.R.drawable.sym_def_app_icon)
+                .error(android.R.drawable.sym_def_app_icon)
+                .into(iv);
+        } catch (Exception e) {
+            iv.setImageResource(android.R.drawable.sym_def_app_icon);
+        }
+    }
+
+    private void syncMyPhotoFromFirebase() {
+        // প্রোফাইলে সেভ করা ছবি Firebase থেকে আনবে, যাতে রুমে কালো না আসে
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(myId);
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                if (!snap.exists()) return;
+                String p = null;
+                if (snap.child("photo").exists()) p = snap.child("photo").getValue(String.class);
+                if ((p == null || p.isEmpty()) && snap.child("profilePhoto").exists()) p = snap.child("profilePhoto").getValue(String.class);
+                if ((p == null || p.isEmpty()) && snap.child("photoUrl").exists()) p = snap.child("photoUrl").getValue(String.class);
+                if ((p == null || p.isEmpty()) && snap.child("image").exists()) p = snap.child("image").getValue(String.class);
+                if (p != null && !p.isEmpty()) {
+                    myPhoto = p;
+                    prefs.edit().putString("USER_PHOTO", p).putString("PROFILE_PHOTO", p).apply();
+                    if (roomHeaderProfileImg != null) loadPhotoInto(roomHeaderProfileImg, myPhoto);
+                    markMeOnline();
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,9 +119,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         myName = prefs.getString("USER_NAME", "User");
         myGender = prefs.getString("USER_GENDER", "");
         myCountry = prefs.getString("USER_COUNTRY", "Bangladesh");
-        myPhoto = prefs.getString("USER_PHOTO", "");
-        if (myPhoto == null || myPhoto.isEmpty()) myPhoto = prefs.getString("PROFILE_PHOTO", "");
-        if (myPhoto == null || myPhoto.isEmpty()) myPhoto = prefs.getString("USER_PHOTO_URL", "");
+        myPhoto = getMyPhotoFromAllPlaces();
         myLevel = prefs.getString("USER_LEVEL", "0");
         if (myLevel == null) myLevel = "0";
         if (myId == null || myId.isEmpty()) {
@@ -94,9 +142,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         roomHeaderProfileImg = findViewById(R.id.roomHeaderProfileImg);
         chatListContainer = findViewById(R.id.chatListContainer);
         if (rvOnline != null) rvOnline.setLayoutManager(new LinearLayoutManager(this));
-        if (roomHeaderProfileImg != null && myPhoto != null && !myPhoto.isEmpty()) {
-            Glide.with(this).load(myPhoto).circleCrop().into(roomHeaderProfileImg);
-        }
+        if (roomHeaderProfileImg != null) loadPhotoInto(roomHeaderProfileImg, myPhoto);
         if (tvRoomId != null) tvRoomId.setText("Room ID: " + roomId);
         if (roomInfoText != null) roomInfoText.setText("ID: " + roomId);
         if (tvMyIdInRoom != null) tvMyIdInRoom.setText("আমার ID: " + myId + " | " + myName);
@@ -105,30 +151,19 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (btnRoomEdit != null) btnRoomEdit.setVisibility(View.GONE);
         checkMyRole();
         loadRoomInfo();
+        syncMyPhotoFromFirebase();
         markMeOnline();
         View btnOpenChat = findViewById(R.id.btnOpenChat);
-        if (btnOpenChat != null) {
-            btnOpenChat.setOnClickListener(v -> openChatInput());
-        }
+        if (btnOpenChat != null) btnOpenChat.setOnClickListener(v -> openChatInput());
         View btnOnlineList = findViewById(R.id.btnOnlineList);
-        if (btnOnlineList != null) {
-            btnOnlineList.setOnClickListener(v -> openOnlineList());
-        }
+        if (btnOnlineList != null) btnOnlineList.setOnClickListener(v -> openOnlineList());
         View tvOnlineCount = findViewById(R.id.textOnlineCount);
-        if (tvOnlineCount != null) {
-            tvOnlineCount.setOnClickListener(v -> openOnlineList());
-        }
+        if (tvOnlineCount != null) tvOnlineCount.setOnClickListener(v -> openOnlineList());
         View btnRoomTools = findViewById(R.id.btnRoomTools);
-        if (btnRoomTools != null) {
-            btnRoomTools.setOnClickListener(v -> openPremiumSettings());
-        }
-        if (btnRoomSet != null) {
-            btnRoomSet.setOnClickListener(v -> openRoomSetDialog());
-        }
+        if (btnRoomTools != null) btnRoomTools.setOnClickListener(v -> openPremiumSettings());
+        if (btnRoomSet != null) btnRoomSet.setOnClickListener(v -> openRoomSetDialog());
         ImageButton btnPower = findViewById(R.id.btnPower);
-        if (btnPower != null) {
-            btnPower.setOnClickListener(v -> showPowerMenu());
-        }
+        if (btnPower != null) btnPower.setOnClickListener(v -> showPowerMenu());
         listenChatRealtime();
         listenOnlineCount();
     }
@@ -157,6 +192,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     }
 
     private void markMeOnline() {
+        myPhoto = getMyPhotoFromAllPlaces();
         Map<String, Object> m = new HashMap<>();
         m.put("name", myName);
         m.put("photo", myPhoto == null ? "" : myPhoto);
@@ -183,9 +219,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         d.setContentView(v);
         EditText et = v.findViewById(R.id.etChatInput);
         et.requestFocus();
-        if (d.getWindow() != null) {
-            d.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-        }
+        if (d.getWindow() != null) d.getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
         d.setOnShowListener(dialog -> {
             et.requestFocus();
             android.view.inputmethod.InputMethodManager imm = (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
@@ -197,7 +231,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             Map<String, Object> m = new HashMap<>();
             m.put("senderId", myId);
             m.put("senderName", myName);
-            m.put("senderPhoto", myPhoto == null ? "" : myPhoto);
+            m.put("senderPhoto", getMyPhotoFromAllPlaces());
             m.put("senderCountry", myCountry);
             m.put("senderLevel", myLevel);
             m.put("msg", msg);
@@ -238,7 +272,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         ImageView iv = v.findViewById(R.id.imgChatPhoto);
         TextView tvH = v.findViewById(R.id.tvChatHeader);
         TextView tvM = v.findViewById(R.id.tvChatMsg);
-        if (photo != null && !photo.isEmpty()) Glide.with(this).load(photo).circleCrop().into(iv);
+        loadPhotoInto(iv, photo);
         tvH.setText(name + "  Lv." + level + "  " + getFlag(country));
         tvM.setText(msg);
         chatListContainer.addView(v);
@@ -261,7 +295,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 ImageView iv = h.itemView.findViewById(R.id.imgChatPhoto);
                 TextView tvH = h.itemView.findViewById(R.id.userName);
                 TextView tvM = h.itemView.findViewById(R.id.tvChatMsg);
-                if (u.get("photo") != null && !u.get("photo").isEmpty()) Glide.with(VoiceRoomActivity.this).load(u.get("photo")).circleCrop().into(iv);
+                loadPhotoInto(iv, u.get("photo"));
                 tvH.setText(u.get("name") + "  Lv." + u.get("level") + "  " + getFlag(u.get("country")));
                 tvM.setText("ID: " + u.get("id"));
             }
@@ -291,25 +325,15 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void showPowerMenu() {
         String[] options = {"Minimize", "Exit Room"};
-        new AlertDialog.Builder(this)
-            .setTitle("Room Options")
-            .setItems(options, (dialog, which) -> {
-                if (which == 0) {
-                    finish();
-                } else {
-                    finishAffinity();
-                }
-            })
-            .setNegativeButton("Cancel", null)
-            .show();
+        new AlertDialog.Builder(this).setTitle("Room Options").setItems(options, (dialog, which) -> {
+            if (which == 0) finish(); else finishAffinity();
+        }).setNegativeButton("Cancel", null).show();
     }
 
     private void checkMyRole() {
         amIOwner = myId.equals(roomOwnerId);
         activeRoomRef.child("admins").child(myId).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override public void onDataChange(@NonNull DataSnapshot snap) {
-                amIAdmin = snap.exists() && Boolean.TRUE.equals(snap.getValue(Boolean.class));
-            }
+            @Override public void onDataChange(@NonNull DataSnapshot snap) { amIAdmin = snap.exists() && Boolean.TRUE.equals(snap.getValue(Boolean.class)); }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
     }
@@ -328,7 +352,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 }
                 if (rPhoto != null && !rPhoto.isEmpty()) {
                     currentRoomPhotoUrl = rPhoto;
-                    if (roomHeaderProfileImg != null) Glide.with(VoiceRoomActivity.this).load(rPhoto).circleCrop().into(roomHeaderProfileImg);
+                    if (roomHeaderProfileImg != null) loadPhotoInto(roomHeaderProfileImg, rPhoto);
                 } else if (myPhoto != null && !myPhoto.isEmpty()) {
                     currentRoomPhotoUrl = myPhoto;
                 }
@@ -372,10 +396,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     }
 
     private void openRoomSetDialog() {
-        if (!amIOwner && !amIAdmin) {
-            Toast.makeText(this, "Only Room Owner / Admin can change", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        if (!amIOwner && !amIAdmin) { Toast.makeText(this, "Only Room Owner / Admin can change", Toast.LENGTH_SHORT).show(); return; }
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         View view = LayoutInflater.from(this).inflate(R.layout.dialog_room_set, null);
         builder.setView(view);
@@ -385,11 +406,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         EditText etAnnounce = view.findViewById(R.id.etRoomAnnouncement);
         TextView tvTheme = view.findViewById(R.id.tvSelectedTheme);
         if (tvRoomName != null) etName.setText(tvRoomName.getText().toString());
-        if (currentRoomPhotoUrl != null && !currentRoomPhotoUrl.isEmpty()) {
-            Glide.with(this).load(currentRoomPhotoUrl).circleCrop().into(dialogRoomPhoto);
-        } else if (myPhoto != null && !myPhoto.isEmpty()) {
-            Glide.with(this).load(myPhoto).circleCrop().into(dialogRoomPhoto);
-        }
+        if (currentRoomPhotoUrl != null && !currentRoomPhotoUrl.isEmpty()) loadPhotoInto(dialogRoomPhoto, currentRoomPhotoUrl);
+        else if (myPhoto != null && !myPhoto.isEmpty()) loadPhotoInto(dialogRoomPhoto, myPhoto);
         tvTheme.setText("Theme: " + selectedTheme);
         dialogRoomPhoto.setOnClickListener(v -> pickRoomPhoto.launch("image/*"));
         view.findViewById(R.id.btnThemeDefault).setOnClickListener(v -> { selectedTheme = "Default"; tvTheme.setText("Theme: Default"); });
@@ -415,9 +433,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             activeRoomRef.updateChildren(activeMap);
             if (tvRoomName != null) tvRoomName.setText(newName);
             if (roomTitleText != null) roomTitleText.setText(newName);
-            if (roomHeaderProfileImg != null && finalPhoto != null && !finalPhoto.isEmpty()) {
-                Glide.with(this).load(finalPhoto).circleCrop().into(roomHeaderProfileImg);
-            }
+            if (roomHeaderProfileImg != null && finalPhoto != null && !finalPhoto.isEmpty()) loadPhotoInto(roomHeaderProfileImg, finalPhoto);
             currentRoomPhotoUrl = finalPhoto;
             pickedRoomPhotoUri = null;
             Toast.makeText(this, "Room Save হয়ে গেছে", Toast.LENGTH_SHORT).show();
@@ -434,8 +450,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         activeRoomRef.updateChildren(map);
     }
 
-    @Override
-    protected void onDestroy() {
+    @Override protected void onDestroy() {
         super.onDestroy();
         try { activeRoomRef.child("online_users").child(myId).removeValue(); } catch (Exception e) {}
     }
