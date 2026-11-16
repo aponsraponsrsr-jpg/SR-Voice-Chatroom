@@ -34,7 +34,6 @@
         android:theme="@style/Theme.SRVoiceChat"
         android:usesCleartextTraffic="true">
 
-        <!-- FIX - Age LoginActivity chilo LAUNCHER, tai Google button 1-2 sec flash korto. Ekhon MainActivity LAUNCHER, se sathe sathe Home e pathabe -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -69,5 +68,9 @@
         <activity android:name=".RoomSetupActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
         <activity android:name=".AgencyDashboardActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
         <activity android:name=".PublicProfileActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
+
+        <!-- FRUIT PARTY GAME - AGE CHILO NA, EKHON ADD KORA HOLO - EITA NA THAKLE GAME KHULTO NA -->
+        <activity android:name=".FruitPartyActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" android:screenOrientation="portrait" />
+
     </application>
 </manifest>
