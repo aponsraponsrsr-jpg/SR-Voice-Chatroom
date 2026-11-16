@@ -304,7 +304,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
         BottomSheetDialog d = new BottomSheetDialog(this);
         View v = LayoutInflater.from(this).inflate(R.layout.dialog_online_list, null); d.setContentView(v);
         RecyclerView rv = v.findViewById(R.id.rvOnlineList); if (rv != null) rv.setLayoutManager(new LinearLayoutManager(this));
+        
+        // 🌟 inviteToSeat মেথডের জন্যও list ডিক্লেয়ার করা হলো
         List> list = new ArrayList<>();
+        
         RecyclerView.Adapter adapter = new RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             @NonNull @Override public RecyclerView.ViewHolder onCreateViewHolder(@NonNull android.view.ViewGroup p, int t) { View item = LayoutInflater.from(p.getContext()).inflate(R.layout.item_user, p, false); return new RecyclerView.ViewHolder(item) {}; }
             @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder h, int pos) {
@@ -603,7 +606,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         BottomSheetDialog d = new BottomSheetDialog(this); View v = LayoutInflater.from(this).inflate(R.layout.dialog_online_list, null); d.setContentView(v);
         RecyclerView rv = v.findViewById(R.id.rvOnlineList); rv.setLayoutManager(new LinearLayoutManager(this)); 
         
-        // 🌟 এখানে list ভেরিয়েবলটি সঠিকভাবে ডিক্লেয়ার ও ইনিশিয়ালাইজ করে দেওয়া হলো যার কারণে এরর আসছিল
         List> list = new ArrayList<>();
         
         RecyclerView.Adapter adapter = new RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -717,7 +719,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(48, 48, 48, 48);
-        layout.setBackgroundColor(Color.parseColor("#1A1333")); // প্রিমিয়াম ডার্ক থিম
+        layout.setBackgroundColor(Color.parseColor("#1A1333"));
 
         TextView title = new TextView(this);
         title.setText("🍓 Lucky Fruit Party");
@@ -735,7 +737,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         sub.setPadding(0, 8, 0, 32);
         layout.addView(sub);
 
-        // ফ্রুট পার্টি গেম ওপেন করার প্রিমিয়াম বাটন
         Button btnFruit = new Button(this);
         btnFruit.setText("🍇 Fruit Party (Lucky Spin) • LIVE");
         btnFruit.setTextSize(15);
@@ -765,7 +766,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
         layout.addView(btnFruit);
 
-        // অন্যান্য প্রিমিয়াম গেম অপশন (শীঘ্রই আসছে)
         Button btnLudo = new Button(this);
         btnLudo.setText("🎲 Ludo & Racing • Coming Soon");
         btnLudo.setTextSize(14);
@@ -778,7 +778,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         btnLudo.setOnClickListener(v -> Toast.makeText(this, "Ludo Coming Soon!", Toast.LENGTH_SHORT).show());
         layout.addView(btnLudo);
 
-        // ক্লোজ বাটন
         Button btnClose = new Button(this);
         btnClose.setText("Close");
         btnClose.setTextSize(15);
