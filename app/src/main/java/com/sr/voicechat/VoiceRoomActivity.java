@@ -60,11 +60,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private String selectedTheme = "Default";
     private String currentRoomPhotoUrl = "";
     private String rankingTab = "daily";
-
-    // ===== Gift Selection =====
     private String selectedGiftName = "Rose";
     private int selectedGiftPrice = 10;
-
     private View[] seatViews = new View[10];
     private ImageView[] seatImgViews = new ImageView[10];
     private TextView[] seatLetterViews = new TextView[10];
@@ -74,7 +71,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private Map<String, String> seatUserPhoto = new HashMap<>();
     private Map<String, Boolean> seatMuted = new HashMap<>();
     private Map<String, Boolean> seatLocked = new HashMap<>();
-
     private long joinTime = 0;
     private ChildEventListener chatListener = null;
     private Query chatQuery = null;
@@ -159,7 +155,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         } catch (Exception e) { iv.setVisibility(View.GONE); }
     }
 
-    // ===== SEAT =====
     private void setupSeats() {
         for (int i = 0; i < 10; i++) {
             int seatId = getResources().getIdentifier("seat_" + i, "id", getPackageName());
@@ -299,7 +294,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         View btnClose = v.findViewById(R.id.btnCloseOnline); if (btnClose != null) btnClose.setOnClickListener(x -> d.dismiss()); d.show();
     }
 
-    // ===== NEW: 1st Click = Mini Profile, 2nd Click = Full Profile - GLOBAL for ALL users =====
     private void openUserProfile(String targetId, String targetName, String targetPhoto) { openMiniProfile(targetId, targetName, targetPhoto); }
 
     private void openMiniProfile(String targetId, String targetName, String targetPhoto) {
@@ -323,20 +317,15 @@ public class VoiceRoomActivity extends AppCompatActivity {
         View btnGift = v.findViewById(R.id.btnMiniGift);
         View btnFollow = v.findViewById(R.id.btnMiniFollowRight);
         View root = v.findViewById(R.id.layoutMiniRoot);
-
         final String fName = targetName == null ? "User" : targetName;
         if (tvName != null) tvName.setText(fName);
         if (tvId != null) tvId.setText("ID: " + targetId + "  📋");
         if (img != null && targetPhoto != null && !targetPhoto.isEmpty()) loadPhotoInto(img, targetPhoto);
         if (tvId != null) tvId.setOnClickListener(x -> { ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE); if (cm != null) cm.setPrimaryClip(ClipData.newPlainText("ID", targetId)); Toast.makeText(this, "ID Copied", Toast.LENGTH_SHORT).show(); });
-        // 2nd Click - Full Profile
         if (root != null) root.setOnClickListener(x -> { d.dismiss(); try { android.content.Intent i = new android.content.Intent(this, PublicProfileActivity.class); i.putExtra("TARGET_9DIGIT_ID", targetId); i.putExtra("TARGET_NAME", fName); startActivity(i); } catch (Exception e) { Toast.makeText(this, "Profile cannot be opened", Toast.LENGTH_SHORT).show(); } });
         if (btnAdd != null) btnAdd.setOnClickListener(x -> Toast.makeText(this, "Friend Request Sent to " + fName, Toast.LENGTH_SHORT).show());
         if (btnFollow != null) btnFollow.setOnClickListener(x -> Toast.makeText(this, "Followed! ❤️", Toast.LENGTH_SHORT).show());
         if (btnGift != null) btnGift.setOnClickListener(x -> { d.dismiss(); openGiftDialog(targetId, fName); });
-
-        // Load real data from users - For ALL users, NOT only my ID
-        // targetId দিয়ে ওই ইউজারের gender / country / level আনা হচ্ছে
         FirebaseDatabase.getInstance().getReference("users").orderByChild("my9DigitId").equalTo(targetId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 if (!snap.exists()) return;
@@ -352,7 +341,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     String sending = ds.child("sending").getValue() == null ? (ds.child("totalSending").getValue() == null ? "0" : String.valueOf(ds.child("totalSending").getValue())) : String.valueOf(ds.child("sending").getValue());
                     String receiving = ds.child("receiving").getValue() == null ? (ds.child("totalReceiving").getValue() == null ? "0" : String.valueOf(ds.child("totalReceiving").getValue())) : String.valueOf(ds.child("receiving").getValue());
                     if (tvName != null) tvName.setText(name);
-                    // GLOBAL: Gender Icon + Color + Flag - Same line as Name
                     String gLow = gender.toLowerCase();
                     boolean isFemale = gLow.contains("female");
                     boolean isMale = !isFemale && gLow.contains("male");
@@ -369,13 +357,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     if (tvSending != null) tvSending.setText("⬆️ Sending: " + sending);
                     if (tvReceiving != null) tvReceiving.setText("⬇️ Receiving: " + receiving);
                     if (!photo.isEmpty() && img != null) loadPhotoInto(img, photo);
-                    // Agency - Auto if exists
                     String agency = "";
                     if (ds.child("agencyName").getValue() != null) agency = String.valueOf(ds.child("agencyName").getValue());
                     if (agency.isEmpty() && ds.child("agency").getValue() != null) agency = String.valueOf(ds.child("agency").getValue());
                     if (agency.isEmpty() && ds.child("familyName").getValue() != null) agency = String.valueOf(ds.child("familyName").getValue());
                     if (!agency.isEmpty() && layoutAgency != null && tvAgency != null) { layoutAgency.setVisibility(View.VISIBLE); tvAgency.setText(agency); }
-                    // Host - Auto if exists
                     String host = "";
                     if (ds.child("hostName").getValue() != null) host = String.valueOf(ds.child("hostName").getValue());
                     if (host.isEmpty() && ds.child("isHost").getValue() != null && Boolean.TRUE.equals(ds.child("isHost").getValue(Boolean.class))) host = "Official Host";
@@ -386,7 +372,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
-        // Agency / Host from separate nodes - if exists, auto show
         FirebaseDatabase.getInstance().getReference("agencies").child(targetId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot s) { if (s.exists() && s.child("name").getValue() != null && layoutAgency != null && tvAgency != null) { layoutAgency.setVisibility(View.VISIBLE); tvAgency.setText(String.valueOf(s.child("name").getValue())); } }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
@@ -398,7 +383,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         d.show();
     }
 
-    // ===== Gift Dialog - FIXED: Using your dialog_gift_panel.xml =====
     private void openGiftDialog(String targetId, String targetName) {
         BottomSheetDialog d = new BottomSheetDialog(this);
         View v;
@@ -435,16 +419,82 @@ public class VoiceRoomActivity extends AppCompatActivity {
 
     private void openRoomHeaderPopup() {
         BottomSheetDialog d = new BottomSheetDialog(this);
-        View v = LayoutInflater.from(this).inflate(R.layout.dialog_user_profile, null); d.setContentView(v);
-        ImageView ivProfile = v.findViewById(R.id.imgUserProfile); TextView tvName = v.findViewById(R.id.txtUserName); TextView tvGroup = v.findViewById(R.id.txtGroupName); TextView tvId = v.findViewById(R.id.txtUserId); TextView tvLevel = v.findViewById(R.id.txtUserLevel); TextView tvOwner = v.findViewById(R.id.txtRoomOwner); TextView tvLang = v.findViewById(R.id.txtHeaderLanguage); TextView tvCountry = v.findViewById(R.id.txtHeaderCountry); TextView tvTag = v.findViewById(R.id.txtHeaderTag); View rewardBanner = v.findViewById(R.id.layoutRewardBanner); RecyclerView rvMembers = v.findViewById(R.id.rvHeaderMembersList); TextView tvMembersCount = v.findViewById(R.id.txtMembersCount); View btnFollow = v.findViewById(R.id.btnFollow); if (btnFollow != null) btnFollow.setVisibility(View.GONE);
+        View v = LayoutInflater.from(this).inflate(R.layout.dialog_user_profile, null);
+        d.setContentView(v);
+        if (d.getWindow() != null) {
+            d.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            d.getWindow().setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+        ImageView ivProfile = v.findViewById(R.id.imgUserProfile);
+        TextView tvName = v.findViewById(R.id.txtUserName);
+        TextView tvGroup = v.findViewById(R.id.txtGroupName);
+        TextView tvId = v.findViewById(R.id.txtUserId);
+        TextView tvLevel = v.findViewById(R.id.txtUserLevel);
+        TextView tvOwner = v.findViewById(R.id.txtRoomOwner);
+        TextView tvLang = v.findViewById(R.id.txtHeaderLanguage);
+        TextView tvCountry = v.findViewById(R.id.txtHeaderCountry);
+        TextView tvTag = v.findViewById(R.id.txtHeaderTag);
+        View rewardBanner = v.findViewById(R.id.layoutRewardBanner);
+        RecyclerView rvMembers = v.findViewById(R.id.rvHeaderMembersList);
+        TextView tvMembersCount = v.findViewById(R.id.txtMembersCount);
+        View btnFollow = v.findViewById(R.id.btnFollow);
+        if (btnFollow != null) btnFollow.setVisibility(View.GONE);
+        TextView txtProfileTab = v.findViewById(R.id.txtProfileTab);
+        TextView txtMembersTopTab = v.findViewById(R.id.txtMembersTopTab);
+        View layoutHeaderInfo = v.findViewById(R.id.layoutHeaderInfo);
+        View layoutMembersSection = v.findViewById(R.id.layoutMembersSection);
+        TextView txtMembersTab = v.findViewById(R.id.txtMembersTab);
+        TextView txtAdminTab = v.findViewById(R.id.txtAdminTab);
+        if (layoutHeaderInfo != null) layoutHeaderInfo.setVisibility(View.VISIBLE);
+        if (rewardBanner != null) rewardBanner.setVisibility(View.VISIBLE);
+        if (layoutMembersSection != null) layoutMembersSection.setVisibility(View.VISIBLE);
+        if (txtProfileTab != null && txtMembersTopTab != null) {
+            txtProfileTab.setOnClickListener(x -> {
+                txtProfileTab.setTextColor(0xFF000000);
+                txtProfileTab.setTypeface(null, android.graphics.Typeface.BOLD);
+                txtMembersTopTab.setTextColor(0xFF999999);
+                txtMembersTopTab.setTypeface(null, android.graphics.Typeface.NORMAL);
+                if (layoutHeaderInfo != null) layoutHeaderInfo.setVisibility(View.VISIBLE);
+                if (rewardBanner != null) rewardBanner.setVisibility(View.VISIBLE);
+            });
+            txtMembersTopTab.setOnClickListener(x -> {
+                txtMembersTopTab.setTextColor(0xFF000000);
+                txtMembersTopTab.setTypeface(null, android.graphics.Typeface.BOLD);
+                txtProfileTab.setTextColor(0xFF999999);
+                txtProfileTab.setTypeface(null, android.graphics.Typeface.NORMAL);
+                if (layoutHeaderInfo != null) layoutHeaderInfo.setVisibility(View.GONE);
+                if (rewardBanner != null) rewardBanner.setVisibility(View.GONE);
+                if (layoutMembersSection != null) layoutMembersSection.setVisibility(View.VISIBLE);
+            });
+        }
+        if (txtMembersTab != null && txtAdminTab != null) {
+            txtMembersTab.setOnClickListener(x -> {
+                txtMembersTab.setTextColor(0xFF000000);
+                txtMembersTab.setTypeface(null, android.graphics.Typeface.BOLD);
+                txtAdminTab.setTextColor(0xFF666666);
+                txtAdminTab.setTypeface(null, android.graphics.Typeface.NORMAL);
+            });
+            txtAdminTab.setOnClickListener(x -> {
+                txtAdminTab.setTextColor(0xFF000000);
+                txtAdminTab.setTypeface(null, android.graphics.Typeface.BOLD);
+                txtMembersTab.setTextColor(0xFF666666);
+                txtMembersTab.setTypeface(null, android.graphics.Typeface.NORMAL);
+            });
+        }
         if (tvName != null) tvName.setText(roomTitleText != null ? roomTitleText.getText().toString() : "Room");
         if (tvGroup != null) tvGroup.setText(roomTitleText != null ? roomTitleText.getText().toString() : "");
-        if (tvId != null) tvId.setText("ID: " + roomOwnerId + " 📋"); if (tvLevel != null) tvLevel.setText("⭐ Level " + myLevel); if (tvOwner != null) tvOwner.setText("Owner (ID:" + roomOwnerId + ")"); if (tvLang != null) tvLang.setText(prefs.getString("USER_LANGUAGE", "English")); if (tvCountry != null) tvCountry.setText(myCountry); if (tvTag != null) tvTag.setText("Friends");
+        if (tvId != null) tvId.setText("ID: " + roomOwnerId + " 📋");
+        if (tvLevel != null) tvLevel.setText("⭐ Level " + myLevel);
+        if (tvOwner != null) tvOwner.setText("Owner (ID:" + roomOwnerId + ")");
+        if (tvLang != null) tvLang.setText(prefs.getString("USER_LANGUAGE", "English"));
+        if (tvCountry != null) tvCountry.setText(myCountry);
+        if (tvTag != null) tvTag.setText("Friends");
         if (ivProfile != null) loadRoomPhotoInto(ivProfile);
         if (tvId != null) tvId.setOnClickListener(x -> { ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE); if (cm != null) cm.setPrimaryClip(ClipData.newPlainText("Room ID", roomOwnerId)); Toast.makeText(this, "ID Copied", Toast.LENGTH_SHORT).show(); });
         if (rewardBanner != null) rewardBanner.setOnClickListener(x -> openRewardEvent());
         if (rvMembers != null) {
-            rvMembers.setLayoutManager(new LinearLayoutManager(this)); List<Map<String, String>> members = new ArrayList<>();
+            rvMembers.setLayoutManager(new LinearLayoutManager(this));
+            List<Map<String, String>> members = new ArrayList<>();
             RecyclerView.Adapter adapter = new RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 @NonNull @Override public RecyclerView.ViewHolder onCreateViewHolder(@NonNull android.view.ViewGroup p, int t) { View item = LayoutInflater.from(p.getContext()).inflate(R.layout.item_user, p, false); return new RecyclerView.ViewHolder(item) {}; }
                 @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder h, int pos) { Map<String, String> u = members.get(pos); ImageView iv = h.itemView.findViewById(R.id.imgChatPhoto); TextView tvH = h.itemView.findViewById(R.id.userName); TextView tvM = h.itemView.findViewById(R.id.tvChatMsg); loadPhotoInto(iv, u.get("photo")); if (tvH != null) tvH.setText(u.get("name") + "  Lv." + u.get("level")); if (tvM != null) tvM.setText("ID: " + u.get("id") + "  " + u.get("role")); }
@@ -511,12 +561,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (layoutOwnerTools != null) layoutOwnerTools.setVisibility(View.GONE);
         if (btnRoomSet != null) btnRoomSet.setVisibility(View.GONE);
         if (btnRoomEdit != null) btnRoomEdit.setVisibility(View.GONE);
-
-        // NEW: Back Button - Minimize keeps seat, Exit removes seat - For ALL users
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override public void handleOnBackPressed() { showPowerMenu(); }
         });
-
         checkMyRole(); loadRoomInfo(); syncMyPhotoFromFirebase(); markMeOnline(); setupSeats();
         if (roomHeaderProfileImg != null) roomHeaderProfileImg.setOnClickListener(v -> openRoomHeaderPopup());
         if (roomTitleText != null) roomTitleText.setOnClickListener(v -> openRoomHeaderPopup());
@@ -541,7 +588,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         myPhoto = getMyPhotoFromAllPlaces();
         Map<String, Object> m = new HashMap<>(); m.put("name", myName); m.put("photo", myPhoto == null ? "" : myPhoto); m.put("photoUrl", myPhoto == null ? "" : myPhoto); m.put("country", myCountry); m.put("level", myLevel); m.put("id", myId);
         activeRoomRef.child("online_users").child(myId).setValue(m);
-        // Minimize te onDisconnect o thakbe na jodi Exit na kori - tai onDisconnect sudhu Exit er somoy kaj korbe na, eita room e thakle thik ache
         activeRoomRef.child("online_users").child(myId).onDisconnect().removeValue();
     }
     private void listenOnlineCount() { activeRoomRef.child("online_users").addValueEventListener(new ValueEventListener() { @Override public void onDataChange(@NonNull DataSnapshot snap) { TextView tvC = findViewById(R.id.textOnlineCount); if (tvC != null) tvC.setText(String.valueOf(snap.getChildrenCount())); } @Override public void onCancelled(@NonNull DatabaseError e) {} }); }
@@ -580,7 +626,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder h, int pos) {
                 Map<String, String> u = list.get(pos); ImageView iv = h.itemView.findViewById(R.id.imgChatPhoto); TextView tvH = h.itemView.findViewById(R.id.userName); TextView tvM = h.itemView.findViewById(R.id.tvChatMsg);
                 loadPhotoInto(iv, u.get("photo")); tvH.setText(u.get("name") + "  Lv." + u.get("level") + "  " + getFlag(u.get("country"))); tvM.setText("ID: " + u.get("id"));
-                // Online list thekeo Mini Profile khulbe
                 h.itemView.setOnClickListener(x -> openMiniProfile(u.get("id"), u.get("name"), u.get("photo")));
             }
             @Override public int getItemCount() { return list.size(); }
@@ -666,7 +711,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         super.onDestroy();
         try { if (chatListener != null && chatQuery != null) chatQuery.removeEventListener(chatListener); } catch (Exception e) {}
         try { if (chatListContainer != null) chatListContainer.removeAllViews(); } catch (Exception e) {}
-        // FIX: Minimize hole seat / online delete hobe NA, sudhu Exit Room hole delete hobe - For ALL users
         if (isExiting) {
             try { int mySeat = mySeatIndex(); if (mySeat != -1) activeRoomRef.child("seats").child("seat_" + mySeat).removeValue(); } catch (Exception e) {}
             try { activeRoomRef.child("online_users").child(myId).removeValue(); } catch (Exception e) {}
