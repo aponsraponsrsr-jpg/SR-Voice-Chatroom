@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@android:color/white"
+    android:background="#FFFFFF"
     android:padding="16dp">
 
     <LinearLayout
@@ -14,7 +14,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Basic Tools"
-            android:textSize="18sp"
+            android:textSize="17sp"
             android:textStyle="bold"
             android:textColor="#000000" />
 
@@ -25,24 +25,24 @@
             android:rowCount="3"
             android:layout_marginTop="12dp">
 
-            <Button android:id="@+id/toolLock" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:text="🔒 Lock on" android:textSize="11sp" />
-            <Button android:id="@+id/toolRoomSet" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:text="⚙️ Room set" android:textSize="11sp" />
-            <Button android:id="@+id/toolRoomEdit" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:text="✏️ Room Edit" android:textSize="11sp" />
-            <Button android:id="@+id/toolClearCharm" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:text="🧹 Clear charm" android:textSize="11sp" />
-            <Button android:id="@+id/toolClearChat" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:text="💬 Clear chat" android:textSize="11sp" />
-            <Button android:id="@+id/toolChangeMic" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:text="🎤 Change mic" android:textSize="11sp" />
-            <Button android:id="@+id/toolMicTheme" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:text="🎨 Mic Theme" android:textSize="11sp" />
-            <Button android:id="@+id/toolDress" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:text="👗 Dress" android:textSize="11sp" />
-            <Button android:id="@+id/toolLuckySound" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:text="🔊 Lucky Sound" android:textSize="11sp" />
-            <Button android:id="@+id/toolVoiceUser" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:text="👥 Voice User" android:textSize="11sp" />
-            <Button android:id="@+id/toolKickRecord" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:text="🚫 Kick record" android:textSize="11sp" />
+            <Button android:id="@+id/toolLock" android:layout_width="0dp" android:layout_height="72dp" android:layout_columnWeight="1" android:text="🔒\nLock on" android:textSize="11sp" android:textColor="#000000" android:backgroundTint="#F5F5F5" android:layout_margin="4dp" />
+            <Button android:id="@+id/toolRoomSet" android:layout_width="0dp" android:layout_height="72dp" android:layout_columnWeight="1" android:text="⚙️\nRoom set" android:textSize="11sp" android:textColor="#000000" android:backgroundTint="#F5F5F5" android:layout_margin="4dp" />
+            <Button android:id="@+id/toolRoomEdit" android:layout_width="0dp" android:layout_height="72dp" android:layout_columnWeight="1" android:text="✏️\nRoom Edit" android:textSize="11sp" android:textColor="#000000" android:backgroundTint="#FFF3E0" android:layout_margin="4dp" />
+            <Button android:id="@+id/toolClearCharm" android:layout_width="0dp" android:layout_height="72dp" android:layout_columnWeight="1" android:text="🧹\nClear charm" android:textSize="11sp" android:textColor="#000000" android:backgroundTint="#F5F5F5" android:layout_margin="4dp" />
+            <Button android:id="@+id/toolClearChat" android:layout_width="0dp" android:layout_height="72dp" android:layout_columnWeight="1" android:text="💬\nClear chat" android:textSize="11sp" android:textColor="#000000" android:backgroundTint="#F5F5F5" android:layout_margin="4dp" />
+            <Button android:id="@+id/toolChangeMic" android:layout_width="0dp" android:layout_height="72dp" android:layout_columnWeight="1" android:text="🎤\nChange mic" android:textSize="11sp" android:textColor="#000000" android:backgroundTint="#F5F5F5" android:layout_margin="4dp" />
+            <Button android:id="@+id/toolMicTheme" android:layout_width="0dp" android:layout_height="72dp" android:layout_columnWeight="1" android:text="🎨\nMic Theme" android:textSize="11sp" android:textColor="#000000" android:backgroundTint="#F5F5F5" android:layout_margin="4dp" />
+            <Button android:id="@+id/toolDress" android:layout_width="0dp" android:layout_height="72dp" android:layout_columnWeight="1" android:text="👗\nDress" android:textSize="11sp" android:textColor="#000000" android:backgroundTint="#F5F5F5" android:layout_margin="4dp" />
+            <Button android:id="@+id/toolLuckySound" android:layout_width="0dp" android:layout_height="72dp" android:layout_columnWeight="1" android:text="🔊\nLucky Sound" android:textSize="11sp" android:textColor="#000000" android:backgroundTint="#F5F5F5" android:layout_margin="4dp" />
+            <Button android:id="@+id/toolVoiceUser" android:layout_width="0dp" android:layout_height="72dp" android:layout_columnWeight="1" android:text="👥\nVoice User" android:textSize="11sp" android:textColor="#000000" android:backgroundTint="#F5F5F5" android:layout_margin="4dp" />
+            <Button android:id="@+id/toolKickRecord" android:layout_width="0dp" android:layout_height="72dp" android:layout_columnWeight="1" android:text="🚫\nKick record" android:textSize="11sp" android:textColor="#000000" android:backgroundTint="#F5F5F5" android:layout_margin="4dp" />
         </GridLayout>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Other Tools"
-            android:textSize="18sp"
+            android:textSize="17sp"
             android:textStyle="bold"
             android:textColor="#000000"
             android:layout_marginTop="20dp" />
@@ -53,17 +53,20 @@
             android:columnCount="4"
             android:layout_marginTop="12dp">
 
-            <Button android:id="@+id/toolYoutube" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:text="▶️ YouTube" android:textSize="11sp" />
-            <Button android:id="@+id/toolLuckyFloat" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:text="🎈 Lucky float" android:textSize="11sp" />
-            <Button android:id="@+id/toolRoomPK" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:text="⚔️ Room PK" android:textSize="11sp" />
-            <Button android:id="@+id/toolBroadcast" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_columnWeight="1" android:text="📡 Broadcast" android:textSize="11sp" />
+            <Button android:id="@+id/toolYoutube" android:layout_width="0dp" android:layout_height="72dp" android:layout_columnWeight="1" android:text="▶️\nYouTube" android:textSize="11sp" android:textColor="#000000" android:backgroundTint="#F5F5F5" android:layout_margin="4dp" />
+            <Button android:id="@+id/toolLuckyFloat" android:layout_width="0dp" android:layout_height="72dp" android:layout_columnWeight="1" android:text="🎈\nLucky float" android:textSize="11sp" android:textColor="#000000" android:backgroundTint="#F5F5F5" android:layout_margin="4dp" />
+            <Button android:id="@+id/toolRoomPK" android:layout_width="0dp" android:layout_height="72dp" android:layout_columnWeight="1" android:text="⚔️\nRoom PK" android:textSize="11sp" android:textColor="#000000" android:backgroundTint="#F5F5F5" android:layout_margin="4dp" />
+            <Button android:id="@+id/toolBroadcast" android:layout_width="0dp" android:layout_height="72dp" android:layout_columnWeight="1" android:text="📡\nBroadcast" android:textSize="11sp" android:textColor="#000000" android:backgroundTint="#F5F5F5" android:layout_margin="4dp" />
         </GridLayout>
 
         <Button
             android:id="@+id/btnToolsClose"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:text="Close"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:backgroundTint="#F5F5F5"
             android:layout_marginTop="20dp" />
     </LinearLayout>
 </ScrollView>
