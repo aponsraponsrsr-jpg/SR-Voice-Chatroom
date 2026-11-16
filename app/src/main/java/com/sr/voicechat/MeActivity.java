@@ -96,6 +96,13 @@ public class MeActivity extends AppCompatActivity {
         cardAvatar.setUseCompatPadding(false);
         cardAvatar.setOnClickListener(v -> goProfile());
 
+        // NEW: Super Panel opens via Owner Gmail + Password - NOT via ID
+        // ID can change, Owner Login stays same. Only Owner knows this Long Press.
+        cardAvatar.setOnLongClickListener(v -> {
+            startActivity(new Intent(MeActivity.this, SuperPanelLoginActivity.class));
+            return true;
+        });
+
         imgAvatar = new ImageView(this);
         imgAvatar.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         imgAvatar.setImageResource(android.R.drawable.ic_menu_my_calendar);
@@ -103,6 +110,12 @@ public class MeActivity extends AppCompatActivity {
         imgAvatar.setBackgroundColor(Color.TRANSPARENT);
         cardAvatar.addView(imgAvatar);
         topRow.addView(cardAvatar);
+
+        // NEW: Avatar Long Press also opens Owner Login
+        imgAvatar.setOnLongClickListener(v -> {
+            startActivity(new Intent(MeActivity.this, SuperPanelLoginActivity.class));
+            return true;
+        });
 
         LinearLayout nameBox = new LinearLayout(this);
         nameBox.setOrientation(LinearLayout.VERTICAL);
@@ -294,6 +307,8 @@ public class MeActivity extends AppCompatActivity {
         addToolItem(toolsRow, "👗", "Dress");
         addToolItem(toolsRow, "🎂", "Birthday");
         addToolItem(toolsRow, "📊", "Level");
+        // NEW: Agency Tool - Opens YOUR OLD AgencyDashboardActivity
+        addToolItem(toolsRow, "🏛️", "Agency", v -> openAgency());
 
         TextView serviceTitle = new TextView(this);
         serviceTitle.setText("My Services");
@@ -364,6 +379,21 @@ public class MeActivity extends AppCompatActivity {
         ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         cm.setPrimaryClip(ClipData.newPlainText("ID", my9DigitId));
         Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
+    }
+
+    // NEW: Agency Icon - Opens YOUR OLD Dashboard with Intent Extras
+    // Your Dashboard needs AGENCY_OWNER_ID = FirebaseUID, AGENCY_NAME
+    private void openAgency() {
+        String uid = firebaseUid;
+        if (uid.isEmpty()) {
+            FirebaseUser fu = FirebaseAuth.getInstance().getCurrentUser();
+            if (fu != null) uid = fu.getUid();
+        }
+        if (uid.isEmpty()) uid = prefs.getString("FIREBASE_UID", "");
+        Intent i = new Intent(this, AgencyDashboardActivity.class);
+        i.putExtra("AGENCY_OWNER_ID", uid);
+        i.putExtra("AGENCY_NAME", prefs.getString("AGENCY_NAME", "SR Agency"));
+        startActivity(i);
     }
 
     // PERMANENT FIX: Wallet opens Premium WalletRechargeDialog. No WalletActivity needed.
@@ -470,11 +500,16 @@ public class MeActivity extends AppCompatActivity {
     }
 
     private void addToolItem(LinearLayout parent, String icon, String label) {
+        addToolItem(parent, icon, label, v -> Toast.makeText(this, label + " - Coming Soon", Toast.LENGTH_SHORT).show());
+    }
+
+    // NEW: Tool with custom click - for Agency
+    private void addToolItem(LinearLayout parent, String icon, String label, View.OnClickListener click) {
         LinearLayout box = new LinearLayout(this);
         box.setOrientation(LinearLayout.VERTICAL);
         box.setGravity(Gravity.CENTER);
         box.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
-        box.setOnClickListener(v -> Toast.makeText(this, label + " - Coming Soon", Toast.LENGTH_SHORT).show());
+        box.setOnClickListener(click);
         parent.addView(box);
         TextView iv = new TextView(this);
         iv.setText(icon);
@@ -533,10 +568,16 @@ public class MeActivity extends AppCompatActivity {
     private String getGenderCountryText() {
         String g = prefs.getString("USER_GENDER", "");
         String c = prefs.getString("USER_COUNTRY", "");
-        if (!g.isEmpty() && !c.isEmpty()) return g + " | " + c;
-        if (!c.isEmpty()) return c;
-        if (!g.isEmpty()) return g;
-        return "Complete Your Profile";
+        String base = "";
+        if (!g.isEmpty() && !c.isEmpty()) base = g + " | " + c;
+        else if (!c.isEmpty()) base = c;
+        else if (!g.isEmpty()) base = g;
+        else base = "Complete Your Profile";
+        // NEW: Agency Badge under ID - Auto shows if Agency
+        if (prefs.getBoolean("IS_AGENCY", false)) {
+            base = base + "  |  🏷️ AGENCY";
+        }
+        return base;
     }
 
     @Override
@@ -576,6 +617,14 @@ public class MeActivity extends AppCompatActivity {
                     visitorCount = getStr(snap, "visitorCount", "0");
                     String coins = getStr(snap, "coins", "0");
                     if (coins.isEmpty()) coins = getStr(snap, "walletCoins", "0");
+                    // NEW: Agency data from Firebase - for Badge + Dashboard
+                    boolean isAgency = false;
+                    if (snap.hasChild("isAgency") && snap.child("isAgency").getValue() != null) {
+                        Object o = snap.child("isAgency").getValue();
+                        isAgency = o instanceof Boolean ? (Boolean) o : "true".equalsIgnoreCase(String.valueOf(o));
+                    }
+                    String agencyName = getStr(snap, "agencyName", "SR Agency");
+                    String agencyPercent = getStr(snap, "agencyPercent", "0");
 
                     if (!id.isEmpty()) {
                         my9DigitId = id;
@@ -587,11 +636,14 @@ public class MeActivity extends AppCompatActivity {
                         .putString("USER_GENDER", gender)
                         .putString("USER_PHOTO", photo)
                         .putString("PROFILE_PHOTO", photo)
+                        .putBoolean("IS_AGENCY", isAgency)
+                        .putString("AGENCY_NAME", agencyName)
+                        .putString("AGENCY_PERCENT", agencyPercent)
                         .apply();
 
                     if (txtName != null) txtName.setText(name);
                     if (txtId != null) txtId.setText("ID: " + my9DigitId);
-                    if (txtGenderCountry != null) txtGenderCountry.setText(gender + " | " + country);
+                    if (txtGenderCountry != null) txtGenderCountry.setText(getGenderCountryText());
                     if (txtFollow != null) txtFollow.setText(followCount);
                     if (txtFans != null) txtFans.setText(fansCount);
                     if (txtVisitor != null) txtVisitor.setText(visitorCount);
