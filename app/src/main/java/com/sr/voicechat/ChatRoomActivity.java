@@ -20,6 +20,12 @@ public class ChatRoomActivity extends AppCompatActivity {
     String myUid = "";
     String myName = "Guest";
 
+    // Receiver - pore Seat e click kore change hobe
+    // Ekhon test er jonno nijer Seat e Gift jabe, Wallet kata + Show dekha jabe
+    String selectedReceiverUid = "";
+    int selectedReceiverSeatNo = -1;
+    String selectedReceiverName = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -27,22 +33,34 @@ public class ChatRoomActivity extends AppCompatActivity {
 
         btnMic = findViewById(R.id.btnMic);
         btnGame = findViewById(R.id.btnGame);
-        try { btnGift = findViewById(R.id.btnGift); } catch (Exception e) { btnGift = null; }
-        try { txtSeatShow = findViewById(R.id.txtSeatShow); } catch (Exception e) { txtSeatShow = null; }
+        btnGift = findViewById(R.id.btnGift);
+        txtSeatShow = findViewById(R.id.txtSeatShow);
 
         // Room + Seat - Room List theke asbe
         if (getIntent() != null) {
             if (getIntent().getStringExtra("roomId") != null)
                 roomId = getIntent().getStringExtra("roomId");
             mySeatNo = getIntent().getIntExtra("seatNo", -1);
+            // Jodi onno Activity theke Receiver pathano hoy
+            if (getIntent().getStringExtra("receiverUid") != null)
+                selectedReceiverUid = getIntent().getStringExtra("receiverUid");
+            selectedReceiverSeatNo = getIntent().getIntExtra("receiverSeatNo", -1);
+            if (getIntent().getStringExtra("receiverName") != null)
+                selectedReceiverName = getIntent().getStringExtra("receiverName");
         }
 
         // User - Tomar ager Gmail Login theke asbe
-        // Tumi login korle tomar ta, onno keu login korle tar ta
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             myUid = FirebaseAuth.getInstance().getCurrentUser().getUid();
             if (FirebaseAuth.getInstance().getCurrentUser().getDisplayName() != null)
                 myName = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+        }
+
+        // Default Receiver = Nijer Seat - pore Seat click e change korba
+        if (selectedReceiverUid.isEmpty()) {
+            selectedReceiverUid = myUid;
+            selectedReceiverSeatNo = mySeatNo;
+            selectedReceiverName = myName;
         }
 
         // Seat e bosle Show suru
@@ -66,24 +84,51 @@ public class ChatRoomActivity extends AppCompatActivity {
             startActivity(new Intent(ChatRoomActivity.this, FruitPartyActivity.class));
         });
 
+        // GIFT - FIXED - Age sudhu Toast chilo, ekhon GiftBox + Wallet khulbe
         if (btnGift != null) btnGift.setOnClickListener(v -> {
-            Toast.makeText(this, "Gift Center - Receiver select kore Gift pathao", Toast.LENGTH_SHORT).show();
+            if (myUid.isEmpty()) {
+                Toast.makeText(this, "Login koro age", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // GiftBoxDialog - Upor e Wallet e Real Coin dekhabe
+            GiftBoxDialog.show(this, (giftName, giftAmount, giftEmoji) -> {
+                // Gift pick korle Receiver er kache pathabe
+                sendGiftToUser(selectedReceiverUid, selectedReceiverSeatNo, selectedReceiverName, giftAmount, giftName);
+            });
         });
     }
 
     public void sendGiftToUser(String receiverUid, int receiverSeatNo, String receiverName, long giftAmount, String giftName) {
-        if (myUid.isEmpty()) { Toast.makeText(this, "Login koro age", Toast.LENGTH_SHORT).show(); return; }
+        if (myUid.isEmpty()) {
+            Toast.makeText(this, "Login koro age", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (receiverUid == null || receiverUid.isEmpty()) {
+            Toast.makeText(this, "Receiver select koro age", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (roomId.isEmpty()) {
+            Toast.makeText(this, "Room e dhuko age", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         GiftManager.sendGift(myUid, receiverUid, giftAmount, new GiftManager.GiftCallback() {
             @Override public void onSuccess(long sentAmount, long exchangeAdded, long newTargetTotal) {
                 SeatGiftManager.onGiftReceivedShowOnly(roomId, receiverSeatNo, myName, receiverName, sentAmount, giftName);
                 Toast.makeText(ChatRoomActivity.this, "Gift Sent: " + sentAmount + " Coins", Toast.LENGTH_SHORT).show();
             }
-            @Override public void onFailed(String msg) { Toast.makeText(ChatRoomActivity.this, msg, Toast.LENGTH_SHORT).show(); }
+            @Override public void onFailed(String msg) {
+                Toast.makeText(ChatRoomActivity.this, msg, Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
     @Override protected void onDestroy() {
         super.onDestroy();
-        if (!roomId.isEmpty() && mySeatNo != -1) SeatGiftManager.onUserLeaveSeat(roomId, mySeatNo);
+        try {
+            if (!roomId.isEmpty() && mySeatNo != -1) SeatGiftManager.onUserLeaveSeat(roomId, mySeatNo);
+        } catch (Exception e) {
+            // Ignore - Activity bondho hocche
+        }
     }
 }
