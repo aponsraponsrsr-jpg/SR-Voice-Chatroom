@@ -207,7 +207,7 @@ public class MeActivity extends AppCompatActivity {
         svipT2.setTextSize(13);
         svipBox.addView(svipT2);
 
-        // ===== WALLET ROW - FIREBASE COINS =====
+        // ===== WALLET ROW - FIREBASE COINS - FIXED =====
         LinearLayout walletBox = new LinearLayout(this);
         walletBox.setOrientation(LinearLayout.HORIZONTAL);
         walletBox.setGravity(Gravity.CENTER_VERTICAL);
@@ -220,12 +220,7 @@ public class MeActivity extends AppCompatActivity {
         walletLp.setMargins(0, 0, 0, 14);
         walletBox.setLayoutParams(walletLp);
         walletBox.setOnClickListener(v -> {
-            try {
-                Intent i = new Intent(MeActivity.this, WalletActivity.class);
-                startActivity(i);
-            } catch (Exception e) {
-                Toast.makeText(this, "Wallet - Coming Soon", Toast.LENGTH_SHORT).show();
-            }
+            openWalletDialog();
         });
         menuContainer.addView(walletBox);
         LinearLayout walletLeft = new LinearLayout(this);
@@ -369,6 +364,16 @@ public class MeActivity extends AppCompatActivity {
         ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         cm.setPrimaryClip(ClipData.newPlainText("ID", my9DigitId));
         Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
+    }
+
+    // PERMANENT FIX: Wallet ekhon ager WalletRechargeDialog ke khulbe. WalletActivity name e kono file nai, tai oita ke ar khujbe na. Notun file lagbe na.
+    private void openWalletDialog() {
+        try {
+            WalletRechargeDialog dialog = new WalletRechargeDialog();
+            dialog.show(getSupportFragmentManager(), "WalletRechargeDialog");
+        } catch (Exception e) {
+            Toast.makeText(this, "Wallet - Coming Soon", Toast.LENGTH_SHORT).show();
+        }
     }
 
     // Recharge visible but LOCKED - user must buy from Super Admin / Reseller only
