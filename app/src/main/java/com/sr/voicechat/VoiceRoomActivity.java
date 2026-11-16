@@ -157,8 +157,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             else { byte[] bytes = Base64.decode(url.trim(), Base64.DEFAULT); Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length); if (bmp != null) iv.setImageBitmap(bmp); else iv.setVisibility(View.GONE); }
         } catch (Exception e) { iv.setVisibility(View.GONE); }
     }
-
-    // ===== 3 FREE THEME - SR VOICE CHAT ROOM =====
     private String getThemeUrl(String theme) {
         if ("Desert Sunset".equals(theme)) return "https://images.pexels.com/photos/1680140/pexels-photo-1680140.jpeg?auto=compress&cs=tinysrgb&w=1080";
         if ("Mosque Night".equals(theme)) return "https://images.pexels.com/photos/1537086/pexels-photo-1537086.jpeg?auto=compress&cs=tinysrgb&w=1080";
@@ -181,7 +179,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             if (thumb != null) { String u = getThemeUrl(selectedTheme); if (!u.isEmpty()) Glide.with(this).load(u).centerCrop().into(thumb); }
         }).setNegativeButton("Cancel", null).show();
     }
-
     private void setupSeats() {
         for (int i = 0; i < 10; i++) {
             int seatId = getResources().getIdentifier("seat_" + i, "id", getPackageName());
@@ -227,7 +224,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             if (uid == null || uid.isEmpty()) {
                 boolean locked = seatLocked.get(key) != null && seatLocked.get(key);
                 if (img != null) { img.setVisibility(View.GONE); img.setImageDrawable(null); }
-                letter.setVisibility(View.VISIBLE); letter.setText(locked ? "🔒" : "🪑");
+                letter.setVisibility(View.VISIBLE); letter.setText(locked ? "🔒" : "🛋️");
                 if (nameTv != null) nameTv.setText(i == 0 ? "Host" : (locked ? "Locked" : ""));
             } else {
                 String name = seatUserName.get(key); if (name == null) name = "User";
@@ -508,7 +505,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
     }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -668,7 +664,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (dialogRoomPhoto != null) loadRoomPhotoInto(dialogRoomPhoto);
         if (tvTheme != null) tvTheme.setText("Theme: " + selectedTheme);
         if (dialogRoomPhoto != null) dialogRoomPhoto.setOnClickListener(v -> pickRoomPhoto.launch("image/*"));
-        // New Theme Row + Counter + Label - sob null-check diye, puran XML thakleo crash korbe na
         View rowTheme = view.findViewById(R.id.layoutRoomThemeRow);
         ImageView thumb = view.findViewById(R.id.imgSelectedThemeThumb);
         TextView tvNameCount = view.findViewById(R.id.tvRoomNameCount);
@@ -702,7 +697,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         View btnCancel = view.findViewById(R.id.btnCancelRoomSet);
         if (btnCancel != null) btnCancel.setOnClickListener(v -> dialog.dismiss()); dialog.show();
     }
-
     @Override protected void onDestroy() {
         super.onDestroy();
         try { if (chatListener != null && chatQuery != null) chatQuery.removeEventListener(chatListener); } catch (Exception e) {}
