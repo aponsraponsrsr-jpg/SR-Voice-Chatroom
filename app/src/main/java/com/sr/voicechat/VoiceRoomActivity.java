@@ -601,7 +601,11 @@ public class VoiceRoomActivity extends AppCompatActivity {
     }
     private void openOnlineList() {
         BottomSheetDialog d = new BottomSheetDialog(this); View v = LayoutInflater.from(this).inflate(R.layout.dialog_online_list, null); d.setContentView(v);
-        RecyclerView rv = v.findViewById(R.id.rvOnlineList); rv.setLayoutManager(new LinearLayoutManager(this)); List> list = new ArrayList<>();
+        RecyclerView rv = v.findViewById(R.id.rvOnlineList); rv.setLayoutManager(new LinearLayoutManager(this)); 
+        
+        // 🌟 এখানে list ভেরিয়েবলটি সঠিকভাবে ডিক্লেয়ার ও ইনিশিয়ালাইজ করে দেওয়া হলো যার কারণে এরর আসছিল
+        List> list = new ArrayList<>();
+        
         RecyclerView.Adapter adapter = new RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             @NonNull @Override public RecyclerView.ViewHolder onCreateViewHolder(@NonNull android.view.ViewGroup p, int t) { View item = LayoutInflater.from(p.getContext()).inflate(R.layout.item_user, p, false); return new RecyclerView.ViewHolder(item) {}; }
             @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder h, int pos) {
