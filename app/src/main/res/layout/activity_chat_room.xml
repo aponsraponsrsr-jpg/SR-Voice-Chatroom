@@ -14,7 +14,19 @@
         android:textStyle="bold"
         android:textColor="#FFFFFF"
         android:gravity="center"
-        android:layout_marginBottom="20dp"/>
+        android:layout_marginBottom="8dp"/>
+
+    <!-- Gift Coin Show - Java ei TextView ke khujtechilo, age chilo na -->
+    <TextView
+        android:id="@+id/txtSeatShow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textColor="#FFD700"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginBottom="12dp"/>
 
     <GridLayout
         android:id="@+id/seatGrid"
@@ -25,7 +37,7 @@
         android:rowCount="2"
         android:alignmentMode="alignMargins"/>
 
-    <!-- Nicher Bar - Mic + Game -->
+    <!-- Nicher Bar - Mic + Game + Gift -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -46,6 +58,14 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:text="🎮 Game"
+            android:layout_marginStart="12dp" />
+
+        <Button
+            android:id="@+id/btnGift"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="🎁 Gift"
             android:layout_marginStart="12dp" />
 
     </LinearLayout>
