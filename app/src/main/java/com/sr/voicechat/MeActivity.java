@@ -261,7 +261,7 @@ public class MeActivity extends AppCompatActivity {
         vipBox.setLayoutParams(vipLp);
         vipRow.addView(vipBox);
 
-        // RECHARGE - VISIBLE BUT LOCKED - NO ONLINE RECHARGE
+        // RECHARGE - OPENS PREMIUM RECHARGE POPUP - NO SMALL TEXT POPUP
         LinearLayout rechargeBox = makeBigCard("🎁 Recharge", "Top up >", "#FF6D00", Color.WHITE);
         rechargeBox.setOnClickListener(v -> showRechargeLocked());
         LinearLayout.LayoutParams recLp = new LinearLayout.LayoutParams(0, 180, 1);
@@ -366,7 +366,7 @@ public class MeActivity extends AppCompatActivity {
         Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
     }
 
-    // PERMANENT FIX: Wallet ekhon ager WalletRechargeDialog ke khulbe. WalletActivity name e kono file nai, tai oita ke ar khujbe na. Notun file lagbe na.
+    // PERMANENT FIX: Wallet opens Premium WalletRechargeDialog. No WalletActivity needed.
     private void openWalletDialog() {
         try {
             WalletRechargeDialog dialog = new WalletRechargeDialog();
@@ -376,13 +376,16 @@ public class MeActivity extends AppCompatActivity {
         }
     }
 
-    // Recharge visible but LOCKED - user must buy from Super Admin / Reseller only
+    // PERMANENT FIX: Recharge opens SAME Premium Popup as Wallet.
+    // No small text popup, No Bangla, No Online Payment.
+    // Inside popup: 5 packages, Select, Charge -> Contact Seller / Coming Soon
     private void showRechargeLocked() {
-        new AlertDialog.Builder(this)
-            .setTitle("🎁 Recharge")
-            .setMessage("Online Recharge is currently OFF.\n\nCoins nite hole Super Admin / Reseller er kache jan.\n\n100000 = USD 0.99\n500000 = USD 4.99\n1000000 = USD 9.99")
-            .setPositiveButton("OK", null)
-            .show();
+        try {
+            WalletRechargeDialog dialog = new WalletRechargeDialog();
+            dialog.show(getSupportFragmentManager(), "WalletRechargeDialog");
+        } catch (Exception e) {
+            Toast.makeText(this, "Recharge - Coming Soon", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override protected void onDestroy() {
@@ -522,7 +525,7 @@ public class MeActivity extends AppCompatActivity {
     private void showCountDialog(String type, String count) {
         new AlertDialog.Builder(this)
             .setTitle(type + " - " + count)
-            .setMessage("Apnar " + type + " list ekhane asbe.\n\nEita sudhu apni dekhte parben.")
+            .setMessage("Your " + type + " list will appear here.\n\nOnly you can see this.")
             .setPositiveButton("OK", null)
             .show();
     }
