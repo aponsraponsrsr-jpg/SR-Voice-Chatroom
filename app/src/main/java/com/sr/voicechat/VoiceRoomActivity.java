@@ -6,15 +6,20 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.OnBackPressedCallback;
@@ -299,7 +304,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         BottomSheetDialog d = new BottomSheetDialog(this);
         View v = LayoutInflater.from(this).inflate(R.layout.dialog_online_list, null); d.setContentView(v);
         RecyclerView rv = v.findViewById(R.id.rvOnlineList); if (rv != null) rv.setLayoutManager(new LinearLayoutManager(this));
-        List<Map<String, String>> list = new ArrayList<>();
+        List> list = new ArrayList<>();
         RecyclerView.Adapter adapter = new RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             @NonNull @Override public RecyclerView.ViewHolder onCreateViewHolder(@NonNull android.view.ViewGroup p, int t) { View item = LayoutInflater.from(p.getContext()).inflate(R.layout.item_user, p, false); return new RecyclerView.ViewHolder(item) {}; }
             @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder h, int pos) {
@@ -466,7 +471,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (rewardBanner != null) rewardBanner.setOnClickListener(x -> openRewardEvent());
         if (rvMembers != null) {
             rvMembers.setLayoutManager(new LinearLayoutManager(this));
-            List<Map<String, String>> members = new ArrayList<>();
+            List> members = new ArrayList<>();
             RecyclerView.Adapter adapter = new RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 @NonNull @Override public RecyclerView.ViewHolder onCreateViewHolder(@NonNull android.view.ViewGroup p, int t) { View item = LayoutInflater.from(p.getContext()).inflate(R.layout.item_user, p, false); return new RecyclerView.ViewHolder(item) {}; }
                 @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder h, int pos) { Map<String, String> u = members.get(pos); ImageView iv = h.itemView.findViewById(R.id.imgChatPhoto); TextView tvH = h.itemView.findViewById(R.id.userName); TextView tvM = h.itemView.findViewById(R.id.tvChatMsg); loadPhotoInto(iv, u.get("photo")); if (tvH != null) tvH.setText(u.get("name") + "  Lv." + u.get("level")); if (tvM != null) tvM.setText("ID: " + u.get("id") + "  " + u.get("role")); }
@@ -474,7 +479,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             };
             rvMembers.setAdapter(adapter);
             activeRoomRef.child("online_users").addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override public void onDataChange(@NonNull DataSnapshot snap) { members.clear(); List<Map<String, String>> temp = new ArrayList<>(); for (DataSnapshot c : snap.getChildren()) { Map<String, String> m = new HashMap<>(); m.put("name", c.child("name").getValue(String.class) == null ? "User" : c.child("name").getValue(String.class)); String ph = c.child("photo").getValue(String.class); if (ph == null || ph.isEmpty()) ph = c.child("photoUrl").getValue(String.class); m.put("photo", ph == null ? "" : ph); Object lvl = c.child("level").getValue(); m.put("level", lvl == null ? "0" : String.valueOf(lvl)); m.put("id", c.getKey()); m.put("role", "Member"); temp.add(m); } for (Map<String, String> m : temp) if (m.get("id").equals(roomOwnerId)) { m.put("role", "Owner"); members.add(m); } activeRoomRef.child("admins").addListenerForSingleValueEvent(new ValueEventListener() { @Override public void onDataChange(@NonNull DataSnapshot aSnap) { for (Map<String, String> m : temp) { if (!m.get("id").equals(roomOwnerId) && aSnap.hasChild(m.get("id"))) { m.put("role", "Admin"); members.add(m); } } for (Map<String, String> m : temp) { if (!m.get("id").equals(roomOwnerId) && !aSnap.hasChild(m.get("id"))) members.add(m); } if (tvMembersCount != null) tvMembersCount.setText("Members: " + members.size() + "/1000    Admin: " + aSnap.getChildrenCount() + "/20"); adapter.notifyDataSetChanged(); } @Override public void onCancelled(@NonNull DatabaseError e) {} }); }
+                @Override public void onDataChange(@NonNull DataSnapshot snap) { members.clear(); List> temp = new ArrayList<>(); for (DataSnapshot c : snap.getChildren()) { Map<String, String> m = new HashMap<>(); m.put("name", c.child("name").getValue(String.class) == null ? "User" : c.child("name").getValue(String.class)); String ph = c.child("photo").getValue(String.class); if (ph == null || ph.isEmpty()) ph = c.child("photoUrl").getValue(String.class); m.put("photo", ph == null ? "" : ph); Object lvl = c.child("level").getValue(); m.put("level", lvl == null ? "0" : String.valueOf(lvl)); m.put("id", c.getKey()); m.put("role", "Member"); temp.add(m); } for (Map<String, String> m : temp) if (m.get("id").equals(roomOwnerId)) { m.put("role", "Owner"); members.add(m); } activeRoomRef.child("admins").addListenerForSingleValueEvent(new ValueEventListener() { @Override public void onDataChange(@NonNull DataSnapshot aSnap) { for (Map<String, String> m : temp) { if (!m.get("id").equals(roomOwnerId) && aSnap.hasChild(m.get("id"))) { m.put("role", "Admin"); members.add(m); } } for (Map<String, String> m : temp) { if (!m.get("id").equals(roomOwnerId) && !aSnap.hasChild(m.get("id"))) members.add(m); } if (tvMembersCount != null) tvMembersCount.setText("Members: " + members.size() + "/1000    Admin: " + aSnap.getChildrenCount() + "/20"); adapter.notifyDataSetChanged(); } @Override public void onCancelled(@NonNull DatabaseError e) {} }); }
                 @Override public void onCancelled(@NonNull DatabaseError e) {}
             });
         }
@@ -546,8 +551,10 @@ public class VoiceRoomActivity extends AppCompatActivity {
         View btnOnlineList = findViewById(R.id.btnOnlineList); if (btnOnlineList != null) btnOnlineList.setOnClickListener(v -> openOnlineList());
         View tvOnlineCount = findViewById(R.id.textOnlineCount); if (tvOnlineCount != null) tvOnlineCount.setOnClickListener(v -> openOnlineList());
         View btnRoomTools = findViewById(R.id.btnRoomTools); if (btnRoomTools != null) btnRoomTools.setOnClickListener(v -> openPremiumSettings());
-        // GAME ICON - Room er vitore - Age chilona, ekhon add kora holo
+        
+        // GAME ICON - Room er vitore
         View btnGame = findViewById(R.id.btnGame); if (btnGame != null) btnGame.setOnClickListener(v -> openGameList());
+        
         if (btnRoomSet != null) btnRoomSet.setOnClickListener(v -> openRoomSetDialog());
         ImageButton btnPower = findViewById(R.id.btnPower); if (btnPower != null) btnPower.setOnClickListener(v -> showPowerMenu());
         listenChatRealtime(); listenOnlineCount();
@@ -594,7 +601,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     }
     private void openOnlineList() {
         BottomSheetDialog d = new BottomSheetDialog(this); View v = LayoutInflater.from(this).inflate(R.layout.dialog_online_list, null); d.setContentView(v);
-        RecyclerView rv = v.findViewById(R.id.rvOnlineList); rv.setLayoutManager(new LinearLayoutManager(this)); List<Map<String, String>> list = new ArrayList<>();
+        RecyclerView rv = v.findViewById(R.id.rvOnlineList); rv.setLayoutManager(new LinearLayoutManager(this)); List> list = new ArrayList<>();
         RecyclerView.Adapter adapter = new RecyclerView.Adapter<RecyclerView.ViewHolder>() {
             @NonNull @Override public RecyclerView.ViewHolder onCreateViewHolder(@NonNull android.view.ViewGroup p, int t) { View item = LayoutInflater.from(p.getContext()).inflate(R.layout.item_user, p, false); return new RecyclerView.ViewHolder(item) {}; }
             @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder h, int pos) {
@@ -699,31 +706,48 @@ public class VoiceRoomActivity extends AppCompatActivity {
         View btnCancel = view.findViewById(R.id.btnCancelRoomSet);
         if (btnCancel != null) btnCancel.setOnClickListener(v -> dialog.dismiss()); dialog.show();
     }
-    // ===== GAME LIST - Room er vitore Game Icon e click korle khulbe =====
+
+    // ===== 🌟 প্রিমিয়াম গেম সেন্টার পপআপ (Fruit Party & Lucky Games) =====
     private void openGameList() {
         BottomSheetDialog d = new BottomSheetDialog(this);
-        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
-        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
-        layout.setPadding(40, 40, 40, 40);
-        layout.setBackgroundColor(0xFF1A1333);
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(48, 48, 48, 48);
+        layout.setBackgroundColor(Color.parseColor("#1A1333")); // প্রিমিয়াম ডার্ক থিম
+
         TextView title = new TextView(this);
-        title.setText("🎮 Game Center");
-        title.setTextSize(20);
-        title.setTextColor(0xFFFFFFFF);
+        title.setText("🍓 Lucky Fruit Party");
+        title.setTextSize(22);
+        title.setTextColor(Color.parseColor("#FFFFFF"));
         title.setTypeface(null, android.graphics.Typeface.BOLD);
-        title.setGravity(android.view.Gravity.CENTER);
+        title.setGravity(Gravity.CENTER);
         layout.addView(title);
+
         TextView sub = new TextView(this);
-        sub.setText("Room theke ber na hoye khelun");
-        sub.setTextColor(0xFFAAAAAA);
-        sub.setGravity(android.view.Gravity.CENTER);
-        sub.setPadding(0, 8, 0, 24);
+        sub.setText("রিয়েল কয়েন ট্রানজ্যাকশন ও প্রিমিয়াম গেমস");
+        sub.setTextSize(13);
+        sub.setTextColor(Color.parseColor("#FFD700"));
+        sub.setGravity(Gravity.CENTER);
+        sub.setPadding(0, 8, 0, 32);
         layout.addView(sub);
+
+        // ফ্রুট পার্টি গেম ওপেন করার প্রিমিয়াম বাটন
         Button btnFruit = new Button(this);
-        btnFruit.setText("🍓 Fruit Party  •  LIVE");
-        btnFruit.setTextSize(16);
-        btnFruit.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFFF4081));
-        btnFruit.setTextColor(0xFFFFFFFF);
+        btnFruit.setText("🍇 Fruit Party (Lucky Spin) • LIVE");
+        btnFruit.setTextSize(15);
+        btnFruit.setAllCaps(false);
+        btnFruit.setTypeface(null, android.graphics.Typeface.BOLD);
+        btnFruit.setTextColor(Color.WHITE);
+        GradientDrawable btnBg = new GradientDrawable(
+            GradientDrawable.Orientation.LEFT_RIGHT,
+            new int[]{Color.parseColor("#FF4081"), Color.parseColor("#FF6F00")}
+        );
+        btnBg.setCornerRadius(40);
+        btnFruit.setBackground(btnBg);
+        LinearLayout.LayoutParams btnParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 130);
+        btnParams.setMargins(0, 0, 0, 20);
+        btnFruit.setLayoutParams(btnParams);
+
         btnFruit.setOnClickListener(v -> {
             d.dismiss();
             try {
@@ -731,30 +755,42 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 intent.putExtra("ROOM_ID", roomId);
                 intent.putExtra("ROOM_OWNER_ID", roomOwnerId);
                 startActivity(intent);
-            } catch (Exception e) { Toast.makeText(this, "Fruit Party - Coming Soon, Activity add koro", Toast.LENGTH_SHORT).show(); }
+            } catch (Exception e) {
+                Toast.makeText(this, "FruitPartyActivity তৈরি করা আছে কি না চেক করুন!", Toast.LENGTH_LONG).show();
+            }
         });
         layout.addView(btnFruit);
+
+        // অন্যান্য প্রিমিয়াম গেম অপশন (শীঘ্রই আসছে)
         Button btnLudo = new Button(this);
-        btnLudo.setText("🎲 Ludo  •  Coming Soon");
-        btnLudo.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF2A1B4E));
-        btnLudo.setTextColor(0xFFFFFFFF);
+        btnLudo.setText("🎲 Ludo & Racing • Coming Soon");
+        btnLudo.setTextSize(14);
+        btnLudo.setAllCaps(false);
+        btnLudo.setTextColor(Color.parseColor("#DDDDDD"));
+        btnLudo.setBackgroundColor(Color.parseColor("#2A1B4E"));
+        LinearLayout.LayoutParams ludoParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 120);
+        ludoParams.setMargins(0, 0, 0, 20);
+        btnLudo.setLayoutParams(ludoParams);
         btnLudo.setOnClickListener(v -> Toast.makeText(this, "Ludo Coming Soon!", Toast.LENGTH_SHORT).show());
         layout.addView(btnLudo);
-        Button btnWheel = new Button(this);
-        btnWheel.setText("🎡 Lucky Wheel  •  Coming Soon");
-        btnWheel.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF2A1B4E));
-        btnWheel.setTextColor(0xFFFFFFFF);
-        btnWheel.setOnClickListener(v -> Toast.makeText(this, "Lucky Wheel Coming Soon!", Toast.LENGTH_SHORT).show());
-        layout.addView(btnWheel);
+
+        // ক্লোজ বাটন
         Button btnClose = new Button(this);
         btnClose.setText("Close");
-        btnClose.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF444444));
-        btnClose.setTextColor(0xFFFFFFFF);
+        btnClose.setTextSize(15);
+        btnClose.setAllCaps(false);
+        btnClose.setTextColor(Color.parseColor("#CCCCCC"));
+        btnClose.setBackgroundColor(Color.parseColor("#333333"));
+        LinearLayout.LayoutParams closeParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 120);
+        closeParams.setMargins(0, 10, 0, 0);
+        btnClose.setLayoutParams(closeParams);
         btnClose.setOnClickListener(v -> d.dismiss());
         layout.addView(btnClose);
+
         d.setContentView(layout);
         d.show();
     }
+
     @Override protected void onDestroy() {
         super.onDestroy();
         try { if (chatListener != null && chatQuery != null) chatQuery.removeEventListener(chatListener); } catch (Exception e) {}
