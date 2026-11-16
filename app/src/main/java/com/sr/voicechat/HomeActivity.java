@@ -28,7 +28,7 @@ import java.util.ArrayList;
 public class HomeActivity extends AppCompatActivity {
     private TextView btnPlus;
     private ImageView btnSearchRoom, btnCreateRoomTop;
-    private Button btnHomeTab, btnMomentTab, btnInboxTab, btnMeTab;
+    private Button btnHomeTab, btnMomentTab, btnGameTab, btnInboxTab, btnMeTab;
     private GridView roomGridView;
     private ArrayList<RoomModel> roomModelList;
     private RoomGridAdapter roomGridAdapter;
@@ -53,6 +53,7 @@ public class HomeActivity extends AppCompatActivity {
         btnCreateRoomTop = findViewById(R.id.btnCreateRoomTop);
         btnHomeTab = findViewById(R.id.btnHomeTab);
         btnMomentTab = findViewById(R.id.btnMomentTab);
+        btnGameTab = findViewById(R.id.btnGameTab);
         btnInboxTab = findViewById(R.id.btnInboxTab);
         btnMeTab = findViewById(R.id.btnMeTab);
         roomGridView = findViewById(R.id.roomGridView);
@@ -60,7 +61,6 @@ public class HomeActivity extends AppCompatActivity {
         roomGridAdapter = new RoomGridAdapter(this, roomModelList);
         if (roomGridView != null) roomGridView.setAdapter(roomGridAdapter);
 
-        // FIX - Android 13/14 te RECEIVER_NOT_EXPORTED na dile Home khultei crash korto, eitai Login er por ber kore dito
         try {
             IntentFilter filter = new IntentFilter("com.sr.voicechat.PROFILE_UPDATED");
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -89,7 +89,13 @@ public class HomeActivity extends AppCompatActivity {
         if (btnHomeTab != null) btnHomeTab.setOnClickListener(v -> Toast.makeText(this, "Home", Toast.LENGTH_SHORT).show());
         if (btnInboxTab != null) btnInboxTab.setOnClickListener(v -> { Intent intent = new Intent(HomeActivity.this, InboxActivity.class); startActivity(intent); });
         if (btnMeTab != null) btnMeTab.setOnClickListener(v -> { Intent intent = new Intent(HomeActivity.this, MeActivity.class); startActivity(intent); });
+        // Moment ager motoi thaklo - Permanent
         if (btnMomentTab != null) btnMomentTab.setOnClickListener(v -> Toast.makeText(this, "SR Moments Coming Soon!", Toast.LENGTH_SHORT).show());
+        // GAME - Permanent Button - Alada file e khulbe, Hack hobe na
+        if (btnGameTab != null) btnGameTab.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, FruitPartyActivity.class);
+            startActivity(intent);
+        });
     }
 
     @Override protected void onDestroy() {
