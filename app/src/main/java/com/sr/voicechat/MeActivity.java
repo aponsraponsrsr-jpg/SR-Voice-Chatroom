@@ -45,6 +45,12 @@ public class MeActivity extends AppCompatActivity {
     private DatabaseReference userRef;
     private String followCount = "0", fansCount = "0", visitorCount = "0";
 
+    // NEW: Agency / Host - Default GONE, Only Official Confirm hole show hobe
+    private LinearLayout agencyToolView = null;
+    private LinearLayout hostCenterRowView = null;
+    private boolean isAgencyActive = false;
+    private boolean isHostActive = false;
+
     private BroadcastReceiver profileReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             showFromPrefs();
@@ -96,8 +102,7 @@ public class MeActivity extends AppCompatActivity {
         cardAvatar.setUseCompatPadding(false);
         cardAvatar.setOnClickListener(v -> goProfile());
 
-        // NEW: Super Panel opens via Owner Gmail + Password - NOT via ID
-        // ID can change, Owner Login stays same. Only Owner knows this Long Press.
+        // Super Panel opens via Owner Gmail + Password - NOT via ID
         cardAvatar.setOnLongClickListener(v -> {
             startActivity(new Intent(MeActivity.this, SuperPanelLoginActivity.class));
             return true;
@@ -111,7 +116,6 @@ public class MeActivity extends AppCompatActivity {
         cardAvatar.addView(imgAvatar);
         topRow.addView(cardAvatar);
 
-        // NEW: Avatar Long Press also opens Owner Login
         imgAvatar.setOnLongClickListener(v -> {
             startActivity(new Intent(MeActivity.this, SuperPanelLoginActivity.class));
             return true;
@@ -165,7 +169,6 @@ public class MeActivity extends AppCompatActivity {
         btnProfileArrow.setOnClickListener(v -> goProfile());
         topRow.addView(btnProfileArrow);
 
-        // Copy ID Bar
         LinearLayout copyIdBar = new LinearLayout(this);
         copyIdBar.setOrientation(LinearLayout.HORIZONTAL);
         copyIdBar.setBackgroundColor(Color.parseColor("#140B26"));
@@ -179,7 +182,6 @@ public class MeActivity extends AppCompatActivity {
         copyIdBar.addView(tvCopyTitle);
         root.addView(copyIdBar);
 
-        // Count Row
         LinearLayout countRow = new LinearLayout(this);
         countRow.setOrientation(LinearLayout.HORIZONTAL);
         countRow.setGravity(Gravity.CENTER);
@@ -195,7 +197,7 @@ public class MeActivity extends AppCompatActivity {
         menuContainer.setPadding(20, 20, 20, 30);
         root.addView(menuContainer);
 
-        // ===== SVIP - BIG GOLDEN =====
+        // ===== SVIP =====
         LinearLayout svipBox = new LinearLayout(this);
         svipBox.setOrientation(LinearLayout.VERTICAL);
         svipBox.setPadding(30, 28, 30, 28);
@@ -220,7 +222,7 @@ public class MeActivity extends AppCompatActivity {
         svipT2.setTextSize(13);
         svipBox.addView(svipT2);
 
-        // ===== WALLET ROW - FIREBASE COINS - FIXED =====
+        // ===== WALLET =====
         LinearLayout walletBox = new LinearLayout(this);
         walletBox.setOrientation(LinearLayout.HORIZONTAL);
         walletBox.setGravity(Gravity.CENTER_VERTICAL);
@@ -232,9 +234,7 @@ public class MeActivity extends AppCompatActivity {
         LinearLayout.LayoutParams walletLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         walletLp.setMargins(0, 0, 0, 14);
         walletBox.setLayoutParams(walletLp);
-        walletBox.setOnClickListener(v -> {
-            openWalletDialog();
-        });
+        walletBox.setOnClickListener(v -> openWalletDialog());
         menuContainer.addView(walletBox);
         LinearLayout walletLeft = new LinearLayout(this);
         walletLeft.setOrientation(LinearLayout.VERTICAL);
@@ -259,7 +259,7 @@ public class MeActivity extends AppCompatActivity {
         walletArrow.setTypeface(null, Typeface.BOLD);
         walletBox.addView(walletArrow);
 
-        // ===== VIP & RECHARGE - BIG =====
+        // ===== VIP & RECHARGE =====
         LinearLayout vipRow = new LinearLayout(this);
         vipRow.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams vipRowLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -274,7 +274,6 @@ public class MeActivity extends AppCompatActivity {
         vipBox.setLayoutParams(vipLp);
         vipRow.addView(vipBox);
 
-        // RECHARGE - OPENS PREMIUM RECHARGE POPUP - NO SMALL TEXT POPUP
         LinearLayout rechargeBox = makeBigCard("🎁 Recharge", "Top up >", "#FF6D00", Color.WHITE);
         rechargeBox.setOnClickListener(v -> showRechargeLocked());
         LinearLayout.LayoutParams recLp = new LinearLayout.LayoutParams(0, 180, 1);
@@ -307,8 +306,10 @@ public class MeActivity extends AppCompatActivity {
         addToolItem(toolsRow, "👗", "Dress");
         addToolItem(toolsRow, "🎂", "Birthday");
         addToolItem(toolsRow, "📊", "Level");
-        // NEW: Agency Tool - Opens YOUR OLD AgencyDashboardActivity
-        addToolItem(toolsRow, "🏛️", "Agency", v -> openAgency());
+
+        // FIXED: Agency Tool - Shurute LUKANO, Official Agency holei Automatic asbe, thik ei jaygate
+        agencyToolView = addToolItem(toolsRow, "🏛️", "Agency", v -> openAgency());
+        if (agencyToolView != null) agencyToolView.setVisibility(View.GONE);
 
         TextView serviceTitle = new TextView(this);
         serviceTitle.setText("My Services");
@@ -329,10 +330,13 @@ public class MeActivity extends AppCompatActivity {
         addMenuRow(listBox, "👥 Invite Friend");
         addMenuRow(listBox, "🏅 Medal");
         addMenuRow(listBox, "👨‍👩‍👧 Family");
-        addMenuRow(listBox, "🎤 Host Center");
+
+        // FIXED: Host Center - Shurute LUKANO, Official Host holei Automatic asbe, thik ei jaygate
+        hostCenterRowView = addMenuRow(listBox, "🎤 Host Center", v -> openHostCenter());
+        if (hostCenterRowView != null) hostCenterRowView.setVisibility(View.GONE);
+
         addMenuRow(listBox, "📅 Daily Tasks");
         addMenuRow(listBox, "⚙️ Setting");
-        // NOTE: Reseller option intentionally NOT shown here. Only Super Admin creates Reseller from Admin Panel.
 
         LinearLayout logoutLayout = new LinearLayout(this);
         logoutLayout.setOrientation(LinearLayout.HORIZONTAL);
@@ -371,6 +375,7 @@ public class MeActivity extends AppCompatActivity {
             }
         } catch (Exception ignored) {}
         showFromPrefs();
+        applyRoleVisibility();
         loadMeData();
     }
 
@@ -381,9 +386,12 @@ public class MeActivity extends AppCompatActivity {
         Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
     }
 
-    // NEW: Agency Icon - Opens YOUR OLD Dashboard with Intent Extras
-    // Your Dashboard needs AGENCY_OWNER_ID = FirebaseUID, AGENCY_NAME
+    // FIXED: Agency - Sudhu Official Agency holei khulbe, nahole khulbe na
     private void openAgency() {
+        if (!isAgencyActive) {
+            Toast.makeText(this, "You are not an Agency yet", Toast.LENGTH_SHORT).show();
+            return;
+        }
         String uid = firebaseUid;
         if (uid.isEmpty()) {
             FirebaseUser fu = FirebaseAuth.getInstance().getCurrentUser();
@@ -396,7 +404,31 @@ public class MeActivity extends AppCompatActivity {
         startActivity(i);
     }
 
-    // PERMANENT FIX: Wallet opens Premium WalletRechargeDialog. No WalletActivity needed.
+    // NEW: Host Center - Sudhu Official Host holei khulbe
+    private void openHostCenter() {
+        if (!isHostActive) {
+            Toast.makeText(this, "You are not a Host yet", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        try {
+            Intent i = new Intent(this, HostPolicyActivity.class);
+            startActivity(i);
+        } catch (Exception e) {
+            Toast.makeText(this, "Host Center - Coming Soon", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    // NEW: Role onujayi Agency / Host dekhao ba lukao - Thik oi jaygatei asbe
+    private void applyRoleVisibility() {
+        boolean showAgency = prefs.getBoolean("IS_AGENCY", false) && prefs.getBoolean("AGENCY_ACTIVE", false);
+        boolean showHost = prefs.getBoolean("IS_HOST", false) && prefs.getBoolean("HOST_ACTIVE", false);
+        isAgencyActive = showAgency;
+        isHostActive = showHost;
+        if (agencyToolView != null) agencyToolView.setVisibility(showAgency ? View.VISIBLE : View.GONE);
+        if (hostCenterRowView != null) hostCenterRowView.setVisibility(showHost ? View.VISIBLE : View.GONE);
+        if (txtGenderCountry != null) txtGenderCountry.setText(getGenderCountryText());
+    }
+
     private void openWalletDialog() {
         try {
             WalletRechargeDialog dialog = new WalletRechargeDialog();
@@ -406,9 +438,6 @@ public class MeActivity extends AppCompatActivity {
         }
     }
 
-    // PERMANENT FIX: Recharge opens SAME Premium Popup as Wallet.
-    // No small text popup, No Bangla, No Online Payment.
-    // Inside popup: 5 packages, Select, Charge -> Contact Seller / Coming Soon
     private void showRechargeLocked() {
         try {
             WalletRechargeDialog dialog = new WalletRechargeDialog();
@@ -469,42 +498,11 @@ public class MeActivity extends AppCompatActivity {
         return box;
     }
 
-    private LinearLayout makeSmallCard(String title, String sub, String bgColor) {
-        return makeBigCard(title, sub, bgColor, Color.WHITE);
+    private LinearLayout addToolItem(LinearLayout parent, String icon, String label) {
+        return addToolItem(parent, icon, label, v -> Toast.makeText(this, label + " - Coming Soon", Toast.LENGTH_SHORT).show());
     }
 
-    private void addMenuCard(LinearLayout parent, String title, String sub, Runnable onClick) {
-        LinearLayout box = new LinearLayout(this);
-        box.setOrientation(LinearLayout.VERTICAL);
-        box.setPadding(25, 20, 25, 20);
-        GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.parseColor("#2A1B4E"));
-        bg.setCornerRadius(20);
-        box.setBackground(bg);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        lp.setMargins(0, 0, 0, 10);
-        box.setLayoutParams(lp);
-        box.setOnClickListener(v -> onClick.run());
-        TextView t1 = new TextView(this);
-        t1.setText(title);
-        t1.setTextColor(Color.parseColor("#FFD700"));
-        t1.setTextSize(15);
-        t1.setTypeface(null, Typeface.BOLD);
-        box.addView(t1);
-        TextView t2 = new TextView(this);
-        t2.setText(sub);
-        t2.setTextColor(Color.parseColor("#B0BEC5"));
-        t2.setTextSize(12);
-        box.addView(t2);
-        parent.addView(box);
-    }
-
-    private void addToolItem(LinearLayout parent, String icon, String label) {
-        addToolItem(parent, icon, label, v -> Toast.makeText(this, label + " - Coming Soon", Toast.LENGTH_SHORT).show());
-    }
-
-    // NEW: Tool with custom click - for Agency
-    private void addToolItem(LinearLayout parent, String icon, String label, View.OnClickListener click) {
+    private LinearLayout addToolItem(LinearLayout parent, String icon, String label, View.OnClickListener click) {
         LinearLayout box = new LinearLayout(this);
         box.setOrientation(LinearLayout.VERTICAL);
         box.setGravity(Gravity.CENTER);
@@ -522,14 +520,19 @@ public class MeActivity extends AppCompatActivity {
         tv.setTextSize(12);
         tv.setGravity(Gravity.CENTER);
         box.addView(tv);
+        return box;
     }
 
-    private void addMenuRow(LinearLayout parent, String title) {
+    private LinearLayout addMenuRow(LinearLayout parent, String title) {
+        return addMenuRow(parent, title, v -> Toast.makeText(this, title + " - Coming Soon", Toast.LENGTH_SHORT).show());
+    }
+
+    private LinearLayout addMenuRow(LinearLayout parent, String title, View.OnClickListener click) {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
         row.setPadding(30, 26, 30, 26);
-        row.setOnClickListener(v -> Toast.makeText(this, title + " - Coming Soon", Toast.LENGTH_SHORT).show());
+        row.setOnClickListener(click);
         parent.addView(row);
         TextView t = new TextView(this);
         t.setText(title);
@@ -544,6 +547,7 @@ public class MeActivity extends AppCompatActivity {
         arrow.setTextSize(16);
         arrow.setTypeface(null, Typeface.BOLD);
         row.addView(arrow);
+        return row;
     }
 
     private void goProfile() {
@@ -573,8 +577,8 @@ public class MeActivity extends AppCompatActivity {
         else if (!c.isEmpty()) base = c;
         else if (!g.isEmpty()) base = g;
         else base = "Complete Your Profile";
-        // NEW: Agency Badge under ID - Auto shows if Agency
-        if (prefs.getBoolean("IS_AGENCY", false)) {
+        // Badge - Sudhu Official Agency holei dekhabe
+        if (prefs.getBoolean("IS_AGENCY", false) && prefs.getBoolean("AGENCY_ACTIVE", false)) {
             base = base + "  |  🏷️ AGENCY";
         }
         return base;
@@ -584,6 +588,7 @@ public class MeActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         showFromPrefs();
+        applyRoleVisibility();
         loadMeData();
     }
 
@@ -617,14 +622,28 @@ public class MeActivity extends AppCompatActivity {
                     visitorCount = getStr(snap, "visitorCount", "0");
                     String coins = getStr(snap, "coins", "0");
                     if (coins.isEmpty()) coins = getStr(snap, "walletCoins", "0");
-                    // NEW: Agency data from Firebase - for Badge + Dashboard
-                    boolean isAgency = false;
-                    if (snap.hasChild("isAgency") && snap.child("isAgency").getValue() != null) {
-                        Object o = snap.child("isAgency").getValue();
-                        isAgency = o instanceof Boolean ? (Boolean) o : "true".equalsIgnoreCase(String.valueOf(o));
-                    }
+
+                    // AGENCY / HOST - Database theke Official Check
+                    // Agency: isAgency=true + agencyStatus=active + role=agency
+                    // Host: isHost=true + hostStatus=active + role=host
+                    String role = getStr(snap, "role", "user").toLowerCase();
+                    boolean isAgency = getBool(snap, "isAgency", false);
+                    String agencyStatus = getStr(snap, "agencyStatus", "").toLowerCase();
                     String agencyName = getStr(snap, "agencyName", "SR Agency");
                     String agencyPercent = getStr(snap, "agencyPercent", "0");
+
+                    boolean isHost = getBool(snap, "isHost", false);
+                    String hostStatus = getStr(snap, "hostStatus", "").toLowerCase();
+                    String agencyIdForHost = getStr(snap, "agencyId", "");
+
+                    boolean agencyActive = isAgency && ("active".equals(agencyStatus) || "agency".equals(role));
+                    // Jodi purono data te sudhu isAgency=true thake, taholeo active dhora hobe na - status lagbe
+                    // Kintu purono Owner der jonno: jodi agencyStatus khali thake ar isAgency=true hoy, tahole active
+                    if (isAgency && agencyStatus.isEmpty() && "agency".equals(role)) agencyActive = true;
+                    if (isAgency && agencyStatus.isEmpty() && prefs.getBoolean("IS_AGENCY", false)) agencyActive = true;
+
+                    boolean hostActive = isHost && ("active".equals(hostStatus) || "host".equals(role));
+                    if (isHost && hostStatus.isEmpty() && "host".equals(role)) hostActive = true;
 
                     if (!id.isEmpty()) {
                         my9DigitId = id;
@@ -637,8 +656,13 @@ public class MeActivity extends AppCompatActivity {
                         .putString("USER_PHOTO", photo)
                         .putString("PROFILE_PHOTO", photo)
                         .putBoolean("IS_AGENCY", isAgency)
+                        .putBoolean("AGENCY_ACTIVE", agencyActive)
                         .putString("AGENCY_NAME", agencyName)
                         .putString("AGENCY_PERCENT", agencyPercent)
+                        .putBoolean("IS_HOST", isHost)
+                        .putBoolean("HOST_ACTIVE", hostActive)
+                        .putString("HOST_AGENCY_ID", agencyIdForHost)
+                        .putString("USER_ROLE", role)
                         .apply();
 
                     if (txtName != null) txtName.setText(name);
@@ -649,6 +673,7 @@ public class MeActivity extends AppCompatActivity {
                     if (txtVisitor != null) txtVisitor.setText(visitorCount);
                     if (txtWalletCoins != null) txtWalletCoins.setText("Coins: " + coins);
                     showPhoto(photo, imgAvatar);
+                    applyRoleVisibility();
                 } catch (Exception ignored) {}
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
@@ -679,6 +704,15 @@ public class MeActivity extends AppCompatActivity {
 
     private String getStr(DataSnapshot s, String k, String def) {
         if (s.hasChild(k) && s.child(k).getValue() != null) return String.valueOf(s.child(k).getValue());
+        return def;
+    }
+
+    private boolean getBool(DataSnapshot s, String k, boolean def) {
+        if (s.hasChild(k) && s.child(k).getValue() != null) {
+            Object o = s.child(k).getValue();
+            if (o instanceof Boolean) return (Boolean) o;
+            return "true".equalsIgnoreCase(String.valueOf(o));
+        }
         return def;
     }
 }
