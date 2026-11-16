@@ -38,7 +38,7 @@ import com.google.firebase.database.ValueEventListener;
 
 public class MeActivity extends AppCompatActivity {
     private ImageView imgAvatar;
-    private TextView txtName, txtId, txtGenderCountry, txtFollow, txtFans, txtVisitor;
+    private TextView txtName, txtId, txtGenderCountry, txtFollow, txtFans, txtVisitor, txtWalletCoins;
     private SharedPreferences prefs;
     private String firebaseUid = "";
     private String my9DigitId = "";
@@ -73,6 +73,7 @@ public class MeActivity extends AppCompatActivity {
         root.setOrientation(LinearLayout.VERTICAL);
         scroll.addView(root);
 
+        // ===== HEADER =====
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.VERTICAL);
         header.setPadding(30, 40, 30, 25);
@@ -85,19 +86,17 @@ public class MeActivity extends AppCompatActivity {
         header.addView(topRow);
 
         CardView cardAvatar = new CardView(this);
-        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(160, 160);
+        LinearLayout.LayoutParams cardParams = new LinearLayout.LayoutParams(170, 170);
         cardParams.setMargins(0, 0, 25, 0);
         cardAvatar.setLayoutParams(cardParams);
-        cardAvatar.setRadius(80);
-        cardAvatar.setCardElevation(4);
-        cardAvatar.setCardBackgroundColor(Color.TRANSPARENT);
-        // FIX - Charkona kona jate na thake
+        cardAvatar.setRadius(85);
+        cardAvatar.setCardElevation(10);
+        cardAvatar.setCardBackgroundColor(Color.parseColor("#FFD700"));
         cardAvatar.setPreventCornerOverlap(false);
         cardAvatar.setUseCompatPadding(false);
         cardAvatar.setOnClickListener(v -> goProfile());
 
         imgAvatar = new ImageView(this);
-        // FIX - Chobi ke Card er soman boro kore dilam, nahole vitore choto charkona hoye thakto
         imgAvatar.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         imgAvatar.setImageResource(android.R.drawable.ic_menu_my_calendar);
         imgAvatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
@@ -114,7 +113,7 @@ public class MeActivity extends AppCompatActivity {
         txtName = new TextView(this);
         txtName.setText(prefs.getString("USER_NAME", "User"));
         txtName.setTextColor(Color.WHITE);
-        txtName.setTextSize(18);
+        txtName.setTextSize(20);
         txtName.setTypeface(null, Typeface.BOLD);
         nameBox.addView(txtName);
 
@@ -125,8 +124,9 @@ public class MeActivity extends AppCompatActivity {
 
         txtId = new TextView(this);
         txtId.setText("ID: " + my9DigitId);
-        txtId.setTextColor(Color.parseColor("#00E676"));
-        txtId.setTextSize(13);
+        txtId.setTextColor(Color.parseColor("#FFD700"));
+        txtId.setTextSize(14);
+        txtId.setTypeface(null, Typeface.BOLD);
         idRow.addView(txtId);
 
         TextView txtCopy = new TextView(this);
@@ -134,12 +134,7 @@ public class MeActivity extends AppCompatActivity {
         txtCopy.setTextColor(Color.parseColor("#FFD700"));
         txtCopy.setTextSize(13);
         txtCopy.setTypeface(null, Typeface.BOLD);
-        txtCopy.setOnClickListener(v -> {
-            if (my9DigitId.isEmpty()) return;
-            ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-            cm.setPrimaryClip(ClipData.newPlainText("ID", my9DigitId));
-            Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
-        });
+        txtCopy.setOnClickListener(v -> copyId());
         idRow.addView(txtCopy);
 
         txtGenderCountry = new TextView(this);
@@ -150,23 +145,19 @@ public class MeActivity extends AppCompatActivity {
 
         TextView btnProfileArrow = new TextView(this);
         btnProfileArrow.setText(">");
-        btnProfileArrow.setTextSize(24);
+        btnProfileArrow.setTextSize(26);
         btnProfileArrow.setTypeface(null, Typeface.BOLD);
-        btnProfileArrow.setTextColor(Color.parseColor("#B0BEC5"));
+        btnProfileArrow.setTextColor(Color.parseColor("#FFD700"));
         btnProfileArrow.setPadding(20, 20, 20, 20);
         btnProfileArrow.setOnClickListener(v -> goProfile());
         topRow.addView(btnProfileArrow);
 
+        // Copy ID Bar
         LinearLayout copyIdBar = new LinearLayout(this);
         copyIdBar.setOrientation(LinearLayout.HORIZONTAL);
         copyIdBar.setBackgroundColor(Color.parseColor("#140B26"));
         copyIdBar.setPadding(30, 15, 30, 15);
-        copyIdBar.setOnClickListener(v -> {
-            if (my9DigitId.isEmpty()) return;
-            ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-            cm.setPrimaryClip(ClipData.newPlainText("ID", my9DigitId));
-            Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
-        });
+        copyIdBar.setOnClickListener(v -> copyId());
         TextView tvCopyTitle = new TextView(this);
         tvCopyTitle.setText("Copy ID");
         tvCopyTitle.setTextColor(Color.parseColor("#FFD700"));
@@ -175,13 +166,13 @@ public class MeActivity extends AppCompatActivity {
         copyIdBar.addView(tvCopyTitle);
         root.addView(copyIdBar);
 
+        // Count Row
         LinearLayout countRow = new LinearLayout(this);
         countRow.setOrientation(LinearLayout.HORIZONTAL);
         countRow.setGravity(Gravity.CENTER);
         countRow.setBackgroundColor(Color.parseColor("#1B1035"));
         countRow.setPadding(15, 20, 15, 20);
         root.addView(countRow);
-
         txtFollow = addCountItem(countRow, "0", "Follow", () -> showCountDialog("Follow", followCount));
         txtFans = addCountItem(countRow, "0", "Fans", () -> showCountDialog("Fans", fansCount));
         txtVisitor = addCountItem(countRow, "0", "Visitor", () -> showCountDialog("Visitor", visitorCount));
@@ -191,32 +182,101 @@ public class MeActivity extends AppCompatActivity {
         menuContainer.setPadding(20, 20, 20, 30);
         root.addView(menuContainer);
 
-        addMenuCard(menuContainer, "👑 SVIP Center", "Get SVIP and enjoy privileges", () -> Toast.makeText(this, "SVIP Locked - Coming Soon", Toast.LENGTH_SHORT).show());
-        
+        // ===== SVIP - BIG GOLDEN =====
+        LinearLayout svipBox = new LinearLayout(this);
+        svipBox.setOrientation(LinearLayout.VERTICAL);
+        svipBox.setPadding(30, 28, 30, 28);
+        GradientDrawable svipBg = new GradientDrawable();
+        svipBg.setColor(Color.parseColor("#FFD700"));
+        svipBg.setCornerRadius(24);
+        svipBox.setBackground(svipBg);
+        LinearLayout.LayoutParams svipLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        svipLp.setMargins(0, 0, 0, 14);
+        svipBox.setLayoutParams(svipLp);
+        svipBox.setOnClickListener(v -> Toast.makeText(this, "SVIP Locked - Coming Soon", Toast.LENGTH_SHORT).show());
+        menuContainer.addView(svipBox);
+        TextView svipT1 = new TextView(this);
+        svipT1.setText("👑 SVIP Center");
+        svipT1.setTextColor(Color.parseColor("#0A0518"));
+        svipT1.setTextSize(19);
+        svipT1.setTypeface(null, Typeface.BOLD);
+        svipBox.addView(svipT1);
+        TextView svipT2 = new TextView(this);
+        svipT2.setText("Get SVIP and enjoy privileges  >");
+        svipT2.setTextColor(Color.parseColor("#3A2A00"));
+        svipT2.setTextSize(13);
+        svipBox.addView(svipT2);
+
+        // ===== WALLET ROW - FIREBASE COINS =====
+        LinearLayout walletBox = new LinearLayout(this);
+        walletBox.setOrientation(LinearLayout.HORIZONTAL);
+        walletBox.setGravity(Gravity.CENTER_VERTICAL);
+        walletBox.setPadding(28, 24, 28, 24);
+        GradientDrawable walletBg = new GradientDrawable();
+        walletBg.setColor(Color.parseColor("#2A1B4E"));
+        walletBg.setCornerRadius(24);
+        walletBox.setBackground(walletBg);
+        LinearLayout.LayoutParams walletLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        walletLp.setMargins(0, 0, 0, 14);
+        walletBox.setLayoutParams(walletLp);
+        walletBox.setOnClickListener(v -> {
+            try {
+                Intent i = new Intent(MeActivity.this, WalletActivity.class);
+                startActivity(i);
+            } catch (Exception e) {
+                Toast.makeText(this, "Wallet - Coming Soon", Toast.LENGTH_SHORT).show();
+            }
+        });
+        menuContainer.addView(walletBox);
+        LinearLayout walletLeft = new LinearLayout(this);
+        walletLeft.setOrientation(LinearLayout.VERTICAL);
+        walletLeft.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        walletBox.addView(walletLeft);
+        TextView walletTitle = new TextView(this);
+        walletTitle.setText("💰 My Wallet");
+        walletTitle.setTextColor(Color.WHITE);
+        walletTitle.setTextSize(16);
+        walletTitle.setTypeface(null, Typeface.BOLD);
+        walletLeft.addView(walletTitle);
+        txtWalletCoins = new TextView(this);
+        txtWalletCoins.setText("Coins: 0");
+        txtWalletCoins.setTextColor(Color.parseColor("#FFD700"));
+        txtWalletCoins.setTextSize(14);
+        txtWalletCoins.setTypeface(null, Typeface.BOLD);
+        walletLeft.addView(txtWalletCoins);
+        TextView walletArrow = new TextView(this);
+        walletArrow.setText("View Bill  >");
+        walletArrow.setTextColor(Color.parseColor("#FFD700"));
+        walletArrow.setTextSize(13);
+        walletArrow.setTypeface(null, Typeface.BOLD);
+        walletBox.addView(walletArrow);
+
+        // ===== VIP & RECHARGE - BIG =====
         LinearLayout vipRow = new LinearLayout(this);
         vipRow.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams vipRowLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        vipRowLp.setMargins(0, 10, 0, 10);
+        vipRowLp.setMargins(0, 0, 0, 14);
         vipRow.setLayoutParams(vipRowLp);
         menuContainer.addView(vipRow);
 
-        LinearLayout vipBox = makeSmallCard("👑 VIP", "Check now >", "#2A1B4E");
+        LinearLayout vipBox = makeBigCard("👑 VIP", "Check now >", "#2A1B4E", Color.WHITE);
         vipBox.setOnClickListener(v -> Toast.makeText(this, "VIP - Coming Soon", Toast.LENGTH_SHORT).show());
-        LinearLayout.LayoutParams vipLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+        LinearLayout.LayoutParams vipLp = new LinearLayout.LayoutParams(0, 180, 1);
         vipLp.setMargins(0, 0, 10, 0);
         vipBox.setLayoutParams(vipLp);
         vipRow.addView(vipBox);
 
-        LinearLayout rechargeBox = makeSmallCard("🎁 Recharge", "Top up >", "#2A1B4E");
-        rechargeBox.setOnClickListener(v -> Toast.makeText(this, "Recharge - Coming Soon", Toast.LENGTH_SHORT).show());
-        LinearLayout.LayoutParams recLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1);
+        // RECHARGE - VISIBLE BUT LOCKED - NO ONLINE RECHARGE
+        LinearLayout rechargeBox = makeBigCard("🎁 Recharge", "Top up >", "#FF6D00", Color.WHITE);
+        rechargeBox.setOnClickListener(v -> showRechargeLocked());
+        LinearLayout.LayoutParams recLp = new LinearLayout.LayoutParams(0, 180, 1);
         recLp.setMargins(10, 0, 0, 0);
         rechargeBox.setLayoutParams(recLp);
         vipRow.addView(rechargeBox);
 
         TextView toolsTitle = new TextView(this);
         toolsTitle.setText("General Tools");
-        toolsTitle.setTextColor(Color.parseColor("#B0BEC5"));
+        toolsTitle.setTextColor(Color.parseColor("#FFD700"));
         toolsTitle.setTextSize(14);
         toolsTitle.setTypeface(null, Typeface.BOLD);
         toolsTitle.setPadding(10, 15, 10, 10);
@@ -226,55 +286,61 @@ public class MeActivity extends AppCompatActivity {
         toolsRow.setOrientation(LinearLayout.HORIZONTAL);
         toolsRow.setGravity(Gravity.CENTER);
         toolsRow.setBackgroundColor(Color.parseColor("#1B1035"));
-        toolsRow.setPadding(15, 20, 15, 20);
+        toolsRow.setPadding(15, 22, 15, 22);
+        GradientDrawable toolsBg = new GradientDrawable();
+        toolsBg.setColor(Color.parseColor("#1B1035"));
+        toolsBg.setCornerRadius(24);
+        toolsRow.setBackground(toolsBg);
         LinearLayout.LayoutParams toolsLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        toolsLp.setMargins(0, 0, 0, 15);
+        toolsLp.setMargins(0, 0, 0, 16);
         toolsRow.setLayoutParams(toolsLp);
         menuContainer.addView(toolsRow);
-
         addToolItem(toolsRow, "🛍️", "Store");
         addToolItem(toolsRow, "👗", "Dress");
         addToolItem(toolsRow, "🎂", "Birthday");
         addToolItem(toolsRow, "📊", "Level");
 
+        TextView serviceTitle = new TextView(this);
+        serviceTitle.setText("My Services");
+        serviceTitle.setTextColor(Color.parseColor("#FFD700"));
+        serviceTitle.setTextSize(14);
+        serviceTitle.setTypeface(null, Typeface.BOLD);
+        serviceTitle.setPadding(10, 5, 10, 10);
+        menuContainer.addView(serviceTitle);
+
         LinearLayout listBox = new LinearLayout(this);
         listBox.setOrientation(LinearLayout.VERTICAL);
-        listBox.setBackgroundColor(Color.parseColor("#1B1035"));
         GradientDrawable listBg = new GradientDrawable();
         listBg.setColor(Color.parseColor("#1B1035"));
-        listBg.setCornerRadius(20);
+        listBg.setCornerRadius(24);
         listBox.setBackground(listBg);
         menuContainer.addView(listBox);
-
-        addMenuRow(listBox, "🎁 Newbie mission");
+        addMenuRow(listBox, "🎯 Newbie Mission");
         addMenuRow(listBox, "👥 Invite Friend");
         addMenuRow(listBox, "🏅 Medal");
         addMenuRow(listBox, "👨‍👩‍👧 Family");
         addMenuRow(listBox, "🎤 Host Center");
         addMenuRow(listBox, "📅 Daily Tasks");
         addMenuRow(listBox, "⚙️ Setting");
+        // NOTE: Reseller option intentionally NOT shown here. Only Super Admin creates Reseller from Admin Panel.
 
         LinearLayout logoutLayout = new LinearLayout(this);
         logoutLayout.setOrientation(LinearLayout.HORIZONTAL);
         logoutLayout.setGravity(Gravity.CENTER);
-        logoutLayout.setBackgroundColor(Color.parseColor("#2A1B4E"));
-        logoutLayout.setPadding(20, 25, 20, 25);
+        logoutLayout.setPadding(20, 28, 20, 28);
         GradientDrawable logoutBg = new GradientDrawable();
         logoutBg.setColor(Color.parseColor("#2A1B4E"));
-        logoutBg.setCornerRadius(20);
+        logoutBg.setCornerRadius(24);
         logoutLayout.setBackground(logoutBg);
-        
         LinearLayout.LayoutParams logoutLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         logoutLp.setMargins(0, 25, 0, 40);
         logoutLayout.setLayoutParams(logoutLp);
-
         TextView btnLogout = new TextView(this);
         btnLogout.setText("🚪 Log Out");
         btnLogout.setTextColor(Color.parseColor("#FF4081"));
         btnLogout.setTextSize(16);
         btnLogout.setTypeface(null, Typeface.BOLD);
         logoutLayout.addView(btnLogout);
-
         logoutLayout.setOnClickListener(v -> {
             prefs.edit().putBoolean("IS_LOGGED_IN", false).apply();
             FirebaseAuth.getInstance().signOut();
@@ -298,6 +364,22 @@ public class MeActivity extends AppCompatActivity {
         loadMeData();
     }
 
+    private void copyId() {
+        if (my9DigitId.isEmpty()) return;
+        ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        cm.setPrimaryClip(ClipData.newPlainText("ID", my9DigitId));
+        Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
+    }
+
+    // Recharge visible but LOCKED - user must buy from Super Admin / Reseller only
+    private void showRechargeLocked() {
+        new AlertDialog.Builder(this)
+            .setTitle("🎁 Recharge")
+            .setMessage("Online Recharge is currently OFF.\n\nCoins nite hole Super Admin / Reseller er kache jan.\n\n100000 = USD 0.99\n500000 = USD 4.99\n1000000 = USD 9.99")
+            .setPositiveButton("OK", null)
+            .show();
+    }
+
     @Override protected void onDestroy() {
         super.onDestroy();
         try { unregisterReceiver(profileReceiver); } catch (Exception ignored) {}
@@ -313,7 +395,7 @@ public class MeActivity extends AppCompatActivity {
         TextView tvNum = new TextView(this);
         tvNum.setText(num);
         tvNum.setTextColor(Color.WHITE);
-        tvNum.setTextSize(16);
+        tvNum.setTextSize(18);
         tvNum.setTypeface(null, Typeface.BOLD);
         box.addView(tvNum);
         TextView tvLabel = new TextView(this);
@@ -324,26 +406,33 @@ public class MeActivity extends AppCompatActivity {
         return tvNum;
     }
 
-    private LinearLayout makeSmallCard(String title, String sub, String bgColor) {
+    private LinearLayout makeBigCard(String title, String sub, String bgColor, int titleColor) {
         LinearLayout box = new LinearLayout(this);
         box.setOrientation(LinearLayout.VERTICAL);
+        box.setGravity(Gravity.CENTER);
         box.setPadding(25, 20, 25, 20);
         GradientDrawable bg = new GradientDrawable();
         bg.setColor(Color.parseColor(bgColor));
-        bg.setCornerRadius(20);
+        bg.setCornerRadius(24);
         box.setBackground(bg);
         TextView t1 = new TextView(this);
         t1.setText(title);
-        t1.setTextColor(Color.WHITE);
-        t1.setTextSize(14);
+        t1.setTextColor(titleColor);
+        t1.setTextSize(17);
         t1.setTypeface(null, Typeface.BOLD);
+        t1.setGravity(Gravity.CENTER);
         box.addView(t1);
         TextView t2 = new TextView(this);
         t2.setText(sub);
-        t2.setTextColor(Color.parseColor("#B0BEC5"));
-        t2.setTextSize(11);
+        t2.setTextColor(Color.parseColor("#FFFFFF"));
+        t2.setTextSize(12);
+        t2.setGravity(Gravity.CENTER);
         box.addView(t2);
         return box;
+    }
+
+    private LinearLayout makeSmallCard(String title, String sub, String bgColor) {
+        return makeBigCard(title, sub, bgColor, Color.WHITE);
     }
 
     private void addMenuCard(LinearLayout parent, String title, String sub, Runnable onClick) {
@@ -358,14 +447,12 @@ public class MeActivity extends AppCompatActivity {
         lp.setMargins(0, 0, 0, 10);
         box.setLayoutParams(lp);
         box.setOnClickListener(v -> onClick.run());
-
         TextView t1 = new TextView(this);
         t1.setText(title);
         t1.setTextColor(Color.parseColor("#FFD700"));
         t1.setTextSize(15);
         t1.setTypeface(null, Typeface.BOLD);
         box.addView(t1);
-
         TextView t2 = new TextView(this);
         t2.setText(sub);
         t2.setTextColor(Color.parseColor("#B0BEC5"));
@@ -383,7 +470,7 @@ public class MeActivity extends AppCompatActivity {
         parent.addView(box);
         TextView iv = new TextView(this);
         iv.setText(icon);
-        iv.setTextSize(22);
+        iv.setTextSize(30);
         iv.setGravity(Gravity.CENTER);
         box.addView(iv);
         TextView tv = new TextView(this);
@@ -398,13 +485,14 @@ public class MeActivity extends AppCompatActivity {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(30, 25, 30, 25);
+        row.setPadding(30, 26, 30, 26);
         row.setOnClickListener(v -> Toast.makeText(this, title + " - Coming Soon", Toast.LENGTH_SHORT).show());
         parent.addView(row);
         TextView t = new TextView(this);
         t.setText(title);
         t.setTextColor(Color.WHITE);
-        t.setTextSize(14);
+        t.setTextSize(15);
+        t.setTypeface(null, Typeface.BOLD);
         t.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         row.addView(t);
         TextView arrow = new TextView(this);
@@ -478,6 +566,8 @@ public class MeActivity extends AppCompatActivity {
                     followCount = getStr(snap, "followCount", "0");
                     fansCount = getStr(snap, "fansCount", "0");
                     visitorCount = getStr(snap, "visitorCount", "0");
+                    String coins = getStr(snap, "coins", "0");
+                    if (coins.isEmpty()) coins = getStr(snap, "walletCoins", "0");
 
                     if (!id.isEmpty()) {
                         my9DigitId = id;
@@ -497,6 +587,7 @@ public class MeActivity extends AppCompatActivity {
                     if (txtFollow != null) txtFollow.setText(followCount);
                     if (txtFans != null) txtFans.setText(fansCount);
                     if (txtVisitor != null) txtVisitor.setText(visitorCount);
+                    if (txtWalletCoins != null) txtWalletCoins.setText("Coins: " + coins);
                     showPhoto(photo, imgAvatar);
                 } catch (Exception ignored) {}
             }
@@ -522,7 +613,6 @@ public class MeActivity extends AppCompatActivity {
             BitmapFactory.Options opt = new BitmapFactory.Options();
             opt.inSampleSize = 2;
             Bitmap b = BitmapFactory.decodeByteArray(bytes, 0, bytes.length, opt);
-            // FIX - Age setImageBitmap diye charkona dekhato, ekhon Glide diye Gol kore dekhabe
             if (b != null) Glide.with(this).load(b).circleCrop().into(iv);
         } catch (Exception ignored) {}
     }
