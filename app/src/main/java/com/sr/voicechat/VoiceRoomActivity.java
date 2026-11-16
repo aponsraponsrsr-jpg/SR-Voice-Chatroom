@@ -546,6 +546,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         View btnOnlineList = findViewById(R.id.btnOnlineList); if (btnOnlineList != null) btnOnlineList.setOnClickListener(v -> openOnlineList());
         View tvOnlineCount = findViewById(R.id.textOnlineCount); if (tvOnlineCount != null) tvOnlineCount.setOnClickListener(v -> openOnlineList());
         View btnRoomTools = findViewById(R.id.btnRoomTools); if (btnRoomTools != null) btnRoomTools.setOnClickListener(v -> openPremiumSettings());
+        // GAME ICON - Room er vitore - Age chilona, ekhon add kora holo
+        View btnGame = findViewById(R.id.btnGame); if (btnGame != null) btnGame.setOnClickListener(v -> openGameList());
         if (btnRoomSet != null) btnRoomSet.setOnClickListener(v -> openRoomSetDialog());
         ImageButton btnPower = findViewById(R.id.btnPower); if (btnPower != null) btnPower.setOnClickListener(v -> showPowerMenu());
         listenChatRealtime(); listenOnlineCount();
@@ -696,6 +698,62 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
         View btnCancel = view.findViewById(R.id.btnCancelRoomSet);
         if (btnCancel != null) btnCancel.setOnClickListener(v -> dialog.dismiss()); dialog.show();
+    }
+    // ===== GAME LIST - Room er vitore Game Icon e click korle khulbe =====
+    private void openGameList() {
+        BottomSheetDialog d = new BottomSheetDialog(this);
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        layout.setPadding(40, 40, 40, 40);
+        layout.setBackgroundColor(0xFF1A1333);
+        TextView title = new TextView(this);
+        title.setText("🎮 Game Center");
+        title.setTextSize(20);
+        title.setTextColor(0xFFFFFFFF);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
+        title.setGravity(android.view.Gravity.CENTER);
+        layout.addView(title);
+        TextView sub = new TextView(this);
+        sub.setText("Room theke ber na hoye khelun");
+        sub.setTextColor(0xFFAAAAAA);
+        sub.setGravity(android.view.Gravity.CENTER);
+        sub.setPadding(0, 8, 0, 24);
+        layout.addView(sub);
+        Button btnFruit = new Button(this);
+        btnFruit.setText("🍓 Fruit Party  •  LIVE");
+        btnFruit.setTextSize(16);
+        btnFruit.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFFF4081));
+        btnFruit.setTextColor(0xFFFFFFFF);
+        btnFruit.setOnClickListener(v -> {
+            d.dismiss();
+            try {
+                android.content.Intent intent = new android.content.Intent(VoiceRoomActivity.this, FruitPartyActivity.class);
+                intent.putExtra("ROOM_ID", roomId);
+                intent.putExtra("ROOM_OWNER_ID", roomOwnerId);
+                startActivity(intent);
+            } catch (Exception e) { Toast.makeText(this, "Fruit Party - Coming Soon, Activity add koro", Toast.LENGTH_SHORT).show(); }
+        });
+        layout.addView(btnFruit);
+        Button btnLudo = new Button(this);
+        btnLudo.setText("🎲 Ludo  •  Coming Soon");
+        btnLudo.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF2A1B4E));
+        btnLudo.setTextColor(0xFFFFFFFF);
+        btnLudo.setOnClickListener(v -> Toast.makeText(this, "Ludo Coming Soon!", Toast.LENGTH_SHORT).show());
+        layout.addView(btnLudo);
+        Button btnWheel = new Button(this);
+        btnWheel.setText("🎡 Lucky Wheel  •  Coming Soon");
+        btnWheel.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF2A1B4E));
+        btnWheel.setTextColor(0xFFFFFFFF);
+        btnWheel.setOnClickListener(v -> Toast.makeText(this, "Lucky Wheel Coming Soon!", Toast.LENGTH_SHORT).show());
+        layout.addView(btnWheel);
+        Button btnClose = new Button(this);
+        btnClose.setText("Close");
+        btnClose.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF444444));
+        btnClose.setTextColor(0xFFFFFFFF);
+        btnClose.setOnClickListener(v -> d.dismiss());
+        layout.addView(btnClose);
+        d.setContentView(layout);
+        d.show();
     }
     @Override protected void onDestroy() {
         super.onDestroy();
