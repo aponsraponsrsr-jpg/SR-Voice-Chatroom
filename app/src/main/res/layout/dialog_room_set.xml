@@ -1,19 +1,271 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
-        <ImageView android:id="@+id/imgRoomPhoto" android:layout_width="100dp" android:layout_height="100dp" android:layout_gravity="center" android:src="@android:drawable/ic_menu_gallery" />
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:text="Tap Photo to Change" android:textSize="12sp" />
-        <EditText android:id="@+id/etRoomName" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Room Name" android:layout_marginTop="12dp" />
-        <EditText android:id="@+id/etRoomAnnouncement" android:layout_width="match_parent" android:layout_height="wrap_content" android:hint="Announcement / Welcome" android:layout_marginTop="8dp" />
-        <TextView android:id="@+id/tvSelectedTheme" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Theme: Default" android:layout_marginTop="12dp" android:textStyle="bold" />
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="8dp">
-            <Button android:id="@+id/btnThemeDefault" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Default" />
-            <Button android:id="@+id/btnThemeGold" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Gold" />
-            <Button android:id="@+id/btnThemeNight" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Night" />
+    android:layout_height="wrap_content"
+    android:background="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- TOP - Room set Title + Background -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="180dp">
+
+            <ImageView
+                android:id="@+id/imgRoomSetBg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:background="#1A237E"
+                android:src="@android:drawable/ic_menu_gallery" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Room set"
+                android:textColor="#FFFFFF"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:layout_gravity="top|center_horizontal"
+                android:layout_marginTop="12dp" />
+
+            <!-- Room Photo - Gol, Majhkhane -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                app:cardCornerRadius="50dp"
+                app:cardElevation="4dp"
+                android:layout_gravity="center"
+                xmlns:app="http://schemas.android.com/apk/res-auto">
+                <ImageView
+                    android:id="@+id/imgRoomPhoto"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:src="@android:drawable/ic_menu_gallery" />
+            </androidx.cardview.widget.CardView>
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Room Name -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Room Name"
+                android:textColor="#000000"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/etRoomName"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="#F5F5F5"
+                android:padding="12dp"
+                android:hint="Room name (up to 20 words)"
+                android:textColor="#000000"
+                android:textSize="14sp"
+                android:maxLength="20"
+                android:layout_marginTop="6dp" />
+
+            <TextView
+                android:id="@+id/tvRoomNameCount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="0/20"
+                android:textColor="#999999"
+                android:textSize="12sp"
+                android:gravity="end"
+                android:layout_marginTop="2dp" />
+
+            <!-- Room Announcement -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Room announcement"
+                android:textColor="#000000"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginTop="12dp" />
+
+            <EditText
+                android:id="@+id/etRoomAnnouncement"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:background="#F5F5F5"
+                android:padding="12dp"
+                android:hint="Announcement"
+                android:textColor="#000000"
+                android:textSize="14sp"
+                android:maxLength="200"
+                android:gravity="top"
+                android:layout_marginTop="6dp" />
+
+            <TextView
+                android:id="@+id/tvRoomAnnounceCount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="0/200"
+                android:textColor="#999999"
+                android:textSize="12sp"
+                android:gravity="end"
+                android:layout_marginTop="2dp" />
+
+            <!-- Room Label -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Room label"
+                android:textColor="#000000"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:layout_marginTop="12dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+
+                <Button
+                    android:id="@+id/btnLabelFriends"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:text="Friends"
+                    android:textColor="#000000"
+                    android:textSize="13sp"
+                    android:backgroundTint="#FFC107"
+                    android:layout_marginEnd="6dp" />
+
+                <Button
+                    android:id="@+id/btnLabelGame"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:text="Game"
+                    android:textColor="#000000"
+                    android:textSize="13sp"
+                    android:backgroundTint="#E0E0E0"
+                    android:layout_marginEnd="6dp" />
+
+                <Button
+                    android:id="@+id/btnLabelMusic"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:text="Music"
+                    android:textColor="#000000"
+                    android:textSize="13sp"
+                    android:backgroundTint="#E0E0E0"
+                    android:layout_marginEnd="6dp" />
+
+                <Button
+                    android:id="@+id/btnLabelChat"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:text="Chat"
+                    android:textColor="#000000"
+                    android:textSize="13sp"
+                    android:backgroundTint="#E0E0E0" />
+            </LinearLayout>
+
+            <!-- Room Theme - Click korle Background Page khulbe -->
+            <LinearLayout
+                android:id="@+id/layoutRoomThemeRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="16dp"
+                android:padding="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Room theme"
+                    android:textColor="#000000"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:id="@+id/imgSelectedThemeThumb"
+                    android:layout_width="48dp"
+                    android:layout_height="32dp"
+                    android:scaleType="centerCrop"
+                    android:background="#FFE0B2" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="  >"
+                    android:textColor="#999999"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- Old Theme - Hidden rakha, Java er jonno - Default/Gold/Night -->
+            <TextView
+                android:id="@+id/tvSelectedTheme"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Theme: Default"
+                android:textSize="12sp"
+                android:textColor="#999999"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:visibility="gone">
+                <Button android:id="@+id/btnThemeDefault" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Default" />
+                <Button android:id="@+id/btnThemeGold" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Gold" />
+                <Button android:id="@+id/btnThemeNight" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Night" />
+            </LinearLayout>
+
+            <!-- Tap Photo Text -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tap Photo to Change"
+                android:textColor="#999999"
+                android:textSize="12sp"
+                android:gravity="center"
+                android:layout_marginTop="6dp" />
+
+            <!-- Save - Boro Yellow Button - Demo onujayi -->
+            <Button
+                android:id="@+id/btnSaveRoomSet"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="Save"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:backgroundTint="#FFC107"
+                android:layout_marginTop="20dp" />
+
+            <Button
+                android:id="@+id/btnCancelRoomSet"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="Cancel"
+                android:textColor="#999999"
+                android:textSize="14sp"
+                android:backgroundTint="#F5F5F5"
+                android:layout_marginTop="8dp" />
+
         </LinearLayout>
-        <Button android:id="@+id/btnSaveRoomSet" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Save" android:layout_marginTop="16dp" />
-        <Button android:id="@+id/btnCancelRoomSet" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="Cancel" />
     </LinearLayout>
 </ScrollView>
