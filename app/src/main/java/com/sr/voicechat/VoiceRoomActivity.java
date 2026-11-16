@@ -48,6 +48,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private TextView tvRoomId, tvRoomName, tvMyIdInRoom;
     private TextView roomTitleText, roomInfoText;
     private ImageView roomHeaderProfileImg, roomHeaderHeadwearImg;
+    private ImageView imgRoomBackground;
     private Button btnRoomSet, btnRoomEdit;
     private View layoutOwnerTools;
     private RecyclerView rvOnline;
@@ -58,6 +59,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private Uri pickedRoomPhotoUri = null;
     private String pickedRoomPhotoBase64 = null;
     private String selectedTheme = "Default";
+    private String selectedLabel = "Friends";
+    private String selectedThemeUrl = "";
     private String currentRoomPhotoUrl = "";
     private String rankingTab = "daily";
     private String selectedGiftName = "Rose";
@@ -155,6 +158,30 @@ public class VoiceRoomActivity extends AppCompatActivity {
         } catch (Exception e) { iv.setVisibility(View.GONE); }
     }
 
+    // ===== 3 FREE THEME - SR VOICE CHAT ROOM =====
+    private String getThemeUrl(String theme) {
+        if ("Desert Sunset".equals(theme)) return "https://images.pexels.com/photos/1680140/pexels-photo-1680140.jpeg?auto=compress&cs=tinysrgb&w=1080";
+        if ("Mosque Night".equals(theme)) return "https://images.pexels.com/photos/1537086/pexels-photo-1537086.jpeg?auto=compress&cs=tinysrgb&w=1080";
+        if ("Sea Couple".equals(theme)) return "https://images.pexels.com/photos/1549326/pexels-photo-1549326.jpeg?auto=compress&cs=tinysrgb&w=1080";
+        return "";
+    }
+    private void applyTheme(String theme) {
+        selectedTheme = theme;
+        if (imgRoomBackground == null) return;
+        String url = getThemeUrl(theme);
+        if (url.isEmpty()) { imgRoomBackground.setImageDrawable(null); imgRoomBackground.setBackgroundColor(0xFFFFF8E1); return; }
+        try { Glide.with(this).load(url).centerCrop().into(imgRoomBackground); } catch (Exception e) {}
+    }
+    private void openThemePicker(TextView tvTheme, ImageView thumb) {
+        String[] themes = {"Desert Sunset", "Mosque Night", "Sea Couple", "Default"};
+        new AlertDialog.Builder(this).setTitle("Room theme - Free").setItems(themes, (d, w) -> {
+            selectedTheme = themes[w];
+            if (tvTheme != null) tvTheme.setText("Theme: " + selectedTheme);
+            applyTheme(selectedTheme);
+            if (thumb != null) { String u = getThemeUrl(selectedTheme); if (!u.isEmpty()) Glide.with(this).load(u).centerCrop().into(thumb); }
+        }).setNegativeButton("Cancel", null).show();
+    }
+
     private void setupSeats() {
         for (int i = 0; i < 10; i++) {
             int seatId = getResources().getIdentifier("seat_" + i, "id", getPackageName());
@@ -212,7 +239,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     }
     private int mySeatIndex() { for (int i = 0; i < 10; i++) { String uid = seatUserId.get("seat_" + i); if (myId.equals(uid)) return i; } return -1; }
-
     private void onSeatClicked(int seatIndex) {
         String key = "seat_" + seatIndex; String occupantId = seatUserId.get(key);
         boolean isEmpty = occupantId == null || occupantId.isEmpty();
@@ -293,9 +319,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         });
         View btnClose = v.findViewById(R.id.btnCloseOnline); if (btnClose != null) btnClose.setOnClickListener(x -> d.dismiss()); d.show();
     }
-
     private void openUserProfile(String targetId, String targetName, String targetPhoto) { openMiniProfile(targetId, targetName, targetPhoto); }
-
     private void openMiniProfile(String targetId, String targetName, String targetPhoto) {
         BottomSheetDialog d = new BottomSheetDialog(this);
         View v = LayoutInflater.from(this).inflate(R.layout.dialog_mini_profile, null);
@@ -345,12 +369,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     boolean isFemale = gLow.contains("female");
                     boolean isMale = !isFemale && gLow.contains("male");
                     String gIcon = isFemale ? "♀" : (isMale ? "♂" : "⚧");
-                    if (tvGenderIcon != null) {
-                        tvGenderIcon.setText(gIcon);
-                        if (isFemale) tvGenderIcon.setTextColor(0xFFFF69B4);
-                        else if (isMale) tvGenderIcon.setTextColor(0xFF00B0FF);
-                        else tvGenderIcon.setTextColor(0xFFFFFFFF);
-                    }
+                    if (tvGenderIcon != null) { tvGenderIcon.setText(gIcon); if (isFemale) tvGenderIcon.setTextColor(0xFFFF69B4); else if (isMale) tvGenderIcon.setTextColor(0xFF00B0FF); else tvGenderIcon.setTextColor(0xFFFFFFFF); }
                     if (tvFlag != null) tvFlag.setText(getFlag(country));
                     if (tvGenderCountry != null) tvGenderCountry.setText(gIcon + "  " + getFlag(country));
                     if (tvLevel != null) tvLevel.setText("⭐ Lv." + level);
@@ -372,17 +391,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
-        FirebaseDatabase.getInstance().getReference("agencies").child(targetId).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override public void onDataChange(@NonNull DataSnapshot s) { if (s.exists() && s.child("name").getValue() != null && layoutAgency != null && tvAgency != null) { layoutAgency.setVisibility(View.VISIBLE); tvAgency.setText(String.valueOf(s.child("name").getValue())); } }
-            @Override public void onCancelled(@NonNull DatabaseError e) {}
-        });
-        FirebaseDatabase.getInstance().getReference("hosts").child(targetId).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override public void onDataChange(@NonNull DataSnapshot s) { if (s.exists() && layoutHost != null && tvHost != null) { layoutHost.setVisibility(View.VISIBLE); String hn = s.child("name").getValue() == null ? "Official Host" : String.valueOf(s.child("name").getValue()); tvHost.setText(hn); } }
-            @Override public void onCancelled(@NonNull DatabaseError e) {}
-        });
         d.show();
     }
-
     private void openGiftDialog(String targetId, String targetName) {
         BottomSheetDialog d = new BottomSheetDialog(this);
         View v;
@@ -400,31 +410,21 @@ public class VoiceRoomActivity extends AppCompatActivity {
             String[] giftNames = {"Rose", "Heart", "Cake", "Diamond", "Car", "Crown", "Plane", "Castle"};
             String[] giftEmojis = {"🌹", "❤️", "🎂", "💎", "🚗", "👑", "✈️", "🏰"};
             int[] giftPrices = {10, 50, 200, 100, 500, 1000, 2000, 5000};
-            selectedGiftName = giftNames[0];
-            selectedGiftPrice = giftPrices[0];
+            selectedGiftName = giftNames[0]; selectedGiftPrice = giftPrices[0];
             RecyclerView.Adapter a = new RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 @NonNull @Override public RecyclerView.ViewHolder onCreateViewHolder(@NonNull android.view.ViewGroup p, int t) { TextView tv = new TextView(p.getContext()); tv.setLayoutParams(new android.view.ViewGroup.LayoutParams(android.view.ViewGroup.LayoutParams.MATCH_PARENT, 160)); tv.setGravity(android.view.Gravity.CENTER); tv.setTextColor(0xFFFFFFFF); tv.setTextSize(13); tv.setPadding(8, 8, 8, 8); tv.setBackgroundColor(0xFF2A1B4E); return new RecyclerView.ViewHolder(tv) {}; }
-                @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder h, int pos) {
-                    TextView tv = (TextView) h.itemView;
-                    tv.setText(giftEmojis[pos] + "\n" + giftNames[pos] + "\n" + giftPrices[pos] + " Coins");
-                    tv.setBackgroundColor(giftNames[pos].equals(selectedGiftName) ? 0xFFFF4081 : 0xFF2A1B4E);
-                    tv.setOnClickListener(x -> { selectedGiftName = giftNames[pos]; selectedGiftPrice = giftPrices[pos]; notifyDataSetChanged(); Toast.makeText(VoiceRoomActivity.this, "Selected: " + selectedGiftName, Toast.LENGTH_SHORT).show(); });
-                }
+                @Override public void onBindViewHolder(@NonNull RecyclerView.ViewHolder h, int pos) { TextView tv = (TextView) h.itemView; tv.setText(giftEmojis[pos] + "\n" + giftNames[pos] + "\n" + giftPrices[pos] + " Coins"); tv.setBackgroundColor(giftNames[pos].equals(selectedGiftName) ? 0xFFFF4081 : 0xFF2A1B4E); tv.setOnClickListener(x -> { selectedGiftName = giftNames[pos]; selectedGiftPrice = giftPrices[pos]; notifyDataSetChanged(); Toast.makeText(VoiceRoomActivity.this, "Selected: " + selectedGiftName, Toast.LENGTH_SHORT).show(); }); }
                 @Override public int getItemCount() { return giftNames.length; }
             };
             rv.setAdapter(a);
         }
         d.show();
     }
-
     private void openRoomHeaderPopup() {
         BottomSheetDialog d = new BottomSheetDialog(this);
         View v = LayoutInflater.from(this).inflate(R.layout.dialog_user_profile, null);
         d.setContentView(v);
-        if (d.getWindow() != null) {
-            d.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-            d.getWindow().setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
-        }
+        if (d.getWindow() != null) { d.getWindow().setBackgroundDrawableResource(android.R.color.transparent); d.getWindow().setLayout(android.view.ViewGroup.LayoutParams.MATCH_PARENT, android.view.ViewGroup.LayoutParams.WRAP_CONTENT); }
         ImageView ivProfile = v.findViewById(R.id.imgUserProfile);
         TextView tvName = v.findViewById(R.id.txtUserName);
         TextView tvGroup = v.findViewById(R.id.txtGroupName);
@@ -449,37 +449,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (rewardBanner != null) rewardBanner.setVisibility(View.VISIBLE);
         if (layoutMembersSection != null) layoutMembersSection.setVisibility(View.VISIBLE);
         if (txtProfileTab != null && txtMembersTopTab != null) {
-            txtProfileTab.setOnClickListener(x -> {
-                txtProfileTab.setTextColor(0xFF000000);
-                txtProfileTab.setTypeface(null, android.graphics.Typeface.BOLD);
-                txtMembersTopTab.setTextColor(0xFF999999);
-                txtMembersTopTab.setTypeface(null, android.graphics.Typeface.NORMAL);
-                if (layoutHeaderInfo != null) layoutHeaderInfo.setVisibility(View.VISIBLE);
-                if (rewardBanner != null) rewardBanner.setVisibility(View.VISIBLE);
-            });
-            txtMembersTopTab.setOnClickListener(x -> {
-                txtMembersTopTab.setTextColor(0xFF000000);
-                txtMembersTopTab.setTypeface(null, android.graphics.Typeface.BOLD);
-                txtProfileTab.setTextColor(0xFF999999);
-                txtProfileTab.setTypeface(null, android.graphics.Typeface.NORMAL);
-                if (layoutHeaderInfo != null) layoutHeaderInfo.setVisibility(View.GONE);
-                if (rewardBanner != null) rewardBanner.setVisibility(View.GONE);
-                if (layoutMembersSection != null) layoutMembersSection.setVisibility(View.VISIBLE);
-            });
+            txtProfileTab.setOnClickListener(x -> { txtProfileTab.setTextColor(0xFF000000); txtProfileTab.setTypeface(null, android.graphics.Typeface.BOLD); txtMembersTopTab.setTextColor(0xFF999999); txtMembersTopTab.setTypeface(null, android.graphics.Typeface.NORMAL); if (layoutHeaderInfo != null) layoutHeaderInfo.setVisibility(View.VISIBLE); if (rewardBanner != null) rewardBanner.setVisibility(View.VISIBLE); });
+            txtMembersTopTab.setOnClickListener(x -> { txtMembersTopTab.setTextColor(0xFF000000); txtMembersTopTab.setTypeface(null, android.graphics.Typeface.BOLD); txtProfileTab.setTextColor(0xFF999999); txtProfileTab.setTypeface(null, android.graphics.Typeface.NORMAL); if (layoutHeaderInfo != null) layoutHeaderInfo.setVisibility(View.GONE); if (rewardBanner != null) rewardBanner.setVisibility(View.GONE); if (layoutMembersSection != null) layoutMembersSection.setVisibility(View.VISIBLE); });
         }
         if (txtMembersTab != null && txtAdminTab != null) {
-            txtMembersTab.setOnClickListener(x -> {
-                txtMembersTab.setTextColor(0xFF000000);
-                txtMembersTab.setTypeface(null, android.graphics.Typeface.BOLD);
-                txtAdminTab.setTextColor(0xFF666666);
-                txtAdminTab.setTypeface(null, android.graphics.Typeface.NORMAL);
-            });
-            txtAdminTab.setOnClickListener(x -> {
-                txtAdminTab.setTextColor(0xFF000000);
-                txtAdminTab.setTypeface(null, android.graphics.Typeface.BOLD);
-                txtMembersTab.setTextColor(0xFF666666);
-                txtMembersTab.setTypeface(null, android.graphics.Typeface.NORMAL);
-            });
+            txtMembersTab.setOnClickListener(x -> { txtMembersTab.setTextColor(0xFF000000); txtMembersTab.setTypeface(null, android.graphics.Typeface.BOLD); txtAdminTab.setTextColor(0xFF666666); txtAdminTab.setTypeface(null, android.graphics.Typeface.NORMAL); });
+            txtAdminTab.setOnClickListener(x -> { txtAdminTab.setTextColor(0xFF000000); txtAdminTab.setTypeface(null, android.graphics.Typeface.BOLD); txtMembersTab.setTextColor(0xFF666666); txtMembersTab.setTypeface(null, android.graphics.Typeface.NORMAL); });
         }
         if (tvName != null) tvName.setText(roomTitleText != null ? roomTitleText.getText().toString() : "Room");
         if (tvGroup != null) tvGroup.setText(roomTitleText != null ? roomTitleText.getText().toString() : "");
@@ -488,7 +463,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (tvOwner != null) tvOwner.setText("Owner (ID:" + roomOwnerId + ")");
         if (tvLang != null) tvLang.setText(prefs.getString("USER_LANGUAGE", "English"));
         if (tvCountry != null) tvCountry.setText(myCountry);
-        if (tvTag != null) tvTag.setText("Friends");
+        if (tvTag != null) tvTag.setText(selectedLabel);
         if (ivProfile != null) loadRoomPhotoInto(ivProfile);
         if (tvId != null) tvId.setOnClickListener(x -> { ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE); if (cm != null) cm.setPrimaryClip(ClipData.newPlainText("Room ID", roomOwnerId)); Toast.makeText(this, "ID Copied", Toast.LENGTH_SHORT).show(); });
         if (rewardBanner != null) rewardBanner.setOnClickListener(x -> openRewardEvent());
@@ -552,6 +527,8 @@ public class VoiceRoomActivity extends AppCompatActivity {
         rvOnline = findViewById(R.id.rvOnline); roomTitleText = findViewById(R.id.roomTitleText); roomInfoText = findViewById(R.id.roomInfoText);
         roomHeaderProfileImg = findViewById(R.id.roomHeaderProfileImg); roomHeaderHeadwearImg = findViewById(R.id.roomHeaderHeadwearImg);
         chatListContainer = findViewById(R.id.chatListContainer);
+        imgRoomBackground = findViewById(R.id.imgRoomBackground);
+        applyTheme(selectedTheme);
         if (rvOnline != null) rvOnline.setLayoutManager(new LinearLayoutManager(this));
         if (roomHeaderProfileImg != null) loadRoomPhotoInto(roomHeaderProfileImg);
         if (roomHeaderHeadwearImg != null) loadHeadwearInto(roomHeaderHeadwearImg, getMyHeadwearFromAllPlaces());
@@ -577,7 +554,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         ImageButton btnPower = findViewById(R.id.btnPower); if (btnPower != null) btnPower.setOnClickListener(v -> showPowerMenu());
         listenChatRealtime(); listenOnlineCount();
     }
-
     private String getFlag(String country) {
         if (country == null) return "🌍"; String c = country.toLowerCase();
         if (c.contains("bangladesh")) return "🇧🇩"; if (c.contains("india")) return "🇮🇳"; if (c.contains("pakistan")) return "🇵🇰"; if (c.contains("nepal")) return "🇳🇵"; if (c.contains("sri lanka")) return "🇱🇰";
@@ -652,12 +628,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
         roomMetaRef.addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 if (!snap.exists()) return;
-                String rName = snap.child("roomName").getValue(String.class); String rPhoto = snap.child("roomPhoto").getValue(String.class); String rAnnounce = snap.child("announcement").getValue(String.class); String rTheme = snap.child("theme").getValue(String.class);
+                String rName = snap.child("roomName").getValue(String.class); String rPhoto = snap.child("roomPhoto").getValue(String.class); String rAnnounce = snap.child("announcement").getValue(String.class); String rTheme = snap.child("theme").getValue(String.class); String rLabel = snap.child("roomLabel").getValue(String.class);
                 if (rName != null) { if (tvRoomName != null) tvRoomName.setText(rName); if (roomTitleText != null) roomTitleText.setText(rName); }
                 if (rPhoto != null && !rPhoto.isEmpty() && !rPhoto.equals("null") && !rPhoto.startsWith("content://") && !rPhoto.startsWith("file://")) currentRoomPhotoUrl = rPhoto; else currentRoomPhotoUrl = "";
                 if (roomHeaderProfileImg != null) loadRoomPhotoInto(roomHeaderProfileImg);
                 if (rAnnounce != null && !rAnnounce.isEmpty()) { TextView notice = findViewById(R.id.roomNoticeBarText); if (notice != null) { notice.setVisibility(View.VISIBLE); notice.setText(rAnnounce); } }
+                if (rLabel != null && !rLabel.isEmpty()) selectedLabel = rLabel;
                 if (rTheme != null) selectedTheme = rTheme;
+                applyTheme(selectedTheme);
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
@@ -688,23 +666,41 @@ public class VoiceRoomActivity extends AppCompatActivity {
         dialogRoomPhoto = view.findViewById(R.id.imgRoomPhoto); EditText etName = view.findViewById(R.id.etRoomName); EditText etAnnounce = view.findViewById(R.id.etRoomAnnouncement); TextView tvTheme = view.findViewById(R.id.tvSelectedTheme);
         if (tvRoomName != null) etName.setText(tvRoomName.getText().toString());
         if (dialogRoomPhoto != null) loadRoomPhotoInto(dialogRoomPhoto);
-        tvTheme.setText("Theme: " + selectedTheme);
-        dialogRoomPhoto.setOnClickListener(v -> pickRoomPhoto.launch("image/*"));
-        view.findViewById(R.id.btnThemeDefault).setOnClickListener(v -> { selectedTheme = "Default"; tvTheme.setText("Theme: Default"); });
-        view.findViewById(R.id.btnThemeGold).setOnClickListener(v -> { selectedTheme = "Gold"; tvTheme.setText("Theme: Gold"); });
-        view.findViewById(R.id.btnThemeNight).setOnClickListener(v -> { selectedTheme = "Night"; tvTheme.setText("Theme: Night"); });
-        view.findViewById(R.id.btnSaveRoomSet).setOnClickListener(v -> {
+        if (tvTheme != null) tvTheme.setText("Theme: " + selectedTheme);
+        if (dialogRoomPhoto != null) dialogRoomPhoto.setOnClickListener(v -> pickRoomPhoto.launch("image/*"));
+        // New Theme Row + Counter + Label - sob null-check diye, puran XML thakleo crash korbe na
+        View rowTheme = view.findViewById(R.id.layoutRoomThemeRow);
+        ImageView thumb = view.findViewById(R.id.imgSelectedThemeThumb);
+        TextView tvNameCount = view.findViewById(R.id.tvRoomNameCount);
+        TextView tvAnnCount = view.findViewById(R.id.tvRoomAnnounceCount);
+        if (rowTheme != null) rowTheme.setOnClickListener(v -> openThemePicker(tvTheme, thumb));
+        if (etName != null && tvNameCount != null) etName.addTextChangedListener(new android.text.TextWatcher() { public void beforeTextChanged(CharSequence s,int a,int b,int c){} public void onTextChanged(CharSequence s,int a,int b,int c){ tvNameCount.setText(s.length()+"/20"); } public void afterTextChanged(android.text.Editable s){} });
+        if (etAnnounce != null && tvAnnCount != null) etAnnounce.addTextChangedListener(new android.text.TextWatcher() { public void beforeTextChanged(CharSequence s,int a,int b,int c){} public void onTextChanged(CharSequence s,int a,int b,int c){ tvAnnCount.setText(s.length()+"/200"); } public void afterTextChanged(android.text.Editable s){} });
+        int[] labelIds = {R.id.btnLabelFriends, R.id.btnLabelGame, R.id.btnLabelMusic, R.id.btnLabelChat};
+        String[] labelNames = {"Friends","Game","Music","Chat"};
+        for (int i=0;i<labelIds.length;i++) {
+            Button b = view.findViewById(labelIds[i]);
+            if (b==null) continue; final String ln = labelNames[i]; final Button fb = b;
+            if (ln.equals(selectedLabel)) b.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFFFC107));
+            b.setOnClickListener(v -> { selectedLabel = ln; for (int j=0;j<labelIds.length;j++){ Button bb = view.findViewById(labelIds[j]); if(bb!=null) bb.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFE0E0E0)); } fb.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFFFC107)); });
+        }
+        if (view.findViewById(R.id.btnThemeDefault)!=null) view.findViewById(R.id.btnThemeDefault).setOnClickListener(v -> { selectedTheme = "Default"; if (tvTheme!=null) tvTheme.setText("Theme: Default"); applyTheme(selectedTheme); });
+        if (view.findViewById(R.id.btnThemeGold)!=null) view.findViewById(R.id.btnThemeGold).setOnClickListener(v -> { selectedTheme = "Gold"; if (tvTheme!=null) tvTheme.setText("Theme: Gold"); });
+        if (view.findViewById(R.id.btnThemeNight)!=null) view.findViewById(R.id.btnThemeNight).setOnClickListener(v -> { selectedTheme = "Night"; if (tvTheme!=null) tvTheme.setText("Theme: Night"); });
+        View btnSave = view.findViewById(R.id.btnSaveRoomSet);
+        if (btnSave != null) btnSave.setOnClickListener(v -> {
             String newName = etName.getText().toString().trim(); String newAnnounce = etAnnounce.getText().toString().trim();
             if (newName.isEmpty()) { Toast.makeText(this, "Enter Room Name", Toast.LENGTH_SHORT).show(); return; }
             String finalPhoto = currentRoomPhotoUrl; if (pickedRoomPhotoBase64 != null && !pickedRoomPhotoBase64.isEmpty()) finalPhoto = pickedRoomPhotoBase64;
-            Map<String, Object> map = new HashMap<>(); map.put("roomName", newName); map.put("announcement", newAnnounce); map.put("theme", selectedTheme); map.put("roomPhoto", finalPhoto == null ? "" : finalPhoto); map.put("roomId", roomOwnerId); map.put("ownerId", roomOwnerId); roomMetaRef.updateChildren(map);
+            Map<String, Object> map = new HashMap<>(); map.put("roomName", newName); map.put("announcement", newAnnounce); map.put("theme", selectedTheme); map.put("roomLabel", selectedLabel); map.put("roomPhoto", finalPhoto == null ? "" : finalPhoto); map.put("roomId", roomOwnerId); map.put("ownerId", roomOwnerId); roomMetaRef.updateChildren(map);
             Map<String, Object> activeMap = new HashMap<>(); activeMap.put("roomName", newName); activeMap.put("roomPhoto", finalPhoto == null ? "" : finalPhoto); activeRoomRef.updateChildren(activeMap);
             currentRoomPhotoUrl = finalPhoto == null ? "" : finalPhoto;
             if (tvRoomName != null) tvRoomName.setText(newName); if (roomTitleText != null) roomTitleText.setText(newName);
             if (roomHeaderProfileImg != null) loadRoomPhotoInto(roomHeaderProfileImg);
             pickedRoomPhotoUri = null; pickedRoomPhotoBase64 = null; Toast.makeText(this, "Room Saved", Toast.LENGTH_SHORT).show(); dialog.dismiss();
         });
-        view.findViewById(R.id.btnCancelRoomSet).setOnClickListener(v -> dialog.dismiss()); dialog.show();
+        View btnCancel = view.findViewById(R.id.btnCancelRoomSet);
+        if (btnCancel != null) btnCancel.setOnClickListener(v -> dialog.dismiss()); dialog.show();
     }
 
     @Override protected void onDestroy() {
