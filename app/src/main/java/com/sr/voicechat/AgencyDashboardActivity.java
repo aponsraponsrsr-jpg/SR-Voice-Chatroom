@@ -1,5 +1,6 @@
 package com.sr.voicechat;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,7 +22,7 @@ import java.util.Map;
 public class AgencyDashboardActivity extends AppCompatActivity {
 
     private TextView txtAgencyTitle, txtTotalHosts, txtTotalEarnings, txtHostListHeader;
-    private Button btnOpenInviteDialog;
+    private Button btnOpenInviteDialog, btnAgencyPolicy;
     private LinearLayout hostListContainer;
     private String agencyOwnerId = "";
     private String agencyName = "SR Agency";
@@ -63,6 +64,17 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         txtTotalEarnings.setPadding(0, 0, 0, 30);
         rootLayout.addView(txtTotalEarnings);
 
+        // NEW: AGENCY POLICY BUTTON - Dashboard থেকে Policy খুলবে
+        btnAgencyPolicy = new Button(this);
+        btnAgencyPolicy.setText("📜 Agency Policy - Full Table");
+        btnAgencyPolicy.setBackgroundColor(android.graphics.Color.parseColor("#FFD700"));
+        btnAgencyPolicy.setTextColor(android.graphics.Color.BLACK);
+        btnAgencyPolicy.setTypeface(null, android.graphics.Typeface.BOLD);
+        LinearLayout.LayoutParams policyLp = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        policyLp.setMargins(0, 0, 0, 20);
+        btnAgencyPolicy.setLayoutParams(policyLp);
+        rootLayout.addView(btnAgencyPolicy);
+
         btnOpenInviteDialog = new Button(this);
         btnOpenInviteDialog.setText("➕ Invite New Host (Any Digit ID)");
         btnOpenInviteDialog.setBackgroundColor(android.graphics.Color.parseColor("#FF4081"));
@@ -85,9 +97,18 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         setContentView(scrollView);
 
         // FIX 1: Intent + SharedPrefs + Firebase - 3 জায়গা থেকে ID নেওয়া, যাতে Global এ কখনো খালি না থাকে
+        // Profile ID (Any Digit) - UID না
         agencyOwnerId = getIntent().getStringExtra("AGENCY_OWNER_ID");
+        if (agencyOwnerId == null || agencyOwnerId.isEmpty()) agencyOwnerId = getIntent().getStringExtra("MY_ID");
+        if (agencyOwnerId == null || agencyOwnerId.isEmpty()) agencyOwnerId = getIntent().getStringExtra("AGENCY_ID");
         if (agencyOwnerId == null || agencyOwnerId.isEmpty()) {
             agencyOwnerId = getSharedPreferences("SR_PREFS", MODE_PRIVATE).getString("MY_ID", "");
+        }
+        if (agencyOwnerId == null || agencyOwnerId.isEmpty()) {
+            agencyOwnerId = getSharedPreferences("SR_USER", MODE_PRIVATE).getString("MY_9_DIGIT_ID", "");
+        }
+        if (agencyOwnerId == null || agencyOwnerId.isEmpty()) {
+            agencyOwnerId = getSharedPreferences("SR_USER", MODE_PRIVATE).getString("MY_ID", "");
         }
         if (agencyOwnerId == null) agencyOwnerId = "";
 
@@ -109,6 +130,17 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         });
 
         loadAgencyDataAndHosts();
+
+        // Policy Button Click - Agency ID + Flag নিয়ে Policy খুলবে
+        btnAgencyPolicy.setOnClickListener(v -> {
+            Intent i = new Intent(AgencyDashboardActivity.this, AgencyPolicyActivity.class);
+            i.putExtra("AGENCY_OWNER_ID", agencyOwnerId);
+            i.putExtra("MY_ID", agencyOwnerId);
+            i.putExtra("AGENCY_ID", agencyOwnerId);
+            i.putExtra("FROM_AGENCY_DASHBOARD", true);
+            startActivity(i);
+        });
+
         btnOpenInviteDialog.setOnClickListener(v -> showHostInviteInputDialog());
     }
 
