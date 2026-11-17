@@ -64,12 +64,14 @@ import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from
 import { getFirestore, doc, getDoc, setDoc, collection, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "PASTE_HERE",
-  authDomain: "PASTE_HERE",
-  projectId: "PASTE_HERE",
-  storageBucket: "PASTE_HERE",
-  messagingSenderId: "PASTE_HERE",
-  appId: "PASTE_HERE"
+  apiKey: "AIzaSyB0W8cstiDmCvjYAQRQy8rKz2Y0YNM3ESU",
+  authDomain: "sr-voice.firebaseapp.com",
+  databaseURL: "https://sr-voice-default-rtdb.firebaseio.com",
+  projectId: "sr-voice",
+  storageBucket: "sr-voice.firebasestorage.app",
+  messagingSenderId: "525180106032",
+  appId: "1:525180106032:web:431c3d119df1f9820604f5",
+  measurementId: "G-KQ141L36NQ"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -77,13 +79,14 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 window.login = async () => {
-  const email = document.getElementById('email').value;
+  const email = document.getElementById('email').value.trim();
   const pass = document.getElementById('pass').value;
+  document.getElementById('loginMsg').innerText = "Login hocche...";
   try {
     const cred = await signInWithEmailAndPassword(auth, email, pass);
     const snap = await getDoc(doc(db, "admins", cred.user.uid));
     if (!snap.exists()) {
-      document.getElementById('loginMsg').innerText = "Tumi Admin na. Access denied.";
+      document.getElementById('loginMsg').innerText = "Tumi Admin na. Access denied. Firestore e admins e tomar UID nai.";
       await signOut(auth); return;
     }
     loadDashboard();
@@ -92,9 +95,44 @@ window.login = async () => {
 
 window.logout = async () => { await signOut(auth); location.reload(); }
 
+async function loadDashboard(){
+  document.getElementById('loginBox').classList.add('hidden');
+  document.getElementById('dashBox').classList.remove('hidden');
+  document.getElementById('adminEmail').innerText = auth.currentUser.email;
+  try{
+    const agSnap = await getDocs(collection(db, "agencies"));
+    document.getElementById('totalAgency').innerText = agSnap.size;
+    let html = "";
+    agSnap.forEach(d=>{
+      const a = d.data();
+      html += `<div class="item"><span><b>${a.name||d.id}</b><br><small>${d.id} - ${a.commission||0}%</small></span><span>Active</span></div>`;
+    });
+    document.getElementById('agencyList').innerHTML = html || "Kono Agency nai";
+    const uSnap = await getDocs(collection(db, "users"));
+    document.getElementById('totalUsers').innerText = uSnap.size;
+  }catch(e){ document.getElementById('agencyList').innerText = e.message; }
+}
+
+window.createAgency = async () => {
+  const uid = document.getElementById('agencyUid').value.trim();
+  const name = document.getElementById('agencyName').value.trim();
+  const percent = Number(document.getElementById('agencyPercent').value || 20);
+  if(!uid || !name){ document.getElementById('agencyMsg').innerText = "UID ar Name dao"; return; }
+  try{
+    await setDoc(doc(db, "agencies", uid), { ownerUid: uid, name: name, commission: percent, createdAt: serverTimestamp(), status: "active" });
+    await setDoc(doc(db, "users", uid), { agencyId: uid, agencyName: name, isAgency: true, role: "agency" }, { merge: true });
+    document.getElementById('agencyMsg').innerText = "Agency Create hoye geche! " + name;
+    loadDashboard();
+  }catch(e){ document.getElementById('agencyMsg').innerText = e.message; }
+}
+
 onAuthStateChanged(auth, async (user)=>{
   if(!user) return;
   const snap = await getDoc(doc(db, "admins", user.uid));
   if(snap.exists()){
-    document.getElementById('loginBox').classList.add('hidden');
-    document
+    loadDashboard();
+  }
+});
+</script>
+</body>
+</html>
