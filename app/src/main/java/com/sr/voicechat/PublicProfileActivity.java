@@ -33,6 +33,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PublicProfileActivity extends AppCompatActivity {
     private String targetId = "", myId = "";
@@ -42,6 +44,10 @@ public class PublicProfileActivity extends AppCompatActivity {
     private TextView tabProfile, tabAlbum, tabMoments, tabIntimacy;
     private UserModel user = new UserModel();
     private SharedPreferences prefs;
+
+    // GLOBAL - Friend / Follow / Chat Status
+    private String myName = "";
+    private boolean isFriend = false, isFollowing = false, isMutualFollow = false;
 
     private BroadcastReceiver profileReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
@@ -54,6 +60,9 @@ public class PublicProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
         myId = prefs.getString("MY_9_DIGIT_ID", "");
+        myName = prefs.getString("USER_NAME", "");
+        if (myName.isEmpty()) myName = prefs.getString("MY_NAME", "User");
+        if (myName.isEmpty()) myName = prefs.getString("name", "User");
         targetId = getIntent().getStringExtra("TARGET_9DIGIT_ID");
         if (targetId == null || targetId.isEmpty()) targetId = myId;
         boolean isMine = targetId.equals(myId);
@@ -128,7 +137,6 @@ public class PublicProfileActivity extends AppCompatActivity {
         topRow.setPadding(0, 10, 0, 0);
         header.addView(topRow);
 
-        // Avatar - round with white border
         LinearLayout avatarWrap = new LinearLayout(this);
         avatarWrap.setPadding(6, 6, 6, 6);
         GradientDrawable avBg = new GradientDrawable();
@@ -139,11 +147,9 @@ public class PublicProfileActivity extends AppCompatActivity {
 
         imgAvatar = new ImageView(this);
         imgAvatar.setLayoutParams(new LinearLayout.LayoutParams(170, 170));
-        // FIX - Eitai asol dosh chilo - #DDDDDD Charkona Background ekhon Transparent
         imgAvatar.setBackgroundColor(Color.TRANSPARENT);
         imgAvatar.setPadding(0, 0, 0, 0);
         imgAvatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        // FIX - ImageView nijei Gol hoye jabe, pichone ar charkona thakbe na
         imgAvatar.setClipToOutline(true);
         imgAvatar.setOutlineProvider(new ViewOutlineProvider() {
             @Override
@@ -214,17 +220,35 @@ public class PublicProfileActivity extends AppCompatActivity {
         txtFans = addCount(countCard, "0", "Fans", "#111111", "#888888");
         txtVisitor = addCount(countCard, "0", "Visitor", "#111111", "#888888");
 
+        // GLOBAL - Add Friend + Follow + Gift + Message - Full System
         if (!isMine) {
             LinearLayout btnRow = new LinearLayout(this);
             btnRow.setOrientation(LinearLayout.HORIZONTAL);
             btnRow.setPadding(0, 25, 0, 0);
             header.addView(btnRow);
+
+            TextView btnAddFriend = makeBtn("👥 Add Friend", "#00B0FF");
+            btnAddFriend.setOnClickListener(v -> sendFriendRequest());
+            btnRow.addView(btnAddFriend);
+
             TextView btnFollow = makeBtn("+ Follow", "#FF9800");
-            btnFollow.setOnClickListener(v -> Toast.makeText(this, "Followed! ❤️", Toast.LENGTH_SHORT).show());
+            btnFollow.setOnClickListener(v -> sendFollowRequest());
             btnRow.addView(btnFollow);
+
             TextView btnGift = makeBtn("🎁 Gift", "#E91E63");
             btnGift.setOnClickListener(v -> Toast.makeText(this, "Gift - Room theke pathan", Toast.LENGTH_SHORT).show());
             btnRow.addView(btnGift);
+
+            LinearLayout btnRow2 = new LinearLayout(this);
+            btnRow2.setOrientation(LinearLayout.HORIZONTAL);
+            btnRow2.setPadding(0, 15, 0, 0);
+            header.addView(btnRow2);
+
+            TextView btnMessage = makeBtn("💬 Message - Say something...", "#00C853");
+            btnMessage.setOnClickListener(v -> openChatIfAllowed());
+            btnRow2.addView(btnMessage);
+
+            checkFriendFollowStatus(btnAddFriend, btnFollow, btnMessage);
         }
 
         LinearLayout tabRow = new LinearLayout(this);
@@ -285,6 +309,88 @@ public class PublicProfileActivity extends AppCompatActivity {
     @Override protected void onResume() {
         super.onResume();
         loadUser();
+    }
+
+    // ============ GLOBAL FRIEND / FOLLOW / CHAT SYSTEM ============
+
+    private void checkFriendFollowStatus(TextView btnAddFriend, TextView btnFollow, TextView btnMessage) {
+        DatabaseReference meRef = FirebaseDatabase.getInstance().getReference("users").child(myId);
+        meRef.addValueEventListener(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                isFriend = snap.child("friends").hasChild(targetId);
+                isFollowing = snap.child("following").hasChild(targetId);
+                boolean heFollowsMe = snap.child("followers").hasChild(targetId);
+                isMutualFollow = isFollowing && heFollowsMe;
+                if (isFriend) {
+                    btnAddFriend.setText("✅ Friends");
+                    btnMessage.setText("💬 Message - Say something...");
+                } else {
+                    btnAddFriend.setText("👥 Add Friend");
+                    if (!isMutualFollow) btnMessage.setText("🔒 Accept Friend / Mutual Follow to Chat");
+                }
+                if (isFollowing) btnFollow.setText("✅ Following");
+                else btnFollow.setText("+ Follow");
+                if (isMutualFollow) btnMessage.setText("💬 Message - Say something...");
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
+    }
+
+    private void sendFriendRequest() {
+        if (isFriend) { Toast.makeText(this, "Already Friends ❤️", Toast.LENGTH_SHORT).show(); openChatIfAllowed(); return; }
+        String key = FirebaseDatabase.getInstance().getReference("users").child(targetId).child("inbox").push().getKey();
+        if (key == null) return;
+        Map<String, Object> req = new HashMap<>();
+        req.put("type", "FRIEND_REQUEST");
+        req.put("fromId", myId);
+        req.put("fromName", myName);
+        req.put("targetId", targetId);
+        req.put("title", "👥 Friend Request");
+        req.put("message", myName + " (ID: " + myId + ") wants to be your friend");
+        req.put("status", "Pending");
+        req.put("timestamp", System.currentTimeMillis());
+        FirebaseDatabase.getInstance().getReference("users").child(targetId).child("inbox").child(key).setValue(req)
+            .addOnCompleteListener(t -> {
+                if (t.isSuccessful()) Toast.makeText(this, "Friend Request Sent! ✅", Toast.LENGTH_LONG).show();
+                else Toast.makeText(this, "Failed! Try Again", Toast.LENGTH_SHORT).show();
+            });
+    }
+
+    private void sendFollowRequest() {
+        if (isFollowing) { Toast.makeText(this, "Already Following ✅", Toast.LENGTH_SHORT).show(); return; }
+        String key = FirebaseDatabase.getInstance().getReference("users").child(targetId).child("inbox").push().getKey();
+        if (key == null) return;
+        Map<String, Object> req = new HashMap<>();
+        req.put("type", "FOLLOW_REQUEST");
+        req.put("fromId", myId);
+        req.put("fromName", myName);
+        req.put("targetId", targetId);
+        req.put("title", "➕ Follow Request");
+        req.put("message", myName + " (ID: " + myId + ") started following you - Follow Back to Chat");
+        req.put("status", "Pending");
+        req.put("timestamp", System.currentTimeMillis());
+        FirebaseDatabase.getInstance().getReference("users").child(targetId).child("inbox").child(key).setValue(req)
+            .addOnCompleteListener(t -> {
+                if (t.isSuccessful()) {
+                    FirebaseDatabase.getInstance().getReference("users").child(myId).child("following").child(targetId).setValue("Pending");
+                    Toast.makeText(this, "Follow Request Sent! ✅", Toast.LENGTH_LONG).show();
+                }
+            });
+    }
+
+    private void openChatIfAllowed() {
+        if (!isFriend && !isMutualFollow) {
+            Toast.makeText(this, "🔒 First Add Friend / Mutual Follow - tarpor SMS korte parba", Toast.LENGTH_LONG).show();
+            return;
+        }
+        String chatId = myId.compareTo(targetId) < 0 ? myId + "_" + targetId : targetId + "_" + myId;
+        Intent i = new Intent(PublicProfileActivity.this, PrivateChatActivity.class);
+        i.putExtra("MY_ID", myId);
+        i.putExtra("MY_NAME", myName);
+        i.putExtra("OTHER_ID", targetId);
+        i.putExtra("OTHER_NAME", user.name);
+        i.putExtra("CHAT_ID", chatId);
+        startActivity(i);
     }
 
     private void buildProfileTab() {
@@ -525,7 +631,6 @@ public class PublicProfileActivity extends AppCompatActivity {
                 BitmapFactory.Options o = new BitmapFactory.Options();
                 o.inSampleSize = 2;
                 Bitmap bmp = BitmapFactory.decodeByteArray(b, 0, b.length, o);
-                // FIX - Age setImageBitmap diye charkona dekhato, ekhon Glide diye Gol
                 if (bmp != null) Glide.with(this).load(bmp).circleCrop().into(iv);
             }
         } catch (Exception ignored) {}
@@ -574,14 +679,12 @@ public class PublicProfileActivity extends AppCompatActivity {
                     if (ds.child("coverUrl").getValue() != null) coverUrl = String.valueOf(ds.child("coverUrl").getValue());
                     if (coverUrl.isEmpty() && ds.child("coverPhoto").getValue() != null) coverUrl = String.valueOf(ds.child("coverPhoto").getValue());
                     if (coverUrl.isEmpty() && ds.child("coverImage").getValue() != null) coverUrl = String.valueOf(ds.child("coverImage").getValue());
-
                     if (ds.child("level").getValue() != null) user.level = String.valueOf(ds.child("level").getValue());
                     if (ds.child("giftCount").getValue() != null) user.giftCount = String.valueOf(ds.child("giftCount").getValue());
                     if (ds.child("followCount").getValue() != null) user.followCount = String.valueOf(ds.child("followCount").getValue());
                     if (ds.child("fansCount").getValue() != null) user.fansCount = String.valueOf(ds.child("fansCount").getValue());
                     if (ds.child("visitorCount").getValue() != null) user.visitorCount = String.valueOf(ds.child("visitorCount").getValue());
                     if (ds.child("familyName").getValue() != null) user.familyName = String.valueOf(ds.child("familyName").getValue());
-
                     if (ds.child("headwearCount").getValue() != null) user.headwearCount = String.valueOf(ds.child("headwearCount").getValue());
                     if (ds.child("headwearName").getValue() != null) headwearName = String.valueOf(ds.child("headwearName").getValue());
                     if (headwearName.isEmpty() && ds.child("headwear").getValue() != null) headwearName = String.valueOf(ds.child("headwear").getValue());
@@ -590,7 +693,6 @@ public class PublicProfileActivity extends AppCompatActivity {
                     if (headwearImage.isEmpty() && ds.child("headwearUrl").getValue() != null) headwearImage = String.valueOf(ds.child("headwearUrl").getValue());
                     if (headwearImage.isEmpty() && ds.child("headwearBase64").getValue() != null) headwearImage = String.valueOf(ds.child("headwearBase64").getValue());
                     if (headwearImage.isEmpty() && ds.child("HEADWEAR_IMAGE").getValue() != null) headwearImage = String.valueOf(ds.child("HEADWEAR_IMAGE").getValue());
-
                     if (ds.child("medalCount").getValue() != null) user.medalCount = String.valueOf(ds.child("medalCount").getValue());
                     if (ds.child("carCount").getValue() != null) user.carCount = String.valueOf(ds.child("carCount").getValue());
                     if (ds.child("supporterName").getValue() != null) user.supporterName = String.valueOf(ds.child("supporterName").getValue());
