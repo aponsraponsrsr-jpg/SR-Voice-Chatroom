@@ -1,5 +1,6 @@
 package com.sr.voicechat;
 
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
@@ -9,8 +10,6 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -21,6 +20,7 @@ import java.util.Locale;
 
 public class HostWorkDataActivity extends AppCompatActivity {
     private TextView tvReceived, tvLevel, tvSalary, tvNext;
+    private String myId = "";
 
     // Tomar Policy - HostPolicyActivity er sathe milano
     private final long[] TARGETS = {288000L,588000L,1190000L,1780000L,3280000L,5780000L,7880000L,9980000L,13850000L,18850000L,26500000L,34500000L,43500000L,56500000L,76500000L,88500000L,115500000L,155000000L,210000000L,288000000L,350000000L,460000000L};
@@ -29,6 +29,23 @@ public class HostWorkDataActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // FIX: UID না - অরিজিনাল প্রোফাইল ID - যেটা প্রোফাইলে দেখা যায়
+        // HostCenter থেকে আসা ID, না পাইলে SR_USER / SR_PREFS থেকে নিবে
+        myId = getIntent().getStringExtra("MY_ID");
+        if (myId == null || myId.isEmpty()) myId = getIntent().getStringExtra("HOST_ID");
+        if (myId == null || myId.isEmpty()) myId = getIntent().getStringExtra("USER_ID");
+        if (myId == null || myId.isEmpty()) {
+            SharedPreferences p = getSharedPreferences("SR_USER", MODE_PRIVATE);
+            myId = p.getString("MY_9_DIGIT_ID", "");
+            if (myId == null || myId.isEmpty()) myId = p.getString("MY_ID", "");
+            if (myId == null || myId.isEmpty()) myId = p.getString("USER_ID", "");
+        }
+        if (myId == null || myId.isEmpty()) {
+            myId = getSharedPreferences("SR_PREFS", MODE_PRIVATE).getString("MY_ID", "");
+        }
+        if (myId == null) myId = "";
+
         ScrollView scroll = new ScrollView(this);
         scroll.setBackgroundColor(Color.parseColor("#0A0518"));
         LinearLayout root = new LinearLayout(this);
@@ -36,14 +53,33 @@ public class HostWorkDataActivity extends AppCompatActivity {
         root.setPadding(24, 24, 24, 24);
         scroll.addView(root);
 
+        // Back Button
+        TextView btnBack = new TextView(this);
+        btnBack.setText("← Back to Host Center");
+        btnBack.setTextColor(Color.WHITE);
+        btnBack.setTextSize(14);
+        btnBack.setTypeface(null, Typeface.BOLD);
+        btnBack.setPadding(10, 10, 10, 10);
+        btnBack.setOnClickListener(v -> finish());
+        root.addView(btnBack);
+
         TextView title = new TextView(this);
         title.setText("📊 Work Data");
         title.setTextColor(Color.WHITE);
         title.setTextSize(20);
         title.setTypeface(null, Typeface.BOLD);
         title.setGravity(Gravity.CENTER);
-        title.setPadding(0, 0, 0, 20);
+        title.setPadding(0, 0, 0, 10);
         root.addView(title);
+
+        TextView tvId = new TextView(this);
+        tvId.setText("My ID: " + myId);
+        tvId.setTextColor(Color.parseColor("#FFD700"));
+        tvId.setTextSize(13);
+        tvId.setTypeface(null, Typeface.BOLD);
+        tvId.setGravity(Gravity.CENTER);
+        tvId.setPadding(0, 0, 0, 20);
+        root.addView(tvId);
 
         tvReceived = makeBig(root, "My Received: Loading...");
         tvLevel = makeBig(root, "My Level: -");
@@ -77,14 +113,21 @@ public class HostWorkDataActivity extends AppCompatActivity {
     }
 
     private void loadData() {
-        FirebaseUser fu = FirebaseAuth.getInstance().getCurrentUser();
-        if (fu == null) return;
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(fu.getUid());
+        // UID না - অরিজিনাল প্রোফাইল ID দিয়ে ডাটা আনবে
+        if (myId.isEmpty()) {
+            tvReceived.setText("My Received: ID not found");
+            return;
+        }
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(myId);
         ref.addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 long received = 0;
-                if (snap.hasChild("totalReceivedCoins") && snap.child("totalReceivedCoins").getValue() != null) {
-                    try { received = Long.parseLong(String.valueOf(snap.child("totalReceivedCoins").getValue())); } catch (Exception ignored) {}
+                // Coins - 4 জায়গা থেকে চেক, যেখানেই থাকুক পাবে
+                String[] coinKeys = {"totalReceivedCoins", "receivedCoins", "totalCoins", "coins"};
+                for (String k : coinKeys) {
+                    if (snap.hasChild(k) && snap.child(k).getValue() != null) {
+                        try { received = Long.parseLong(String.valueOf(snap.child(k).getValue())); break; } catch (Exception ignored) {}
+                    }
                 }
                 int myLevel = 0;
                 String mySalary = "$0";
