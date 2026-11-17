@@ -35,6 +35,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class MeActivity extends AppCompatActivity {
     private ImageView imgAvatar;
@@ -50,6 +51,7 @@ public class MeActivity extends AppCompatActivity {
     private boolean isAgencyActive = false;
     private boolean isHostActive = false;
     private boolean inviteDialogShown = false;
+    private boolean rtdbListenerStarted = false;
 
     private BroadcastReceiver profileReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
@@ -371,6 +373,7 @@ public class MeActivity extends AppCompatActivity {
         showFromPrefs();
         applyRoleVisibility();
         loadMeData();
+        listenFirestoreRole();
     }
 
     private void copyId() {
@@ -397,7 +400,6 @@ public class MeActivity extends AppCompatActivity {
         startActivity(i);
     }
 
-    // FIXED: Ekhon HostCenterActivity khulbe, Policy na
     private void openHostCenter() {
         if (!isHostActive) {
             Toast.makeText(this, "You are not a Host yet", Toast.LENGTH_SHORT).show();
@@ -426,6 +428,96 @@ public class MeActivity extends AppCompatActivity {
         if (agencyToolView != null) agencyToolView.setVisibility(showAgency ? View.VISIBLE : View.GONE);
         if (hostCenterRowView != null) hostCenterRowView.setVisibility(showHost ? View.VISIBLE : View.GONE);
         if (txtGenderCountry != null) txtGenderCountry.setText(getGenderCountryText());
+    }
+
+    // GLOBAL + REALTIME: Firestore Panel theke dilei sobar jonno khulbe
+    // Kono nirdisto ID hardcode kora nai. Je kono user er jonno same niom.
+    // agencies / hosts e Document thakle Show, na thakle Hide.
+    private void listenFirestoreRole() {
+        try {
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            // AGENCY: 9-digit ID diye check - Panel ei ID diyei agency dey
+            if (!my9DigitId.isEmpty()) {
+                db.collection("agencies").document(my9DigitId)
+                    .addSnapshotListener((snap, e) -> {
+                        if (e != null) return;
+                        if (snap != null && snap.exists()) {
+                            Object st = snap.get("status");
+                            String status = st == null ? "" : String.valueOf(st).toLowerCase();
+                            boolean active = !"blocked".equals(status) && !"rejected".equals(status) && !"pending".equals(status);
+                            // status active / empty holeo active dhora hobe, karon Panel theke dilei active
+                            if (status.isEmpty()) active = true;
+                            prefs.edit().putBoolean("IS_AGENCY", true).putBoolean("AGENCY_ACTIVE", active).apply();
+                            Object nm = snap.get("name");
+                            if (nm != null) prefs.edit().putString("AGENCY_NAME", String.valueOf(nm)).apply();
+                        } else {
+                            // Firestore e agency nai -> Hide. Kintu RTDB te thakle seta loadMeData handle korbe.
+                            // Tai ekhane force false korbo na, sudhu Firestore er ta clear korbo jodi RTDB teo na thake
+                            boolean rtdbAgency = prefs.getBoolean("RTDB_IS_AGENCY", false);
+                            if (!rtdbAgency) {
+                                prefs.edit().putBoolean("IS_AGENCY", false).putBoolean("AGENCY_ACTIVE", false).apply();
+                            }
+                        }
+                        applyRoleVisibility();
+                    });
+                // UID diyeo check - jodi Panel UID diye agency dey
+                if (!firebaseUid.isEmpty()) {
+                    db.collection("agencies").document(firebaseUid)
+                        .addSnapshotListener((snap, e) -> {
+                            if (e != null) return;
+                            if (snap != null && snap.exists()) {
+                                Object st = snap.get("status");
+                                String status = st == null ? "" : String.valueOf(st).toLowerCase();
+                                boolean active = !"blocked".equals(status) && !"rejected".equals(status);
+                                prefs.edit().putBoolean("IS_AGENCY", true).putBoolean("AGENCY_ACTIVE", active).apply();
+                                applyRoleVisibility();
+                            }
+                        });
+                    // ownerUid diye query - Panel jekono vabe dilei pabe
+                    db.collection("agencies").whereEqualTo("ownerUid", firebaseUid)
+                        .addSnapshotListener((snaps, e) -> {
+                            if (e != null || snaps == null) return;
+                            if (!snaps.isEmpty()) {
+                                prefs.edit().putBoolean("IS_AGENCY", true).putBoolean("AGENCY_ACTIVE", true).apply();
+                                applyRoleVisibility();
+                            }
+                        });
+                }
+            }
+            // HOST: UID diye check
+            if (!firebaseUid.isEmpty()) {
+                db.collection("hosts").document(firebaseUid)
+                    .addSnapshotListener((snap, e) -> {
+                        if (e != null) return;
+                        if (snap != null && snap.exists()) {
+                            prefs.edit().putBoolean("IS_HOST", true).putBoolean("HOST_ACTIVE", true).apply();
+                        } else {
+                            boolean rtdbHost = prefs.getBoolean("RTDB_IS_HOST", false);
+                            if (!rtdbHost) prefs.edit().putBoolean("IS_HOST", false).putBoolean("HOST_ACTIVE", false).apply();
+                        }
+                        applyRoleVisibility();
+                    });
+                db.collection("hosts").whereEqualTo("ownerUid", firebaseUid)
+                    .addSnapshotListener((snaps, e) -> {
+                        if (e != null || snaps == null) return;
+                        if (!snaps.isEmpty()) {
+                            prefs.edit().putBoolean("IS_HOST", true).putBoolean("HOST_ACTIVE", true).apply();
+                            applyRoleVisibility();
+                        }
+                    });
+                // 9-digit ID diyeo host check
+                if (!my9DigitId.isEmpty()) {
+                    db.collection("hosts").document(my9DigitId)
+                        .addSnapshotListener((snap, e) -> {
+                            if (e != null) return;
+                            if (snap != null && snap.exists()) {
+                                prefs.edit().putBoolean("IS_HOST", true).putBoolean("HOST_ACTIVE", true).apply();
+                                applyRoleVisibility();
+                            }
+                        });
+                }
+            }
+        } catch (Exception ignored) {}
     }
 
     private void openWalletDialog() {
@@ -603,7 +695,10 @@ public class MeActivity extends AppCompatActivity {
 
     private void loadMeData() {
         if (userRef == null) return;
-        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        if (rtdbListenerStarted) return;
+        rtdbListenerStarted = true;
+        // FIXED: SingleValueEvent -> ValueEventListener (Realtime)
+        userRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snap) {
                 try {
@@ -624,10 +719,6 @@ public class MeActivity extends AppCompatActivity {
                     if (coins.equals("0")) coins = getStr(snap, "walletCoins", "0");
                     if (coins.equals("0")) coins = getStr(snap, "sendingCoins", "0");
 
-                    // FIXED: Admin Panel jeta pathay setai dhora hobe
-                    // Admin pathay: isAgency=true, agencyStatus=active, role=agency
-                    // Admin pathay: isHost=true, hostStatus=active, role=host
-                    // Jodi sudhu isAgency=true thake, tao active dhora hobe
                     String role = getStr(snap, "role", "user").toLowerCase();
                     boolean isAgency = getBool(snap, "isAgency", false);
                     String agencyStatus = getStr(snap, "agencyStatus", "").toLowerCase();
@@ -641,7 +732,6 @@ public class MeActivity extends AppCompatActivity {
                     if (agencyIdForHost.isEmpty()) agencyIdForHost = getStr(snap, "agencyId", "");
                     String hostAgencyName = getStr(snap, "hostAgencyName", "");
 
-                    // Agency Active: isAgency=true holei active, jodi status blocked/rejected na hoy
                     boolean agencyActive = isAgency && !"blocked".equals(agencyStatus) && !"rejected".equals(agencyStatus);
                     boolean hostActive = isHost && !"blocked".equals(hostStatus) && !"rejected".equals(hostStatus);
 
@@ -649,12 +739,15 @@ public class MeActivity extends AppCompatActivity {
                         my9DigitId = id;
                         prefs.edit().putString("MY_9_DIGIT_ID", id).apply();
                     }
+                    // RTDB er ta alada save rakhi, jate Firestore + RTDB 2tar jekono ekta thaklei Show hoy
                     prefs.edit()
                         .putString("USER_NAME", name)
                         .putString("USER_COUNTRY", country)
                         .putString("USER_GENDER", gender)
                         .putString("USER_PHOTO", photo)
                         .putString("PROFILE_PHOTO", photo)
+                        .putBoolean("RTDB_IS_AGENCY", isAgency)
+                        .putBoolean("RTDB_IS_HOST", isHost)
                         .putBoolean("IS_AGENCY", isAgency)
                         .putBoolean("AGENCY_ACTIVE", agencyActive)
                         .putString("AGENCY_NAME", agencyName)
@@ -676,7 +769,6 @@ public class MeActivity extends AppCompatActivity {
                     showPhoto(photo, imgAvatar);
                     applyRoleVisibility();
 
-                    // Pending Host Invite - Dialog
                     boolean pending = getBool(snap, "pendingHostInvite", false);
                     String pendingAgency = getStr(snap, "pendingAgencyName", "");
                     String pendingAgencyId = getStr(snap, "pendingAgencyId", "");
@@ -690,7 +782,6 @@ public class MeActivity extends AppCompatActivity {
         });
     }
 
-    // NEW: Host Invite Dialog - Accept / Reject
     private void showHostInviteDialog(String agencyName, String agencyId) {
         new AlertDialog.Builder(this)
             .setTitle("🎤 Host Invite")
@@ -712,13 +803,11 @@ public class MeActivity extends AppCompatActivity {
         ref.child("pendingHostInvite").setValue(false);
         ref.child("pendingAgencyId").setValue(null);
         ref.child("pendingAgencyName").setValue(null);
-        // Host node
         FirebaseDatabase.getInstance().getReference("hosts").child(firebaseUid).child("ownerUid").setValue(firebaseUid);
         FirebaseDatabase.getInstance().getReference("hosts").child(firebaseUid).child("agencyId").setValue(agencyId);
         FirebaseDatabase.getInstance().getReference("hosts").child(firebaseUid).child("agencyName").setValue(agencyName);
         FirebaseDatabase.getInstance().getReference("hosts").child(firebaseUid).child("status").setValue("active");
         FirebaseDatabase.getInstance().getReference("hosts").child(firebaseUid).child("createdAt").setValue(System.currentTimeMillis());
-        // Invite status update - sob pending invite accepted koro
         FirebaseDatabase.getInstance().getReference("hostInvites").orderByChild("hostUid").equalTo(firebaseUid)
             .addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override public void onDataChange(@NonNull DataSnapshot s) {
