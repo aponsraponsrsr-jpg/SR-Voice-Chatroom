@@ -45,11 +45,11 @@ public class MeActivity extends AppCompatActivity {
     private DatabaseReference userRef;
     private String followCount = "0", fansCount = "0", visitorCount = "0";
 
-    // NEW: Agency / Host - Default GONE, Only Official Confirm hole show hobe
     private LinearLayout agencyToolView = null;
     private LinearLayout hostCenterRowView = null;
     private boolean isAgencyActive = false;
     private boolean isHostActive = false;
+    private boolean inviteDialogShown = false;
 
     private BroadcastReceiver profileReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
@@ -79,7 +79,6 @@ public class MeActivity extends AppCompatActivity {
         root.setOrientation(LinearLayout.VERTICAL);
         scroll.addView(root);
 
-        // ===== HEADER =====
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.VERTICAL);
         header.setPadding(30, 40, 30, 25);
@@ -101,8 +100,6 @@ public class MeActivity extends AppCompatActivity {
         cardAvatar.setPreventCornerOverlap(false);
         cardAvatar.setUseCompatPadding(false);
         cardAvatar.setOnClickListener(v -> goProfile());
-
-        // Super Panel opens via Owner Gmail + Password - NOT via ID
         cardAvatar.setOnLongClickListener(v -> {
             startActivity(new Intent(MeActivity.this, SuperPanelLoginActivity.class));
             return true;
@@ -197,7 +194,6 @@ public class MeActivity extends AppCompatActivity {
         menuContainer.setPadding(20, 20, 20, 30);
         root.addView(menuContainer);
 
-        // ===== SVIP =====
         LinearLayout svipBox = new LinearLayout(this);
         svipBox.setOrientation(LinearLayout.VERTICAL);
         svipBox.setPadding(30, 28, 30, 28);
@@ -222,7 +218,6 @@ public class MeActivity extends AppCompatActivity {
         svipT2.setTextSize(13);
         svipBox.addView(svipT2);
 
-        // ===== WALLET =====
         LinearLayout walletBox = new LinearLayout(this);
         walletBox.setOrientation(LinearLayout.HORIZONTAL);
         walletBox.setGravity(Gravity.CENTER_VERTICAL);
@@ -259,7 +254,6 @@ public class MeActivity extends AppCompatActivity {
         walletArrow.setTypeface(null, Typeface.BOLD);
         walletBox.addView(walletArrow);
 
-        // ===== VIP & RECHARGE =====
         LinearLayout vipRow = new LinearLayout(this);
         vipRow.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams vipRowLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -307,7 +301,7 @@ public class MeActivity extends AppCompatActivity {
         addToolItem(toolsRow, "🎂", "Birthday");
         addToolItem(toolsRow, "📊", "Level");
 
-        // FIXED: Agency Tool - Shurute LUKANO, Official Agency holei Automatic asbe, thik ei jaygate
+        // Agency - Default GONE
         agencyToolView = addToolItem(toolsRow, "🏛️", "Agency", v -> openAgency());
         if (agencyToolView != null) agencyToolView.setVisibility(View.GONE);
 
@@ -331,7 +325,7 @@ public class MeActivity extends AppCompatActivity {
         addMenuRow(listBox, "🏅 Medal");
         addMenuRow(listBox, "👨‍👩‍👧 Family");
 
-        // FIXED: Host Center - Shurute LUKANO, Official Host holei Automatic asbe, thik ei jaygate
+        // Host Center - Default GONE
         hostCenterRowView = addMenuRow(listBox, "🎤 Host Center", v -> openHostCenter());
         if (hostCenterRowView != null) hostCenterRowView.setVisibility(View.GONE);
 
@@ -386,7 +380,6 @@ public class MeActivity extends AppCompatActivity {
         Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
     }
 
-    // FIXED: Agency - Sudhu Official Agency holei khulbe, nahole khulbe na
     private void openAgency() {
         if (!isAgencyActive) {
             Toast.makeText(this, "You are not an Agency yet", Toast.LENGTH_SHORT).show();
@@ -404,21 +397,27 @@ public class MeActivity extends AppCompatActivity {
         startActivity(i);
     }
 
-    // NEW: Host Center - Sudhu Official Host holei khulbe
+    // FIXED: Ekhon HostCenterActivity khulbe, Policy na
     private void openHostCenter() {
         if (!isHostActive) {
             Toast.makeText(this, "You are not a Host yet", Toast.LENGTH_SHORT).show();
             return;
         }
         try {
-            Intent i = new Intent(this, HostPolicyActivity.class);
+            Intent i = new Intent(this, HostCenterActivity.class);
+            i.putExtra("HOST_UID", firebaseUid);
+            i.putExtra("HOST_AGENCY_ID", prefs.getString("HOST_AGENCY_ID", ""));
             startActivity(i);
         } catch (Exception e) {
-            Toast.makeText(this, "Host Center - Coming Soon", Toast.LENGTH_SHORT).show();
+            try {
+                Intent i2 = new Intent(this, HostPolicyActivity.class);
+                startActivity(i2);
+            } catch (Exception e2) {
+                Toast.makeText(this, "Host Center - Coming Soon", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
-    // NEW: Role onujayi Agency / Host dekhao ba lukao - Thik oi jaygatei asbe
     private void applyRoleVisibility() {
         boolean showAgency = prefs.getBoolean("IS_AGENCY", false) && prefs.getBoolean("AGENCY_ACTIVE", false);
         boolean showHost = prefs.getBoolean("IS_HOST", false) && prefs.getBoolean("HOST_ACTIVE", false);
@@ -577,7 +576,6 @@ public class MeActivity extends AppCompatActivity {
         else if (!c.isEmpty()) base = c;
         else if (!g.isEmpty()) base = g;
         else base = "Complete Your Profile";
-        // Badge - Sudhu Official Agency holei dekhabe
         if (prefs.getBoolean("IS_AGENCY", false) && prefs.getBoolean("AGENCY_ACTIVE", false)) {
             base = base + "  |  🏷️ AGENCY";
         }
@@ -612,6 +610,8 @@ public class MeActivity extends AppCompatActivity {
                     if (!snap.exists()) return;
                     String name = getStr(snap, "name", prefs.getString("USER_NAME", "User"));
                     String id = getStr(snap, "my9DigitId", my9DigitId);
+                    if (id.isEmpty()) id = getStr(snap, "idNumber", my9DigitId);
+                    if (id.isEmpty()) id = getStr(snap, "nineDigitId", my9DigitId);
                     String country = getStr(snap, "country", prefs.getString("USER_COUNTRY", ""));
                     String gender = getStr(snap, "gender", prefs.getString("USER_GENDER", ""));
                     String photo = getStr(snap, "photoUrl", "");
@@ -621,29 +621,29 @@ public class MeActivity extends AppCompatActivity {
                     fansCount = getStr(snap, "fansCount", "0");
                     visitorCount = getStr(snap, "visitorCount", "0");
                     String coins = getStr(snap, "coins", "0");
-                    if (coins.isEmpty()) coins = getStr(snap, "walletCoins", "0");
+                    if (coins.equals("0")) coins = getStr(snap, "walletCoins", "0");
+                    if (coins.equals("0")) coins = getStr(snap, "sendingCoins", "0");
 
-                    // AGENCY / HOST - Database theke Official Check
-                    // Agency: isAgency=true + agencyStatus=active + role=agency
-                    // Host: isHost=true + hostStatus=active + role=host
+                    // FIXED: Admin Panel jeta pathay setai dhora hobe
+                    // Admin pathay: isAgency=true, agencyStatus=active, role=agency
+                    // Admin pathay: isHost=true, hostStatus=active, role=host
+                    // Jodi sudhu isAgency=true thake, tao active dhora hobe
                     String role = getStr(snap, "role", "user").toLowerCase();
                     boolean isAgency = getBool(snap, "isAgency", false);
                     String agencyStatus = getStr(snap, "agencyStatus", "").toLowerCase();
                     String agencyName = getStr(snap, "agencyName", "SR Agency");
                     String agencyPercent = getStr(snap, "agencyPercent", "0");
+                    if (agencyPercent.equals("0")) agencyPercent = getStr(snap, "agencyCommission", "0");
 
                     boolean isHost = getBool(snap, "isHost", false);
                     String hostStatus = getStr(snap, "hostStatus", "").toLowerCase();
-                    String agencyIdForHost = getStr(snap, "agencyId", "");
+                    String agencyIdForHost = getStr(snap, "hostAgencyId", "");
+                    if (agencyIdForHost.isEmpty()) agencyIdForHost = getStr(snap, "agencyId", "");
+                    String hostAgencyName = getStr(snap, "hostAgencyName", "");
 
-                    boolean agencyActive = isAgency && ("active".equals(agencyStatus) || "agency".equals(role));
-                    // Jodi purono data te sudhu isAgency=true thake, taholeo active dhora hobe na - status lagbe
-                    // Kintu purono Owner der jonno: jodi agencyStatus khali thake ar isAgency=true hoy, tahole active
-                    if (isAgency && agencyStatus.isEmpty() && "agency".equals(role)) agencyActive = true;
-                    if (isAgency && agencyStatus.isEmpty() && prefs.getBoolean("IS_AGENCY", false)) agencyActive = true;
-
-                    boolean hostActive = isHost && ("active".equals(hostStatus) || "host".equals(role));
-                    if (isHost && hostStatus.isEmpty() && "host".equals(role)) hostActive = true;
+                    // Agency Active: isAgency=true holei active, jodi status blocked/rejected na hoy
+                    boolean agencyActive = isAgency && !"blocked".equals(agencyStatus) && !"rejected".equals(agencyStatus);
+                    boolean hostActive = isHost && !"blocked".equals(hostStatus) && !"rejected".equals(hostStatus);
 
                     if (!id.isEmpty()) {
                         my9DigitId = id;
@@ -662,6 +662,7 @@ public class MeActivity extends AppCompatActivity {
                         .putBoolean("IS_HOST", isHost)
                         .putBoolean("HOST_ACTIVE", hostActive)
                         .putString("HOST_AGENCY_ID", agencyIdForHost)
+                        .putString("HOST_AGENCY_NAME", hostAgencyName)
                         .putString("USER_ROLE", role)
                         .apply();
 
@@ -674,10 +675,72 @@ public class MeActivity extends AppCompatActivity {
                     if (txtWalletCoins != null) txtWalletCoins.setText("Coins: " + coins);
                     showPhoto(photo, imgAvatar);
                     applyRoleVisibility();
+
+                    // Pending Host Invite - Dialog
+                    boolean pending = getBool(snap, "pendingHostInvite", false);
+                    String pendingAgency = getStr(snap, "pendingAgencyName", "");
+                    String pendingAgencyId = getStr(snap, "pendingAgencyId", "");
+                    if (pending && !inviteDialogShown && !isHost) {
+                        inviteDialogShown = true;
+                        showHostInviteDialog(pendingAgency, pendingAgencyId);
+                    }
                 } catch (Exception ignored) {}
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
+    }
+
+    // NEW: Host Invite Dialog - Accept / Reject
+    private void showHostInviteDialog(String agencyName, String agencyId) {
+        new AlertDialog.Builder(this)
+            .setTitle("🎤 Host Invite")
+            .setMessage((agencyName.isEmpty() ? "Agency" : agencyName) + " tomake Host hisabe invite koreche.\n\nAccept korle tomar Me page e Host Center chole asbe.")
+            .setCancelable(false)
+            .setPositiveButton("✅ Accept", (d, w) -> acceptHostInvite(agencyId, agencyName))
+            .setNegativeButton("❌ Reject", (d, w) -> rejectHostInvite())
+            .show();
+    }
+
+    private void acceptHostInvite(String agencyId, String agencyName) {
+        if (firebaseUid.isEmpty()) return;
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
+        ref.child("isHost").setValue(true);
+        ref.child("hostStatus").setValue("active");
+        ref.child("role").setValue("host");
+        ref.child("hostAgencyId").setValue(agencyId);
+        ref.child("hostAgencyName").setValue(agencyName);
+        ref.child("pendingHostInvite").setValue(false);
+        ref.child("pendingAgencyId").setValue(null);
+        ref.child("pendingAgencyName").setValue(null);
+        // Host node
+        FirebaseDatabase.getInstance().getReference("hosts").child(firebaseUid).child("ownerUid").setValue(firebaseUid);
+        FirebaseDatabase.getInstance().getReference("hosts").child(firebaseUid).child("agencyId").setValue(agencyId);
+        FirebaseDatabase.getInstance().getReference("hosts").child(firebaseUid).child("agencyName").setValue(agencyName);
+        FirebaseDatabase.getInstance().getReference("hosts").child(firebaseUid).child("status").setValue("active");
+        FirebaseDatabase.getInstance().getReference("hosts").child(firebaseUid).child("createdAt").setValue(System.currentTimeMillis());
+        // Invite status update - sob pending invite accepted koro
+        FirebaseDatabase.getInstance().getReference("hostInvites").orderByChild("hostUid").equalTo(firebaseUid)
+            .addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override public void onDataChange(@NonNull DataSnapshot s) {
+                    for (DataSnapshot c : s.getChildren()) {
+                        if ("pending".equals(String.valueOf(c.child("status").getValue()))) {
+                            c.getRef().child("status").setValue("accepted");
+                        }
+                    }
+                }
+                @Override public void onCancelled(@NonNull DatabaseError e) {}
+            });
+        Toast.makeText(this, "✅ Host Confirm hoye geche!", Toast.LENGTH_SHORT).show();
+        loadMeData();
+    }
+
+    private void rejectHostInvite() {
+        if (firebaseUid.isEmpty()) return;
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
+        ref.child("pendingHostInvite").setValue(false);
+        ref.child("pendingAgencyId").setValue(null);
+        ref.child("pendingAgencyName").setValue(null);
+        Toast.makeText(this, "Invite Reject kora hoyeche", Toast.LENGTH_SHORT).show();
     }
 
     private void showPhoto(String photo, ImageView iv) {
