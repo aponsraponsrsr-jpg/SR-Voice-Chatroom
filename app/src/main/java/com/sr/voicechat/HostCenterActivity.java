@@ -14,13 +14,31 @@ import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
 
 public class HostCenterActivity extends AppCompatActivity {
+    private String myId = "";
+    private String name = "User";
+    private String agency = "SR Agency";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         SharedPreferences prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
-        String name = prefs.getString("USER_NAME", "User");
-        String id = prefs.getString("MY_9_DIGIT_ID", "");
-        String agency = prefs.getString("AGENCY_NAME", "SR Agency");
+        name = prefs.getString("USER_NAME", "User");
+        myId = prefs.getString("MY_9_DIGIT_ID", "");
+        // FIX: SR_USER এ না থাকলে SR_PREFS থেকে নিবে - যাতে ID কখনো খালি না থাকে
+        if (myId == null || myId.isEmpty()) myId = prefs.getString("MY_ID", "");
+        if (myId == null || myId.isEmpty()) myId = prefs.getString("USER_ID", "");
+        if (myId == null || myId.isEmpty()) {
+            myId = getSharedPreferences("SR_PREFS", MODE_PRIVATE).getString("MY_ID", "");
+        }
+        if (myId == null) myId = "";
+        if (name == null || name.isEmpty()) name = prefs.getString("MY_NAME", "User");
+        if (name == null || name.isEmpty()) name = "User";
+        agency = prefs.getString("AGENCY_NAME", "SR Agency");
+        if (agency == null || agency.isEmpty()) agency = "SR Agency";
+
+        // Intent থেকে আসলে Intent এর ID-ই নিবে
+        String intentId = getIntent().getStringExtra("MY_ID");
+        if (intentId != null && !intentId.isEmpty()) myId = intentId;
 
         ScrollView scroll = new ScrollView(this);
         scroll.setBackgroundColor(Color.parseColor("#0A0518"));
@@ -56,7 +74,7 @@ public class HostCenterActivity extends AppCompatActivity {
         top.addView(tvName);
 
         TextView tvId = new TextView(this);
-        tvId.setText("ID: " + id + "  |  Agency: " + agency);
+        tvId.setText("ID: " + myId + "  |  Agency: " + agency);
         tvId.setTextColor(Color.parseColor("#FFD700"));
         tvId.setTextSize(13);
         top.addView(tvId);
@@ -68,14 +86,22 @@ public class HostCenterActivity extends AppCompatActivity {
         tvBal.setPadding(0, 12, 0, 0);
         top.addView(tvBal);
 
-        // Option 1 - Host Policy
+        // Option 1 - Host Policy - FIX: ID সহ খুলবে, যাতে Host নিজের ডাটা পায়
         root.addView(makeRow("📜  Host Policy", "Official Policy 1-22 - Target + Salary", v -> {
-            startActivity(new Intent(this, HostPolicyActivity.class));
+            Intent i = new Intent(this, HostPolicyActivity.class);
+            i.putExtra("MY_ID", myId);
+            i.putExtra("HOST_ID", myId);
+            i.putExtra("USER_ID", myId);
+            startActivity(i);
         }));
 
-        // Option 2 - Work Data / My Center
+        // Option 2 - Work Data / My Center - FIX: ID সহ খুলবে
         root.addView(makeRow("📊  Work Data", "Koto Target hoiche, Koto Dollar hoiche - ekhane dekhba", v -> {
-            startActivity(new Intent(this, HostWorkDataActivity.class));
+            Intent i = new Intent(this, HostWorkDataActivity.class);
+            i.putExtra("MY_ID", myId);
+            i.putExtra("HOST_ID", myId);
+            i.putExtra("USER_ID", myId);
+            startActivity(i);
         }));
 
         TextView note = new TextView(this);
