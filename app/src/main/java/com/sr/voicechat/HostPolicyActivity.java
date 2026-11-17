@@ -1,5 +1,6 @@
 package com.sr.voicechat;
 
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -11,8 +12,6 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -26,7 +25,7 @@ import com.google.firebase.database.ValueEventListener;
 public class HostPolicyActivity extends AppCompatActivity {
     private LinearLayout listBox;
     private TextView tvMyProgress, tvMyLevel, tvMySalary;
-    private String myUid = "";
+    private String myId = "";
 
     // OFFICIAL POLICY - Company Fixed - From your Image
     // Level, TargetCoins, HostSalary(Anchor 80%)
@@ -63,8 +62,21 @@ public class HostPolicyActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        FirebaseUser fu = FirebaseAuth.getInstance().getCurrentUser();
-        if (fu != null) myUid = fu.getUid();
+
+        // FIX: UID না - Profile ID (Any Digit) - HostCenter / SR_USER / SR_PREFS থেকে
+        myId = getIntent().getStringExtra("MY_ID");
+        if (myId == null || myId.isEmpty()) myId = getIntent().getStringExtra("HOST_ID");
+        if (myId == null || myId.isEmpty()) myId = getIntent().getStringExtra("USER_ID");
+        if (myId == null || myId.isEmpty()) {
+            SharedPreferences p = getSharedPreferences("SR_USER", MODE_PRIVATE);
+            myId = p.getString("MY_9_DIGIT_ID", "");
+            if (myId == null || myId.isEmpty()) myId = p.getString("MY_ID", "");
+            if (myId == null || myId.isEmpty()) myId = p.getString("USER_ID", "");
+        }
+        if (myId == null || myId.isEmpty()) {
+            myId = getSharedPreferences("SR_PREFS", MODE_PRIVATE).getString("MY_ID", "");
+        }
+        if (myId == null) myId = "";
 
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
@@ -73,6 +85,16 @@ public class HostPolicyActivity extends AppCompatActivity {
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(24, 28, 24, 28);
         scroll.addView(root);
+
+        // Back Button
+        TextView btnBack = new TextView(this);
+        btnBack.setText("← Back to Host Center");
+        btnBack.setTextColor(Color.WHITE);
+        btnBack.setTextSize(14);
+        btnBack.setTypeface(null, Typeface.BOLD);
+        btnBack.setPadding(10, 10, 10, 10);
+        btnBack.setOnClickListener(v -> finish());
+        root.addView(btnBack);
 
         TextView title = new TextView(this);
         title.setText("🎯 HOST SALARY POLICY");
@@ -211,15 +233,22 @@ public class HostPolicyActivity extends AppCompatActivity {
         row.addView(t3);
     }
 
-    // Load My Progress ONLY from Database - Read Only
+    // Load My Progress ONLY from Database - Read Only - Profile ID দিয়ে
     private void loadMyProgress() {
-        if (myUid.isEmpty()) return;
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(myUid);
+        if (myId.isEmpty()) {
+            tvMyProgress.setText("My Received: ID not found");
+            return;
+        }
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(myId);
         ref.addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 long received = 0;
-                if (snap.hasChild("totalReceivedCoins") && snap.child("totalReceivedCoins").getValue() != null) {
-                    try { received = Long.parseLong(String.valueOf(snap.child("totalReceivedCoins").getValue())); } catch (Exception ignored) {}
+                // Coins - 4 জায়গা থেকে চেক, যেখানেই থাকুক পাবে
+                String[] coinKeys = {"totalReceivedCoins", "receivedCoins", "totalCoins", "coins"};
+                for (String k : coinKeys) {
+                    if (snap.hasChild(k) && snap.child(k).getValue() != null) {
+                        try { received = Long.parseLong(String.valueOf(snap.child(k).getValue())); break; } catch (Exception ignored) {}
+                    }
                 }
                 // Find my level from Database counting
                 int myLevel = 0;
