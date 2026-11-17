@@ -88,7 +88,7 @@ button.red{background:#ef4444;color:#fff}
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where, serverTimestamp, onSnapshot, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getDatabase, ref, get, set, update, push, onValue, query, orderByChild, equalTo } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyB0W8cstiDmCVjYAQRQy8rKz2OY2NM3ESU",
@@ -103,35 +103,39 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+// FIXED: Ekhon Firestore na, Realtime Database - MeActivity er sathe SAME
+const rtdb = getDatabase(app);
 
-// ===== GLOBAL: UID / ID Number - Dui tai resolve kore =====
-// User er profile e choto ID Number thake, Firebase e boro UID thake.
-// Eta duitai handle korbe.
+// Admin check - RTDB te admins/{uid} thakte hobe
+async function isAdmin(uid){
+  const snap = await get(ref(rtdb, "admins/" + uid));
+  return snap.exists();
+}
+
+// ===== GLOBAL: UID / ID Number - Dui tai resolve kore - RTDB =====
+// RTDB te users er key = Firebase UID. ID Number diye khujte hole sob user pore match korte hoy.
 async function resolveUser(input){
   input = String(input).trim();
   if(!input) return null;
   // 1. Direct UID diye try
-  const direct = await getDoc(doc(db, "users", input));
-  if(direct.exists()) return { uid: input, data: direct.data(), idNumber: direct.data().idNumber || direct.data().srId || direct.data().userId || input };
-  // 2. ID Number diye khujo - sob somvabbo field
-  const fields = ["idNumber","srId","userId","profileId","numericId","shortId"];
-  for(const f of fields){
-    const q = query(collection(db, "users"), where(f, "==", input));
-    const snap = await getDocs(q);
-    if(!snap.empty){
-      const d = snap.docs[0];
-      return { uid: d.id, data: d.data(), idNumber: input };
-    }
-    // Number hisabeo try - jodi DB te number akare save thake
-    const num = Number(input);
-    if(!isNaN(num)){
-      const q2 = query(collection(db, "users"), where(f, "==", num));
-      const snap2 = await getDocs(q2);
-      if(!snap2.empty){
-        const d = snap2.docs[0];
-        return { uid: d.id, data: d.data(), idNumber: input };
-      }
+  const direct = await get(ref(rtdb, "users/" + input));
+  if(direct.exists()){
+    const d = direct.val();
+    return { uid: input, data: d, idNumber: d.my9DigitId || d.idNumber || d.srId || d.userId || input };
+  }
+  // 2. Sob user pore ID Number diye khujo
+  const allSnap = await get(ref(rtdb, "users"));
+  if(!allSnap.exists()) return null;
+  const all = allSnap.val();
+  for(const key in all){
+    const u = all[key] || {};
+    const candidates = [
+      String(u.my9DigitId||""), String(u.idNumber||""), String(u.srId||""),
+      String(u.userId||""), String(u.profileId||""), String(u.numericId||""),
+      String(u.shortId||""), String(u.id||"")
+    ];
+    if(candidates.includes(input)){
+      return { uid: key, data: u, idNumber: input };
     }
   }
   return null;
@@ -143,9 +147,8 @@ window.login = async () => {
   document.getElementById('loginMsg').innerText = "Login hocche...";
   try {
     const cred = await signInWithEmailAndPassword(auth, email, pass);
-    const snap = await getDoc(doc(db, "admins", cred.user.uid));
-    if (!snap.exists()) {
-      document.getElementById('loginMsg').innerText = "Tumi Admin na. Access denied.";
+    if (!(await isAdmin(cred.user.uid))) {
+      document.getElementById('loginMsg').innerText = "Tumi Admin na. Access denied. RTDB te admins/" + cred.user.uid + " banate hobe.";
       await signOut(auth); return;
     }
     loadDashboard();
@@ -159,42 +162,42 @@ function loadDashboard(){
   document.getElementById('dashBox').classList.remove('hidden');
   document.getElementById('adminEmail').innerText = auth.currentUser.email;
 
-  // LIVE - Users
-  onSnapshot(collection(db, "users"), (snap)=>{
-    document.getElementById('totalUsers').innerText = snap.size;
+  onValue(ref(rtdb, "users"), (snap)=>{
+    document.getElementById('totalUsers').innerText = snap.exists() ? Object.keys(snap.val()).length : 0;
   });
-  // LIVE - Agencies
-  onSnapshot(collection(db, "agencies"), (snap)=>{
-    document.getElementById('totalAgency').innerText = snap.size;
+  onValue(ref(rtdb, "agencies"), (snap)=>{
+    const data = snap.val() || {};
+    document.getElementById('totalAgency').innerText = Object.keys(data).length;
     let html = "";
-    snap.forEach(d=>{
-      const a = d.data();
-      html += `<div class="item"><span><b>${a.name||d.id}</b><br><small>ID: ${a.idNumber||d.id} | UID: ${a.ownerUid||d.id} - ${a.commission||0}%</small></span><span class="badge">Active</span></div>`;
+    Object.keys(data).forEach(k=>{
+      const a = data[k];
+      html += `<div class="item"><span><b>${a.name||k}</b><br><small>ID: ${a.idNumber||k} | UID: ${a.ownerUid||k} - ${a.commission||0}%</small></span><span class="badge">Active</span></div>`;
     });
     document.getElementById('agencyList').innerHTML = html || "Kono Agency nai";
   });
-  // LIVE - Hosts
-  onSnapshot(collection(db, "hosts"), (snap)=>{
-    document.getElementById('totalHosts').innerText = snap.size;
+  onValue(ref(rtdb, "hosts"), (snap)=>{
+    const data = snap.val() || {};
+    document.getElementById('totalHosts').innerText = Object.keys(data).length;
     let html = "";
-    snap.forEach(d=>{
-      const h = d.data();
-      html += `<div class="item"><span><b>${h.name||h.displayName||d.id}</b><br><small>Host ID: ${h.idNumber||d.id} | Agency: ${h.agencyName||h.agencyId||'-'} | Target: ${h.target||0} | Dollar: $${h.totalDollar||0}</small></span><span class="badge">${h.status||'Active'}</span></div>`;
+    Object.keys(data).forEach(k=>{
+      const h = data[k];
+      html += `<div class="item"><span><b>${h.name||h.displayName||k}</b><br><small>Host ID: ${h.idNumber||k} | Agency: ${h.agencyName||h.agencyId||'-'} | Target: ${h.target||0} | Dollar: $${h.totalDollar||0}</small></span><span class="badge">${h.status||'Active'}</span></div>`;
     });
     document.getElementById('hostList').innerHTML = html || "Kono Host nai";
   });
-  // LIVE - Pending Invites
-  onSnapshot(query(collection(db, "hostInvites"), where("status","==","pending")), (snap)=>{
+  onValue(ref(rtdb, "hostInvites"), (snap)=>{
+    const data = snap.val() || {};
     let html = "";
-    snap.forEach(d=>{
-      const inv = d.data();
-      html += `<div class="item"><span><b>Host: ${inv.hostIdNumber||inv.hostUid}</b><br><small>Agency: ${inv.agencyName||inv.agencyId} - Pending</small></span><div class="flexRow"><button class="green" onclick="forceConfirmHost('${d.id}','${inv.hostUid}','${inv.agencyId}')">Force Confirm</button></div></div>`;
+    Object.keys(data).forEach(k=>{
+      const inv = data[k];
+      if(inv.status !== "pending") return;
+      html += `<div class="item"><span><b>Host: ${inv.hostIdNumber||inv.hostUid}</b><br><small>Agency: ${inv.agencyName||inv.agencyId} - Pending</small></span><div class="flexRow"><button class="green" onclick="forceConfirmHost('${k}','${inv.hostUid}','${inv.agencyId}')">Force Confirm</button></div></div>`;
     });
     document.getElementById('inviteList').innerHTML = html || "Kono pending invite nai";
   });
 }
 
-// ===== AGENCY CREATE - GLOBAL =====
+// ===== AGENCY CREATE - GLOBAL - RTDB - MeActivity er sathe SAME TO SAME =====
 window.createAgency = async () => {
   const input = document.getElementById('agencyUid').value.trim();
   const name = document.getElementById('agencyName').value.trim();
@@ -206,15 +209,17 @@ window.createAgency = async () => {
     const user = await resolveUser(input);
     if(!user){ msgEl.innerText = "Ei ID diye kono user pawa jay nai. ID Number ta miliye dekho."; return; }
     const uid = user.uid;
-    // 1. agencies collection - eita diyei App bujhbe se Agency
-    await setDoc(doc(db, "agencies", uid), { ownerUid: uid, idNumber: user.idNumber, name: name, commission: percent, createdAt: serverTimestamp(), status: "active", totalHosts: 0, totalDollar: 0 });
-    // 2. users doc update - eita diye Me page e Agency Center show hobe
-    await setDoc(doc(db, "users", uid), { agencyId: uid, agencyName: name, isAgency: true, role: "agency", agencyCommission: percent }, { merge: true });
+    const now = Date.now();
+    // 1. agencies - RTDB
+    await set(ref(rtdb, "agencies/" + uid), { ownerUid: uid, idNumber: user.idNumber, my9DigitId: user.idNumber, name: name, commission: percent, agencyCommission: percent, agencyPercent: percent, createdAt: now, status: "active", agencyStatus: "active", totalHosts: 0, totalDollar: 0, totalCoin: 0 });
+    // 2. users - MeActivity EITA DEKHEI Agency Show korbe
+    // FIXED: agencyStatus + agencyCommission + agencyIdNumber add kora hoise
+    await update(ref(rtdb, "users/" + uid), { agencyId: uid, agencyIdNumber: user.idNumber, agencyName: name, isAgency: true, agencyStatus: "active", role: "agency", agencyCommission: percent, agencyPercent: percent });
     msgEl.innerText = "✅ Agency Create hoye geche! " + name + " (ID: " + user.idNumber + ")";
   }catch(e){ msgEl.innerText = e.message; }
 }
 
-// ===== HOST INVITE - AGENCY -> HOST =====
+// ===== HOST INVITE - AGENCY -> HOST - RTDB =====
 window.inviteHost = async () => {
   const agencyInput = document.getElementById('inviteAgencyId').value.trim();
   const hostInput = document.getElementById('inviteHostId').value.trim();
@@ -226,45 +231,61 @@ window.inviteHost = async () => {
     const host = await resolveUser(hostInput);
     if(!agency){ msgEl.innerText = "Agency ID pawa jay nai"; return; }
     if(!host){ msgEl.innerText = "Host ID pawa jay nai"; return; }
-    const agencyDoc = await getDoc(doc(db, "agencies", agency.uid));
-    const agencyName = agencyDoc.exists() ? agencyDoc.data().name : (agency.data.agencyName || "Agency");
-    // Invite doc
-    await addDoc(collection(db, "hostInvites"), {
+    const agencySnap = await get(ref(rtdb, "agencies/" + agency.uid));
+    const agencyName = agencySnap.exists() ? (agencySnap.val().name || "Agency") : (agency.data.agencyName || "Agency");
+    const now = Date.now();
+    // Invite doc - RTDB push
+    const inviteRef = push(ref(rtdb, "hostInvites"));
+    await set(inviteRef, {
+      id: inviteRef.key,
       agencyId: agency.uid, agencyName: agencyName, agencyIdNumber: agency.idNumber,
       hostUid: host.uid, hostIdNumber: host.idNumber, hostName: host.data.displayName || host.data.name || host.idNumber,
-      status: "pending", createdAt: serverTimestamp()
+      status: "pending", createdAt: now
     });
-    // Notification - Host er app e jabe
-    await addDoc(collection(db, "notifications"), {
-      toUid: host.uid, type: "host_invite", title: "Host Invite",
+    // Notification - RTDB - notifications/{hostUid}/{pushId}
+    const notiRef = push(ref(rtdb, "notifications/" + host.uid));
+    await set(notiRef, {
+      id: notiRef.key, toUid: host.uid, type: "host_invite", title: "Host Invite",
       message: agencyName + " tomake Host hisabe invite koreche. Confirm koro.",
       agencyId: agency.uid, agencyName: agencyName,
-      status: "unread", createdAt: serverTimestamp()
+      status: "unread", createdAt: now
     });
-    // Host er user doc e pending flag - jate app e notification dot dekhay
-    await setDoc(doc(db, "users", host.uid), { pendingHostInvite: true, pendingAgencyId: agency.uid, pendingAgencyName: agencyName }, { merge: true });
+    // Pending flag - MeActivity EITA DEKHEI Dialog dekhabe
+    await update(ref(rtdb, "users/" + host.uid), { pendingHostInvite: true, pendingAgencyId: agency.uid, pendingAgencyName: agencyName, pendingAgencyIdNumber: agency.idNumber });
     msgEl.innerText = "✅ Invite chole geche Host er kache!";
   }catch(e){ msgEl.innerText = e.message; }
 }
 
-// Admin chaile force confirm korte parbe
+// Admin Force Confirm - Host Accept na korleo Admin Confirm korte parbe
 window.forceConfirmHost = async (inviteId, hostUid, agencyId) => {
   try{
-    await updateDoc(doc(db, "hostInvites", inviteId), { status: "accepted" });
-    const agencyDoc = await getDoc(doc(db, "agencies", agencyId));
-    const agencyName = agencyDoc.exists() ? agencyDoc.data().name : "";
-    const hostDoc = await getDoc(doc(db, "users", hostUid));
-    const hostData = hostDoc.exists() ? hostDoc.data() : {};
-    await setDoc(doc(db, "hosts", hostUid), { ownerUid: hostUid, idNumber: hostData.idNumber || hostData.srId || hostUid, name: hostData.displayName || hostData.name || hostUid, agencyId: agencyId, agencyName: agencyName, target: 0, totalCoin: 0, totalDollar: 0, status: "active", createdAt: serverTimestamp() }, { merge: true });
-    await setDoc(doc(db, "users", hostUid), { isHost: true, role: "host", hostAgencyId: agencyId, hostAgencyName: agencyName, pendingHostInvite: false }, { merge: true });
+    await update(ref(rtdb, "hostInvites/" + inviteId), { status: "accepted" });
+    const agencySnap = await get(ref(rtdb, "agencies/" + agencyId));
+    const agencyName = agencySnap.exists() ? (agencySnap.val().name || "") : "";
+    const hostSnap = await get(ref(rtdb, "users/" + hostUid));
+    const hostData = hostSnap.exists() ? hostSnap.val() : {};
+    const now = Date.now();
+    // FIXED: Host Center er jonno full data - Work / Target / Dollar / Policy
+    await set(ref(rtdb, "hosts/" + hostUid), {
+      ownerUid: hostUid,
+      idNumber: hostData.my9DigitId || hostData.idNumber || hostData.srId || hostUid,
+      name: hostData.displayName || hostData.name || hostUid,
+      agencyId: agencyId, agencyName: agencyName,
+      target: 0, targetCoin: 0,
+      totalCoin: 0, totalDollar: 0, totalEarning: 0,
+      workData: 0, policy: "Standard Host Policy",
+      status: "active", hostStatus: "active",
+      createdAt: now
+    });
+    // FIXED: hostStatus add kora hoise - MeActivity eita dekhei Host Center show korbe
+    await update(ref(rtdb, "users/" + hostUid), { isHost: true, hostStatus: "active", role: "host", hostAgencyId: agencyId, hostAgencyName: agencyName, pendingHostInvite: false });
     alert("Host Confirm hoye geche!");
   }catch(e){ alert(e.message); }
 }
 
 onAuthStateChanged(auth, async (user)=>{
   if(!user) return;
-  const snap = await getDoc(doc(db, "admins", user.uid));
-  if(snap.exists()) loadDashboard();
+  if(await isAdmin(user.uid)) loadDashboard();
 });
 </script>
 </body>
