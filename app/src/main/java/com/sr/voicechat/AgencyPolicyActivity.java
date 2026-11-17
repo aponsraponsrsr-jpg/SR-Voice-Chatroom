@@ -1,5 +1,6 @@
 package com.sr.voicechat;
 
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
@@ -9,10 +10,9 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -26,11 +26,11 @@ import com.google.firebase.database.ValueEventListener;
 public class AgencyPolicyActivity extends AppCompatActivity {
     private LinearLayout listBox, hostListBox;
     private TextView tvMyTotal, tvTotalHosts, tvTotalDollar;
-    private String myUid = "";
+    private String myId = "";
     private String myAgencyId = "";
+    private String myName = "Agency";
 
     // OFFICIAL POLICY - Company Fixed - From your Image
-    // Level, TargetCoins, HostSalary(80%), AgencyCommission(20%), Total
     private final int[] TARGETS = {
         288000, 588000, 1190000, 1780000, 3280000, 5780000, 7880000, 9980000,
         13850000, 18850000, 26500000, 34500000, 43500000, 56500000, 76500000,
@@ -48,18 +48,27 @@ public class AgencyPolicyActivity extends AppCompatActivity {
         "$1.5", "$3", "$6", "$9", "$17", "$30", "$40", "$50", "$70", "$95",
         "$130", "$165", "$210", "$275", "$365", "$435", "$550", "$730", "$940", "$1280", "$1550", "$2000"
     };
-    // For calculation - double values
     private final double[] HOST_VAL = {1, 2, 4.5, 7, 14, 24, 32, 40, 56, 76, 104, 132, 168, 220, 292, 348, 440, 584, 752, 1024, 1240, 1600};
     private final double[] AGENCY_VAL = {0.5, 1, 1.5, 2, 3, 6, 8, 10, 14, 19, 26, 33, 42, 55, 73, 87, 110, 146, 188, 256, 310, 400};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        FirebaseUser fu = FirebaseAuth.getInstance().getCurrentUser();
-        if (fu != null) myUid = fu.getUid();
-        // Agency ID = My UID or My 9 Digit ID - passed from Agency Dashboard
+
+        // FIX 1: ID - UID না, 9-Digit ID - Agency Dashboard / SR_USER থেকে, Global এর সাথে মিলবে
         myAgencyId = getIntent().getStringExtra("AGENCY_OWNER_ID");
-        if (myAgencyId == null || myAgencyId.isEmpty()) myAgencyId = myUid;
+        if (myAgencyId == null || myAgencyId.isEmpty()) myAgencyId = getIntent().getStringExtra("MY_ID");
+        if (myAgencyId == null || myAgencyId.isEmpty()) myAgencyId = getIntent().getStringExtra("AGENCY_ID");
+        if (myAgencyId == null || myAgencyId.isEmpty()) {
+            SharedPreferences p = getSharedPreferences("SR_USER", MODE_PRIVATE);
+            myAgencyId = p.getString("MY_9_DIGIT_ID", "");
+            myName = p.getString("USER_NAME", "");
+            if (myName == null || myName.isEmpty()) myName = p.getString("MY_NAME", "Agency");
+            if (myName == null || myName.isEmpty()) myName = p.getString("name", "Agency");
+        }
+        if (myAgencyId == null) myAgencyId = "";
+        myId = myAgencyId;
+        if (myName == null || myName.isEmpty()) myName = "Agency";
 
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
@@ -68,6 +77,16 @@ public class AgencyPolicyActivity extends AppCompatActivity {
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(22, 28, 22, 28);
         scroll.addView(root);
+
+        // Back Button
+        TextView btnBack = new TextView(this);
+        btnBack.setText("← Back to Agency Dashboard");
+        btnBack.setTextColor(Color.WHITE);
+        btnBack.setTextSize(14);
+        btnBack.setTypeface(null, Typeface.BOLD);
+        btnBack.setPadding(10, 10, 10, 10);
+        btnBack.setOnClickListener(v -> finish());
+        root.addView(btnBack);
 
         TextView title = new TextView(this);
         title.setText("🏛️ AGENCY POLICY - FULL");
@@ -85,7 +104,6 @@ public class AgencyPolicyActivity extends AppCompatActivity {
         sub.setPadding(0, 8, 0, 18);
         root.addView(sub);
 
-        // MY AGENCY SUMMARY - From Database
         LinearLayout sumBox = new LinearLayout(this);
         sumBox.setOrientation(LinearLayout.VERTICAL);
         sumBox.setPadding(26, 22, 26, 22);
@@ -120,7 +138,6 @@ public class AgencyPolicyActivity extends AppCompatActivity {
         tvMyTotal.setTextSize(15);
         sumBox.addView(tvMyTotal);
 
-        // TABLE HEADER - FULL
         TextView tableTitle = new TextView(this);
         tableTitle.setText("FULL POLICY TABLE - 22 Levels");
         tableTitle.setTextColor(Color.parseColor("#FFD700"));
@@ -151,7 +168,6 @@ public class AgencyPolicyActivity extends AppCompatActivity {
             addRow(i, i + 1, TARGETS[i], HOST_SALARY[i], AGENCY_COMMISSION[i], TOTAL[i]);
         }
 
-        // MY HOSTS LIST - Agency Management
         TextView hostTitle = new TextView(this);
         hostTitle.setText("👥 MY HOSTS - Management");
         hostTitle.setTextColor(Color.parseColor("#FFD700"));
@@ -179,7 +195,41 @@ public class AgencyPolicyActivity extends AppCompatActivity {
         root.addView(note);
 
         setContentView(scroll);
-        loadMyHosts();
+
+        // FIX 2: Lock - Agency না হলে খুলবে না, Host ঢুকতে পারবে না
+        checkAgencyAccess();
+    }
+
+    private void checkAgencyAccess() {
+        if (myAgencyId.isEmpty()) {
+            Toast.makeText(this, "Agency ID not found", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
+        FirebaseDatabase.getInstance().getReference("users").child(myAgencyId)
+            .addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                    boolean isAgency = false;
+                    if (snap.hasChild("isAgency") && Boolean.TRUE.equals(snap.child("isAgency").getValue(Boolean.class))) isAgency = true;
+                    if (snap.hasChild("agencyId") && snap.child("agencyId").getValue() != null) {
+                        String aid = String.valueOf(snap.child("agencyId").getValue());
+                        if (!aid.isEmpty()) isAgency = true;
+                    }
+                    // Agency Owner নিজে - তার নিজের agencyId তার নিজের ID এর সমান / বা isAgency true
+                    // Owner কে Block করবো না, শুধু Host কে Block করবো - Host এর agencyId অন্য কারো ID
+                    if (!isAgency) {
+                        // Fallback: Dashboard থেকে আসলে isAgency পাঠানো থাকবে
+                        boolean fromDashboard = getIntent().getBooleanExtra("FROM_AGENCY_DASHBOARD", false);
+                        if (!fromDashboard) {
+                            Toast.makeText(AgencyPolicyActivity.this, "Only Agency Owner can see this", Toast.LENGTH_SHORT).show();
+                            finish();
+                            return;
+                        }
+                    }
+                    loadMyHosts();
+                }
+                @Override public void onCancelled(@NonNull DatabaseError e) { loadMyHosts(); }
+            });
     }
 
     private void addHeader(LinearLayout row, String txt, float w) {
@@ -206,7 +256,6 @@ public class AgencyPolicyActivity extends AppCompatActivity {
         lp.setMargins(0, 3, 0, 3);
         row.setLayoutParams(lp);
         listBox.addView(row);
-
         TextView t1 = cell("L" + level, Color.WHITE, 1, 12);
         TextView t2 = cell(format(target), Color.parseColor("#FFD700"), 2, 11);
         TextView t3 = cell(host, Color.parseColor("#00E676"), 2, 11);
@@ -226,7 +275,7 @@ public class AgencyPolicyActivity extends AppCompatActivity {
         return t;
     }
 
-    // Load Agency's Hosts from Database - agencyId == myUid
+    // FIX 3: Load Hosts - 9-Digit Agency ID দিয়ে মিলানো, UID দিয়ে না
     private void loadMyHosts() {
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users");
         ref.addValueEventListener(new ValueEventListener() {
@@ -234,22 +283,32 @@ public class AgencyPolicyActivity extends AppCompatActivity {
                 hostListBox.removeAllViews();
                 int count = 0;
                 double agencyTotal = 0, hostTotal = 0;
+                int serial = 0;
                 for (DataSnapshot child : snap.getChildren()) {
+                    String childId = child.getKey() != null ? child.getKey() : "";
+                    // নিজেকে Host হিসাবে গণনা করবো না
+                    if (childId.equals(myAgencyId)) continue;
                     String agencyId = "";
                     if (child.hasChild("agencyId") && child.child("agencyId").getValue() != null)
                         agencyId = String.valueOf(child.child("agencyId").getValue());
-                    if (!agencyId.equals(myAgencyId) && !agencyId.equals(myUid)) continue;
+                    // FIX: Agency ID = 9-Digit ID - ঠিক এইটাই মিলতে হবে
+                    if (!agencyId.equals(myAgencyId)) continue;
                     String name = child.hasChild("name") ? String.valueOf(child.child("name").getValue()) : "Host";
+                    if (child.hasChild("USER_NAME")) name = String.valueOf(child.child("USER_NAME").getValue());
                     long received = 0;
-                    if (child.hasChild("totalReceivedCoins") && child.child("totalReceivedCoins").getValue() != null) {
-                        try { received = Long.parseLong(String.valueOf(child.child("totalReceivedCoins").getValue())); } catch (Exception ignored) {}
+                    // Coins - 3 জায়গা থেকে চেক, যেখানেই থাকুক পাবে
+                    String[] coinKeys = {"totalReceivedCoins", "totalCoins", "coins", "receivedCoins"};
+                    for (String k : coinKeys) {
+                        if (child.hasChild(k) && child.child(k).getValue() != null) {
+                            try { received = Long.parseLong(String.valueOf(child.child(k).getValue())); break; } catch (Exception ignored) {}
+                        }
                     }
                     int lvl = 0; double hSal = 0, aSal = 0;
                     for (int i = 0; i < TARGETS.length; i++) {
                         if (received >= TARGETS[i]) { lvl = i + 1; hSal = HOST_VAL[i]; aSal = AGENCY_VAL[i]; }
                     }
-                    hostTotal += hSal; agencyTotal += aSal; count++;
-                    addHostRow(name, received, lvl, hSal, aSal);
+                    hostTotal += hSal; agencyTotal += aSal; count++; serial++;
+                    addHostRow(serial, childId, name, received, lvl, hSal, aSal);
                 }
                 if (count == 0) {
                     TextView empty = new TextView(AgencyPolicyActivity.this);
@@ -267,7 +326,7 @@ public class AgencyPolicyActivity extends AppCompatActivity {
         });
     }
 
-    private void addHostRow(String name, long received, int level, double hSal, double aSal) {
+    private void addHostRow(int serial, String hostId, String name, long received, int level, double hSal, double aSal) {
         LinearLayout row = new LinearLayout(this);
         row.setOrientation(LinearLayout.VERTICAL);
         row.setPadding(22, 16, 22, 16);
@@ -281,7 +340,7 @@ public class AgencyPolicyActivity extends AppCompatActivity {
         hostListBox.addView(row);
 
         TextView t1 = new TextView(this);
-        t1.setText(name + " • Level " + (level == 0 ? "-" : level));
+        t1.setText(serial + ". " + name + " (ID: " + hostId + ") • Level " + (level == 0 ? "-" : level));
         t1.setTextColor(Color.WHITE);
         t1.setTypeface(null, Typeface.BOLD);
         t1.setTextSize(14);
