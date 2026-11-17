@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SR Voice Chat - Admin Panel</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
+body{background:#0A0518;color:#fff}
+.top{background:#1B1035;padding:16px 20px;display:flex;justify-content:space-between;align-items:center}
+.top b{color:#FFD700;font-size:18px}
+.card{background:#1B1035;margin:16px;padding:20px;border-radius:12px}
+input{width:100%;padding:12px;margin:8px 0;background:#0A0518;border:1px solid #333;color:#fff;border-radius:8px}
+button{width:100%;padding:13px;background:#FFD700;color:#000;border:none;border-radius:8px;font-weight:bold;cursor:pointer;margin-top:8px}
+.stat{display:flex;gap:12px;margin:16px}
+.stat div{flex:1;background:#1B1035;padding:16px;border-radius:12px;text-align:center}
+.stat div b{font-size:22px;color:#FFD700;display:block}
+.small{font-size:12px;color:#aaa;margin-top:6px}
+.list{margin-top:12px}
+.item{background:#0A0518;padding:12px;border-radius:8px;margin-bottom:8px;display:flex;justify-content:space-between}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="top"><b>SR ADMIN PANEL</b><span id="adminEmail"></span></div>
+
+<div id="loginBox" class="card">
+<h2>CEO / Admin Login</h2>
+<p class="small">Sudhu onumodito Gmail diye login hobe.</p>
+<input id="email" type="email" placeholder="Admin Gmail">
+<input id="pass" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<p id="loginMsg" class="small"></p>
+</div>
+
+<div id="dashBox" class="hidden">
+<div class="stat">
+<div><b id="totalUsers">0</b><span>Total Users</span></div>
+<div><b id="totalAgency">0</b><span>Total Agency</span></div>
+<div><b id="totalHosts">0</b><span>Total Hosts</span></div>
+</div>
+
+<div class="card">
+<h3>Agency Create - Permanent</h3>
+<p class="small">Confirm korlei oi ID te Agency Dashboard auto open hobe.</p>
+<input id="agencyUid" placeholder="User UID / ID Number">
+<input id="agencyName" placeholder="Agency Name - ex: SR Agency">
+<input id="agencyPercent" type="number" placeholder="Commission % - ex: 20">
+<button onclick="createAgency()">Confirm - Create Agency</button>
+<p id="agencyMsg" class="small"></p>
+</div>
+
+<div class="card">
+<h3>Agency List</h3>
+<div id="agencyList" class="list">Loading...</div>
+</div>
+
+<button style="background:#333;color:#fff" onclick="logout()">Logout</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, collection, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "PASTE_HERE",
+  authDomain: "PASTE_HERE",
+  projectId: "PASTE_HERE",
+  storageBucket: "PASTE_HERE",
+  messagingSenderId: "PASTE_HERE",
+  appId: "PASTE_HERE"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+window.login = async () => {
+  const email = document.getElementById('email').value;
+  const pass = document.getElementById('pass').value;
+  try {
+    const cred = await signInWithEmailAndPassword(auth, email, pass);
+    const snap = await getDoc(doc(db, "admins", cred.user.uid));
+    if (!snap.exists()) {
+      document.getElementById('loginMsg').innerText = "Tumi Admin na. Access denied.";
+      await signOut(auth); return;
+    }
+    loadDashboard();
+  } catch(e){ document.getElementById('loginMsg').innerText = e.message; }
+}
+
+window.logout = async () => { await signOut(auth); location.reload(); }
+
+onAuthStateChanged(auth, async (user)=>{
+  if(!user) return;
+  const snap = await getDoc(doc(db, "admins", user.uid));
+  if(snap.exists()){
+    document.getElementById('loginBox').classList.add('hidden');
+    document
