@@ -6,6 +6,7 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -19,18 +20,19 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-// AGENCY POLICY - ONLY AGENCY CAN SEE THIS
-// Agency sees FULL: Target Coins + Host Salary (80%) + Agency Commission (20%) + Total
-// Agency sees ALL its Hosts: which Host did how much Target, Total Dollar
-// READ ONLY - Agency also CANNOT edit Dollar - Company Database controls everything
+// AGENCY POLICY - GATED - ONLY AGENCY CAN SEE THIS
+// RULE: Agency nai = Policy kokhono dekhbe na. Agency = Full Table + Own Hosts Only.
+// Host / Normal User NEVER sees Agency Commission.
+// READ ONLY - Agency also CANNOT edit Dollar.
 public class AgencyPolicyActivity extends AppCompatActivity {
-    private LinearLayout listBox, hostListBox;
+    private LinearLayout listBox, hostListBox, root, lockBox;
     private TextView tvMyTotal, tvTotalHosts, tvTotalDollar;
     private String myId = "";
     private String myAgencyId = "";
     private String myName = "Agency";
+    private SharedPreferences prefs;
+    private boolean isAgency = false;
 
-    // OFFICIAL POLICY - Company Fixed - From your Image
     private final int[] TARGETS = {
         288000, 588000, 1190000, 1780000, 3280000, 5780000, 7880000, 9980000,
         13850000, 18850000, 26500000, 34500000, 43500000, 56500000, 76500000,
@@ -54,31 +56,37 @@ public class AgencyPolicyActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
 
-        // FIX 1: ID - UID না, 9-Digit ID - Agency Dashboard / SR_USER থেকে, Global এর সাথে মিলবে
         myAgencyId = getIntent().getStringExtra("AGENCY_OWNER_ID");
         if (myAgencyId == null || myAgencyId.isEmpty()) myAgencyId = getIntent().getStringExtra("MY_ID");
         if (myAgencyId == null || myAgencyId.isEmpty()) myAgencyId = getIntent().getStringExtra("AGENCY_ID");
         if (myAgencyId == null || myAgencyId.isEmpty()) {
-            SharedPreferences p = getSharedPreferences("SR_USER", MODE_PRIVATE);
-            myAgencyId = p.getString("MY_9_DIGIT_ID", "");
-            myName = p.getString("USER_NAME", "");
-            if (myName == null || myName.isEmpty()) myName = p.getString("MY_NAME", "Agency");
-            if (myName == null || myName.isEmpty()) myName = p.getString("name", "Agency");
+            myAgencyId = prefs.getString("MY_9_DIGIT_ID", "");
+            myName = prefs.getString("USER_NAME", "");
+            if (myName == null || myName.isEmpty()) myName = prefs.getString("MY_NAME", "Agency");
+            if (myName == null || myName.isEmpty()) myName = prefs.getString("name", "Agency");
         }
         if (myAgencyId == null) myAgencyId = "";
         myId = myAgencyId;
         if (myName == null || myName.isEmpty()) myName = "Agency";
 
+        // GATE 1 - Local Cache: Permanent Agency - Instant, Loading nai
+        isAgency = prefs.getBoolean("IS_AGENCY_PERMANENT", false);
+        if (!isAgency) isAgency = prefs.getBoolean("IS_AGENCY", false) && prefs.getString("MY_9_DIGIT_ID", "").equals(myAgencyId);
+        if (getIntent().getBooleanExtra("FROM_AGENCY_DASHBOARD", false)) isAgency = true;
+        // Cached Agency Name
+        String cachedAgencyName = prefs.getString("CACHED_AGENCY_NAME", myName);
+        if (cachedAgencyName != null && !cachedAgencyName.isEmpty()) myName = cachedAgencyName;
+
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
         scroll.setBackgroundColor(Color.parseColor("#0A0518"));
-        LinearLayout root = new LinearLayout(this);
+        root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(22, 28, 22, 28);
         scroll.addView(root);
 
-        // Back Button
         TextView btnBack = new TextView(this);
         btnBack.setText("← Back to Agency Dashboard");
         btnBack.setTextColor(Color.WHITE);
@@ -88,12 +96,47 @@ public class AgencyPolicyActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> finish());
         root.addView(btnBack);
 
+        // LOCK BOX - Agency na hole eitai dekhabe, Full Table kokhono dekhbe na
+        lockBox = new LinearLayout(this);
+        lockBox.setOrientation(LinearLayout.VERTICAL);
+        lockBox.setGravity(Gravity.CENTER);
+        lockBox.setPadding(30, 60, 30, 60);
+        GradientDrawable lockBg = new GradientDrawable();
+        lockBg.setColor(Color.parseColor("#1B1035"));
+        lockBg.setCornerRadius(22);
+        lockBg.setStroke(1, Color.parseColor("#FFD700"));
+        lockBox.setBackground(lockBg);
+        lockBox.setVisibility(isAgency ? View.GONE : View.VISIBLE);
+        root.addView(lockBox);
+
+        TextView lockIcon = new TextView(this);
+        lockIcon.setText("🔒");
+        lockIcon.setTextSize(48);
+        lockIcon.setGravity(Gravity.CENTER);
+        lockBox.addView(lockIcon);
+        TextView lockTitle = new TextView(this);
+        lockTitle.setText("Agency Policy Locked");
+        lockTitle.setTextColor(Color.WHITE);
+        lockTitle.setTextSize(20);
+        lockTitle.setTypeface(null, Typeface.BOLD);
+        lockTitle.setGravity(Gravity.CENTER);
+        lockTitle.setPadding(0, 16, 0, 8);
+        lockBox.addView(lockTitle);
+        TextView lockMsg = new TextView(this);
+        lockMsg.setText("Only Agency Owner can see this Policy\n\nAgency পেলে এই Policy Automatic খুলে যাবে।");
+        lockMsg.setTextColor(Color.parseColor("#B0BEC5"));
+        lockMsg.setTextSize(14);
+        lockMsg.setGravity(Gravity.CENTER);
+        lockBox.addView(lockMsg);
+
         TextView title = new TextView(this);
         title.setText("🏛️ AGENCY POLICY - FULL");
         title.setTextColor(Color.parseColor("#FFD700"));
         title.setTextSize(20);
         title.setTypeface(null, Typeface.BOLD);
         title.setGravity(Gravity.CENTER);
+        title.setVisibility(isAgency ? View.VISIBLE : View.GONE);
+        title.setTag("agency_title");
         root.addView(title);
 
         TextView sub = new TextView(this);
@@ -102,6 +145,8 @@ public class AgencyPolicyActivity extends AppCompatActivity {
         sub.setTextSize(12);
         sub.setGravity(Gravity.CENTER);
         sub.setPadding(0, 8, 0, 18);
+        sub.setVisibility(isAgency ? View.VISIBLE : View.GONE);
+        sub.setTag("agency_sub");
         root.addView(sub);
 
         LinearLayout sumBox = new LinearLayout(this);
@@ -115,24 +160,27 @@ public class AgencyPolicyActivity extends AppCompatActivity {
         LinearLayout.LayoutParams sumLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         sumLp.setMargins(0, 0, 0, 18);
         sumBox.setLayoutParams(sumLp);
+        sumBox.setVisibility(isAgency ? View.VISIBLE : View.GONE);
+        sumBox.setTag("agency_sum");
         root.addView(sumBox);
 
         tvTotalHosts = new TextView(this);
-        tvTotalHosts.setText("My Hosts: Loading...");
+        // FIXED - Loading uthay dilam. Cache theke sathe sathe.
+        tvTotalHosts.setText("My Hosts: " + prefs.getInt("CACHED_HOST_COUNT_" + myAgencyId, 0));
         tvTotalHosts.setTextColor(Color.WHITE);
         tvTotalHosts.setTypeface(null, Typeface.BOLD);
         tvTotalHosts.setTextSize(15);
         sumBox.addView(tvTotalHosts);
 
         tvTotalDollar = new TextView(this);
-        tvTotalDollar.setText("My Agency Commission Total: $0");
+        tvTotalDollar.setText("My Agency Commission Total: $" + formatDouble(prefs.getFloat("CACHED_AGENCY_TOTAL_" + myAgencyId, 0)));
         tvTotalDollar.setTextColor(Color.parseColor("#FFD700"));
         tvTotalDollar.setTypeface(null, Typeface.BOLD);
         tvTotalDollar.setTextSize(15);
         sumBox.addView(tvTotalDollar);
 
         tvMyTotal = new TextView(this);
-        tvMyTotal.setText("Total Payout (Host + Agency): $0");
+        tvMyTotal.setText("Total Payout (Host + Agency): $" + formatDouble(prefs.getFloat("CACHED_TOTAL_PAYOUT_" + myAgencyId, 0)));
         tvMyTotal.setTextColor(Color.parseColor("#00E676"));
         tvMyTotal.setTypeface(null, Typeface.BOLD);
         tvMyTotal.setTextSize(15);
@@ -144,6 +192,8 @@ public class AgencyPolicyActivity extends AppCompatActivity {
         tableTitle.setTypeface(null, Typeface.BOLD);
         tableTitle.setTextSize(14);
         tableTitle.setPadding(0, 4, 0, 10);
+        tableTitle.setVisibility(isAgency ? View.VISIBLE : View.GONE);
+        tableTitle.setTag("agency_table_title");
         root.addView(tableTitle);
 
         LinearLayout header = new LinearLayout(this);
@@ -153,6 +203,8 @@ public class AgencyPolicyActivity extends AppCompatActivity {
         hBg.setColor(Color.parseColor("#0F5132"));
         hBg.setCornerRadius(12);
         header.setBackground(hBg);
+        header.setVisibility(isAgency ? View.VISIBLE : View.GONE);
+        header.setTag("agency_header");
         root.addView(header);
         addHeader(header, "Lvl", 1);
         addHeader(header, "Target", 2);
@@ -162,10 +214,11 @@ public class AgencyPolicyActivity extends AppCompatActivity {
 
         listBox = new LinearLayout(this);
         listBox.setOrientation(LinearLayout.VERTICAL);
+        listBox.setVisibility(isAgency ? View.VISIBLE : View.GONE);
+        listBox.setTag("agency_list");
         root.addView(listBox);
-
-        for (int i = 0; i < TARGETS.length; i++) {
-            addRow(i, i + 1, TARGETS[i], HOST_SALARY[i], AGENCY_COMMISSION[i], TOTAL[i]);
+        if (isAgency) {
+            for (int i = 0; i < TARGETS.length; i++) addRow(i, i + 1, TARGETS[i], HOST_SALARY[i], AGENCY_COMMISSION[i], TOTAL[i]);
         }
 
         TextView hostTitle = new TextView(this);
@@ -174,6 +227,8 @@ public class AgencyPolicyActivity extends AppCompatActivity {
         hostTitle.setTypeface(null, Typeface.BOLD);
         hostTitle.setTextSize(15);
         hostTitle.setPadding(0, 22, 0, 10);
+        hostTitle.setVisibility(isAgency ? View.VISIBLE : View.GONE);
+        hostTitle.setTag("agency_host_title");
         root.addView(hostTitle);
 
         TextView hostSub = new TextView(this);
@@ -181,10 +236,14 @@ public class AgencyPolicyActivity extends AppCompatActivity {
         hostSub.setTextColor(Color.parseColor("#B0BEC5"));
         hostSub.setTextSize(12);
         hostSub.setPadding(0, 0, 0, 10);
+        hostSub.setVisibility(isAgency ? View.VISIBLE : View.GONE);
+        hostSub.setTag("agency_host_sub");
         root.addView(hostSub);
 
         hostListBox = new LinearLayout(this);
         hostListBox.setOrientation(LinearLayout.VERTICAL);
+        hostListBox.setVisibility(isAgency ? View.VISIBLE : View.GONE);
+        hostListBox.setTag("agency_host_list");
         root.addView(hostListBox);
 
         TextView note = new TextView(this);
@@ -192,44 +251,51 @@ public class AgencyPolicyActivity extends AppCompatActivity {
         note.setTextColor(Color.parseColor("#B0BEC5"));
         note.setTextSize(12);
         note.setPadding(0, 18, 0, 0);
+        note.setVisibility(isAgency ? View.VISIBLE : View.GONE);
+        note.setTag("agency_note");
         root.addView(note);
 
         setContentView(scroll);
-
-        // FIX 2: Lock - Agency না হলে খুলবে না, Host ঢুকতে পারবে না
         checkAgencyAccess();
+        if (isAgency) loadMyHosts();
     }
 
-    private void checkAgencyAccess() {
-        if (myAgencyId.isEmpty()) {
-            Toast.makeText(this, "Agency ID not found", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
+    private void showUnlocked() {
+        if (isAgency) return;
+        isAgency = true;
+        prefs.edit().putBoolean("IS_AGENCY", true).putBoolean("IS_AGENCY_PERMANENT", true).apply();
+        if (lockBox != null) lockBox.setVisibility(View.GONE);
+        for (int i = 0; i < root.getChildCount(); i++) {
+            View v = root.getChildAt(i);
+            if (v.getTag() != null && String.valueOf(v.getTag()).startsWith("agency_")) v.setVisibility(View.VISIBLE);
         }
-        FirebaseDatabase.getInstance().getReference("users").child(myAgencyId)
-            .addListenerForSingleValueEvent(new ValueEventListener() {
-                @Override public void onDataChange(@NonNull DataSnapshot snap) {
-                    boolean isAgency = false;
-                    if (snap.hasChild("isAgency") && Boolean.TRUE.equals(snap.child("isAgency").getValue(Boolean.class))) isAgency = true;
-                    if (snap.hasChild("agencyId") && snap.child("agencyId").getValue() != null) {
-                        String aid = String.valueOf(snap.child("agencyId").getValue());
-                        if (!aid.isEmpty()) isAgency = true;
-                    }
-                    // Agency Owner নিজে - তার নিজের agencyId তার নিজের ID এর সমান / বা isAgency true
-                    // Owner কে Block করবো না, শুধু Host কে Block করবো - Host এর agencyId অন্য কারো ID
-                    if (!isAgency) {
-                        // Fallback: Dashboard থেকে আসলে isAgency পাঠানো থাকবে
-                        boolean fromDashboard = getIntent().getBooleanExtra("FROM_AGENCY_DASHBOARD", false);
-                        if (!fromDashboard) {
-                            Toast.makeText(AgencyPolicyActivity.this, "Only Agency Owner can see this", Toast.LENGTH_SHORT).show();
-                            finish();
-                            return;
+        if (listBox != null && listBox.getChildCount() == 0) {
+            for (int i = 0; i < TARGETS.length; i++) addRow(i, i + 1, TARGETS[i], HOST_SALARY[i], AGENCY_COMMISSION[i], TOTAL[i]);
+        }
+        loadMyHosts();
+    }
+
+    // FIXED - Agency Check: agencies/{ID} + Cache + my9DigitId - UID diye na
+    private void checkAgencyAccess() {
+        if (myAgencyId.isEmpty()) return;
+        if (isAgency) return; // Dashboard theke / Cache theke already Agency - abar check dorkar nai
+        FirebaseDatabase.getInstance().getReference("agencies").child(myAgencyId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                if (snap.exists()) { showUnlocked(); return; }
+                // 2nd check - users e my9DigitId diye isAgency check
+                FirebaseDatabase.getInstance().getReference("users").orderByChild("my9DigitId").equalTo(myAgencyId).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override public void onDataChange(@NonNull DataSnapshot s2) {
+                        for (DataSnapshot ds : s2.getChildren()) {
+                            if (ds.hasChild("isAgency") && Boolean.TRUE.equals(ds.child("isAgency").getValue(Boolean.class))) { showUnlocked(); return; }
+                            if (ds.hasChild("agencyId") && ds.child("agencyId").getValue() != null && String.valueOf(ds.child("agencyId").getValue()).equals(myAgencyId)) { showUnlocked(); return; }
                         }
+                        // Agency na - Lock e thakbe, finish korbo na - Lock msg dekhbe
                     }
-                    loadMyHosts();
-                }
-                @Override public void onCancelled(@NonNull DatabaseError e) { loadMyHosts(); }
-            });
+                    @Override public void onCancelled(@NonNull DatabaseError e) {}
+                });
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
     }
 
     private void addHeader(LinearLayout row, String txt, float w) {
@@ -275,55 +341,82 @@ public class AgencyPolicyActivity extends AppCompatActivity {
         return t;
     }
 
-    // FIX 3: Load Hosts - 9-Digit Agency ID দিয়ে মিলানো, UID দিয়ে না
+    // FIXED - Load Hosts: agencies/{myAgencyId}/hosts theke - sob User scan na
     private void loadMyHosts() {
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users");
-        ref.addValueEventListener(new ValueEventListener() {
+        FirebaseDatabase.getInstance().getReference("agencies").child(myAgencyId).child("hosts").addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 hostListBox.removeAllViews();
-                int count = 0;
-                double agencyTotal = 0, hostTotal = 0;
-                int serial = 0;
-                for (DataSnapshot child : snap.getChildren()) {
-                    String childId = child.getKey() != null ? child.getKey() : "";
-                    // নিজেকে Host হিসাবে গণনা করবো না
-                    if (childId.equals(myAgencyId)) continue;
-                    String agencyId = "";
-                    if (child.hasChild("agencyId") && child.child("agencyId").getValue() != null)
-                        agencyId = String.valueOf(child.child("agencyId").getValue());
-                    // FIX: Agency ID = 9-Digit ID - ঠিক এইটাই মিলতে হবে
-                    if (!agencyId.equals(myAgencyId)) continue;
-                    String name = child.hasChild("name") ? String.valueOf(child.child("name").getValue()) : "Host";
-                    if (child.hasChild("USER_NAME")) name = String.valueOf(child.child("USER_NAME").getValue());
-                    long received = 0;
-                    // Coins - 3 জায়গা থেকে চেক, যেখানেই থাকুক পাবে
-                    String[] coinKeys = {"totalReceivedCoins", "totalCoins", "coins", "receivedCoins"};
-                    for (String k : coinKeys) {
-                        if (child.hasChild(k) && child.child(k).getValue() != null) {
-                            try { received = Long.parseLong(String.valueOf(child.child(k).getValue())); break; } catch (Exception ignored) {}
-                        }
-                    }
-                    int lvl = 0; double hSal = 0, aSal = 0;
-                    for (int i = 0; i < TARGETS.length; i++) {
-                        if (received >= TARGETS[i]) { lvl = i + 1; hSal = HOST_VAL[i]; aSal = AGENCY_VAL[i]; }
-                    }
-                    hostTotal += hSal; agencyTotal += aSal; count++; serial++;
-                    addHostRow(serial, childId, name, received, lvl, hSal, aSal);
-                }
-                if (count == 0) {
+                if (!snap.exists() || snap.getChildrenCount() == 0) {
                     TextView empty = new TextView(AgencyPolicyActivity.this);
                     empty.setText("No Host yet under your Agency");
                     empty.setTextColor(Color.parseColor("#B0BEC5"));
                     empty.setGravity(Gravity.CENTER);
                     empty.setPadding(0, 16, 0, 16);
                     hostListBox.addView(empty);
+                    if (tvTotalHosts != null) tvTotalHosts.setText("My Hosts: 0");
+                    return;
                 }
-                tvTotalHosts.setText("My Hosts: " + count);
-                tvTotalDollar.setText("My Agency Commission Total: $" + formatDouble(agencyTotal));
-                tvMyTotal.setText("Total Payout (Host + Agency): $" + formatDouble(hostTotal + agencyTotal));
+                int[] count = {0};
+                double[] agencyTotal = {0}, hostTotal = {0};
+                int[] serial = {0};
+                for (DataSnapshot hostSnap : snap.getChildren()) {
+                    String hostId = hostSnap.getKey();
+                    if (hostId == null) continue;
+                    if (hostId.equals(myAgencyId)) continue;
+                    fetchHostRow(hostId, serial, count, agencyTotal, hostTotal, (int) snap.getChildrenCount());
+                }
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
+    }
+
+    private void fetchHostRow(String hostId, int[] serial, int[] count, double[] agencyTotal, double[] hostTotal, int expected) {
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
+        usersRef.child(hostId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                if (!snap.exists()) {
+                    usersRef.orderByChild("my9DigitId").equalTo(hostId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override public void onDataChange(@NonNull DataSnapshot s2) {
+                            for (DataSnapshot ds : s2.getChildren()) { showHostRow(ds, hostId, serial, count, agencyTotal, hostTotal, expected); return; }
+                            count[0]++; if (count[0] >= expected) updateTotals(count[0], agencyTotal[0], hostTotal[0]);
+                        }
+                        @Override public void onCancelled(@NonNull DatabaseError e) {}
+                    });
+                    return;
+                }
+                showHostRow(snap, hostId, serial, count, agencyTotal, hostTotal, expected);
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
+    }
+
+    private void showHostRow(DataSnapshot child, String hostId, int[] serial, int[] count, double[] agencyTotal, double[] hostTotal, int expected) {
+        String name = child.hasChild("name") ? String.valueOf(child.child("name").getValue()) : "Host";
+        if (child.hasChild("USER_NAME")) name = String.valueOf(child.child("USER_NAME").getValue());
+        long received = 0;
+        String[] coinKeys = {"totalReceivedCoins", "totalCoins", "coins", "receivedCoins"};
+        for (String k : coinKeys) {
+            if (child.hasChild(k) && child.child(k).getValue() != null) {
+                try { received = Long.parseLong(String.valueOf(child.child(k).getValue())); break; } catch (Exception ignored) {}
+            }
+        }
+        int lvl = 0; double hSal = 0, aSal = 0;
+        for (int i = 0; i < TARGETS.length; i++) {
+            if (received >= TARGETS[i]) { lvl = i + 1; hSal = HOST_VAL[i]; aSal = AGENCY_VAL[i]; }
+        }
+        hostTotal[0] += hSal; agencyTotal[0] += aSal; count[0]++; serial[0]++;
+        addHostRow(serial[0], hostId, name, received, lvl, hSal, aSal);
+        if (count[0] >= expected) updateTotals(count[0], agencyTotal[0], hostTotal[0]);
+    }
+
+    private void updateTotals(int count, double agencyTotal, double hostTotal) {
+        if (tvTotalHosts != null) tvTotalHosts.setText("My Hosts: " + count);
+        if (tvTotalDollar != null) tvTotalDollar.setText("My Agency Commission Total: $" + formatDouble(agencyTotal));
+        if (tvMyTotal != null) tvMyTotal.setText("Total Payout (Host + Agency): $" + formatDouble(hostTotal + agencyTotal));
+        prefs.edit().putInt("CACHED_HOST_COUNT_" + myAgencyId, count)
+            .putFloat("CACHED_AGENCY_TOTAL_" + myAgencyId, (float) agencyTotal)
+            .putFloat("CACHED_TOTAL_PAYOUT_" + myAgencyId, (float) (hostTotal + agencyTotal))
+            .apply();
     }
 
     private void addHostRow(int serial, String hostId, String name, long received, int level, double hSal, double aSal) {
@@ -338,7 +431,6 @@ public class AgencyPolicyActivity extends AppCompatActivity {
         lp.setMargins(0, 0, 0, 10);
         row.setLayoutParams(lp);
         hostListBox.addView(row);
-
         TextView t1 = new TextView(this);
         t1.setText(serial + ". " + name + " (ID: " + hostId + ") • Level " + (level == 0 ? "-" : level));
         t1.setTextColor(Color.WHITE);
