@@ -1,6 +1,7 @@
 package com.sr.voicechat;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -30,10 +31,12 @@ public class AgencyDashboardActivity extends AppCompatActivity {
     private double totalCommission = 0;
     private int loadedHostCount = 0;
     private int expectedHostCount = 0;
+    private SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
 
         ScrollView scrollView = new ScrollView(this);
         scrollView.setFillViewport(true);
@@ -44,7 +47,9 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         rootLayout.setPadding(40, 40, 40, 40);
 
         txtAgencyTitle = new TextView(this);
-        txtAgencyTitle.setText("🏛️ Agency Dashboard");
+        // FIX PERMANENT - Cached naam instantly, khali dekhabe na
+        agencyName = prefs.getString("CACHED_AGENCY_NAME", "SR Agency");
+        txtAgencyTitle.setText("🏛️ " + agencyName + " - Dashboard");
         txtAgencyTitle.setTextColor(android.graphics.Color.parseColor("#FFD700"));
         txtAgencyTitle.setTextSize(22);
         txtAgencyTitle.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -64,7 +69,6 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         txtTotalEarnings.setPadding(0, 0, 0, 30);
         rootLayout.addView(txtTotalEarnings);
 
-        // NEW: AGENCY POLICY BUTTON - Dashboard থেকে Policy খুলবে
         btnAgencyPolicy = new Button(this);
         btnAgencyPolicy.setText("📜 Agency Policy - Full Table");
         btnAgencyPolicy.setBackgroundColor(android.graphics.Color.parseColor("#FFD700"));
@@ -96,33 +100,44 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         scrollView.addView(rootLayout);
         setContentView(scrollView);
 
-        // FIX 1: Intent + SharedPrefs + Firebase - 3 জায়গা থেকে ID নেওয়া, যাতে Global এ কখনো খালি না থাকে
-        // Profile ID (Any Digit) - UID না
+        // ID - Intent + SR_USER + SR_PREFS - 3 jayga theke, kokhono khali na
         agencyOwnerId = getIntent().getStringExtra("AGENCY_OWNER_ID");
         if (agencyOwnerId == null || agencyOwnerId.isEmpty()) agencyOwnerId = getIntent().getStringExtra("MY_ID");
         if (agencyOwnerId == null || agencyOwnerId.isEmpty()) agencyOwnerId = getIntent().getStringExtra("AGENCY_ID");
-        if (agencyOwnerId == null || agencyOwnerId.isEmpty()) {
-            agencyOwnerId = getSharedPreferences("SR_PREFS", MODE_PRIVATE).getString("MY_ID", "");
-        }
-        if (agencyOwnerId == null || agencyOwnerId.isEmpty()) {
-            agencyOwnerId = getSharedPreferences("SR_USER", MODE_PRIVATE).getString("MY_9_DIGIT_ID", "");
-        }
-        if (agencyOwnerId == null || agencyOwnerId.isEmpty()) {
-            agencyOwnerId = getSharedPreferences("SR_USER", MODE_PRIVATE).getString("MY_ID", "");
-        }
+        if (agencyOwnerId == null || agencyOwnerId.isEmpty()) agencyOwnerId = prefs.getString("MY_9_DIGIT_ID", "");
+        if (agencyOwnerId == null || agencyOwnerId.isEmpty()) agencyOwnerId = prefs.getString("MY_ID", "");
+        if (agencyOwnerId == null || agencyOwnerId.isEmpty()) agencyOwnerId = getSharedPreferences("SR_PREFS", MODE_PRIVATE).getString("MY_ID", "");
         if (agencyOwnerId == null) agencyOwnerId = "";
 
+        // PERMANENT AGENCY - Ekbar Agency mane sobsomoy Agency. Ekhane lock kore dilam.
+        if (!agencyOwnerId.isEmpty()) {
+            prefs.edit().putString("AGENCY_OWNER_ID", agencyOwnerId)
+                    .putString("MY_AGENCY_ID", agencyOwnerId)
+                    .putBoolean("IS_AGENCY", true)
+                    .putBoolean("IS_AGENCY_PERMANENT", true)
+                    .putLong("AGENCY_GRANTED_AT", prefs.getLong("AGENCY_GRANTED_AT", System.currentTimeMillis()))
+                    .apply();
+        }
+
         agencyRef = FirebaseDatabase.getInstance().getReference("agencies").child(agencyOwnerId);
+        try { agencyRef.keepSynced(true); } catch (Exception ignored) {}
         invitationRef = FirebaseDatabase.getInstance().getReference("agency_invitations");
         usersRef = FirebaseDatabase.getInstance().getReference("users");
 
-        // FIX 2: Agency নাম Firebase থেকে LIVE নেওয়া - Super Panel থেকে Victory দিলেই সাথে সাথে বদলাবে
+        // Agency naam LIVE - kintu kokhono khali / false diye overwrite korbe na
         agencyRef.addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                if (!snap.exists()) {
+                    // Firebase e na thakleo cache theke Agency thakbe - harabe na
+                    return;
+                }
+                // Agency exist kore - Permanent lock abar pakka koro
+                prefs.edit().putBoolean("IS_AGENCY", true).putBoolean("IS_AGENCY_PERMANENT", true).apply();
                 String liveName = snap.child("agencyName").getValue(String.class);
                 if (liveName == null) liveName = snap.child("name").getValue(String.class);
                 if (liveName != null && !liveName.isEmpty()) {
                     agencyName = liveName;
+                    prefs.edit().putString("CACHED_AGENCY_NAME", liveName).apply();
                     txtAgencyTitle.setText("🏛️ " + agencyName + " - Dashboard");
                 }
             }
@@ -131,17 +146,58 @@ public class AgencyDashboardActivity extends AppCompatActivity {
 
         loadAgencyDataAndHosts();
 
-        // Policy Button Click - Agency ID + Flag নিয়ে Policy খুলবে
-        btnAgencyPolicy.setOnClickListener(v -> {
+        // POLICY - Crash-proof. Activity khulle valo, na khulle eki screen e Table khulbe. Back / Crash korbe na.
+        btnAgencyPolicy.setOnClickListener(v -> openAgencyPolicySafe());
+
+        btnOpenInviteDialog.setOnClickListener(v -> showHostInviteInputDialog());
+    }
+
+    private void openAgencyPolicySafe() {
+        try {
             Intent i = new Intent(AgencyDashboardActivity.this, AgencyPolicyActivity.class);
             i.putExtra("AGENCY_OWNER_ID", agencyOwnerId);
             i.putExtra("MY_ID", agencyOwnerId);
             i.putExtra("AGENCY_ID", agencyOwnerId);
             i.putExtra("FROM_AGENCY_DASHBOARD", true);
             startActivity(i);
-        });
+        } catch (Exception e) {
+            // AgencyPolicyActivity na thakle / crash korle - ekhanei Policy Table dekhabe
+            showInlineAgencyPolicy();
+        }
+    }
 
-        btnOpenInviteDialog.setOnClickListener(v -> showHostInviteInputDialog());
+    private void showInlineAgencyPolicy() {
+        AlertDialog.Builder b = new AlertDialog.Builder(this);
+        b.setTitle("📜 Agency Policy - SR Voice Chat");
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(40, 30, 40, 30);
+        ScrollView sv = new ScrollView(this);
+        TextView tv = new TextView(this);
+        tv.setTextColor(android.graphics.Color.WHITE);
+        tv.setTextSize(14);
+        tv.setText(
+            "🏛️ AGENCY POLICY\n\n" +
+            "✅ Agency Permanent - Ekbar Agency mane sobsomoy Agency\n\n" +
+            "👑 Agency Owner: 100% Own Earnings\n" +
+            "👤 Host: 80% Earnings\n" +
+            "🏛️ Agency Commission: 20% from Host\n\n" +
+            "🎯 TARGET TABLE:\n" +
+            "• 10,000 Coins = $1.00\n" +
+            "• Host 100K Coins = $10 (Host $8 + Agency $2)\n" +
+            "• Host 1M Coins = $100 (Host $80 + Agency $20)\n\n" +
+            "📜 RULES:\n" +
+            "1. Host ke respect korte hobe\n" +
+            "2. Fake coins / fraud korle Agency cancel\n" +
+            "3. Payment maser 1-7 tarikhe\n" +
+            "4. Host chaile Agency change korte parbe\n\n" +
+            "Agency ID: " + agencyOwnerId
+        );
+        sv.addView(tv);
+        layout.addView(sv);
+        b.setView(layout);
+        b.setPositiveButton("OK ✅", (d, w) -> d.dismiss());
+        try { b.show(); } catch (Exception ignored) {}
     }
 
     private void showHostInviteInputDialog() {
@@ -164,7 +220,6 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         builder.show();
     }
 
-    // FIX 3: Invite 2 জায়গায় যাবে - agency_invitations + users/{target}/inbox, যাতে Inbox এ Accept/Reject আসে
     private void sendRealtimeHostInvitation(String targetUserId) {
         if (targetUserId.equals(agencyOwnerId)) {
             Toast.makeText(this, "You cannot invite yourself!", Toast.LENGTH_SHORT).show();
@@ -172,7 +227,6 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         }
         String inviteKey = invitationRef.child(targetUserId).push().getKey();
         if (inviteKey == null) return;
-
         Map<String, Object> inviteMap = new HashMap<>();
         inviteMap.put("agencyId", agencyOwnerId);
         inviteMap.put("agencyName", agencyName);
@@ -181,10 +235,7 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         inviteMap.put("type", "AGENCY_INVITE");
         inviteMap.put("status", "Pending");
         inviteMap.put("timestamp", System.currentTimeMillis());
-
-        // 1. Agency invitation node
         invitationRef.child(targetUserId).child(inviteKey).setValue(inviteMap);
-        // 2. User Inbox node - InboxActivity এইটা পড়বে
         usersRef.child(targetUserId).child("inbox").child(inviteKey).setValue(inviteMap)
             .addOnCompleteListener(task -> {
                 if (task.isSuccessful()) Toast.makeText(this, "Host invitation sent to ID: " + targetUserId, Toast.LENGTH_LONG).show();
@@ -202,8 +253,6 @@ public class AgencyDashboardActivity extends AppCompatActivity {
                 loadedHostCount = 0;
                 expectedHostCount = (int) hostCount;
                 if (hostCount == 0) {
-                    updateTotalEarnings();
-                    // নিজের টার্গেট কার্ড - Agency নিজেও Host হিসাবে
                     fetchOwnTargetCard();
                     return;
                 }
@@ -216,23 +265,32 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         });
     }
 
-    // FIX 4: Agency নিজের টার্গেট 100% পাবে + Host দের থেকে 20% কমিশন
     private void fetchOwnTargetCard() {
+        // Age direct key diye, na paile my9DigitId diye khujbo - Global e 2 vabei kaj korbe
         usersRef.child(agencyOwnerId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snapshot) {
-                long myCoins = getCoins(snapshot);
-                double myEarnings = myCoins / 10000.0;
-                // Total = নিজের 100% + Host দের 20% কমিশন
-                double total = myEarnings + totalCommission;
-                txtTotalEarnings.setText("💰 Total Agency Earnings: $" + String.format("%.2f", total) + " (Own $" + String.format("%.2f", myEarnings) + " + Commission $" + String.format("%.2f", totalCommission) + ")");
-                addHostCard("👑 " + agencyName + " (You - Agency Owner)", agencyOwnerId, myCoins, myEarnings, 100, true);
+                if (snapshot.exists() && (snapshot.child("receivedCoins").exists() || snapshot.child("totalCoins").exists())) {
+                    showOwnCard(snapshot);
+                } else {
+                    usersRef.orderByChild("my9DigitId").equalTo(agencyOwnerId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override public void onDataChange(@NonNull DataSnapshot s2) {
+                            for (DataSnapshot ds : s2.getChildren()) { showOwnCard(ds); return; }
+                            showOwnCard(snapshot);
+                        }
+                        @Override public void onCancelled(@NonNull DatabaseError e) { showOwnCard(snapshot); }
+                    });
+                }
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
     }
 
-    private void updateTotalEarnings() {
-        // Host না থাকলে শুধু নিজেরটা দেখাবে, fetchOwnTargetCard থেকে আবার Total সেট হবে
+    private void showOwnCard(DataSnapshot snapshot) {
+        long myCoins = getCoins(snapshot);
+        double myEarnings = myCoins / 10000.0;
+        double total = myEarnings + totalCommission;
+        txtTotalEarnings.setText("💰 Total Agency Earnings: $" + String.format("%.2f", total) + " (Own $" + String.format("%.2f", myEarnings) + " + Commission $" + String.format("%.2f", totalCommission) + ")");
+        addHostCard("👑 " + agencyName + " (You - Agency Owner)", agencyOwnerId, myCoins, myEarnings, 100, true);
     }
 
     private long getCoins(DataSnapshot snapshot) {
@@ -246,22 +304,33 @@ public class AgencyDashboardActivity extends AppCompatActivity {
     private void fetchHostDetailsAndDisplay(String hostUserId) {
         usersRef.child(hostUserId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snapshot) {
-                String hostName = snapshot.child("name").getValue(String.class);
-                if (hostName == null) hostName = "Host ID: " + hostUserId;
-                long hostCoins = getCoins(snapshot);
-                double hostTotalEarnings = hostCoins / 10000.0;
-                double hostGets = hostTotalEarnings * 0.80; // Host 80%
-                double agencyCommission = hostTotalEarnings * 0.20; // Agency 20%
-                totalCommission += agencyCommission;
-                loadedHostCount++;
-                addHostCard("👤 " + hostName, hostUserId, hostCoins, hostGets, 80, false);
-                // সব Host লোড শেষ হলে Total Update + নিজের কার্ড
-                if (loadedHostCount >= expectedHostCount) {
-                    fetchOwnTargetCard();
+                if (!snapshot.exists()) {
+                    usersRef.orderByChild("my9DigitId").equalTo(hostUserId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override public void onDataChange(@NonNull DataSnapshot s2) {
+                            for (DataSnapshot ds : s2.getChildren()) { showHostCard(ds, hostUserId); return; }
+                            loadedHostCount++; if (loadedHostCount >= expectedHostCount) fetchOwnTargetCard();
+                        }
+                        @Override public void onCancelled(@NonNull DatabaseError e) {}
+                    });
+                    return;
                 }
+                showHostCard(snapshot, hostUserId);
             }
             @Override public void onCancelled(@NonNull DatabaseError error) {}
         });
+    }
+
+    private void showHostCard(DataSnapshot snapshot, String hostUserId) {
+        String hostName = snapshot.child("name").getValue(String.class);
+        if (hostName == null) hostName = "Host ID: " + hostUserId;
+        long hostCoins = getCoins(snapshot);
+        double hostTotalEarnings = hostCoins / 10000.0;
+        double hostGets = hostTotalEarnings * 0.80;
+        double agencyCommission = hostTotalEarnings * 0.20;
+        totalCommission += agencyCommission;
+        loadedHostCount++;
+        addHostCard("👤 " + hostName, hostUserId, hostCoins, hostGets, 80, false);
+        if (loadedHostCount >= expectedHostCount) fetchOwnTargetCard();
     }
 
     private void addHostCard(String title, String id, long coins, double earnings, int percent, boolean isOwn) {
@@ -275,26 +344,22 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         params.setMargins(0, 0, 0, 15);
         card.setLayoutParams(params);
-
         TextView tvName = new TextView(AgencyDashboardActivity.this);
         tvName.setText(title + " (ID: " + id + ")");
         tvName.setTextColor(android.graphics.Color.WHITE);
         tvName.setTextSize(15);
         tvName.setTypeface(null, android.graphics.Typeface.BOLD);
         card.addView(tvName);
-
         TextView tvTarget = new TextView(AgencyDashboardActivity.this);
         tvTarget.setText("🎯 Target Coins: " + coins + " Coins");
         tvTarget.setTextColor(android.graphics.Color.parseColor("#00E676"));
         tvTarget.setTextSize(13);
         card.addView(tvTarget);
-
         TextView tvDollar = new TextView(AgencyDashboardActivity.this);
         tvDollar.setText("💵 Earnings (" + percent + "%): $" + String.format("%.2f", earnings));
         tvDollar.setTextColor(android.graphics.Color.parseColor("#FFD700"));
         tvDollar.setTextSize(13);
         card.addView(tvDollar);
-
         hostListContainer.addView(card);
     }
 }
