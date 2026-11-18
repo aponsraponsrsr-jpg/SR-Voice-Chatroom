@@ -223,7 +223,7 @@ public class MeActivity extends AppCompatActivity {
         LinearLayout.LayoutParams svipLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         svipLp.setMargins(0, 0, 0, 14);
         svipBox.setLayoutParams(svipLp);
-        svipBox.setOnClickListener(v -> Toast.makeText(this, "SVIP Page - Step 2 te banabo", Toast.LENGTH_SHORT).show());
+        svipBox.setOnClickListener(v -> showVipListDialog());
         menuContainer.addView(svipBox);
         TextView svipT1 = new TextView(this);
         svipT1.setText("SVIP CENTER");
@@ -290,7 +290,7 @@ public class MeActivity extends AppCompatActivity {
         vipBg.setOrientation(GradientDrawable.Orientation.TOP_BOTTOM);
         vipBg.setCornerRadius(24);
         vipBox.setBackground(vipBg);
-        vipBox.setOnClickListener(v -> Toast.makeText(this, "VIP Page - Step 2 te banabo", Toast.LENGTH_SHORT).show());
+        vipBox.setOnClickListener(v -> showVipListDialog());
         LinearLayout.LayoutParams vipLp = new LinearLayout.LayoutParams(0, 180, 1);
         vipLp.setMargins(0, 0, 10, 0);
         vipBox.setLayoutParams(vipLp);
@@ -411,6 +411,29 @@ public class MeActivity extends AppCompatActivity {
         applyRoleVisibility();
         loadMeData();
         listenFirestoreRole();
+    }
+
+    // STEP 2 - VIP LIST DIALOG - VIP + SVIP 2 tai ekhane khulbe
+    private void showVipListDialog() {
+        try {
+            java.util.ArrayList<VipModel> list = new java.util.ArrayList<>();
+            list.add(new VipModel(1, "Black Tiger", "🐅", "VIP 1 • Black Tiger", "1000 Coins", "#FFD700"));
+            list.add(new VipModel(2, "White Tiger", "🐯", "VIP 2 • White Tiger", "2000 Coins", "#E0E0E0"));
+            list.add(new VipModel(3, "Eagle Fire", "🦅", "VIP 3 • Eagle Fire", "3000 Coins", "#FF9800"));
+            list.add(new VipModel(4, "Phoenix Fire Bird", "🔥", "VIP 4 • Phoenix", "5000 Coins", "#FF5722"));
+            list.add(new VipModel(5, "Dragon", "🐉", "VIP 5 • Dragon", "8000 Coins", "#9C27B0"));
+            list.add(new VipModel(6, "Golden Dragon King", "👑", "VIP 6 • Golden Dragon", "12000 Coins", "#FFC107"));
+            list.add(new VipModel(7, "Emperor Dragon", "🐲", "VIP 7 • Emperor Dragon", "20000 Coins", "#FF1744"));
+
+            android.app.Dialog dialog = new android.app.Dialog(this);
+            dialog.setContentView(R.layout.dialog_vip_list);
+            android.widget.ListView listView = dialog.findViewById(R.id.vipListView);
+            VipAdapter adapter = new VipAdapter(this, list);
+            listView.setAdapter(adapter);
+            dialog.show();
+        } catch (Exception e) {
+            Toast.makeText(this, "VIP - Coming Soon", Toast.LENGTH_SHORT).show();
+        }
     }
 
     // STEP 1 - VIP Badge Update - Firebase vipLevel theke
