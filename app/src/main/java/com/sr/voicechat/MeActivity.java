@@ -53,6 +53,12 @@ public class MeActivity extends AppCompatActivity {
     private boolean inviteDialogShown = false;
     private boolean rtdbListenerStarted = false;
 
+    // STEP 1 - VIP UI ONLY
+    private TextView txtVipBadge;
+    private TextView txtSvipStatus;
+    private TextView txtVipStatus;
+    private int myVipLevel = 0;
+
     private BroadcastReceiver profileReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             showFromPrefs();
@@ -159,6 +165,15 @@ public class MeActivity extends AppCompatActivity {
         txtGenderCountry.setTextSize(12);
         nameBox.addView(txtGenderCountry);
 
+        // STEP 1 - VIP BADGE - Namer niche, VIP na thakle GONE thakbe
+        txtVipBadge = new TextView(this);
+        txtVipBadge.setText("");
+        txtVipBadge.setTextColor(Color.parseColor("#FFD700"));
+        txtVipBadge.setTextSize(13);
+        txtVipBadge.setTypeface(null, Typeface.BOLD);
+        txtVipBadge.setVisibility(View.GONE);
+        nameBox.addView(txtVipBadge);
+
         TextView btnProfileArrow = new TextView(this);
         btnProfileArrow.setText(">");
         btnProfileArrow.setTextSize(26);
@@ -196,29 +211,31 @@ public class MeActivity extends AppCompatActivity {
         menuContainer.setPadding(20, 20, 20, 30);
         root.addView(menuContainer);
 
+        // STEP 1 - SVIP BOX PREMIUM - Crown BAD, SVIP CENTER lekha
         LinearLayout svipBox = new LinearLayout(this);
         svipBox.setOrientation(LinearLayout.VERTICAL);
         svipBox.setPadding(30, 28, 30, 28);
         GradientDrawable svipBg = new GradientDrawable();
-        svipBg.setColor(Color.parseColor("#FFD700"));
+        svipBg.setColors(new int[]{Color.parseColor("#FFD700"), Color.parseColor("#FF9800")});
+        svipBg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT);
         svipBg.setCornerRadius(24);
         svipBox.setBackground(svipBg);
         LinearLayout.LayoutParams svipLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         svipLp.setMargins(0, 0, 0, 14);
         svipBox.setLayoutParams(svipLp);
-        svipBox.setOnClickListener(v -> Toast.makeText(this, "SVIP Locked - Coming Soon", Toast.LENGTH_SHORT).show());
+        svipBox.setOnClickListener(v -> Toast.makeText(this, "SVIP Page - Step 2 te banabo", Toast.LENGTH_SHORT).show());
         menuContainer.addView(svipBox);
         TextView svipT1 = new TextView(this);
-        svipT1.setText("👑 SVIP Center");
+        svipT1.setText("SVIP CENTER");
         svipT1.setTextColor(Color.parseColor("#0A0518"));
         svipT1.setTextSize(19);
         svipT1.setTypeface(null, Typeface.BOLD);
         svipBox.addView(svipT1);
-        TextView svipT2 = new TextView(this);
-        svipT2.setText("Get SVIP and enjoy privileges  >");
-        svipT2.setTextColor(Color.parseColor("#3A2A00"));
-        svipT2.setTextSize(13);
-        svipBox.addView(svipT2);
+        txtSvipStatus = new TextView(this);
+        txtSvipStatus.setText("SVIP 1-7  •  Emperor Dragon  •  Tap to View  >");
+        txtSvipStatus.setTextColor(Color.parseColor("#3A2A00"));
+        txtSvipStatus.setTextSize(13);
+        svipBox.addView(txtSvipStatus);
 
         LinearLayout walletBox = new LinearLayout(this);
         walletBox.setOrientation(LinearLayout.HORIZONTAL);
@@ -263,12 +280,34 @@ public class MeActivity extends AppCompatActivity {
         vipRow.setLayoutParams(vipRowLp);
         menuContainer.addView(vipRow);
 
-        LinearLayout vipBox = makeBigCard("👑 VIP", "Check now >", "#2A1B4E", Color.WHITE);
-        vipBox.setOnClickListener(v -> Toast.makeText(this, "VIP - Coming Soon", Toast.LENGTH_SHORT).show());
+        // STEP 1 - VIP BOX PREMIUM - Crown BAD, Tiger Logo + VIP CENTER lekha
+        LinearLayout vipBox = new LinearLayout(this);
+        vipBox.setOrientation(LinearLayout.VERTICAL);
+        vipBox.setGravity(Gravity.CENTER);
+        vipBox.setPadding(25, 20, 25, 20);
+        GradientDrawable vipBg = new GradientDrawable();
+        vipBg.setColors(new int[]{Color.parseColor("#3A0A4A"), Color.parseColor("#1A0B2E")});
+        vipBg.setOrientation(GradientDrawable.Orientation.TOP_BOTTOM);
+        vipBg.setCornerRadius(24);
+        vipBox.setBackground(vipBg);
+        vipBox.setOnClickListener(v -> Toast.makeText(this, "VIP Page - Step 2 te banabo", Toast.LENGTH_SHORT).show());
         LinearLayout.LayoutParams vipLp = new LinearLayout.LayoutParams(0, 180, 1);
         vipLp.setMargins(0, 0, 10, 0);
         vipBox.setLayoutParams(vipLp);
         vipRow.addView(vipBox);
+        TextView vipT1 = new TextView(this);
+        vipT1.setText("🐅 VIP CENTER");
+        vipT1.setTextColor(Color.parseColor("#FFD700"));
+        vipT1.setTextSize(17);
+        vipT1.setTypeface(null, Typeface.BOLD);
+        vipT1.setGravity(Gravity.CENTER);
+        vipBox.addView(vipT1);
+        txtVipStatus = new TextView(this);
+        txtVipStatus.setText("Black Tiger • Eagle Fire • Dragon\nTap to View >");
+        txtVipStatus.setTextColor(Color.WHITE);
+        txtVipStatus.setTextSize(12);
+        txtVipStatus.setGravity(Gravity.CENTER);
+        vipBox.addView(txtVipStatus);
 
         LinearLayout rechargeBox = makeBigCard("🎁 Recharge", "Top up >", "#FF6D00", Color.WHITE);
         rechargeBox.setOnClickListener(v -> showRechargeLocked());
@@ -303,7 +342,6 @@ public class MeActivity extends AppCompatActivity {
         addToolItem(toolsRow, "🎂", "Birthday");
         addToolItem(toolsRow, "📊", "Level");
 
-        // Agency - Default GONE
         agencyToolView = addToolItem(toolsRow, "🏛️", "Agency", v -> openAgency());
         if (agencyToolView != null) agencyToolView.setVisibility(View.GONE);
 
@@ -327,7 +365,6 @@ public class MeActivity extends AppCompatActivity {
         addMenuRow(listBox, "🏅 Medal");
         addMenuRow(listBox, "👨‍👩‍👧 Family");
 
-        // Host Center - Default GONE
         hostCenterRowView = addMenuRow(listBox, "🎤 Host Center", v -> openHostCenter());
         if (hostCenterRowView != null) hostCenterRowView.setVisibility(View.GONE);
 
@@ -374,6 +411,23 @@ public class MeActivity extends AppCompatActivity {
         applyRoleVisibility();
         loadMeData();
         listenFirestoreRole();
+    }
+
+    // STEP 1 - VIP Badge Update - Firebase vipLevel theke
+    private void updateVipUI() {
+        if (txtVipBadge == null) return;
+        if (myVipLevel >= 1 && myVipLevel <= 7) {
+            String[] names = {"", "Black Tiger", "White Tiger", "Eagle Fire", "Phoenix Fire Bird", "Dragon", "Golden Dragon King", "Emperor Dragon"};
+            String[] emojis = {"", "🐅", "🐯", "🦅", "🔥", "🐉", "👑", "🐲"};
+            txtVipBadge.setText(emojis[myVipLevel] + " VIP " + myVipLevel + " • " + names[myVipLevel]);
+            txtVipBadge.setVisibility(View.VISIBLE);
+            if (txtVipStatus != null) txtVipStatus.setText("✅ You Have VIP " + myVipLevel + "\n" + names[myVipLevel] + " Active");
+            if (txtSvipStatus != null) txtSvipStatus.setText("✅ You Have VIP " + myVipLevel + "  •  Tap to View  >");
+        } else {
+            txtVipBadge.setVisibility(View.GONE);
+            if (txtVipStatus != null) txtVipStatus.setText("Black Tiger • Eagle Fire • Dragon\nTap to View >");
+            if (txtSvipStatus != null) txtSvipStatus.setText("SVIP 1-7  •  Emperor Dragon  •  Tap to View  >");
+        }
     }
 
     private void copyId() {
@@ -430,13 +484,9 @@ public class MeActivity extends AppCompatActivity {
         if (txtGenderCountry != null) txtGenderCountry.setText(getGenderCountryText());
     }
 
-    // GLOBAL + REALTIME: Firestore Panel theke dilei sobar jonno khulbe
-    // Kono nirdisto ID hardcode kora nai. Je kono user er jonno same niom.
-    // agencies / hosts e Document thakle Show, na thakle Hide.
     private void listenFirestoreRole() {
         try {
             FirebaseFirestore db = FirebaseFirestore.getInstance();
-            // AGENCY: 9-digit ID diye check - Panel ei ID diyei agency dey
             if (!my9DigitId.isEmpty()) {
                 db.collection("agencies").document(my9DigitId)
                     .addSnapshotListener((snap, e) -> {
@@ -445,14 +495,11 @@ public class MeActivity extends AppCompatActivity {
                             Object st = snap.get("status");
                             String status = st == null ? "" : String.valueOf(st).toLowerCase();
                             boolean active = !"blocked".equals(status) && !"rejected".equals(status) && !"pending".equals(status);
-                            // status active / empty holeo active dhora hobe, karon Panel theke dilei active
                             if (status.isEmpty()) active = true;
                             prefs.edit().putBoolean("IS_AGENCY", true).putBoolean("AGENCY_ACTIVE", active).apply();
                             Object nm = snap.get("name");
                             if (nm != null) prefs.edit().putString("AGENCY_NAME", String.valueOf(nm)).apply();
                         } else {
-                            // Firestore e agency nai -> Hide. Kintu RTDB te thakle seta loadMeData handle korbe.
-                            // Tai ekhane force false korbo na, sudhu Firestore er ta clear korbo jodi RTDB teo na thake
                             boolean rtdbAgency = prefs.getBoolean("RTDB_IS_AGENCY", false);
                             if (!rtdbAgency) {
                                 prefs.edit().putBoolean("IS_AGENCY", false).putBoolean("AGENCY_ACTIVE", false).apply();
@@ -460,7 +507,6 @@ public class MeActivity extends AppCompatActivity {
                         }
                         applyRoleVisibility();
                     });
-                // UID diyeo check - jodi Panel UID diye agency dey
                 if (!firebaseUid.isEmpty()) {
                     db.collection("agencies").document(firebaseUid)
                         .addSnapshotListener((snap, e) -> {
@@ -473,7 +519,6 @@ public class MeActivity extends AppCompatActivity {
                                 applyRoleVisibility();
                             }
                         });
-                    // ownerUid diye query - Panel jekono vabe dilei pabe
                     db.collection("agencies").whereEqualTo("ownerUid", firebaseUid)
                         .addSnapshotListener((snaps, e) -> {
                             if (e != null || snaps == null) return;
@@ -484,7 +529,6 @@ public class MeActivity extends AppCompatActivity {
                         });
                 }
             }
-            // HOST: UID diye check
             if (!firebaseUid.isEmpty()) {
                 db.collection("hosts").document(firebaseUid)
                     .addSnapshotListener((snap, e) -> {
@@ -505,7 +549,6 @@ public class MeActivity extends AppCompatActivity {
                             applyRoleVisibility();
                         }
                     });
-                // 9-digit ID diyeo host check
                 if (!my9DigitId.isEmpty()) {
                     db.collection("hosts").document(my9DigitId)
                         .addSnapshotListener((snap, e) -> {
@@ -687,9 +730,11 @@ public class MeActivity extends AppCompatActivity {
         String photo = prefs.getString("USER_PHOTO", "");
         if (photo.isEmpty()) photo = prefs.getString("PROFILE_PHOTO", "");
         my9DigitId = prefs.getString("MY_9_DIGIT_ID", my9DigitId);
+        myVipLevel = prefs.getInt("VIP_LEVEL", 0);
         if (txtName != null) txtName.setText(name);
         if (txtId != null) txtId.setText("ID: " + my9DigitId);
         if (txtGenderCountry != null) txtGenderCountry.setText(getGenderCountryText());
+        updateVipUI();
         showPhoto(photo, imgAvatar);
     }
 
@@ -697,7 +742,6 @@ public class MeActivity extends AppCompatActivity {
         if (userRef == null) return;
         if (rtdbListenerStarted) return;
         rtdbListenerStarted = true;
-        // FIXED: SingleValueEvent -> ValueEventListener (Realtime)
         userRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snap) {
@@ -719,6 +763,14 @@ public class MeActivity extends AppCompatActivity {
                     if (coins.equals("0")) coins = getStr(snap, "walletCoins", "0");
                     if (coins.equals("0")) coins = getStr(snap, "sendingCoins", "0");
 
+                    // STEP 1 - VIP LEVEL - Firebase users/{uid}/vipLevel = 1-7
+                    int vip = 0;
+                    try {
+                        String vipStr = getStr(snap, "vipLevel", "0");
+                        vip = Integer.parseInt(vipStr);
+                    } catch (Exception ignored) {}
+                    myVipLevel = vip;
+
                     String role = getStr(snap, "role", "user").toLowerCase();
                     boolean isAgency = getBool(snap, "isAgency", false);
                     String agencyStatus = getStr(snap, "agencyStatus", "").toLowerCase();
@@ -739,7 +791,6 @@ public class MeActivity extends AppCompatActivity {
                         my9DigitId = id;
                         prefs.edit().putString("MY_9_DIGIT_ID", id).apply();
                     }
-                    // RTDB er ta alada save rakhi, jate Firestore + RTDB 2tar jekono ekta thaklei Show hoy
                     prefs.edit()
                         .putString("USER_NAME", name)
                         .putString("USER_COUNTRY", country)
@@ -757,6 +808,7 @@ public class MeActivity extends AppCompatActivity {
                         .putString("HOST_AGENCY_ID", agencyIdForHost)
                         .putString("HOST_AGENCY_NAME", hostAgencyName)
                         .putString("USER_ROLE", role)
+                        .putInt("VIP_LEVEL", vip)
                         .apply();
 
                     if (txtName != null) txtName.setText(name);
@@ -768,6 +820,7 @@ public class MeActivity extends AppCompatActivity {
                     if (txtWalletCoins != null) txtWalletCoins.setText("Coins: " + coins);
                     showPhoto(photo, imgAvatar);
                     applyRoleVisibility();
+                    updateVipUI();
 
                     boolean pending = getBool(snap, "pendingHostInvite", false);
                     String pendingAgency = getStr(snap, "pendingAgencyName", "");
