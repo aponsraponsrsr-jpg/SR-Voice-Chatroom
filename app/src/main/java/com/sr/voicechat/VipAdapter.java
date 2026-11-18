@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -32,11 +33,25 @@ public class VipAdapter extends RecyclerView.Adapter<VipAdapter.VipViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull VipViewHolder holder, int position) {
         VipModel model = vipList.get(position);
+
+        // PREMIUM ROW - Rooh Style
         holder.textVipName.setText(model.getBadgeEmoji() + " " + model.getVipName() + " • " + model.getTigerType());
         holder.textVipLevel.setText(model.getCoinsText());
         holder.textEffect.setText(model.getTigerEmoji() + " " + model.getEntryEffectName() + " • " + model.getFrameName() + " • " + model.getBubbleName());
         holder.textTiger.setText(model.getTigerEmoji());
-        try { holder.layoutBg.setBackgroundColor(Color.parseColor(model.getTopColor())); } catch (Exception e) {}
+
+        // PREMIUM GRADIENT BG - TopColor -> BottomColor - Old flat color OUT
+        try {
+            GradientDrawable bg = new GradientDrawable(
+                GradientDrawable.Orientation.LEFT_RIGHT,
+                new int[]{ Color.parseColor(model.getTopColor()), Color.parseColor(model.getBottomColor()) }
+            );
+            bg.setCornerRadius(32f);
+            holder.layoutBg.setBackground(bg);
+        } catch (Exception e) {
+            try { holder.layoutBg.setBackgroundColor(Color.parseColor(model.getTopColor())); } catch (Exception ex) {}
+        }
+
         holder.itemView.setOnClickListener(v -> showVipDetailsDialog(model));
     }
 
@@ -55,17 +70,39 @@ public class VipAdapter extends RecyclerView.Adapter<VipAdapter.VipViewHolder> {
         Button btnBuyVip = dialog.findViewById(R.id.btnBuyVip);
         Button btnCloseDetail = dialog.findViewById(R.id.btnCloseDetail);
 
+        int vipNum = model.getVipNumber();
+
         if (textDetailTitle != null) textDetailTitle.setText(model.getBadgeEmoji() + " " + model.getVipName() + " • " + model.getTigerType());
         if (textTigerPreview != null) textTigerPreview.setText(model.getTigerEmoji());
         if (textBadgePreview != null) textBadgePreview.setText(model.getBadgeEmoji());
         if (textFramePreview != null) textFramePreview.setText("🖼️");
         if (textBubblePreview != null) textBubblePreview.setText("💬");
         if (textEffectPreview != null) textEffectPreview.setText(model.getTigerEmoji());
-        if (textDetailDesc != null) textDetailDesc.setText("• " + model.getTigerType() + " Entry Effect\n• " + model.getFrameName() + "\n• " + model.getBubbleName() + "\n• Golden Badge\n• Validity: " + model.getValidity() + " (Admin Controlled)");
+
+        // PREMIUM 12 PRIVILEGES - Rooh Style - Same as your video
+        if (textDetailDesc != null) textDetailDesc.setText(
+            "👑 VIP Identity - " + model.getVipName() + " Crown Badge\n" +
+            "🎩 Headwear - " + model.getFrameName() + "\n" +
+            "✨ Entry Effect - " + model.getEntryEffectName() + "\n" +
+            "🎤 Mic Sound Wave - " + model.getTigerType() + " Wave\n" +
+            "💬 Chat Bubble - " + model.getBubbleName() + "\n" +
+            "🖼️ Room Card / View Card - " + model.getFrameName() + "\n" +
+            "🎁 Special Gift - " + model.getVipName() + " Special Gift\n" +
+            "📣 Entry Notice - Room এ ঢুকলে সবাই দেখবে\n" +
+            "💺 Honor Position - Top Seat Priority\n" +
+            "👻 Stealth Mode - লুকিয়ে Room এ ঢোকা\n" +
+            "🛡️ Prevent Being Kicked - কেউ Kick করতে পারবে না\n" +
+            "⏰ Validity: " + model.getValidity() + " (Admin Controlled)"
+        );
+
+        // VIP 7 / 8 - Extra Premium Line
+        if (vipNum >= 7 && textDetailDesc != null) {
+            textDetailDesc.append("\n🔥 KING LEVEL - Fire Entry + Full Screen Effect");
+        }
 
         if (btnBuyVip != null) {
             btnBuyVip.setText(model.getBuyText());
-            btnBuyVip.setEnabled(false); // Closed - Coming Soon
+            btnBuyVip.setEnabled(false); // Closed - Coming Soon - Same as before
         }
         if (btnCloseDetail != null) btnCloseDetail.setOnClickListener(v -> dialog.dismiss());
         dialog.show();
