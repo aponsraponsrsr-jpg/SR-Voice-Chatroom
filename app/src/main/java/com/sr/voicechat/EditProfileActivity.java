@@ -136,7 +136,6 @@ public class EditProfileActivity extends AppCompatActivity {
         LinearLayout photoLayout = new LinearLayout(this); photoLayout.setOrientation(LinearLayout.VERTICAL); photoLayout.setGravity(Gravity.CENTER); photoLayout.setPadding(0,0,0,10);
         ivProfilePhoto = new ImageView(this);
         ivProfilePhoto.setImageResource(android.R.drawable.ic_menu_camera);
-        // FIX - Eitai charkonar karon chilo - #2A1B4E Beguni Charkona ekhon Transparent
         ivProfilePhoto.setBackgroundColor(Color.TRANSPARENT);
         ivProfilePhoto.setPadding(0,0,0,0);
         ivProfilePhoto.setClipToOutline(true);
@@ -171,12 +170,40 @@ public class EditProfileActivity extends AppCompatActivity {
         }
     }
 
+    // ============ ID LOCK - Permanent ID kokhono change hobe na, Short ID sudhu Display ============
+    private String getPermanentId(DataSnapshot s) {
+        if (s != null && s.exists()) {
+            if (s.hasChild("permanentId") && s.child("permanentId").getValue() != null) return String.valueOf(s.child("permanentId").getValue());
+            if (s.hasChild("my9DigitId") && s.child("my9DigitId").getValue() != null) return String.valueOf(s.child("my9DigitId").getValue());
+            if (s.hasChild("my9Id") && s.child("my9Id").getValue() != null) return String.valueOf(s.child("my9Id").getValue());
+        }
+        String local = prefs.getString("PERMANENT_ID", "");
+        if (local.isEmpty()) local = prefs.getString("MY_9_DIGIT_ID", "");
+        return local;
+    }
+
+    private String getDisplayId(DataSnapshot s, String permanentId) {
+        // Official Short ID thakle oitai dekhabe, na thakle Permanent ID dekhabe
+        if (s != null && s.exists()) {
+            if (s.hasChild("displayId") && s.child("displayId").getValue() != null && !String.valueOf(s.child("displayId").getValue()).isEmpty())
+                return String.valueOf(s.child("displayId").getValue());
+            if (s.hasChild("shortId") && s.child("shortId").getValue() != null && !String.valueOf(s.child("shortId").getValue()).isEmpty())
+                return String.valueOf(s.child("shortId").getValue());
+        }
+        String localDisplay = prefs.getString("DISPLAY_ID", "");
+        if (!localDisplay.isEmpty()) return localDisplay;
+        String localShort = prefs.getString("SHORT_ID", "");
+        if (!localShort.isEmpty()) return localShort;
+        return permanentId;
+    }
+
     private void checkIfAlreadyExists() {
         if (firebaseUid.isEmpty()) return;
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(DataSnapshot s) {
                 if (s.exists() && s.hasChild("my9DigitId") && s.hasChild("gender")) {
-                    String id = s.child("my9DigitId").getValue(String.class);
+                    String permanentId = getPermanentId(s);
+                    String displayId = getDisplayId(s, permanentId);
                     String n = s.child("name").getValue(String.class);
                     String g = s.child("gender").getValue(String.class);
                     String c = s.child("country").getValue(String.class);
@@ -189,14 +216,31 @@ public class EditProfileActivity extends AppCompatActivity {
                         if (g != null) selectedGender = g;
                         if (c != null) selectedCountry = c;
                         loadPhoto(photoUrl, base64);
-                        if (id != null) tvPermanentId.setText("Permanent ID: " + id + " (Locked - Cannot Change)");
+                        // Display ID dekhabe, kintu vitore Permanent ID diyei cholbe
+                        if (displayId != null) tvPermanentId.setText("ID: " + displayId + " (Locked - Cannot Change)");
                         if (g != null) tvSelectedGender.setText("Gender: " + g + " (Locked)");
                         if (c != null) tvSelectedCountry.setText("Country: " + c + " " + getFlag(c) + " (Locked)");
                         isLocked = true; return;
                     }
-                    prefs.edit().putString("MY_9_DIGIT_ID", id != null ? id : "").putString("USER_NAME", n).putString("USER_GENDER", g).putString("USER_COUNTRY", c).putString("USER_PHOTO", photoUrl != null ? photoUrl : "").putBoolean("IS_PROFILE_SETUP_DONE", true).apply();
+                    // Local e 3 ta ID e save - Permanent kokhono bodlabe na
+                    prefs.edit()
+                        .putString("MY_9_DIGIT_ID", permanentId)
+                        .putString("PERMANENT_ID", permanentId)
+                        .putString("ORIGINAL_ID", firebaseUid)
+                        .putString("SHORT_ID", displayId)
+                        .putString("DISPLAY_ID", displayId)
+                        .putString("UNIQUE_ID", displayId)
+                        .putString("MY_ID", permanentId)
+                        .putString("USER_NAME", n).putString("USER_GENDER", g).putString("USER_COUNTRY", c).putString("USER_PHOTO", photoUrl != null ? photoUrl : "").putBoolean("IS_PROFILE_SETUP_DONE", true).apply();
                     Intent intent = new Intent(EditProfileActivity.this, HomeActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); startActivity(intent); finish();
+                } else if (s.exists()) {
+                    // Profile half ache - Permanent ID thakle dekhabe, na thakle Save e banabe
+                    String permanentId = getPermanentId(s);
+                    String displayId = getDisplayId(s, permanentId);
+                    if (!permanentId.isEmpty()) tvPermanentId.setText("ID: " + displayId + " (Locked)");
+                    String n = s.child("name").getValue(String.class);
+                    if (n != null && isEditMode) etProfileName.setText(n);
                 }
             }
             @Override public void onCancelled(DatabaseError e) {}
@@ -284,9 +328,17 @@ public class EditProfileActivity extends AppCompatActivity {
             @Override public Transaction.Result doTransaction(MutableData currentData) {
                 if (currentData.getValue() == null) {
                     Map<String,Object> map = new HashMap<>();
-                    map.put("uid", firebaseUid); map.put("email", userEmail);
+                    map.put("uid", firebaseUid);
+                    map.put("originalId", firebaseUid); // LOCK 1 - Asol UID kokhono bodlabe na
+                    map.put("email", userEmail);
                     String newId = preGeneratedId != null ? preGeneratedId : String.valueOf(100000000 + new Random().nextInt(900000000));
-                    map.put("my9DigitId", newId); map.put("name", name); map.put("gender", selectedGender); map.put("country", selectedCountry);
+                    map.put("permanentId", newId); // LOCK 2 - Permanent 9-Digit - Ekbar e banabe
+                    map.put("my9DigitId", newId);
+                    map.put("my9Id", newId);
+                    map.put("shortId", newId); // LOCK 3 - Akhon Permanent er soman. Pore Official 4-Digit asle sudhu eitai bodlabe.
+                    map.put("displayId", newId);
+                    map.put("uniqueId", newId);
+                    map.put("name", name); map.put("gender", selectedGender); map.put("country", selectedCountry);
                     if (selectedPhotoUrl != null && !selectedPhotoUrl.isEmpty()) {
                         map.put("photoUrl", selectedPhotoUrl);
                         map.put("photo", selectedPhotoUrl);
@@ -294,12 +346,36 @@ public class EditProfileActivity extends AppCompatActivity {
                     if (selectedPhotoBase64 != null && !selectedPhotoBase64.isEmpty()) {
                         map.put("photoBase64", selectedPhotoBase64);
                     }
+                    map.put("coins", 0L);
+                    map.put("totalReceivedCoins", 0L);
                     map.put("followCount","0"); map.put("fansCount","0"); map.put("visitorCount","0");
                     currentData.setValue(map);
                 } else {
-                    if (currentData.child("my9DigitId").getValue() == null) {
-                        String newId = preGeneratedId != null ? preGeneratedId : String.valueOf(100000000 + new Random().nextInt(900000000));
-                        currentData.child("my9DigitId").setValue(newId);
+                    // EXISTING USER - Permanent ID kokhono bodlabe na. Jodi na thake tobei ekbar banabe.
+                    Object existingPermanent = currentData.child("permanentId").getValue();
+                    if (existingPermanent == null) existingPermanent = currentData.child("my9DigitId").getValue();
+                    if (existingPermanent == null) existingPermanent = currentData.child("my9Id").getValue();
+                    String permanentId = existingPermanent != null ? String.valueOf(existingPermanent) : (preGeneratedId != null ? preGeneratedId : String.valueOf(100000000 + new Random().nextInt(900000000)));
+                    currentData.child("permanentId").setValue(permanentId);
+                    currentData.child("my9DigitId").setValue(permanentId);
+                    currentData.child("my9Id").setValue(permanentId);
+                    currentData.child("originalId").setValue(firebaseUid);
+                    currentData.child("uid").setValue(firebaseUid);
+                    // Short / Display ID - Age theke thakle oitai thakbe. Na thakle Permanent er soman hobe.
+                    // Edit Profile theke Short ID kokhono bodlabe na - sudhu Official vabe bodlabe.
+                    if (currentData.child("shortId").getValue() == null) currentData.child("shortId").setValue(permanentId);
+                    if (currentData.child("displayId").getValue() == null) {
+                        Object s = currentData.child("shortId").getValue();
+                        currentData.child("displayId").setValue(s != null ? String.valueOf(s) : permanentId);
+                    }
+                    if (currentData.child("uniqueId").getValue() == null) {
+                        Object s = currentData.child("shortId").getValue();
+                        currentData.child("uniqueId").setValue(s != null ? String.valueOf(s) : permanentId);
+                    }
+                    // Gender / Country - Prothombar er pore Lock. Edit mode e bodlabe na (purano rule).
+                    if (!isEditMode) {
+                        currentData.child("gender").setValue(selectedGender);
+                        currentData.child("country").setValue(selectedCountry);
                     }
                     currentData.child("name").setValue(name);
                     if (selectedPhotoUrl != null && !selectedPhotoUrl.isEmpty()) {
@@ -311,6 +387,7 @@ public class EditProfileActivity extends AppCompatActivity {
                     } else if (selectedPhotoUrl != null && !selectedPhotoUrl.isEmpty()) {
                         currentData.child("photoBase64").setValue(null);
                     }
+                    // COIN / TARGET / HOST / AGENCY - Edit theke kokhono touch korbo na. Oigula alada system e thakbe.
                 }
                 return Transaction.success(currentData);
             }
@@ -320,7 +397,11 @@ public class EditProfileActivity extends AppCompatActivity {
                     btnSaveProfile.setText(isEditMode ? "Update Name & Photo" : "Save & Enter Home");
                     Toast.makeText(EditProfileActivity.this, "Failed, Try Again", Toast.LENGTH_LONG).show(); return;
                 }
-                String finalId = s.child("my9DigitId").getValue(String.class);
+                String permanentId = s.child("permanentId").getValue(String.class);
+                if (permanentId == null) permanentId = s.child("my9DigitId").getValue(String.class);
+                String displayId = s.child("displayId").getValue(String.class);
+                if (displayId == null || displayId.isEmpty()) displayId = s.child("shortId").getValue(String.class);
+                if (displayId == null || displayId.isEmpty()) displayId = permanentId;
                 String finalGender = s.child("gender").getValue(String.class);
                 String finalCountry = s.child("country").getValue(String.class);
                 String finalPhoto = s.child("photoUrl").getValue(String.class);
@@ -328,11 +409,29 @@ public class EditProfileActivity extends AppCompatActivity {
                 if (finalPhoto == null) finalPhoto = selectedPhotoUrl;
                 if (finalPhoto == null) finalPhoto = selectedPhotoBase64;
                 SharedPreferences.Editor e = prefs.edit();
-                e.putString("FIREBASE_UID", firebaseUid); e.putString("MY_9_DIGIT_ID", finalId != null ? finalId : "");
+                e.putString("FIREBASE_UID", firebaseUid);
+                e.putString("MY_9_DIGIT_ID", permanentId != null ? permanentId : "");
+                e.putString("PERMANENT_ID", permanentId != null ? permanentId : "");
+                e.putString("ORIGINAL_ID", firebaseUid);
+                e.putString("SHORT_ID", displayId != null ? displayId : "");
+                e.putString("DISPLAY_ID", displayId != null ? displayId : "");
+                e.putString("UNIQUE_ID", displayId != null ? displayId : "");
+                e.putString("MY_ID", permanentId != null ? permanentId : "");
                 e.putString("USER_NAME", name); e.putString("USER_GENDER", finalGender != null ? finalGender : selectedGender);
                 e.putString("USER_COUNTRY", finalCountry != null ? finalCountry : selectedCountry); e.putString("USER_EMAIL", userEmail);
                 if (finalPhoto != null && !finalPhoto.isEmpty()) { e.putString("USER_PHOTO", finalPhoto); e.putString("PROFILE_PHOTO", finalPhoto); }
                 e.putBoolean("IS_PROFILE_SETUP_DONE", true); e.apply();
+                // id_mapping - Permanent + Short - 2 ta diyei asol UID pabe
+                if (permanentId != null && !permanentId.isEmpty()) {
+                    DatabaseReference mapRef = FirebaseDatabase.getInstance().getReference("id_mapping");
+                    mapRef.child(permanentId).child("uid").setValue(firebaseUid);
+                    mapRef.child(permanentId).child("permanentId").setValue(permanentId);
+                    if (displayId != null && !displayId.isEmpty() && !displayId.equals(permanentId)) {
+                        mapRef.child(displayId).child("uid").setValue(firebaseUid);
+                        mapRef.child(displayId).child("permanentId").setValue(permanentId);
+                        mapRef.child(displayId).child("shortId").setValue(displayId);
+                    }
+                }
                 Intent broadcast = new Intent("com.sr.voicechat.PROFILE_UPDATED");
                 broadcast.putExtra("NEW_PHOTO", finalPhoto != null ? finalPhoto : "");
                 broadcast.putExtra("NEW_NAME", name);
@@ -345,7 +444,7 @@ public class EditProfileActivity extends AppCompatActivity {
                     finish();
                 }
                 else {
-                    Toast.makeText(EditProfileActivity.this, "Profile Saved! Your ID: " + finalId, Toast.LENGTH_LONG).show();
+                    Toast.makeText(EditProfileActivity.this, "Profile Saved! Your ID: " + displayId, Toast.LENGTH_LONG).show();
                     Intent intent = new Intent(EditProfileActivity.this, HomeActivity.class);
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK); startActivity(intent); finish();
                 }
