@@ -55,6 +55,7 @@ public class MeActivity extends AppCompatActivity {
     private boolean isHostActive = false;
     private boolean inviteDialogShown = false;
     private boolean rtdbListenerStarted = false;
+    private boolean vipAssignmentListenerStarted = false;
     private TextView txtVipBadge;
     private TextView txtSvipStatus;
     private TextView txtVipStatus;
@@ -75,7 +76,10 @@ public class MeActivity extends AppCompatActivity {
         if (user != null) firebaseUid = user.getUid();
         if (firebaseUid.isEmpty()) firebaseUid = prefs.getString("FIREBASE_UID", "");
         my9DigitId = prefs.getString("MY_9_DIGIT_ID", "");
-        if (!firebaseUid.isEmpty()) {
+        // FIX 1 - Profile ID diye porbo - Panel users / 9DigitID te likhe
+        if (!my9DigitId.isEmpty()) {
+            userRef = FirebaseDatabase.getInstance().getReference("users").child(my9DigitId);
+        } else if (!firebaseUid.isEmpty()) {
             userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
         }
         ScrollView scroll = new ScrollView(this);
@@ -375,10 +379,10 @@ public class MeActivity extends AppCompatActivity {
         showFromPrefs();
         applyRoleVisibility();
         loadMeData();
+        listenVipAssignments();
         listenFirestoreRole();
     }
 
-    // FIXED - STRONG VERSION - RecyclerView + recyclerVipList + Close Button + Real Price List
     private void showVipListDialog() {
         try {
             List<VipModel> list = VipModel.createPremiumList();
@@ -398,11 +402,41 @@ public class MeActivity extends AppCompatActivity {
         }
     }
 
+    // FIX 2 - VIP 1-8 + FIX 3 - vip_assignments listener
+    private void listenVipAssignments() {
+        if (vipAssignmentListenerStarted) return;
+        if (my9DigitId.isEmpty()) return;
+        vipAssignmentListenerStarted = true;
+        FirebaseDatabase.getInstance().getReference("vip_assignments").child(my9DigitId)
+            .addValueEventListener(new ValueEventListener() {
+                @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                    try {
+                        if (!snap.exists()) return;
+                        String lvlStr = snap.child("vipLevel").getValue() == null ? "0" : String.valueOf(snap.child("vipLevel").getValue());
+                        int v = 0;
+                        try { v = Integer.parseInt(lvlStr); } catch (Exception ignored) {}
+                        long expire = 0;
+                        try {
+                            Object ex = snap.child("expireAt").getValue();
+                            if (ex != null) expire = Long.parseLong(String.valueOf(ex));
+                        } catch (Exception ignored) {}
+                        if (expire > 0 && System.currentTimeMillis() > expire) v = 0;
+                        if (v != myVipLevel) {
+                            myVipLevel = v;
+                            prefs.edit().putInt("VIP_LEVEL", v).apply();
+                            updateVipUI();
+                        }
+                    } catch (Exception ignored) {}
+                }
+                @Override public void onCancelled(@NonNull DatabaseError e) {}
+            });
+    }
+
     private void updateVipUI() {
         if (txtVipBadge == null) return;
-        if (myVipLevel >= 1 && myVipLevel <= 7) {
-            String[] names = {"", "Black Tiger", "White Tiger", "Eagle Fire", "Phoenix Fire Bird", "Dragon", "Golden Dragon King", "Emperor Dragon"};
-            String[] emojis = {"", "🐅", "🐯", "🦅", "🔥", "🐉", "👑", "🐲"};
+        if (myVipLevel >= 1 && myVipLevel <= 8) {
+            String[] names = {"", "Black Tiger", "White Tiger", "Eagle Fire", "Phoenix Fire Bird", "Dragon", "Golden Dragon King", "Emperor Dragon", "Purple Dragon"};
+            String[] emojis = {"", "🐅", "🐯", "🦅", "🔥", "🐉", "👑", "🐲", "💜"};
             txtVipBadge.setText(emojis[myVipLevel] + " VIP " + myVipLevel + " • " + names[myVipLevel]);
             txtVipBadge.setVisibility(View.VISIBLE);
             if (txtVipStatus != null) txtVipStatus.setText("✅ You Have VIP " + myVipLevel + "\n" + names[myVipLevel] + " Active");
@@ -585,6 +619,8 @@ public class MeActivity extends AppCompatActivity {
                     if (coins.equals("0")) coins = getStr(snap, "walletCoins", "0");
                     if (coins.equals("0")) coins = getStr(snap, "sendingCoins", "0");
                     int vip = 0; try { String vipStr = getStr(snap, "vipLevel", "0"); vip = Integer.parseInt(vipStr); } catch (Exception ignored) {}
+                    // users er vipLevel + vip_assignments er vip - jeta boro seta nebo - jate Panel theke dilei ase
+                    if (myVipLevel > vip) vip = myVipLevel;
                     myVipLevel = vip;
                     String role = getStr(snap, "role", "user").toLowerCase();
                     boolean isAgency = getBool(snap, "isAgency", false);
@@ -631,7 +667,7 @@ public class MeActivity extends AppCompatActivity {
     }
     private void acceptHostInvite(String agencyId, String agencyName) {
         if (firebaseUid.isEmpty()) return;
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(my9DigitId.isEmpty() ? firebaseUid : my9DigitId);
         ref.child("isHost").setValue(true); ref.child("hostStatus").setValue("active"); ref.child("role").setValue("host");
         ref.child("hostAgencyId").setValue(agencyId); ref.child("hostAgencyName").setValue(agencyName);
         ref.child("pendingHostInvite").setValue(false); ref.child("pendingAgencyId").setValue(null); ref.child("pendingAgencyName").setValue(null);
@@ -648,7 +684,7 @@ public class MeActivity extends AppCompatActivity {
     }
     private void rejectHostInvite() {
         if (firebaseUid.isEmpty()) return;
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(my9DigitId.isEmpty() ? firebaseUid : my9DigitId);
         ref.child("pendingHostInvite").setValue(false); ref.child("pendingAgencyId").setValue(null); ref.child("pendingAgencyName").setValue(null);
         Toast.makeText(this, "Invite Reject kora hoyeche", Toast.LENGTH_SHORT).show();
     }
