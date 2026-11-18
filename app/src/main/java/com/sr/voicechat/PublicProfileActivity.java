@@ -44,13 +44,15 @@ public class PublicProfileActivity extends AppCompatActivity {
     private TextView tabProfile, tabAlbum, tabMoments, tabIntimacy;
     private UserModel user = new UserModel();
     private SharedPreferences prefs;
-
-    // GLOBAL - Friend / Follow / Chat Status
     private String myName = "";
     private boolean isFriend = false, isFollowing = false, isMutualFollow = false;
+    private ValueEventListener userListener = null;
+    private DatabaseReference userQueryRef = null;
+    private boolean profileTabBuilt = false;
 
     private BroadcastReceiver profileReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
+            showCachedInstantly();
             loadUser();
         }
     };
@@ -152,8 +154,7 @@ public class PublicProfileActivity extends AppCompatActivity {
         imgAvatar.setScaleType(ImageView.ScaleType.CENTER_CROP);
         imgAvatar.setClipToOutline(true);
         imgAvatar.setOutlineProvider(new ViewOutlineProvider() {
-            @Override
-            public void getOutline(View view, Outline outline) {
+            @Override public void getOutline(View view, Outline outline) {
                 outline.setOval(0, 0, view.getWidth(), view.getHeight());
             }
         });
@@ -165,8 +166,9 @@ public class PublicProfileActivity extends AppCompatActivity {
         nameBox.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         topRow.addView(nameBox);
 
+        // FIXED - Loading... Uthay dilam. Cached name instantly dekhabe
         txtName = new TextView(this);
-        txtName.setText("Loading...");
+        txtName.setText(getCachedName());
         txtName.setTextSize(20);
         txtName.setTypeface(null, Typeface.BOLD);
         txtName.setTextColor(Color.WHITE);
@@ -184,7 +186,7 @@ public class PublicProfileActivity extends AppCompatActivity {
         nameBox.addView(txtId);
 
         txtLevelBadge = new TextView(this);
-        txtLevelBadge.setText("  Level 0  ");
+        txtLevelBadge.setText("  Level " + prefs.getString("CACHED_LEVEL_" + targetId, "0") + "  ");
         txtLevelBadge.setTextColor(Color.parseColor("#FFD700"));
         txtLevelBadge.setTextSize(12);
         txtLevelBadge.setTypeface(null, Typeface.BOLD);
@@ -216,38 +218,31 @@ public class PublicProfileActivity extends AppCompatActivity {
         countLp.setMargins(0, 25, 0, 0);
         countCard.setLayoutParams(countLp);
         header.addView(countCard);
-        txtFollow = addCount(countCard, "0", "Follow", "#111111", "#888888");
-        txtFans = addCount(countCard, "0", "Fans", "#111111", "#888888");
-        txtVisitor = addCount(countCard, "0", "Visitor", "#111111", "#888888");
+        txtFollow = addCount(countCard, prefs.getString("CACHED_FOLLOW_" + targetId, "0"), "Follow", "#111111", "#888888");
+        txtFans = addCount(countCard, prefs.getString("CACHED_FANS_" + targetId, "0"), "Fans", "#111111", "#888888");
+        txtVisitor = addCount(countCard, prefs.getString("CACHED_VISITOR_" + targetId, "0"), "Visitor", "#111111", "#888888");
 
-        // GLOBAL - Add Friend + Follow + Gift + Message - Full System
         if (!isMine) {
             LinearLayout btnRow = new LinearLayout(this);
             btnRow.setOrientation(LinearLayout.HORIZONTAL);
             btnRow.setPadding(0, 25, 0, 0);
             header.addView(btnRow);
-
             TextView btnAddFriend = makeBtn("👥 Add Friend", "#00B0FF");
             btnAddFriend.setOnClickListener(v -> sendFriendRequest());
             btnRow.addView(btnAddFriend);
-
             TextView btnFollow = makeBtn("+ Follow", "#FF9800");
             btnFollow.setOnClickListener(v -> sendFollowRequest());
             btnRow.addView(btnFollow);
-
             TextView btnGift = makeBtn("🎁 Gift", "#E91E63");
             btnGift.setOnClickListener(v -> Toast.makeText(this, "Gift - Room theke pathan", Toast.LENGTH_SHORT).show());
             btnRow.addView(btnGift);
-
             LinearLayout btnRow2 = new LinearLayout(this);
             btnRow2.setOrientation(LinearLayout.HORIZONTAL);
             btnRow2.setPadding(0, 15, 0, 0);
             header.addView(btnRow2);
-
             TextView btnMessage = makeBtn("💬 Message - Say something...", "#00C853");
             btnMessage.setOnClickListener(v -> openChatIfAllowed());
             btnRow2.addView(btnMessage);
-
             checkFriendFollowStatus(btnAddFriend, btnFollow, btnMessage);
         }
 
@@ -265,19 +260,16 @@ public class PublicProfileActivity extends AppCompatActivity {
         tabProfileContent.setOrientation(LinearLayout.VERTICAL);
         tabProfileContent.setPadding(30, 10, 30, 20);
         root.addView(tabProfileContent);
-
         tabAlbumContent = new LinearLayout(this);
         tabAlbumContent.setOrientation(LinearLayout.VERTICAL);
         tabAlbumContent.setPadding(30, 10, 30, 20);
         tabAlbumContent.setVisibility(View.GONE);
         root.addView(tabAlbumContent);
-
         tabMomentsContent = new LinearLayout(this);
         tabMomentsContent.setOrientation(LinearLayout.VERTICAL);
         tabMomentsContent.setPadding(30, 10, 30, 20);
         tabMomentsContent.setVisibility(View.GONE);
         root.addView(tabMomentsContent);
-
         tabIntimacyContent = new LinearLayout(this);
         tabIntimacyContent.setOrientation(LinearLayout.VERTICAL);
         tabIntimacyContent.setPadding(30, 10, 30, 20);
@@ -288,6 +280,7 @@ public class PublicProfileActivity extends AppCompatActivity {
         buildAlbumTab();
         buildMomentsTab();
         buildIntimacyTab();
+        profileTabBuilt = true;
 
         setContentView(scroll);
         try {
@@ -298,23 +291,60 @@ public class PublicProfileActivity extends AppCompatActivity {
                 registerReceiver(profileReceiver, filter);
             }
         } catch (Exception ignored) {}
+        // STRONG - Prothome cached dekhabe, tarpor background e Firebase update korbe
+        showCachedInstantly();
         loadUser();
+    }
+
+    // STRONG CACHE SYSTEM - Kokhono Loading... dekhabe na
+    private String getCachedName() {
+        if (targetId.equals(myId)) {
+            String n = prefs.getString("USER_NAME", "");
+            if (!n.isEmpty()) return n;
+            n = prefs.getString("MY_NAME", "");
+            if (!n.isEmpty()) return n;
+            return "User";
+        } else {
+            String n = prefs.getString("CACHED_NAME_" + targetId, "");
+            if (!n.isEmpty()) return n;
+            String intentName = getIntent().getStringExtra("TARGET_NAME");
+            if (intentName != null && !intentName.isEmpty()) return intentName;
+            return "User";
+        }
+    }
+
+    private void showCachedInstantly() {
+        if (txtName != null) {
+            String cached = getCachedName();
+            if (user != null && user.name != null && !user.name.isEmpty() && !user.name.equals("User")) {
+                cached = user.name;
+            }
+            txtName.setText(cached);
+            user.name = cached;
+        }
+        // Cached photo instantly
+        String cachedPhoto = "";
+        if (targetId.equals(myId)) cachedPhoto = prefs.getString("USER_PHOTO", "");
+        else cachedPhoto = prefs.getString("CACHED_PHOTO_" + targetId, "");
+        if (!cachedPhoto.isEmpty() && imgAvatar != null) showPhoto(cachedPhoto, imgAvatar);
     }
 
     @Override protected void onDestroy() {
         super.onDestroy();
         try { unregisterReceiver(profileReceiver); } catch (Exception ignored) {}
+        try { if (userQueryRef != null && userListener != null) userQueryRef.removeEventListener(userListener); } catch (Exception ignored) {}
     }
 
     @Override protected void onResume() {
         super.onResume();
+        showCachedInstantly();
         loadUser();
     }
 
-    // ============ GLOBAL FRIEND / FOLLOW / CHAT SYSTEM ============
-
     private void checkFriendFollowStatus(TextView btnAddFriend, TextView btnFollow, TextView btnMessage) {
-        DatabaseReference meRef = FirebaseDatabase.getInstance().getReference("users").child(myId);
+        String myUid = prefs.getString("FIREBASE_UID", "");
+        if (myUid.isEmpty()) return;
+        DatabaseReference meRef = FirebaseDatabase.getInstance().getReference("users").child(myUid);
         meRef.addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 isFriend = snap.child("friends").hasChild(targetId);
@@ -372,7 +402,8 @@ public class PublicProfileActivity extends AppCompatActivity {
         FirebaseDatabase.getInstance().getReference("users").child(targetId).child("inbox").child(key).setValue(req)
             .addOnCompleteListener(t -> {
                 if (t.isSuccessful()) {
-                    FirebaseDatabase.getInstance().getReference("users").child(myId).child("following").child(targetId).setValue("Pending");
+                    String myUid = prefs.getString("FIREBASE_UID", "");
+                    if (!myUid.isEmpty()) FirebaseDatabase.getInstance().getReference("users").child(myUid).child("following").child(targetId).setValue("Pending");
                     Toast.makeText(this, "Follow Request Sent! ✅", Toast.LENGTH_LONG).show();
                 }
             });
@@ -400,7 +431,6 @@ public class PublicProfileActivity extends AppCompatActivity {
             else if (prefs.getString("HEADWEAR_NAME", "").length() > 0) headwearText = prefs.getString("HEADWEAR_NAME", "");
             else if (prefs.getString("headwearName", "").length() > 0) headwearText = prefs.getString("headwearName", "");
         } catch (Exception ignored) {}
-
         TextView title = new TextView(this);
         title.setText("My Collection");
         title.setTextColor(Color.WHITE);
@@ -408,25 +438,21 @@ public class PublicProfileActivity extends AppCompatActivity {
         title.setTypeface(null, Typeface.BOLD);
         title.setPadding(5, 15, 5, 15);
         tabProfileContent.addView(title);
-
         LinearLayout row1 = new LinearLayout(this);
         row1.setOrientation(LinearLayout.HORIZONTAL);
         tabProfileContent.addView(row1);
         row1.addView(makeBadgeCard("🏷️", "Nameplate", "Level " + user.level, 1));
         row1.addView(makeBadgeCard("💎", "Supporter", user.supporterName.isEmpty() ? "No supporter yet" : user.supporterName, 1));
-
         LinearLayout row2 = new LinearLayout(this);
         row2.setOrientation(LinearLayout.HORIZONTAL);
         tabProfileContent.addView(row2);
         row2.addView(makeBadgeCard("🏅", "Medal (" + user.medalCount + ")", "View Medals >", 1));
         row2.addView(makeBadgeCard("👨‍👩‍👧", "Family", user.getFamilyDisplay(), 1));
-
         LinearLayout row3 = new LinearLayout(this);
         row3.setOrientation(LinearLayout.HORIZONTAL);
         tabProfileContent.addView(row3);
         row3.addView(makeBadgeCard("🎩", "Headwear (" + user.headwearCount + ")", headwearText, 1));
         row3.addView(makeBadgeCard("🚗", "Car (" + user.carCount + ")", "View >", 1));
-
         addProfileRow(tabProfileContent, "🎁 Gift (" + user.giftCount + ")", "All gifts - Dollar is Private");
     }
 
@@ -442,12 +468,10 @@ public class PublicProfileActivity extends AppCompatActivity {
         lp.setMargins(8, 8, 8, 8);
         card.setLayoutParams(lp);
         card.setOnClickListener(v -> Toast.makeText(this, title + " - Coming Soon", Toast.LENGTH_SHORT).show());
-
         TextView tIcon = new TextView(this);
         tIcon.setText(icon);
         tIcon.setTextSize(22);
         card.addView(tIcon);
-
         TextView tTitle = new TextView(this);
         tTitle.setText(title);
         tTitle.setTextColor(Color.parseColor("#111111"));
@@ -455,7 +479,6 @@ public class PublicProfileActivity extends AppCompatActivity {
         tTitle.setTypeface(null, Typeface.BOLD);
         tTitle.setPadding(0, 8, 0, 0);
         card.addView(tTitle);
-
         TextView tVal = new TextView(this);
         tVal.setText(value);
         tVal.setTextColor(Color.parseColor("#777777"));
@@ -473,7 +496,6 @@ public class PublicProfileActivity extends AppCompatActivity {
         head.setTypeface(null, Typeface.BOLD);
         head.setPadding(5, 10, 5, 15);
         tabAlbumContent.addView(head);
-
         for (int r = 0; r < 2; r++) {
             LinearLayout row = new LinearLayout(this);
             row.setOrientation(LinearLayout.HORIZONTAL);
@@ -637,19 +659,15 @@ public class PublicProfileActivity extends AppCompatActivity {
     }
 
     private void loadUser() {
-        String cachedPhoto = prefs.getString("USER_PHOTO", "");
-        if (targetId.equals(myId) && !cachedPhoto.isEmpty()) {
-            showPhoto(cachedPhoto, imgAvatar);
-        }
-        String cachedHeadwear = prefs.getString("HEADWEAR_IMAGE", "");
-        if (cachedHeadwear.isEmpty()) cachedHeadwear = prefs.getString("headwearImage", "");
-        if (cachedHeadwear.isEmpty()) cachedHeadwear = prefs.getString("HEADWEAR_URL", "");
-        if (!cachedHeadwear.isEmpty() && imgHeadwear != null) {
-            imgHeadwear.setVisibility(View.VISIBLE);
-            showPhoto(cachedHeadwear, imgHeadwear);
+        // 1. Instant cache - kokhono khali / Loading dekhabe na
+        showCachedInstantly();
+        if (userListener != null && userQueryRef != null) {
+            try { userQueryRef.removeEventListener(userListener); } catch (Exception ignored) {}
         }
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users");
-        ref.orderByChild("my9DigitId").equalTo(targetId).addListenerForSingleValueEvent(new ValueEventListener() {
+        userQueryRef = ref.orderByChild("my9DigitId").equalTo(targetId).getRef();
+        // Real-Time Listener - SingleValue na, ValueEventListener - naam change hole sathe sathe update hobe
+        userListener = new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 if (!snap.exists()) return;
                 String newPhotoUrl = "";
@@ -698,6 +716,7 @@ public class PublicProfileActivity extends AppCompatActivity {
                     if (ds.child("supporterName").getValue() != null) user.supporterName = String.valueOf(ds.child("supporterName").getValue());
                     break;
                 }
+                if (user.name == null || user.name.isEmpty()) user.name = getCachedName();
                 txtName.setText(user.name + "  " + user.getFlag() + "  " + user.getGenderIcon());
                 txtId.setText("ID: " + targetId + "  •  Level " + user.level + "  •  " + user.country + "  📋");
                 if (txtLevelBadge != null) txtLevelBadge.setText("  Level " + user.level + "  ");
@@ -709,10 +728,18 @@ public class PublicProfileActivity extends AppCompatActivity {
                 if (!finalPhoto.isEmpty()) {
                     showPhoto(finalPhoto, imgAvatar);
                     if (targetId.equals(myId)) prefs.edit().putString("USER_PHOTO", finalPhoto).putString("PROFILE_PHOTO", finalPhoto).apply();
+                    else prefs.edit().putString("CACHED_PHOTO_" + targetId, finalPhoto).apply();
                 }
-                if (!coverUrl.isEmpty()) {
-                    showPhoto(coverUrl, imgCover);
-                }
+                // STRONG CACHE - Porer bar khulle sathe sathe ei naam dekhabe, Loading nibe na
+                SharedPreferences.Editor ed = prefs.edit();
+                if (targetId.equals(myId)) ed.putString("USER_NAME", user.name);
+                else ed.putString("CACHED_NAME_" + targetId, user.name);
+                ed.putString("CACHED_LEVEL_" + targetId, user.level);
+                ed.putString("CACHED_FOLLOW_" + targetId, user.followCount);
+                ed.putString("CACHED_FANS_" + targetId, user.fansCount);
+                ed.putString("CACHED_VISITOR_" + targetId, user.visitorCount);
+                ed.apply();
+                if (!coverUrl.isEmpty()) showPhoto(coverUrl, imgCover);
                 if (!headwearImage.isEmpty()) {
                     try {
                         if (user.headwearCount == null || user.headwearCount.equals("0") || user.headwearCount.isEmpty()) user.headwearCount = "1";
@@ -722,10 +749,14 @@ public class PublicProfileActivity extends AppCompatActivity {
                         if (targetId.equals(myId)) prefs.edit().putString("HEADWEAR_IMAGE", headwearImage).putString("HEADWEAR_NAME", headwearName).apply();
                     } catch (Exception ignored) {}
                 }
-                tabProfileContent.removeAllViews();
-                buildProfileTab();
+                // Tab rebuild - sudhu 1 bar na, name change holeo update hobe kintu flicker korbe na
+                if (tabProfileContent != null) {
+                    tabProfileContent.removeAllViews();
+                    buildProfileTab();
+                }
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
-        });
+        };
+        ref.orderByChild("my9DigitId").equalTo(targetId).addValueEventListener(userListener);
     }
 }
