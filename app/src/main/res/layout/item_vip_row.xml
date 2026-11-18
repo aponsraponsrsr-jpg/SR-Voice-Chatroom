@@ -1,42 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layoutVipRowBg"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:background="#2A1B4E"
-    android:padding="12dp"
-    android:layout_marginBottom="8dp"
+    android:background="#1A1A2E"
+    android:padding="14dp"
+    android:layout_marginBottom="10dp"
     android:gravity="center_vertical">
 
-    <!-- VIP Badge Logo -->
-    <LinearLayout
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+    <TextView
+        android:id="@+id/textTiger"
+        android:layout_width="58dp"
+        android:layout_height="58dp"
         android:background="#FFD700"
-        android:gravity="center">
+        android:text="🐅"
+        android:textSize="30sp"
+        android:gravity="center" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="👑"
-            android:textSize="24sp" />
-    </LinearLayout>
-
-    <!-- Info Container -->
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:orientation="vertical"
-        android:layout_marginStart="12dp">
+        android:layout_marginStart="14dp">
 
         <TextView
             android:id="@+id/textVipName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="VIP 1"
+            android:text="👑 VIP 1 • Black Tiger"
             android:textColor="#FFD700"
-            android:textSize="16sp"
+            android:textSize="17sp"
             android:textStyle="bold" />
 
         <TextView
@@ -45,19 +40,25 @@
             android:layout_height="wrap_content"
             android:text="2,000,000 Coins"
             android:textColor="#FF4081"
-            android:textSize="13sp"
+            android:textSize="14sp"
             android:textStyle="bold"
-            android:layout_marginTop="2dp" />
+            android:layout_marginTop="3dp" />
 
         <TextView
             android:id="@+id/textEffect"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Frame, Bubble &amp; Tiger Effect"
-            android:textColor="#CCCCCC"
-            android:textSize="11sp"
-            android:layout_marginTop="2dp" />
-
+            android:text="🐅 Black Tiger Entry • Black Royal Frame • Black Bubble"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:layout_marginTop="3dp" />
     </LinearLayout>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="›"
+        android:textColor="#FFD700"
+        android:textSize="30sp"
+        android:textStyle="bold" />
 </LinearLayout>
