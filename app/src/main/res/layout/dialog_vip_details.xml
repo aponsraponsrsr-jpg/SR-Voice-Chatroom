@@ -1,5 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+<LinearLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -7,26 +11,73 @@
     android:padding="20dp"
     android:gravity="center_horizontal">
 
+    <!-- PREMIUM TOP TAG -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="✨ PREMIUM VIP • ROOH STYLE"
+        android:textColor="#FFD700"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:background="#33FFD700"
+        android:paddingStart="12dp"
+        android:paddingEnd="12dp"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:layout_marginBottom="10dp" />
+
     <TextView
         android:id="@+id/textDetailTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="👑 VIP 1 • Black Tiger"
+        android:text="👑 VIP 7 • Fire Lion"
         android:textColor="#FFD700"
         android:textSize="22sp"
         android:textStyle="bold"
         android:layout_marginBottom="12dp" />
 
-    <TextView
-        android:id="@+id/textTigerPreview"
-        android:layout_width="110dp"
-        android:layout_height="110dp"
-        android:background="#FFD700"
-        android:text="🐅"
-        android:textSize="60sp"
-        android:gravity="center"
-        android:layout_marginBottom="14dp" />
+    <!-- PREMIUM STAGE - Big Frame + Crown -->
+    <FrameLayout
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_marginBottom="14dp">
 
+        <TextView
+            android:id="@+id/textTigerPreview"
+            android:layout_width="140dp"
+            android:layout_height="140dp"
+            android:layout_gravity="center"
+            android:background="#FFD700"
+            android:text="🦁"
+            android:textSize="60sp"
+            android:gravity="center" />
+
+        <TextView
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_gravity="top|end"
+            android:background="#FFD700"
+            android:text="👑"
+            android:textSize="16sp"
+            android:gravity="center" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:text="✨ PREMIUM"
+            android:textColor="#FFFFFF"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:background="#AA000000"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp" />
+
+    </FrameLayout>
+
+    <!-- 4 PREVIEW BOXES - Badge / Frame / Bubble / Entry -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -48,29 +99,42 @@
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Bubble" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_marginTop="5dp" />
         </LinearLayout>
         <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center">
-            <TextView android:id="@+id/textEffectPreview" android:layout_width="52dp" android:layout_height="52dp" android:background="#FF5722" android:text="🐅" android:textSize="24sp" android:gravity="center" />
+            <TextView android:id="@+id/textEffectPreview" android:layout_width="52dp" android:layout_height="52dp" android:background="#FF5722" android:text="🔥" android:textSize="24sp" android:gravity="center" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Entry" android:textColor="#FFFFFF" android:textSize="11sp" android:layout_marginTop="5dp" />
         </LinearLayout>
     </LinearLayout>
 
+    <!-- PRIVILEGE TITLE -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="👑 12 PREMIUM PRIVILEGES"
+        android:textColor="#FFD700"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <!-- 12 PRIVILEGES - Adapter থেকে আসবে -->
     <TextView
         android:id="@+id/textDetailDesc"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="• Black Tiger Entry Effect\n• Black Royal Frame\n• Black Bubble\n• Golden Badge\n• Validity: 7 / 15 / 30 Days (Admin Controlled)"
+        android:text="👑 VIP Identity - VIP 7 Crown Badge"
         android:textColor="#FFFFFF"
         android:textSize="13sp"
-        android:lineSpacingExtra="4dp"
+        android:lineSpacingExtra="5dp"
         android:layout_marginBottom="15dp"
-        android:gravity="center" />
+        android:gravity="start" />
 
     <Button
         android:id="@+id/btnBuyVip"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Buy - 2,000,000 Coins (Coming Soon)"
-        android:textColor="#FFFFFF"
-        android:backgroundTint="#555555"
+        android:layout_height="54dp"
+        android:text="Buy - 50,000,000 Coins"
+        android:textColor="#000000"
+        android:textStyle="bold"
+        android:textSize="15sp"
+        android:backgroundTint="#FFD700"
         android:enabled="false"
         android:layout_marginBottom="10dp" />
 
@@ -82,3 +146,4 @@
         android:textColor="#FFFFFF"
         android:backgroundTint="#FF4081" />
 </LinearLayout>
+</ScrollView>
