@@ -312,7 +312,6 @@ public class MeActivity extends AppCompatActivity {
         toolsLp.setMargins(0, 0, 0, 16);
         toolsRow.setLayoutParams(toolsLp);
         menuContainer.addView(toolsRow);
-        // FIXED - Store e Click korle ekhon StoreActivity khulbe - Coming Soon ar asbe na
         addToolItem(toolsRow, "🛍️", "Store", v -> openStore());
         addToolItem(toolsRow, "👗", "Dress");
         addToolItem(toolsRow, "🎂", "Birthday");
@@ -402,33 +401,58 @@ public class MeActivity extends AppCompatActivity {
         }
     }
 
+    // FIXED - Panel Firebase UID te likhe, Me 9-Digit ID te khuje - ekhon 2 ta diyei khujbe
     private void listenVipAssignments() {
         if (vipAssignmentListenerStarted) return;
-        if (my9DigitId.isEmpty()) return;
         vipAssignmentListenerStarted = true;
-        FirebaseDatabase.getInstance().getReference("vip_assignments").child(my9DigitId)
+        if (!my9DigitId.isEmpty()) {
+            FirebaseDatabase.getInstance().getReference("vip_assignments").child(my9DigitId)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                        if (snap.exists()) { applyVipSnap(snap); return; }
+                        listenVipByFirebaseUid();
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError e) { listenVipByFirebaseUid(); }
+                });
+        } else {
+            listenVipByFirebaseUid();
+        }
+    }
+
+    private void listenVipByFirebaseUid() {
+        if (firebaseUid.isEmpty() || firebaseUid.equals(my9DigitId)) return;
+        FirebaseDatabase.getInstance().getReference("vip_assignments").child(firebaseUid)
             .addValueEventListener(new ValueEventListener() {
                 @Override public void onDataChange(@NonNull DataSnapshot snap) {
-                    try {
-                        if (!snap.exists()) return;
-                        String lvlStr = snap.child("vipLevel").getValue() == null ? "0" : String.valueOf(snap.child("vipLevel").getValue());
-                        int v = 0;
-                        try { v = Integer.parseInt(lvlStr); } catch (Exception ignored) {}
-                        long expire = 0;
-                        try {
-                            Object ex = snap.child("expireAt").getValue();
-                            if (ex != null) expire = Long.parseLong(String.valueOf(ex));
-                        } catch (Exception ignored) {}
-                        if (expire > 0 && System.currentTimeMillis() > expire) v = 0;
-                        if (v != myVipLevel) {
-                            myVipLevel = v;
-                            prefs.edit().putInt("VIP_LEVEL", v).apply();
-                            updateVipUI();
-                        }
-                    } catch (Exception ignored) {}
+                    if (snap.exists()) applyVipSnap(snap);
                 }
                 @Override public void onCancelled(@NonNull DatabaseError e) {}
             });
+    }
+
+    private void applyVipSnap(DataSnapshot snap) {
+        try {
+            String lvlStr = snap.child("vipLevel").getValue() == null ? "0" : String.valueOf(snap.child("vipLevel").getValue());
+            int v = 0;
+            try { v = Integer.parseInt(lvlStr); } catch (Exception ignored) {}
+            long expire = 0;
+            try {
+                Object ex = snap.child("expireAt").getValue();
+                if (ex != null) expire = Long.parseLong(String.valueOf(ex));
+            } catch (Exception ignored) {}
+            if (expire == 0) {
+                try {
+                    Object ex2 = snap.child("expireTs").getValue();
+                    if (ex2 != null) expire = Long.parseLong(String.valueOf(ex2));
+                } catch (Exception ignored) {}
+            }
+            if (expire > 0 && System.currentTimeMillis() > expire) v = 0;
+            if (v != myVipLevel) {
+                myVipLevel = v;
+                prefs.edit().putInt("VIP_LEVEL", v).apply();
+                updateVipUI();
+            }
+        } catch (Exception ignored) {}
     }
 
     private void updateVipUI() {
@@ -452,7 +476,6 @@ public class MeActivity extends AppCompatActivity {
         cm.setPrimaryClip(ClipData.newPlainText("ID", my9DigitId));
         Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
     }
-    // NEW - Store khulbe
     private void openStore() {
         try {
             Intent i = new Intent(MeActivity.this, StoreActivity.class);
