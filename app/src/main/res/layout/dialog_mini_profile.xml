@@ -79,7 +79,7 @@
             android:layout_marginStart="6dp" />
     </LinearLayout>
 
-    <!-- NEW - VIP Badge - Namer thik niche -->
+    <!-- VIP Badge - Namer thik niche -->
     <TextView
         android:id="@+id/txtMiniVipBadge"
         android:layout_width="wrap_content"
@@ -143,27 +143,27 @@
         android:layout_height="wrap_content"
         android:visibility="gone" />
 
-    <!-- FIXED - Agency Banner - Icon NAI, Name NAI, Sudhu AGENCY - Premium Gold -->
+    <!-- FIXED - Agency Banner - Choto, Premium Green, Icon NAI, Name NAI, Sudhu AGENCY -->
     <LinearLayout
         android:id="@+id/layoutMiniAgency"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        android:background="#FFD700"
-        android:paddingHorizontal="22dp"
-        android:paddingVertical="8dp"
-        android:layout_marginTop="12dp"
+        android:background="#1E8E3E"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="5dp"
+        android:layout_marginTop="8dp"
         android:visibility="gone">
         <TextView
             android:id="@+id/txtMiniAgency"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="AGENCY"
-            android:textColor="#1A0B2E"
-            android:textSize="14sp"
+            android:textColor="#FFFFFF"
+            android:textSize="11sp"
             android:textStyle="bold"
-            android:letterSpacing="0.15" />
+            android:letterSpacing="0.12" />
     </LinearLayout>
 
     <LinearLayout
