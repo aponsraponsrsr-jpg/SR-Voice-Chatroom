@@ -44,6 +44,11 @@ public class StoreActivity extends AppCompatActivity {
         tabShop.setOnClickListener(v -> showShop());
         tabMine.setOnClickListener(v -> showMine());
         listenVip();
+
+        // FIXED - Inbox theke asle sorasori Mine khulbe - Shop khulbe na
+        if (getIntent().getBooleanExtra("OPEN_MINE", false)) {
+            showMine();
+        }
     }
 
     private void showShop() {
@@ -73,6 +78,9 @@ public class StoreActivity extends AppCompatActivity {
                         int v = Integer.parseInt(String.valueOf(snap.child("vipLevel").getValue()));
                         long expire = 0;
                         try { expire = Long.parseLong(String.valueOf(snap.child("expireAt").getValue())); } catch (Exception ignored) {}
+                        if (expire == 0) {
+                            try { expire = Long.parseLong(String.valueOf(snap.child("expireTs").getValue())); } catch (Exception ignored) {}
+                        }
                         if (expire > 0 && System.currentTimeMillis() > expire) v = 0;
                         myVipLevel = v;
                         prefs.edit().putInt("VIP_LEVEL", v).apply();
