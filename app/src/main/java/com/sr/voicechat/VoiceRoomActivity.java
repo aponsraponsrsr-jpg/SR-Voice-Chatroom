@@ -103,7 +103,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
         }
     );
 
-    // ===== VIP HELPERS - Preview Card + Seat er jonno =====
+    // ===== VIP HELPERS =====
     private String getVipName(int lvl) {
         String[] names = {"", "Black Tiger", "White Tiger", "Eagle Fire", "Phoenix Fire Bird", "Dragon", "Golden Dragon King", "Emperor Dragon", "Purple Dragon"};
         if (lvl >= 1 && lvl <= 8) return names[lvl];
@@ -127,25 +127,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
             default: return new int[]{0xFF1B1035, 0xFF0A0518};
         }
     }
-    private void applyVipToMiniProfile(View root, TextView tvName, String baseName, int vipLevel, String usingFrame) {
-        if (root == null) return;
-        // 1. Background = VIP Background
-        try {
-            GradientDrawable bg = new GradientDrawable();
-            bg.setColors(getVipBgColors(vipLevel));
-            bg.setOrientation(GradientDrawable.Orientation.TOP_BOTTOM);
-            bg.setCornerRadius(32);
-            root.setBackground(bg);
-        } catch (Exception ignored) {}
-        // 2. VIP Badge - Namer pase
-        if (tvName != null && vipLevel >= 1 && vipLevel <= 8) {
-            tvName.setText(baseName + "  " + getVipEmoji(vipLevel) + " VIP " + vipLevel);
-        }
-        // 3. Frame - jodi user Frame USE kore thake, Photo er border VIP color hobe - root tag e save
-        if (root != null) root.setTag("VIP_" + vipLevel + "_FRAME_" + usingFrame);
-    }
     private void fetchVipForUser(String targetId, java.util.function.Consumer<Integer> cb) {
-        // vip_assignments / 9DigitId -> na paile users / 9DigitId -> vipLevel
         FirebaseDatabase.getInstance().getReference("vip_assignments").child(targetId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 if (snap.exists() && snap.child("vipLevel").getValue() != null) {
@@ -168,6 +150,44 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 });
             }
             @Override public void onCancelled(@NonNull DatabaseError e) { cb.accept(0); }
+        });
+    }
+    // ===== ENTRY EFFECT - Room e dhukle upore veshe asbe =====
+    private void showVipEntryEffect(String uid, String name) {
+        fetchVipForUser(uid, vip -> {
+            String msg = "✨ " + name + " (ID: " + uid + ") Enter The Room";
+            if (vip >= 1 && vip <= 8) msg = getVipEmoji(vip) + " VIP " + vip + " " + name + " Enter The Room 🔥";
+            String finalMsg = msg;
+            try {
+                TextView banner = new TextView(this);
+                banner.setText(finalMsg);
+                banner.setTextColor(0xFFFFD700);
+                banner.setTextSize(15);
+                banner.setTypeface(null, android.graphics.Typeface.BOLD);
+                banner.setGravity(android.view.Gravity.CENTER);
+                banner.setBackgroundColor(0xCC1A0B2E);
+                banner.setPadding(20, 20, 20, 20);
+                android.widget.FrameLayout decor = (android.widget.FrameLayout) getWindow().getDecorView();
+                android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(android.widget.FrameLayout.LayoutParams.MATCH_PARENT, android.widget.FrameLayout.LayoutParams.WRAP_CONTENT);
+                lp.topMargin = 150;
+                decor.addView(banner, lp);
+                banner.postDelayed(() -> { try { decor.removeView(banner); } catch (Exception ignored) {} }, 3000);
+            } catch (Exception ignored) {}
+            Toast.makeText(this, finalMsg, Toast.LENGTH_LONG).show();
+        });
+    }
+    private void listenEntryEffect() {
+        activeRoomRef.child("online_users").addChildEventListener(new ChildEventListener() {
+            @Override public void onChildAdded(@NonNull DataSnapshot snap, String p) {
+                if (snap == null || snap.getKey() == null || snap.getKey().equals(myId)) return;
+                String n = snap.child("name").getValue(String.class);
+                if (n == null) n = "User";
+                showVipEntryEffect(snap.getKey(), n);
+            }
+            @Override public void onChildChanged(@NonNull DataSnapshot s, String p) {}
+            @Override public void onChildRemoved(@NonNull DataSnapshot s) {}
+            @Override public void onChildMoved(@NonNull DataSnapshot s, String p) {}
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
     }
 
@@ -303,7 +323,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 boolean muted = seatMuted.get(key) != null && seatMuted.get(key);
                 String photo = seatUserPhoto.get(key); if (photo == null) photo = "";
                 loadSeatPhoto(img, letter, photo, name);
-                // FIXED - Seat e VIP Badge + VIP Frame Background
                 Integer cachedVip = seatVipCache.get(uid);
                 if (cachedVip != null && cachedVip > 0) {
                     if (nameTv != null) nameTv.setText(getVipEmoji(cachedVip) + " " + name + (muted ? " 🔇" : ""));
@@ -422,7 +441,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
         View v = LayoutInflater.from(this).inflate(R.layout.dialog_mini_profile, null);
         d.setContentView(v);
         ImageView img = v.findViewById(R.id.imgMiniPhoto);
+        ImageView imgFrame = v.findViewById(R.id.imgMiniFrame);
         TextView tvName = v.findViewById(R.id.txtMiniName);
+        TextView tvVipBadge = v.findViewById(R.id.txtMiniVipBadge);
         TextView tvGenderIcon = v.findViewById(R.id.txtMiniGenderIcon);
         TextView tvFlag = v.findViewById(R.id.txtMiniFlag);
         TextView tvGenderCountry = v.findViewById(R.id.txtMiniGenderCountry);
@@ -447,20 +468,21 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (btnAdd != null) btnAdd.setOnClickListener(x -> Toast.makeText(this, "Friend Request Sent to " + fName, Toast.LENGTH_SHORT).show());
         if (btnFollow != null) btnFollow.setOnClickListener(x -> Toast.makeText(this, "Followed! ❤️", Toast.LENGTH_SHORT).show());
         if (btnGift != null) btnGift.setOnClickListener(x -> { d.dismiss(); openGiftDialog(targetId, fName); });
-        // FIXED - Preview Card VIP load - Background + Badge
+        // VIP - Preview Card e Badge + Background + Frame
         fetchVipForUser(targetId, vip -> {
-            String usingFrame = prefs.getString("USING_FRAME", "");
-            if (targetId.equals(myId)) {
-                applyVipToMiniProfile(root, tvName, fName, vip, usingFrame);
+            if (vip >= 1 && vip <= 8) {
+                if (tvVipBadge != null) { tvVipBadge.setVisibility(View.VISIBLE); tvVipBadge.setText(getVipEmoji(vip) + " VIP " + vip + " • " + getVipName(vip)); }
+                if (root != null) {
+                    GradientDrawable bg = new GradientDrawable();
+                    bg.setColors(getVipBgColors(vip));
+                    bg.setOrientation(GradientDrawable.Orientation.TOP_BOTTOM);
+                    bg.setCornerRadius(32);
+                    root.setBackground(bg);
+                }
+                if (imgFrame != null) { imgFrame.setVisibility(View.VISIBLE); imgFrame.setBackgroundResource(android.R.drawable.dialog_holo_light_frame); }
             } else {
-                // Onner jonno tar usingFrame Firebase theke nibo
-                FirebaseDatabase.getInstance().getReference("users").child(targetId).child("usingFrame").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override public void onDataChange(@NonNull DataSnapshot s) {
-                        String uf = s.exists() && s.getValue() != null ? String.valueOf(s.getValue()) : "";
-                        applyVipToMiniProfile(root, tvName, fName, vip, uf);
-                    }
-                    @Override public void onCancelled(@NonNull DatabaseError e) { applyVipToMiniProfile(root, tvName, fName, vip, ""); }
-                });
+                if (tvVipBadge != null) tvVipBadge.setVisibility(View.GONE);
+                if (imgFrame != null) imgFrame.setVisibility(View.GONE);
             }
         });
         FirebaseDatabase.getInstance().getReference("users").orderByChild("my9DigitId").equalTo(targetId).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -477,12 +499,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     if (photo.isEmpty() && ds.child("photoBase64").getValue() != null) photo = String.valueOf(ds.child("photoBase64").getValue());
                     String sending = ds.child("sending").getValue() == null ? (ds.child("totalSending").getValue() == null ? "0" : String.valueOf(ds.child("totalSending").getValue())) : String.valueOf(ds.child("sending").getValue());
                     String receiving = ds.child("receiving").getValue() == null ? (ds.child("totalReceiving").getValue() == null ? "0" : String.valueOf(ds.child("totalReceiving").getValue())) : String.valueOf(ds.child("receiving").getValue());
-                    if (tvName != null) {
-                        // VIP thakle namer sathe VIP badge thakbe - pore fetchVip e abar set hobe
-                        if (root != null && root.getTag() != null && String.valueOf(root.getTag()).startsWith("VIP_")) {
-                            // already VIP applied - nam change korbo na
-                        } else tvName.setText(name);
-                    }
+                    if (tvName != null) tvName.setText(name);
                     String gLow = gender.toLowerCase();
                     boolean isFemale = gLow.contains("female");
                     boolean isMale = !isFemale && gLow.contains("male");
@@ -494,15 +511,14 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     if (tvSending != null) tvSending.setText("⬆️ Sending: " + sending);
                     if (tvReceiving != null) tvReceiving.setText("⬇️ Receiving: " + receiving);
                     if (!photo.isEmpty() && img != null) loadPhotoInto(img, photo);
-                    // FIXED - Agency sudhu Icon - Name likha thakbe na
-                    String agency = "";
-                    if (ds.child("agencyName").getValue() != null) agency = String.valueOf(ds.child("agencyName").getValue());
-                    if (agency.isEmpty() && ds.child("agency").getValue() != null) agency = String.valueOf(ds.child("agency").getValue());
-                    if (agency.isEmpty() && ds.child("familyName").getValue() != null) agency = String.valueOf(ds.child("familyName").getValue());
+                    // FIXED - Agency Banner - Icon NAI, Agency Name NAI, Sudhu AGENCY - Premium Gold
                     boolean isAgencyUser = false;
                     if (ds.child("isAgency").getValue() != null && Boolean.TRUE.equals(ds.child("isAgency").getValue(Boolean.class))) isAgencyUser = true;
-                    if (!agency.isEmpty() || isAgencyUser) {
-                        if (layoutAgency != null && tvAgency != null) { layoutAgency.setVisibility(View.VISIBLE); tvAgency.setText("🏛️"); }
+                    String agencyStatus = ds.child("agencyStatus").getValue() == null ? "" : String.valueOf(ds.child("agencyStatus").getValue());
+                    if (isAgencyUser && !"blocked".equalsIgnoreCase(agencyStatus) && !"rejected".equalsIgnoreCase(agencyStatus)) {
+                        if (layoutAgency != null && tvAgency != null) { layoutAgency.setVisibility(View.VISIBLE); tvAgency.setText("AGENCY"); tvAgency.setTextColor(0xFF1A0B2E); }
+                    } else {
+                        if (layoutAgency != null) layoutAgency.setVisibility(View.GONE);
                     }
                     String host = "";
                     if (ds.child("hostName").getValue() != null) host = String.valueOf(ds.child("hostName").getValue());
@@ -664,6 +680,9 @@ public class VoiceRoomActivity extends AppCompatActivity {
             @Override public void handleOnBackPressed() { showPowerMenu(); }
         });
         checkMyRole(); loadRoomInfo(); syncMyPhotoFromFirebase(); markMeOnline(); setupSeats();
+        // ENTRY EFFECT - Ami dhukle amar Entry sobai dekhbe
+        showVipEntryEffect(myId, myName);
+        listenEntryEffect();
         if (roomHeaderProfileImg != null) roomHeaderProfileImg.setOnClickListener(v -> openRoomHeaderPopup());
         if (roomTitleText != null) roomTitleText.setOnClickListener(v -> openRoomHeaderPopup());
         if (roomInfoText != null) roomInfoText.setOnClickListener(v -> openRoomHeaderPopup());
