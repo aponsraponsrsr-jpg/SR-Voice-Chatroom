@@ -24,8 +24,27 @@ public class GiftManager {
         void onFailed(String msg);
     }
 
-    // FIXED GIFT AMOUNTS - Gift Amount is Fixed, User selects from these
-    public static final long[] GIFT_AMOUNTS = {100, 500, 1000, 5000, 10000, 50000, 100000};
+    // NEW PREMIUM GIFT AMOUNTS ONLY - 4 GIFTS
+    // Rose 1000, Angel 5000, Rocket 10000, Porsche Car 20000
+    public static final long[] GIFT_AMOUNTS = {1000, 5000, 10000, 20000};
+
+    // Gift Amount -> SVGA URL - Animation এর জন্য
+    public static String getSvgaUrlForAmount(long amount) {
+        if (amount == 1000) return "https://raw.githubusercontent.com/Arifur-Rahaman-Arif/SR-Voice-Chatroom/main/rose.svga";
+        if (amount == 5000) return "https://raw.githubusercontent.com/Arifur-Rahaman-Arif/SR-Voice-Chatroom/main/angel-1.svga";
+        if (amount == 10000) return "https://raw.githubusercontent.com/Arifur-Rahaman-Arif/SR-Voice-Chatroom/main/Rocket.svga";
+        if (amount == 20000) return "https://raw.githubusercontent.com/Arifur-Rahaman-Arif/SR-Voice-Chatroom/main/posche.svga";
+        return "";
+    }
+
+    // Gift Amount -> Gift Name
+    public static String getGiftNameForAmount(long amount) {
+        if (amount == 1000) return "Rose";
+        if (amount == 5000) return "Angel";
+        if (amount == 10000) return "Rocket";
+        if (amount == 20000) return "Porsche Car";
+        return "Gift";
+    }
 
     // TARGET TABLE - Same as HostPolicy / AgencyPolicy - Company Fixed
     private static final long[] TARGETS = {
@@ -36,10 +55,6 @@ public class GiftManager {
     private static final double[] HOST_SALARY = {1, 2, 4.5, 7, 14, 24, 32, 40, 56, 76, 104, 132, 168, 220, 292, 348, 440, 584, 752, 1024, 1240, 1600};
     private static final double[] AGENCY_SALARY = {0.5, 1, 1.5, 2, 3, 6, 8, 10, 14, 19, 26, 33, 42, 55, 73, 87, 110, 146, 188, 256, 310, 400};
 
-    /**
-     * Send Gift - senderUid -> receiverUid
-     * senderUid == receiverUid allowed (Self Gift)
-     */
     public static void sendGift(String senderUid, String receiverUid, long giftAmount, GiftCallback cb) {
         if (senderUid == null || senderUid.isEmpty() || receiverUid == null || receiverUid.isEmpty()) {
             if (cb != null) cb.onFailed("Invalid User");
@@ -49,8 +64,14 @@ public class GiftManager {
             if (cb != null) cb.onFailed("Invalid Amount");
             return;
         }
+        // Only allow 4 Premium amounts - পুরানো দাম দিয়ে কেউ Gift পাঠাতে পারবে না
+        boolean allowed = false;
+        for (long a : GIFT_AMOUNTS) { if (a == giftAmount) { allowed = true; break; } }
+        if (!allowed) {
+            if (cb != null) cb.onFailed("This gift is removed");
+            return;
+        }
         DatabaseReference senderRef = FirebaseDatabase.getInstance().getReference("users").child(senderUid);
-        // STEP 1: Check Sender has enough + Deduct 100% Real Coins - Transaction = Safe, No Double Spend
         senderRef.child("coins").runTransaction(new Transaction.Handler() {
             @NonNull @Override public Transaction.Result doTransaction(@NonNull MutableData current) {
                 Long coins = current.getValue(Long.class);
@@ -64,7 +85,6 @@ public class GiftManager {
                     if (cb != null) cb.onFailed("Not enough Coins in Wallet");
                     return;
                 }
-                // Sender deducted 100% - Now Receiver part
                 applyToReceiver(senderUid, receiverUid, giftAmount, cb);
             }
         });
@@ -72,23 +92,15 @@ public class GiftManager {
 
     private static void applyToReceiver(String senderUid, String receiverUid, long giftAmount, GiftCallback cb) {
         DatabaseReference receiverRef = FirebaseDatabase.getInstance().getReference("users").child(receiverUid);
-        long exchange = (long) (giftAmount * 0.30); // 30% Exchange
-
-        // STEP 2: Receiver Wallet += 30% + Target += 100% - Transaction
+        long exchange = (long) (giftAmount * 0.30);
         receiverRef.runTransaction(new Transaction.Handler() {
             @NonNull @Override public Transaction.Result doTransaction(@NonNull MutableData current) {
-                // Read current values safely
                 Object coinsObj = current.child("coins").getValue();
                 long wallet = coinsObj == null ? 0L : toLong(coinsObj);
                 Object targetObj = current.child("totalReceivedCoins").getValue();
                 long target = targetObj == null ? 0L : toLong(targetObj);
-
-                // 30% Exchange -> Wallet
                 current.child("coins").setValue(wallet + exchange);
-                // 100% -> Target Counting
                 current.child("totalReceivedCoins").setValue(target + giftAmount);
-
-                // Dollar Counting - Only from Target Level - Auto calculated, user cannot write
                 int level = 0;
                 double hostSalary = 0, agencySalary = 0;
                 long newTotal = target + giftAmount;
@@ -110,7 +122,6 @@ public class GiftManager {
                     if (cb != null) cb.onFailed("Receiver update failed");
                     return;
                 }
-                // Save Gift History - Proof for Company
                 saveGiftHistory(senderUid, receiverUid, giftAmount, exchange);
                 long newTarget = 0;
                 if (snap != null && snap.hasChild("totalReceivedCoins") && snap.child("totalReceivedCoins").getValue() != null) {
@@ -121,13 +132,13 @@ public class GiftManager {
         });
     }
 
-    // Gift History - Proof - Company can check every Gift
     private static void saveGiftHistory(String senderUid, String receiverUid, long amount, long exchange) {
         try {
             DatabaseReference hist = FirebaseDatabase.getInstance().getReference("giftHistory").push();
             Map<String, Object> m = new HashMap<>();
             m.put("senderUid", senderUid);
             m.put("receiverUid", receiverUid);
+            m.put("giftName", getGiftNameForAmount(amount));
             m.put("giftAmount", amount);
             m.put("exchange30", exchange);
             m.put("isSelfGift", senderUid.equals(receiverUid));
