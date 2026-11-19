@@ -19,22 +19,35 @@
         android:textSize="11sp"
         android:paddingBottom="10dp" />
 
-    <androidx.cardview.widget.CardView
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:layout_width="110dp"
-        android:layout_height="110dp"
-        app:cardCornerRadius="55dp"
-        app:cardElevation="0dp"
+    <!-- Avatar + VIP Frame -->
+    <FrameLayout
+        android:layout_width="130dp"
+        android:layout_height="130dp"
         android:layout_marginBottom="12dp">
+        <androidx.cardview.widget.CardView
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:layout_width="110dp"
+            android:layout_height="110dp"
+            android:layout_gravity="center"
+            app:cardCornerRadius="55dp"
+            app:cardElevation="0dp">
+            <ImageView
+                android:id="@+id/imgMiniPhoto"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:background="#FFE0B2" />
+        </androidx.cardview.widget.CardView>
         <ImageView
-            android:id="@+id/imgMiniPhoto"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scaleType="centerCrop"
-            android:background="#FFE0B2" />
-    </androidx.cardview.widget.CardView>
+            android:id="@+id/imgMiniFrame"
+            android:layout_width="130dp"
+            android:layout_height="130dp"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            android:scaleType="fitXY" />
+    </FrameLayout>
 
-    <!-- 1st Row: Name + Gender Icon + Flag - SAME LINE, for ALL users -->
+    <!-- 1st Row: Name + Gender + Flag -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -66,14 +79,28 @@
             android:layout_marginStart="6dp" />
     </LinearLayout>
 
-    <!-- Old ID - রাখা আছে যাতে পুরানো Java Crash না করে, লুকানো থাকবে -->
+    <!-- NEW - VIP Badge - Namer thik niche -->
+    <TextView
+        android:id="@+id/txtMiniVipBadge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textColor="#FFD700"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:background="#33FFD700"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="6dp"
+        android:layout_marginTop="8dp"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/txtMiniGenderCountry"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone" />
 
-    <!-- 2nd Row: Level + ID - Just below Name -->
+    <!-- 2nd Row: Level + ID -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -105,7 +132,6 @@
             android:paddingVertical="6dp" />
     </LinearLayout>
 
-    <!-- Sending / Receiving - ID রাখা আছে, শুধু লুকানো। ভবিষ্যতে লাগলে GONE -> VISIBLE করলেই হবে -->
     <TextView
         android:id="@+id/txtMiniSending"
         android:layout_width="wrap_content"
@@ -117,30 +143,27 @@
         android:layout_height="wrap_content"
         android:visibility="gone" />
 
+    <!-- FIXED - Agency Banner - Icon NAI, Name NAI, Sudhu AGENCY - Premium Gold -->
     <LinearLayout
         android:id="@+id/layoutMiniAgency"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="#22000000"
-        android:padding="10dp"
-        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:background="#FFD700"
+        android:paddingHorizontal="22dp"
+        android:paddingVertical="8dp"
+        android:layout_marginTop="12dp"
         android:visibility="gone">
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="🏢 Agency"
-            android:textColor="#FFFFFF"
-            android:textSize="14sp" />
         <TextView
             android:id="@+id/txtMiniAgency"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text=""
-            android:textColor="#FFD700"
+            android:text="AGENCY"
+            android:textColor="#1A0B2E"
             android:textSize="14sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:letterSpacing="0.15" />
     </LinearLayout>
 
     <LinearLayout
@@ -169,7 +192,7 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- Buttons - Add Friend যাতে কাটা না যায় -->
+    <!-- Buttons -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
