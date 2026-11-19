@@ -8,6 +8,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.FirebaseDatabase;
@@ -17,6 +19,7 @@ public class StoreActivity extends AppCompatActivity {
 
     private SharedPreferences prefs;
     private String my9DigitId = "";
+    private String firebaseUid = "";
     private int myVipLevel = 0;
     private LinearLayout shopBox, mineBox;
     private TextView tabMine, tabShop;
@@ -31,6 +34,11 @@ public class StoreActivity extends AppCompatActivity {
         setContentView(R.layout.activity_store);
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
         my9DigitId = prefs.getString("MY_9_DIGIT_ID", "");
+        firebaseUid = prefs.getString("FIREBASE_UID", "");
+        if (firebaseUid.isEmpty()) {
+            FirebaseUser fu = FirebaseAuth.getInstance().getCurrentUser();
+            if (fu != null) firebaseUid = fu.getUid();
+        }
         myVipLevel = prefs.getInt("VIP_LEVEL", 0);
         usingFrame = prefs.getString("USING_FRAME", "");
         usingEntry = prefs.getString("USING_ENTRY", "");
@@ -45,7 +53,6 @@ public class StoreActivity extends AppCompatActivity {
         tabMine.setOnClickListener(v -> showMine());
         listenVip();
 
-        // FIXED - Inbox theke asle sorasori Mine khulbe - Shop khulbe na
         if (getIntent().getBooleanExtra("OPEN_MINE", false)) {
             showMine();
         }
@@ -68,27 +75,74 @@ public class StoreActivity extends AppCompatActivity {
         buildMine();
     }
 
+    // FIXED - Panel Firebase UID te likhe, App 9-Digit ID te khuje - ekhon 2 ta diyei khujbe
     private void listenVip() {
-        if (my9DigitId.isEmpty()) return;
-        FirebaseDatabase.getInstance().getReference("vip_assignments").child(my9DigitId)
+        // 1. Age 9-Digit ID diye khujbo
+        if (!my9DigitId.isEmpty()) {
+            FirebaseDatabase.getInstance().getReference("vip_assignments").child(my9DigitId)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                        if (snap.exists()) { applyVipSnap(snap); return; }
+                        // 9-Digit ID te nai - Firebase UID diye khujbo
+                        listenVipByFirebaseUid();
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError e) { listenVipByFirebaseUid(); }
+                });
+        } else {
+            listenVipByFirebaseUid();
+        }
+    }
+
+    private void listenVipByFirebaseUid() {
+        if (firebaseUid.isEmpty() || firebaseUid.equals(my9DigitId)) {
+            listenVipFromUserNode();
+            return;
+        }
+        FirebaseDatabase.getInstance().getReference("vip_assignments").child(firebaseUid)
             .addValueEventListener(new ValueEventListener() {
                 @Override public void onDataChange(@NonNull DataSnapshot snap) {
-                    if (!snap.exists()) return;
+                    if (snap.exists()) { applyVipSnap(snap); return; }
+                    listenVipFromUserNode();
+                }
+                @Override public void onCancelled(@NonNull DatabaseError e) { listenVipFromUserNode(); }
+            });
+    }
+
+    // 3. vip_assignments e na paile users node er vipLevel diye khujbo - Panel oi khaneo likhe
+    private void listenVipFromUserNode() {
+        String key = !my9DigitId.isEmpty() ? my9DigitId : firebaseUid;
+        if (key.isEmpty()) return;
+        FirebaseDatabase.getInstance().getReference("users").child(key).child("vipLevel")
+            .addValueEventListener(new ValueEventListener() {
+                @Override public void onDataChange(@NonNull DataSnapshot snap) {
                     try {
-                        int v = Integer.parseInt(String.valueOf(snap.child("vipLevel").getValue()));
-                        long expire = 0;
-                        try { expire = Long.parseLong(String.valueOf(snap.child("expireAt").getValue())); } catch (Exception ignored) {}
-                        if (expire == 0) {
-                            try { expire = Long.parseLong(String.valueOf(snap.child("expireTs").getValue())); } catch (Exception ignored) {}
+                        if (!snap.exists() || snap.getValue() == null) return;
+                        int v = Integer.parseInt(String.valueOf(snap.getValue()));
+                        if (v != myVipLevel) {
+                            myVipLevel = v;
+                            prefs.edit().putInt("VIP_LEVEL", v).apply();
+                            if (isMine) buildMine();
                         }
-                        if (expire > 0 && System.currentTimeMillis() > expire) v = 0;
-                        myVipLevel = v;
-                        prefs.edit().putInt("VIP_LEVEL", v).apply();
-                        if (isMine) buildMine();
                     } catch (Exception ignored) {}
                 }
                 @Override public void onCancelled(@NonNull DatabaseError e) {}
             });
+    }
+
+    private void applyVipSnap(DataSnapshot snap) {
+        try {
+            int v = 0;
+            try { v = Integer.parseInt(String.valueOf(snap.child("vipLevel").getValue())); } catch (Exception ignored) {}
+            long expire = 0;
+            try { expire = Long.parseLong(String.valueOf(snap.child("expireAt").getValue())); } catch (Exception ignored) {}
+            if (expire == 0) {
+                try { expire = Long.parseLong(String.valueOf(snap.child("expireTs").getValue())); } catch (Exception ignored) {}
+            }
+            if (expire > 0 && System.currentTimeMillis() > expire) v = 0;
+            myVipLevel = v;
+            prefs.edit().putInt("VIP_LEVEL", v).apply();
+            if (isMine) buildMine();
+        } catch (Exception ignored) {}
     }
 
     private void buildMine() {
