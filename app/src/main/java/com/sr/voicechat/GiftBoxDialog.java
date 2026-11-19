@@ -9,8 +9,11 @@ import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.sr.voicechat.models.GiftModel;
+import java.util.List;
 
 public class GiftBoxDialog {
 
@@ -35,7 +38,7 @@ public class GiftBoxDialog {
         root.setBackgroundColor(Color.parseColor("#1A1A2E"));
         root.setPadding(24, 24, 24, 24);
 
-        // TOP BAR - Title + Wallet Corner
+        // TOP BAR
         LinearLayout topBar = new LinearLayout(ctx);
         topBar.setOrientation(LinearLayout.HORIZONTAL);
         topBar.setGravity(Gravity.CENTER_VERTICAL);
@@ -60,7 +63,7 @@ public class GiftBoxDialog {
         topBar.addView(txtWallet);
         root.addView(topBar);
 
-        // Wallet Load - Real Coin from Database
+        // Wallet Load
         try {
             if (FirebaseAuth.getInstance().getCurrentUser() != null) {
                 String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -80,26 +83,38 @@ public class GiftBoxDialog {
             txtWallet.setText("🪙 0 Coins");
         }
 
-        String[][] gifts = {
-            {"Rose", "🌹", "100"},
-            {"Heart", "❤️", "500"},
-            {"Crown", "👑", "1000"},
-            {"Diamond", "💎", "5000"},
-            {"Car", "🚗", "10000"},
-            {"Castle", "🏰", "50000"},
-            {"Rocket", "🚀", "100000"},
-            {"Dragon", "🐉", "200000"},
-            {"Universe", "🌌", "500000"},
-        };
+        // SELECTED TEXT
+        TextView txtSelected = new TextView(ctx);
+        txtSelected.setText("Select a gift to send");
+        txtSelected.setTextColor(Color.parseColor("#FFD700"));
+        txtSelected.setTextSize(14);
+        txtSelected.setGravity(Gravity.CENTER);
+        txtSelected.setPadding(0, 20, 0, 0);
+        root.addView(txtSelected);
+
+        // 4 PREMIUM GIFTS ONLY - From GiftModel
+        List<GiftModel> gifts = GiftModel.createPremiumList();
+        // Emoji Map - Gift Name -> Emoji
+        java.util.HashMap<String, String> emojiMap = new java.util.HashMap<>();
+        emojiMap.put("Rose", "🌹");
+        emojiMap.put("Angel", "👼");
+        emojiMap.put("Rocket", "🚀");
+        emojiMap.put("Porsche Car", "🏎️");
 
         GridLayout grid = new GridLayout(ctx);
-        grid.setColumnCount(3);
+        grid.setColumnCount(2);
         grid.setUseDefaultMargins(true);
         LinearLayout.LayoutParams gridParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         gridParams.topMargin = 20;
         grid.setLayoutParams(gridParams);
 
-        for (String[] g : gifts) {
+        final GiftModel[] selected = new GiftModel[1];
+        final LinearLayout[] itemViews = new LinearLayout[gifts.size()];
+
+        for (int i = 0; i < gifts.size(); i++) {
+            GiftModel g = gifts.get(i);
+            String emojiStr = emojiMap.containsKey(g.getGiftName()) ? emojiMap.get(g.getGiftName()) : "🎁";
+
             LinearLayout item = new LinearLayout(ctx);
             item.setOrientation(LinearLayout.VERTICAL);
             item.setGravity(Gravity.CENTER);
@@ -107,40 +122,75 @@ public class GiftBoxDialog {
             item.setPadding(16, 20, 16, 20);
 
             TextView emoji = new TextView(ctx);
-            emoji.setText(g[1]);
-            emoji.setTextSize(36);
+            emoji.setText(emojiStr);
+            emoji.setTextSize(42);
             emoji.setGravity(Gravity.CENTER);
 
             TextView name = new TextView(ctx);
-            name.setText(g[0]);
+            name.setText(g.getGiftName());
             name.setTextColor(Color.WHITE);
-            name.setTextSize(14);
+            name.setTextSize(16);
             name.setTypeface(null, android.graphics.Typeface.BOLD);
             name.setGravity(Gravity.CENTER);
 
+            TextView premium = new TextView(ctx);
+            premium.setText("✨ PREMIUM");
+            premium.setTextColor(Color.parseColor("#FF4081"));
+            premium.setTextSize(11);
+            premium.setTypeface(null, android.graphics.Typeface.BOLD);
+            premium.setGravity(Gravity.CENTER);
+
             TextView amount = new TextView(ctx);
-            amount.setText(g[2] + " Coins");
+            amount.setText(g.getGiftPrice() + " Coins");
             amount.setTextColor(Color.parseColor("#FFD700"));
-            amount.setTextSize(12);
+            amount.setTextSize(13);
             amount.setGravity(Gravity.CENTER);
 
             item.addView(emoji);
             item.addView(name);
+            item.addView(premium);
             item.addView(amount);
 
+            final int index = i;
             item.setOnClickListener(v -> {
-                dialog.dismiss();
-                if (listener != null) listener.onPick(g[0], Long.parseLong(g[2]), g[1]);
+                selected[0] = g;
+                txtSelected.setText("Selected: " + g.getGiftName() + " - " + g.getGiftPrice() + " Coins");
+                // Highlight - Selected = Gold Border, Others = Normal
+                for (int j = 0; j < itemViews.length; j++) {
+                    if (itemViews[j] != null) {
+                        itemViews[j].setBackgroundColor(Color.parseColor(j == index ? "#FFD700" : "#2A2A3E"));
+                    }
+                }
             });
 
             GridLayout.LayoutParams p = new GridLayout.LayoutParams();
             p.width = 0;
             p.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
             item.setLayoutParams(p);
+            itemViews[i] = item;
             grid.addView(item);
         }
 
         root.addView(grid);
+
+        // SEND BUTTON
+        Button btnSend = new Button(ctx);
+        btnSend.setText("🎁  SEND GIFT");
+        btnSend.setTextColor(Color.WHITE);
+        btnSend.setBackgroundColor(Color.parseColor("#FF4081"));
+        btnSend.setTextSize(16);
+        btnSend.setOnClickListener(v -> {
+            if (selected[0] == null) {
+                Toast.makeText(ctx, "Please select a gift first", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            dialog.dismiss();
+            String em = emojiMap.containsKey(selected[0].getGiftName()) ? emojiMap.get(selected[0].getGiftName()) : "🎁";
+            long amt = 0;
+            try { amt = Long.parseLong(selected[0].getGiftPrice()); } catch (Exception e) {}
+            if (listener != null) listener.onPick(selected[0].getGiftName(), amt, em);
+        });
+        root.addView(btnSend);
 
         Button close = new Button(ctx);
         close.setText("Close");
