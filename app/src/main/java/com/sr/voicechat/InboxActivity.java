@@ -32,61 +32,13 @@ public class InboxActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_inbox);
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
 
-        ScrollView scrollView = new ScrollView(this);
-        scrollView.setFillViewport(true);
-        scrollView.setBackgroundColor(android.graphics.Color.parseColor("#120A2A"));
-
-        LinearLayout root = new LinearLayout(this);
-        root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(40, 40, 40, 40);
-
-        TextView btnBack = new TextView(this);
-        btnBack.setText("← Back");
-        btnBack.setTextColor(android.graphics.Color.WHITE);
-        btnBack.setTextSize(14);
-        btnBack.setTypeface(null, android.graphics.Typeface.BOLD);
-        btnBack.setPadding(10, 10, 10, 10);
-        btnBack.setOnClickListener(v -> finish());
-        root.addView(btnBack);
-
-        TextView header = new TextView(this);
-        header.setText("📥 Inbox");
-        header.setTextColor(android.graphics.Color.parseColor("#FFD700"));
-        header.setTextSize(22);
-        header.setTypeface(null, android.graphics.Typeface.BOLD);
-        root.addView(header);
-
-        txtSystemTitle = new TextView(this);
-        txtSystemTitle.setText("🌟 SR Voice Chatroom Official System");
-        txtSystemTitle.setTextColor(android.graphics.Color.WHITE);
-        txtSystemTitle.setTextSize(16);
-        txtSystemTitle.setTypeface(null, android.graphics.Typeface.BOLD);
-        txtSystemTitle.setPadding(0, 30, 0, 5);
-        root.addView(txtSystemTitle);
-
-        txtSystemMessage = new TextView(this);
-        txtSystemMessage.setText("No new system announcements right now. Enjoy your voice chatting!");
-        txtSystemMessage.setTextColor(android.graphics.Color.parseColor("#B0B0B0"));
-        txtSystemMessage.setTextSize(14);
-        txtSystemMessage.setPadding(0, 0, 0, 30);
-        root.addView(txtSystemMessage);
-
-        TextView lblInvites = new TextView(this);
-        lblInvites.setText("📨 My Invitations & Messages:");
-        lblInvites.setTextColor(android.graphics.Color.parseColor("#00B0FF"));
-        lblInvites.setTextSize(17);
-        lblInvites.setTypeface(null, android.graphics.Typeface.BOLD);
-        root.addView(lblInvites);
-
-        inboxListContainer = new LinearLayout(this);
-        inboxListContainer.setOrientation(LinearLayout.VERTICAL);
-        inboxListContainer.setPadding(0, 20, 0, 0);
-        root.addView(inboxListContainer);
-
-        scrollView.addView(root);
-        setContentView(scrollView);
+        txtSystemTitle = findViewById(R.id.txtSystemTitle);
+        txtSystemMessage = findViewById(R.id.txtSystemMessage);
+        inboxListContainer = findViewById(R.id.inboxListContainer);
+        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
 
         myId = getIntent().getStringExtra("MY_ID");
         if (myId == null || myId.isEmpty()) myId = getIntent().getStringExtra("USER_ID");
@@ -104,7 +56,6 @@ public class InboxActivity extends AppCompatActivity {
 
         systemNoticeRef = FirebaseDatabase.getInstance().getReference("system_notice");
         usersRef = FirebaseDatabase.getInstance().getReference("users");
-        // FIXED - Inbox 2 jayga theke khujbo: direct + my9DigitId diye. Global e khali thakbe na.
         myInboxRef = usersRef.child(myId).child("inbox");
 
         loadSystemNotice();
@@ -130,7 +81,6 @@ public class InboxActivity extends AppCompatActivity {
             @Override public void onDataChange(@NonNull DataSnapshot snapshot) {
                 inboxListContainer.removeAllViews();
                 if (!snapshot.exists() || snapshot.getChildrenCount() == 0) {
-                    // 2nd try - my9DigitId diye inbox khujo (UID key hole)
                     loadInboxBy9DigitId();
                     return;
                 }
@@ -169,8 +119,39 @@ public class InboxActivity extends AppCompatActivity {
             if (type.equals("AGENCY_INVITE")) showAgencyInviteCard(key, msgSnap);
             else if (type.equals("FRIEND_REQUEST")) showFriendRequestCard(key, msgSnap);
             else if (type.equals("FOLLOW_REQUEST")) showFollowRequestCard(key, msgSnap);
+            else if (type.equals("VIP_SYSTEM") || type.equals("VIP_GIFT") || type.equals("VIP")) showVipCard(key, msgSnap);
             else showNormalMessageCard(key, msgSnap);
         }
+    }
+
+    // ===== NEW - VIP NOTIFICATION CARD - Sudhu lekha thakbe tumi ki paicho + Store > Mine button =====
+    private void showVipCard(String key, DataSnapshot snap) {
+        String title = snap.child("title").getValue(String.class);
+        String msg = snap.child("message").getValue(String.class);
+        if (title == null) title = "💜 VIP Gift";
+        if (msg == null) msg = "";
+        LinearLayout card = makeCard("#3D1E5E");
+        TextView tv = new TextView(this);
+        tv.setText(title + "\n" + msg);
+        tv.setTextColor(android.graphics.Color.WHITE);
+        tv.setTextSize(15);
+        tv.setTypeface(null, android.graphics.Typeface.BOLD);
+        card.addView(tv);
+        Button btnStore = new Button(this);
+        btnStore.setText("🛍️ Store > Mine - USE koro");
+        btnStore.setBackgroundColor(android.graphics.Color.parseColor("#FFD700"));
+        btnStore.setTextColor(android.graphics.Color.BLACK);
+        btnStore.setOnClickListener(v -> {
+            try {
+                Intent i = new Intent(InboxActivity.this, StoreActivity.class);
+                i.putExtra("OPEN_MINE", true);
+                startActivity(i);
+            } catch (Exception e) {
+                Toast.makeText(this, "Store > Mine theke USE koro", Toast.LENGTH_SHORT).show();
+            }
+        });
+        card.addView(btnStore);
+        inboxListContainer.addView(card);
     }
 
     private void showFriendRequestCard(String key, DataSnapshot snap) {
@@ -349,7 +330,6 @@ public class InboxActivity extends AppCompatActivity {
             btnRow.addView(btnAccept); btnRow.addView(btnReject);
             card.addView(btnRow);
         } else if (status.equals("Accepted")) {
-            // Accept hoye geche - abar Policy khulte parbe
             Button btnPolicy = new Button(this);
             btnPolicy.setText("📜 Host Policy দেখুন - Unlock ✅");
             btnPolicy.setBackgroundColor(android.graphics.Color.parseColor("#FFD700"));
@@ -386,13 +366,10 @@ public class InboxActivity extends AppCompatActivity {
         inboxListContainer.addView(card);
     }
 
-    // ============ AGENCY ACCEPT - HOST POLICY AUTO UNLOCK ============
     private void acceptAgencyInvite(String inviteKey, String agencyId, String agencyName) {
         if (agencyId.isEmpty()) return;
         if (accepting) return;
         accepting = true;
-
-        // 1. LOCAL UNLOCK FIRST - Instant, Net slow holeo Host Policy khulbe. Eitai main fix.
         prefs.edit()
             .putBoolean("IS_HOST_" + myId, true)
             .putBoolean("HOST_ACCEPTED_" + myId, true)
@@ -401,20 +378,11 @@ public class InboxActivity extends AppCompatActivity {
             .putString("AGENCY_NAME", agencyName)
             .putLong("HOST_ACCEPTED_AT", System.currentTimeMillis())
             .apply();
-
-        // 2. FIREBASE - 3 jaygay likhbo, jate Global e kokhono na haray
-        // A. agencies/{agencyId}/hosts/{myId} - Agency Dashboard e dekhbe
         FirebaseDatabase.getInstance().getReference("agencies").child(agencyId).child("hosts").child(myId).setValue(true);
         FirebaseDatabase.getInstance().getReference("agencies").child(agencyId).child("hosts").child(myId).child("joinedAt").setValue(System.currentTimeMillis());
-        // B. agency_invitations/{myId}/{inviteKey}/status
         FirebaseDatabase.getInstance().getReference("agency_invitations").child(myId).child(inviteKey).child("status").setValue("Accepted");
-        // C. users/{myId} - Direct + my9DigitId diye - 2 vabei
         writeHostToUsers(agencyId, agencyName);
-
-        // 3. Inbox status Accepted
         myInboxRef.child(inviteKey).child("status").setValue("Accepted");
-
-        // 4. Agency ke Notify
         String notifyKey = usersRef.child(agencyId).child("inbox").push().getKey();
         if (notifyKey != null) {
             Map<String, Object> notify = new HashMap<>();
@@ -425,12 +393,9 @@ public class InboxActivity extends AppCompatActivity {
             notify.put("fromName", myName);
             notify.put("timestamp", System.currentTimeMillis());
             usersRef.child(agencyId).child("inbox").child(notifyKey).setValue(notify);
-            // Agency er direct inbox eo (agency_invitations theke Agency Dashboard porbe)
             FirebaseDatabase.getInstance().getReference("agencies").child(agencyId).child("inbox").child(notifyKey).setValue(notify);
         }
-
         accepting = false;
-        // 5. AUTO OPEN - Accept er sathe sathe Host Policy khulbe
         showAcceptSuccessDialog(agencyName);
     }
 
@@ -443,9 +408,7 @@ public class InboxActivity extends AppCompatActivity {
         hostData.put("isHostAccepted", true);
         hostData.put("hostStatus", "accepted");
         hostData.put("my9DigitId", myId);
-        // Direct key
         usersRef.child(myId).updateChildren(hostData);
-        // UID key hole - my9DigitId diye khuje update
         usersRef.orderByChild("my9DigitId").equalTo(myId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot s) {
                 for (DataSnapshot ds : s.getChildren()) {
@@ -478,7 +441,6 @@ public class InboxActivity extends AppCompatActivity {
             i.putExtra("FROM_HOST_ACCEPT", true);
             startActivity(i);
         } catch (Exception e) {
-            // HostPolicyActivity na khulle Host Center khulbe - oikhane Policy Unlock thakbe
             Intent i = new Intent(InboxActivity.this, HostCenterActivity.class);
             i.putExtra("MY_ID", myId);
             i.putExtra("FROM_HOST_ACCEPT", true);
