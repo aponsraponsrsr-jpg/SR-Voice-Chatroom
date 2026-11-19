@@ -76,7 +76,6 @@ public class MeActivity extends AppCompatActivity {
         if (user != null) firebaseUid = user.getUid();
         if (firebaseUid.isEmpty()) firebaseUid = prefs.getString("FIREBASE_UID", "");
         my9DigitId = prefs.getString("MY_9_DIGIT_ID", "");
-        // FIX 1 - Profile ID diye porbo - Panel users / 9DigitID te likhe
         if (!my9DigitId.isEmpty()) {
             userRef = FirebaseDatabase.getInstance().getReference("users").child(my9DigitId);
         } else if (!firebaseUid.isEmpty()) {
@@ -313,7 +312,8 @@ public class MeActivity extends AppCompatActivity {
         toolsLp.setMargins(0, 0, 0, 16);
         toolsRow.setLayoutParams(toolsLp);
         menuContainer.addView(toolsRow);
-        addToolItem(toolsRow, "🛍️", "Store");
+        // FIXED - Store e Click korle ekhon StoreActivity khulbe - Coming Soon ar asbe na
+        addToolItem(toolsRow, "🛍️", "Store", v -> openStore());
         addToolItem(toolsRow, "👗", "Dress");
         addToolItem(toolsRow, "🎂", "Birthday");
         addToolItem(toolsRow, "📊", "Level");
@@ -402,7 +402,6 @@ public class MeActivity extends AppCompatActivity {
         }
     }
 
-    // FIX 2 - VIP 1-8 + FIX 3 - vip_assignments listener
     private void listenVipAssignments() {
         if (vipAssignmentListenerStarted) return;
         if (my9DigitId.isEmpty()) return;
@@ -452,6 +451,15 @@ public class MeActivity extends AppCompatActivity {
         ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         cm.setPrimaryClip(ClipData.newPlainText("ID", my9DigitId));
         Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
+    }
+    // NEW - Store khulbe
+    private void openStore() {
+        try {
+            Intent i = new Intent(MeActivity.this, StoreActivity.class);
+            startActivity(i);
+        } catch (Exception e) {
+            Toast.makeText(this, "Store khulte parchi na", Toast.LENGTH_SHORT).show();
+        }
     }
     private void openAgency() {
         if (!isAgencyActive) { Toast.makeText(this, "You are not an Agency yet", Toast.LENGTH_SHORT).show(); return; }
@@ -619,7 +627,6 @@ public class MeActivity extends AppCompatActivity {
                     if (coins.equals("0")) coins = getStr(snap, "walletCoins", "0");
                     if (coins.equals("0")) coins = getStr(snap, "sendingCoins", "0");
                     int vip = 0; try { String vipStr = getStr(snap, "vipLevel", "0"); vip = Integer.parseInt(vipStr); } catch (Exception ignored) {}
-                    // users er vipLevel + vip_assignments er vip - jeta boro seta nebo - jate Panel theke dilei ase
                     if (myVipLevel > vip) vip = myVipLevel;
                     myVipLevel = vip;
                     String role = getStr(snap, "role", "user").toLowerCase();
