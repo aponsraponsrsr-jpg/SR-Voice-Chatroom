@@ -56,6 +56,9 @@
         <activity android:name=".InboxActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
         <activity android:name=".MeActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
 
+        <!-- STORE - FIXED: AGE CHILO NA, TAI INBOX THEKE STORE KHULTO NA - EKHON ADD KORA HOLO -->
+        <activity android:name=".StoreActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
+
         <!-- VOICE ROOM - FIXED: ROTATE KORLEO ROOM THEKE BER HOBE NA, KEYBOARD UTHLEO BHANGBE NA -->
         <activity
             android:name=".VoiceRoomActivity"
