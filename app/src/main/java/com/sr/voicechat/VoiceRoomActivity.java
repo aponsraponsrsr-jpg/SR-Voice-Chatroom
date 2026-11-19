@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
@@ -15,6 +16,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.activity.OnBackPressedCallback;
@@ -74,6 +76,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     private Map<String, String> seatUserPhoto = new HashMap<>();
     private Map<String, Boolean> seatMuted = new HashMap<>();
     private Map<String, Boolean> seatLocked = new HashMap<>();
+    private Map<String, Integer> seatVipCache = new HashMap<>();
     private long joinTime = 0;
     private ChildEventListener chatListener = null;
     private Query chatQuery = null;
@@ -99,6 +102,74 @@ public class VoiceRoomActivity extends AppCompatActivity {
             }
         }
     );
+
+    // ===== VIP HELPERS - Preview Card + Seat er jonno =====
+    private String getVipName(int lvl) {
+        String[] names = {"", "Black Tiger", "White Tiger", "Eagle Fire", "Phoenix Fire Bird", "Dragon", "Golden Dragon King", "Emperor Dragon", "Purple Dragon"};
+        if (lvl >= 1 && lvl <= 8) return names[lvl];
+        return "VIP";
+    }
+    private String getVipEmoji(int lvl) {
+        String[] emojis = {"", "🐅", "🐯", "🦅", "🔥", "🐉", "👑", "🐲", "💜"};
+        if (lvl >= 1 && lvl <= 8) return emojis[lvl];
+        return "⭐";
+    }
+    private int[] getVipBgColors(int lvl) {
+        switch (lvl) {
+            case 1: return new int[]{0xFF3A0A4A, 0xFF1A0B2E};
+            case 2: return new int[]{0xFFE8E8E8, 0xFF9E9E9E};
+            case 3: return new int[]{0xFFFF6D00, 0xFF8B0000};
+            case 4: return new int[]{0xFFFF9800, 0xFFD32F2F};
+            case 5: return new int[]{0xFF00BCD4, 0xFF1A0B2E};
+            case 6: return new int[]{0xFFFFD700, 0xFFFF9800};
+            case 7: return new int[]{0xFF7B1FA2, 0xFF1A0B2E};
+            case 8: return new int[]{0xFF9C27B0, 0xFF4A148C};
+            default: return new int[]{0xFF1B1035, 0xFF0A0518};
+        }
+    }
+    private void applyVipToMiniProfile(View root, TextView tvName, String baseName, int vipLevel, String usingFrame) {
+        if (root == null) return;
+        // 1. Background = VIP Background
+        try {
+            GradientDrawable bg = new GradientDrawable();
+            bg.setColors(getVipBgColors(vipLevel));
+            bg.setOrientation(GradientDrawable.Orientation.TOP_BOTTOM);
+            bg.setCornerRadius(32);
+            root.setBackground(bg);
+        } catch (Exception ignored) {}
+        // 2. VIP Badge - Namer pase
+        if (tvName != null && vipLevel >= 1 && vipLevel <= 8) {
+            tvName.setText(baseName + "  " + getVipEmoji(vipLevel) + " VIP " + vipLevel);
+        }
+        // 3. Frame - jodi user Frame USE kore thake, Photo er border VIP color hobe - root tag e save
+        if (root != null) root.setTag("VIP_" + vipLevel + "_FRAME_" + usingFrame);
+    }
+    private void fetchVipForUser(String targetId, java.util.function.Consumer<Integer> cb) {
+        // vip_assignments / 9DigitId -> na paile users / 9DigitId -> vipLevel
+        FirebaseDatabase.getInstance().getReference("vip_assignments").child(targetId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                if (snap.exists() && snap.child("vipLevel").getValue() != null) {
+                    try {
+                        int v = Integer.parseInt(String.valueOf(snap.child("vipLevel").getValue()));
+                        long exp = 0;
+                        try { exp = Long.parseLong(String.valueOf(snap.child("expireAt").getValue())); } catch (Exception ignored) {}
+                        if (exp == 0) { try { exp = Long.parseLong(String.valueOf(snap.child("expireTs").getValue())); } catch (Exception ignored) {} }
+                        if (exp > 0 && System.currentTimeMillis() > exp) v = 0;
+                        cb.accept(v); return;
+                    } catch (Exception ignored) {}
+                }
+                FirebaseDatabase.getInstance().getReference("users").child(targetId).child("vipLevel").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override public void onDataChange(@NonNull DataSnapshot s2) {
+                        int v = 0;
+                        try { if (s2.exists() && s2.getValue() != null) v = Integer.parseInt(String.valueOf(s2.getValue())); } catch (Exception ignored) {}
+                        cb.accept(v);
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError e) { cb.accept(0); }
+                });
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) { cb.accept(0); }
+        });
+    }
 
     private String getMyPhotoFromAllPlaces() {
         if (prefs == null) return "";
@@ -226,12 +297,41 @@ public class VoiceRoomActivity extends AppCompatActivity {
                 if (img != null) { img.setVisibility(View.GONE); img.setImageDrawable(null); }
                 letter.setVisibility(View.VISIBLE); letter.setText(locked ? "🔒" : "🛋️");
                 if (nameTv != null) nameTv.setText(i == 0 ? "Host" : (locked ? "Locked" : ""));
+                if (seatViews[i] != null) seatViews[i].setBackground(null);
             } else {
                 String name = seatUserName.get(key); if (name == null) name = "User";
                 boolean muted = seatMuted.get(key) != null && seatMuted.get(key);
                 String photo = seatUserPhoto.get(key); if (photo == null) photo = "";
                 loadSeatPhoto(img, letter, photo, name);
-                if (nameTv != null) nameTv.setText(name + (muted ? " 🔇" : ""));
+                // FIXED - Seat e VIP Badge + VIP Frame Background
+                Integer cachedVip = seatVipCache.get(uid);
+                if (cachedVip != null && cachedVip > 0) {
+                    if (nameTv != null) nameTv.setText(getVipEmoji(cachedVip) + " " + name + (muted ? " 🔇" : ""));
+                    if (seatViews[i] != null) {
+                        GradientDrawable bg = new GradientDrawable();
+                        bg.setColors(getVipBgColors(cachedVip));
+                        bg.setOrientation(GradientDrawable.Orientation.TOP_BOTTOM);
+                        bg.setCornerRadius(28);
+                        seatViews[i].setBackground(bg);
+                    }
+                } else {
+                    if (nameTv != null) nameTv.setText(name + (muted ? " 🔇" : ""));
+                    if (seatViews[i] != null) seatViews[i].setBackground(null);
+                    final String fUid = uid; final int fI = i; final String fName = name; final boolean fMuted = muted;
+                    fetchVipForUser(fUid, vip -> {
+                        seatVipCache.put(fUid, vip);
+                        if (vip > 0) {
+                            if (seatNameViews[fI] != null) seatNameViews[fI].setText(getVipEmoji(vip) + " " + fName + (fMuted ? " 🔇" : ""));
+                            if (seatViews[fI] != null) {
+                                GradientDrawable bg2 = new GradientDrawable();
+                                bg2.setColors(getVipBgColors(vip));
+                                bg2.setOrientation(GradientDrawable.Orientation.TOP_BOTTOM);
+                                bg2.setCornerRadius(28);
+                                seatViews[fI].setBackground(bg2);
+                            }
+                        }
+                    });
+                }
             }
         }
     }
@@ -347,6 +447,22 @@ public class VoiceRoomActivity extends AppCompatActivity {
         if (btnAdd != null) btnAdd.setOnClickListener(x -> Toast.makeText(this, "Friend Request Sent to " + fName, Toast.LENGTH_SHORT).show());
         if (btnFollow != null) btnFollow.setOnClickListener(x -> Toast.makeText(this, "Followed! ❤️", Toast.LENGTH_SHORT).show());
         if (btnGift != null) btnGift.setOnClickListener(x -> { d.dismiss(); openGiftDialog(targetId, fName); });
+        // FIXED - Preview Card VIP load - Background + Badge
+        fetchVipForUser(targetId, vip -> {
+            String usingFrame = prefs.getString("USING_FRAME", "");
+            if (targetId.equals(myId)) {
+                applyVipToMiniProfile(root, tvName, fName, vip, usingFrame);
+            } else {
+                // Onner jonno tar usingFrame Firebase theke nibo
+                FirebaseDatabase.getInstance().getReference("users").child(targetId).child("usingFrame").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override public void onDataChange(@NonNull DataSnapshot s) {
+                        String uf = s.exists() && s.getValue() != null ? String.valueOf(s.getValue()) : "";
+                        applyVipToMiniProfile(root, tvName, fName, vip, uf);
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError e) { applyVipToMiniProfile(root, tvName, fName, vip, ""); }
+                });
+            }
+        });
         FirebaseDatabase.getInstance().getReference("users").orderByChild("my9DigitId").equalTo(targetId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 if (!snap.exists()) return;
@@ -361,7 +477,12 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     if (photo.isEmpty() && ds.child("photoBase64").getValue() != null) photo = String.valueOf(ds.child("photoBase64").getValue());
                     String sending = ds.child("sending").getValue() == null ? (ds.child("totalSending").getValue() == null ? "0" : String.valueOf(ds.child("totalSending").getValue())) : String.valueOf(ds.child("sending").getValue());
                     String receiving = ds.child("receiving").getValue() == null ? (ds.child("totalReceiving").getValue() == null ? "0" : String.valueOf(ds.child("totalReceiving").getValue())) : String.valueOf(ds.child("receiving").getValue());
-                    if (tvName != null) tvName.setText(name);
+                    if (tvName != null) {
+                        // VIP thakle namer sathe VIP badge thakbe - pore fetchVip e abar set hobe
+                        if (root != null && root.getTag() != null && String.valueOf(root.getTag()).startsWith("VIP_")) {
+                            // already VIP applied - nam change korbo na
+                        } else tvName.setText(name);
+                    }
                     String gLow = gender.toLowerCase();
                     boolean isFemale = gLow.contains("female");
                     boolean isMale = !isFemale && gLow.contains("male");
@@ -373,11 +494,16 @@ public class VoiceRoomActivity extends AppCompatActivity {
                     if (tvSending != null) tvSending.setText("⬆️ Sending: " + sending);
                     if (tvReceiving != null) tvReceiving.setText("⬇️ Receiving: " + receiving);
                     if (!photo.isEmpty() && img != null) loadPhotoInto(img, photo);
+                    // FIXED - Agency sudhu Icon - Name likha thakbe na
                     String agency = "";
                     if (ds.child("agencyName").getValue() != null) agency = String.valueOf(ds.child("agencyName").getValue());
                     if (agency.isEmpty() && ds.child("agency").getValue() != null) agency = String.valueOf(ds.child("agency").getValue());
                     if (agency.isEmpty() && ds.child("familyName").getValue() != null) agency = String.valueOf(ds.child("familyName").getValue());
-                    if (!agency.isEmpty() && layoutAgency != null && tvAgency != null) { layoutAgency.setVisibility(View.VISIBLE); tvAgency.setText(agency); }
+                    boolean isAgencyUser = false;
+                    if (ds.child("isAgency").getValue() != null && Boolean.TRUE.equals(ds.child("isAgency").getValue(Boolean.class))) isAgencyUser = true;
+                    if (!agency.isEmpty() || isAgencyUser) {
+                        if (layoutAgency != null && tvAgency != null) { layoutAgency.setVisibility(View.VISIBLE); tvAgency.setText("🏛️"); }
+                    }
                     String host = "";
                     if (ds.child("hostName").getValue() != null) host = String.valueOf(ds.child("hostName").getValue());
                     if (host.isEmpty() && ds.child("isHost").getValue() != null && Boolean.TRUE.equals(ds.child("isHost").getValue(Boolean.class))) host = "Official Host";
@@ -546,7 +672,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         View btnOnlineList = findViewById(R.id.btnOnlineList); if (btnOnlineList != null) btnOnlineList.setOnClickListener(v -> openOnlineList());
         View tvOnlineCount = findViewById(R.id.textOnlineCount); if (tvOnlineCount != null) tvOnlineCount.setOnClickListener(v -> openOnlineList());
         View btnRoomTools = findViewById(R.id.btnRoomTools); if (btnRoomTools != null) btnRoomTools.setOnClickListener(v -> openPremiumSettings());
-        // GAME ICON - Room er vitore - Age chilona, ekhon add kora holo
         View btnGame = findViewById(R.id.btnGame); if (btnGame != null) btnGame.setOnClickListener(v -> openGameList());
         if (btnRoomSet != null) btnRoomSet.setOnClickListener(v -> openRoomSetDialog());
         ImageButton btnPower = findViewById(R.id.btnPower); if (btnPower != null) btnPower.setOnClickListener(v -> showPowerMenu());
@@ -699,7 +824,6 @@ public class VoiceRoomActivity extends AppCompatActivity {
         View btnCancel = view.findViewById(R.id.btnCancelRoomSet);
         if (btnCancel != null) btnCancel.setOnClickListener(v -> dialog.dismiss()); dialog.show();
     }
-    // ===== GAME LIST - Room er vitore Game Icon e click korle khulbe =====
     private void openGameList() {
         BottomSheetDialog d = new BottomSheetDialog(this);
         android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
@@ -758,7 +882,7 @@ public class VoiceRoomActivity extends AppCompatActivity {
     @Override protected void onDestroy() {
         super.onDestroy();
         try { if (chatListener != null && chatQuery != null) chatQuery.removeEventListener(chatListener); } catch (Exception e) {}
-        try { if (chatListContainer != null) chatListContainer.removeAllViews(); } catch (Exception e) {}
+        try { if (chatListContainer != null) chatListContainer.removeAllViews(); } catch (Exception ignored) {}
         if (isExiting) {
             try { int mySeat = mySeatIndex(); if (mySeat != -1) activeRoomRef.child("seats").child("seat_" + mySeat).removeValue(); } catch (Exception e) {}
             try { activeRoomRef.child("online_users").child(myId).removeValue(); } catch (Exception e) {}
