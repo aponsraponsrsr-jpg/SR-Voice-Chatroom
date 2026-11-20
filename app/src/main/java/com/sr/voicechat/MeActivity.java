@@ -64,12 +64,12 @@ public class MeActivity extends AppCompatActivity {
     private TextView txtSvipStatus;
     private TextView txtVipStatus;
     private int myVipLevel = 0;
-    // ===== LEVEL 0-100 - WEALTH=SENDING, CHARM=RECEIVING - STEP 2 =====
+    // ===== LEVEL 1-150 - FINAL - LevelUtils USE KORBO - SQRT BAD =====
     private TextView txtLevelBadge = null;
     private long myTotalSending = 0;
     private long myTotalReceiving = 0;
-    private int myWealthLevel = 0;
-    private int myCharmLevel = 0;
+    private int myWealthLevel = 1;
+    private int myCharmLevel = 1;
 
     private LinearLayout sellerWalletBox = null;
     private TextView txtSellerBalance = null;
@@ -84,29 +84,12 @@ public class MeActivity extends AppCompatActivity {
         }
     };
 
-    // ===== LEVEL HELPERS - DYNAMIC PREMIUM GORGEOUS - 0-100 =====
-    private int levelFromExp(long exp){if(exp<=0)return 0;if(exp<1000)return 1;int lvl=(int)(Math.sqrt(exp/1000.0)*10);if(lvl>100)lvl=100;if(lvl<1)lvl=1;return lvl;}
-    private long expForLevel(int lvl){if(lvl<=0)return 0;if(lvl>=100)return 1000000L;return (long)(Math.pow(lvl/10.0,2)*1000);}
-    private int[] getLevelColors(int lvl){
-        if(lvl<=0) return new int[]{Color.parseColor("#9E9E9E"),Color.parseColor("#616161")};
-        if(lvl<10) return new int[]{Color.parseColor("#00E5FF"),Color.parseColor("#00B0FF"),Color.parseColor("#2979FF")};
-        if(lvl<20) return new int[]{Color.parseColor("#40C4FF"),Color.parseColor("#00E5FF"),Color.parseColor("#00BFA5")};
-        if(lvl<30) return new int[]{Color.parseColor("#CE93D8"),Color.parseColor("#BA68C8"),Color.parseColor("#9C27B0")};
-        if(lvl<40) return new int[]{Color.parseColor("#66BB6A"),Color.parseColor("#00E676"),Color.parseColor("#00C853")};
-        if(lvl<50) return new int[]{Color.parseColor("#FFA726"),Color.parseColor("#FF7043"),Color.parseColor("#FF5722")};
-        if(lvl<60) return new int[]{Color.parseColor("#AB47BC"),Color.parseColor("#FF7043"),Color.parseColor("#FFA726")};
-        if(lvl<70) return new int[]{Color.parseColor("#42A5F5"),Color.parseColor("#7E57C2"),Color.parseColor("#5C6BC0")};
-        if(lvl<80) return new int[]{Color.parseColor("#9C27B0"),Color.parseColor("#7B1FA2"),Color.parseColor("#4A148C")};
-        if(lvl<90) return new int[]{Color.parseColor("#FFD700"),Color.parseColor("#FFC107"),Color.parseColor("#FF9800")};
-        if(lvl<100) return new int[]{Color.parseColor("#FFD700"),Color.parseColor("#8D6E63"),Color.parseColor("#6D4C41")};
-        return new int[]{Color.parseColor("#FFEA00"),Color.parseColor("#FFD700"),Color.parseColor("#FF6D00"),Color.parseColor("#FFAB00")};
-    }
-    private String getLevelTitle(int lvl){if(lvl<=0)return "Newbie";if(lvl<10)return "Rising Star";if(lvl<20)return "Blue Star";if(lvl<30)return "Purple Dream";if(lvl<40)return "Emerald";if(lvl<50)return "Fire Star";if(lvl<60)return "Royal Mix";if(lvl<70)return "Ocean King";if(lvl<80)return "Purple Emperor";if(lvl<90)return "Golden King";if(lvl<100)return "Golden Emperor";return "Legend 100 👑";}
+    // ===== LEVEL UI - SOB LevelUtils THEKE - 150 + NEW GORGEOUS COLOR =====
     private void updateLevelBadge(){
         if(txtLevelBadge==null) return;
-        txtLevelBadge.setText("⭐ Wealth Lv."+myWealthLevel+" • 💎 Charm Lv."+myCharmLevel+" • "+getLevelTitle(myWealthLevel));
+        txtLevelBadge.setText("⭐ Wealth Lv."+myWealthLevel+" • 💎 Charm Lv."+myCharmLevel+" • "+LevelUtils.getLevelTitle(myWealthLevel));
         GradientDrawable bg=new GradientDrawable();
-        bg.setColors(getLevelColors(myWealthLevel));
+        bg.setColors(LevelUtils.getLevelColors(myWealthLevel));
         bg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT);
         bg.setCornerRadius(24);
         txtLevelBadge.setBackground(bg);
@@ -120,44 +103,37 @@ public class MeActivity extends AppCompatActivity {
             sv.setBackgroundColor(Color.parseColor("#0A0518"));
             LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL);
             sv.addView(root);
-            TextView title=new TextView(this); title.setText("⭐ My Level"); title.setTextColor(Color.WHITE); title.setTextSize(22); title.setTypeface(null,Typeface.BOLD); title.setGravity(Gravity.CENTER); title.setPadding(0,0,0,16); root.addView(title);
-            // WEALTH CARD
+            TextView title=new TextView(this); title.setText("⭐ My Level - 1 to 150"); title.setTextColor(Color.WHITE); title.setTextSize(22); title.setTypeface(null,Typeface.BOLD); title.setGravity(Gravity.CENTER); title.setPadding(0,0,0,16); root.addView(title);
             root.addView(makeLevelCard("💰 Wealth Level", myWealthLevel, myTotalSending, "Sending"));
-            // CHARM CARD
             root.addView(makeLevelCard("💎 Charm Level", myCharmLevel, myTotalReceiving, "Receiving"));
-            // ALL LEVELS PREVIEW - GORGEOUS
-            TextView allTitle=new TextView(this); allTitle.setText("🏆 All Levels 0-100"); allTitle.setTextColor(Color.parseColor("#FFD700")); allTitle.setTextSize(15); allTitle.setTypeface(null,Typeface.BOLD); allTitle.setPadding(8,20,8,8); root.addView(allTitle);
-            int[][] groups={{0,"Newbie"},{10,"Blue Star"},{20,"Purple Dream"},{30,"Emerald"},{40,"Fire Star"},{50,"Royal Mix"},{60,"Ocean King"},{70,"Purple Emperor"},{80,"Golden King"},{90,"Golden Emperor"},{100,"Legend"}};
-            // groups as pairs - build manually
-            int[] starts={0,10,20,30,40,50,60,70,80,90,100};
-            String[] names={"Newbie","Blue Star","Purple Dream","Emerald","Fire Star","Royal Mix","Ocean King","Purple Emperor","Golden King","Golden Emperor","Legend 100 👑"};
-            for(int i=0;i<starts.length;i++){
-                int s=starts[i]; int lvlForColor=s==100?100:s+5;
+            TextView allTitle=new TextView(this); allTitle.setText("🏆 All Levels 1-150 - 10 Level Por Por Color Change"); allTitle.setTextColor(Color.parseColor("#FFD700")); allTitle.setTextSize(15); allTitle.setTypeface(null,Typeface.BOLD); allTitle.setPadding(8,20,8,8); root.addView(allTitle);
+            int[] starts={1,11,21,31,41,51,61,71,81,91,101,111,121,131,141};
+            for(int s: starts){
+                int lvlForColor = s+5; if(lvlForColor>150) lvlForColor=150;
                 LinearLayout row=new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL); row.setGravity(Gravity.CENTER_VERTICAL); row.setPadding(20,14,20,14);
-                GradientDrawable bg=new GradientDrawable(); bg.setColors(getLevelColors(lvlForColor)); bg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT); bg.setCornerRadius(20); row.setBackground(bg);
+                GradientDrawable bg=new GradientDrawable(); bg.setColors(LevelUtils.getLevelColors(lvlForColor)); bg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT); bg.setCornerRadius(20); row.setBackground(bg);
                 LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT); lp.setMargins(0,0,0,10); row.setLayoutParams(lp);
-                TextView t=new TextView(this); t.setText((s==100?"Lv.100":"Lv."+s+" - "+(s==100?"100":(s+9)))+" • "+names[i]); t.setTextColor(Color.WHITE); t.setTextSize(14); t.setTypeface(null,Typeface.BOLD); t.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1)); row.addView(t);
+                String range = (s==141 ? "Lv.141-150" : "Lv."+s+"-"+(s+9));
+                TextView t=new TextView(this); t.setText(range+" • "+LevelUtils.getLevelTitle(lvlForColor)); t.setTextColor(Color.WHITE); t.setTextSize(14); t.setTypeface(null,Typeface.BOLD); t.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1)); row.addView(t);
                 TextView check=new TextView(this); check.setText((myWealthLevel>=s?"✅":"")); check.setTextColor(Color.WHITE); row.addView(check);
                 root.addView(row);
             }
-            TextView note=new TextView(this); note.setText("Wealth = Gift Sending • Charm = Gift Receiving\nGift মারলেই Level Auto বাড়বে"); note.setTextColor(Color.parseColor("#B0BEC5")); note.setTextSize(12); note.setGravity(Gravity.CENTER); note.setPadding(0,16,0,0); root.addView(note);
+            TextView note=new TextView(this); note.setText("Wealth = Gift Sending • Charm = Gift Receiving\nGift মারলেই Level Auto বাড়বে • Max Lv.150"); note.setTextColor(Color.parseColor("#B0BEC5")); note.setTextSize(12); note.setGravity(Gravity.CENTER); note.setPadding(0,16,0,0); root.addView(note);
             b.setView(sv); b.setPositiveButton("Close",null); b.show();
         }catch(Exception e){ Toast.makeText(this,"Level - Coming Soon",Toast.LENGTH_SHORT).show(); }
     }
     private LinearLayout makeLevelCard(String label,int lvl,long exp,String type){
         LinearLayout card=new LinearLayout(this); card.setOrientation(LinearLayout.VERTICAL); card.setPadding(28,24,28,24);
-        GradientDrawable bg=new GradientDrawable(); bg.setColors(getLevelColors(lvl)); bg.setOrientation(GradientDrawable.Orientation.TL_BR); bg.setCornerRadius(28); card.setBackground(bg);
+        GradientDrawable bg=new GradientDrawable(); bg.setColors(LevelUtils.getLevelColors(lvl)); bg.setOrientation(GradientDrawable.Orientation.TL_BR); bg.setCornerRadius(28); card.setBackground(bg);
         LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT); lp.setMargins(0,0,0,16); card.setLayoutParams(lp);
         TextView t1=new TextView(this); t1.setText(label); t1.setTextColor(Color.WHITE); t1.setTextSize(18); t1.setTypeface(null,Typeface.BOLD); card.addView(t1);
-        TextView t2=new TextView(this); t2.setText("Lv."+lvl+" • "+getLevelTitle(lvl)); t2.setTextColor(Color.WHITE); t2.setTextSize(15); t2.setTypeface(null,Typeface.BOLD); card.addView(t2);
-        TextView t3=new TextView(this); t3.setText(type+": "+exp+" Coins"); t3.setTextColor(Color.WHITE); t3.setTextSize(13); card.addView(t3);
-        long cur=expForLevel(lvl); long nxt=expForLevel(lvl+1);
-        ProgressBar pb=new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal); pb.setMax(100);
-        int pct=0; if(lvl>=100) pct=100; else if(nxt>cur) pct=(int)((exp-cur)*100/(nxt-cur)); if(pct<0)pct=0; if(pct>100)pct=100;
-        pb.setProgress(pct); pb.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,28)); card.addView(pb);
+        TextView t2=new TextView(this); t2.setText("Lv."+lvl+" • "+LevelUtils.getLevelTitle(lvl)); t2.setTextColor(Color.WHITE); t2.setTextSize(15); t2.setTypeface(null,Typeface.BOLD); card.addView(t2);
+        TextView t3=new TextView(this); t3.setText(type+": "+LevelUtils.formatCoins(exp)+" • Target: "+LevelUtils.getLevelTargetCoinsFormatted(lvl)); t3.setTextColor(Color.WHITE); t3.setTextSize(13); card.addView(t3);
+        int pct = LevelUtils.getLevelProgressPercent(lvl, exp);
+        ProgressBar pb=new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal); pb.setMax(100); pb.setProgress(pct); pb.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,28)); card.addView(pb);
         TextView t4=new TextView(this);
-        if(lvl>=100) t4.setText("MAX LEVEL 👑 - Legend!");
-        else t4.setText("Next Lv."+(lvl+1)+" - Need "+(nxt-exp)+" more Coins • "+pct+"%");
+        if(lvl>=150) t4.setText("MAX LEVEL 👑 - Legend 150!");
+        else t4.setText("Next Lv."+(lvl+1)+" - Need "+LevelUtils.formatCoins(LevelUtils.getCoinsToNextLevel(lvl,exp))+" • "+pct+"%");
         t4.setTextColor(Color.WHITE); t4.setTextSize(12); card.addView(t4);
         return card;
     }
@@ -292,9 +268,8 @@ public class MeActivity extends AppCompatActivity {
         txtVipBadge.setTypeface(null, Typeface.BOLD);
         txtVipBadge.setVisibility(View.GONE);
         nameBox.addView(txtVipBadge);
-        // ===== LEVEL BADGE - HEADER =====
         txtLevelBadge = new TextView(this);
-        txtLevelBadge.setText("⭐ Wealth Lv.0 • 💎 Charm Lv.0");
+        txtLevelBadge.setText("⭐ Wealth Lv.1 • 💎 Charm Lv.1");
         txtLevelBadge.setTextColor(Color.WHITE);
         txtLevelBadge.setTextSize(12);
         txtLevelBadge.setTypeface(null, Typeface.BOLD);
@@ -503,7 +478,6 @@ public class MeActivity extends AppCompatActivity {
         addToolItem(toolsRow, "🛍️", "Store", v -> openStore());
         addToolItem(toolsRow, "👗", "Dress");
         addToolItem(toolsRow, "🎂", "Birthday");
-        // ===== LEVEL BUTTON - FIXED - COMING SOON NA - POPUP KHULBE =====
         levelToolView = addToolItem(toolsRow, "📊", "Level", v -> showLevelDialog());
         agencyToolView = addToolItem(toolsRow, "🏛️", "Agency", v -> openAgency());
         if (agencyToolView != null) agencyToolView.setVisibility(View.GONE);
@@ -880,8 +854,12 @@ public class MeActivity extends AppCompatActivity {
         String name = prefs.getString("USER_NAME", "User"); String photo = prefs.getString("USER_PHOTO", "");
         if (photo.isEmpty()) photo = prefs.getString("PROFILE_PHOTO", "");
         myAnyId = getMyAnyIdFromPrefs(); myProfileId = myAnyId; myVipLevel = prefs.getInt("VIP_LEVEL", 0);
-        myWealthLevel = prefs.getInt("WEALTH_LEVEL", myWealthLevel);
-        myCharmLevel = prefs.getInt("CHARM_LEVEL", myCharmLevel);
+        myWealthLevel = prefs.getInt("WEALTH_LEVEL", 1);
+        myCharmLevel = prefs.getInt("CHARM_LEVEL", 1);
+        if (myWealthLevel < 1) myWealthLevel = 1;
+        if (myCharmLevel < 1) myCharmLevel = 1;
+        myTotalSending = prefs.getLong("TOTAL_SENDING", 0);
+        myTotalReceiving = prefs.getLong("TOTAL_RECEIVING", 0);
         if (txtName != null) txtName.setText(name);
         if (txtId != null) txtId.setText("ID: " + myAnyId);
         if (txtGenderCountry != null) txtGenderCountry.setText(getGenderCountryText());
@@ -919,17 +897,18 @@ public class MeActivity extends AppCompatActivity {
                     String coins = getStr(snap, "coins", "0");
                     if (coins.equals("0")) coins = getStr(snap, "walletCoins", "0");
                     if (coins.equals("0")) coins = getStr(snap, "sendingCoins", "0");
-                    // ===== LEVEL FROM SENDING / RECEIVING - MAX NA - SOB FIELD =====
+                    // ===== LEVEL 1-150 - LevelUtils ONLY - SQRT BAD =====
                     long sending = Math.max(getLongVal(snap,"sending"), getLongVal(snap,"totalSending"));
                     long receiving = Math.max(getLongVal(snap,"receiving"), getLongVal(snap,"totalReceiving"));
-                    // targetCoins o receiving er part
                     receiving = Math.max(receiving, Math.max(getLongVal(snap,"targetCoins"), getLongVal(snap,"totalTargetCoins")));
                     myTotalSending = sending; myTotalReceiving = receiving;
-                    int wealth = getLongVal(snap,"wealthLevel")>0 ? (int)getLongVal(snap,"wealthLevel") : levelFromExp(sending);
-                    int charm = getLongVal(snap,"charmLevel")>0 ? (int)getLongVal(snap,"charmLevel") : levelFromExp(receiving);
-                    // Jodi Firebase er level purano hoy - Sending diye recalc koro - nicher ta boro hole oitai
-                    wealth = Math.max(wealth, levelFromExp(sending));
-                    charm = Math.max(charm, levelFromExp(receiving));
+                    // Firebase e purano wealthLevel thakle o LevelUtils diye recalc - boro ta nibo - vul level asbe na
+                    int wealth = LevelUtils.calculateWealthLevel(sending);
+                    int charm = LevelUtils.calculateCharmLevel(receiving);
+                    if (getLongVal(snap,"wealthLevel") > wealth) wealth = (int) getLongVal(snap,"wealthLevel");
+                    if (getLongVal(snap,"charmLevel") > charm) charm = (int) getLongVal(snap,"charmLevel");
+                    if (wealth < 1) wealth = 1; if (wealth > 150) wealth = 150;
+                    if (charm < 1) charm = 1; if (charm > 150) charm = 150;
                     myWealthLevel = wealth; myCharmLevel = charm;
                     int vip = 0; try { String vipStr = getStr(snap, "vipLevel", "0"); vip = Integer.parseInt(vipStr); } catch (Exception ignored) {}
                     if (myVipLevel > vip) vip = myVipLevel;
