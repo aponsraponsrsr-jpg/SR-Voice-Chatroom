@@ -21,6 +21,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,8 +47,6 @@ public class MeActivity extends AppCompatActivity {
     private TextView txtName, txtId, txtGenderCountry, txtFollow, txtFans, txtVisitor, txtWalletCoins;
     private SharedPreferences prefs;
     private String firebaseUid = "";
-    // PROFILE ID ONLY SYSTEM - UID TUMI LIKHBA NA - APP VITOR THEKE AUTO MILABE
-    // My Profile ID = 477984629 - SUDHU EITA DEKHBA / LIKHBA
     private String myAnyId = "";
     private String myProfileId = "";
     private String myUidResolved = "";
@@ -55,6 +54,7 @@ public class MeActivity extends AppCompatActivity {
     private String followCount = "0", fansCount = "0", visitorCount = "0";
     private LinearLayout agencyToolView = null;
     private LinearLayout hostCenterRowView = null;
+    private LinearLayout levelToolView = null;
     private boolean isAgencyActive = false;
     private boolean isHostActive = false;
     private boolean inviteDialogShown = false;
@@ -64,8 +64,13 @@ public class MeActivity extends AppCompatActivity {
     private TextView txtSvipStatus;
     private TextView txtVipStatus;
     private int myVipLevel = 0;
+    // ===== LEVEL 0-100 - WEALTH=SENDING, CHARM=RECEIVING - STEP 2 =====
+    private TextView txtLevelBadge = null;
+    private long myTotalSending = 0;
+    private long myTotalReceiving = 0;
+    private int myWealthLevel = 0;
+    private int myCharmLevel = 0;
 
-    // ===== SELLER BUSINESS WALLET - ONLY SELLER SEES - PERMANENT =====
     private LinearLayout sellerWalletBox = null;
     private TextView txtSellerBalance = null;
     private boolean isSellerActive = false;
@@ -79,6 +84,84 @@ public class MeActivity extends AppCompatActivity {
         }
     };
 
+    // ===== LEVEL HELPERS - DYNAMIC PREMIUM GORGEOUS - 0-100 =====
+    private int levelFromExp(long exp){if(exp<=0)return 0;if(exp<1000)return 1;int lvl=(int)(Math.sqrt(exp/1000.0)*10);if(lvl>100)lvl=100;if(lvl<1)lvl=1;return lvl;}
+    private long expForLevel(int lvl){if(lvl<=0)return 0;if(lvl>=100)return 1000000L;return (long)(Math.pow(lvl/10.0,2)*1000);}
+    private int[] getLevelColors(int lvl){
+        if(lvl<=0) return new int[]{Color.parseColor("#9E9E9E"),Color.parseColor("#616161")};
+        if(lvl<10) return new int[]{Color.parseColor("#00E5FF"),Color.parseColor("#00B0FF"),Color.parseColor("#2979FF")};
+        if(lvl<20) return new int[]{Color.parseColor("#40C4FF"),Color.parseColor("#00E5FF"),Color.parseColor("#00BFA5")};
+        if(lvl<30) return new int[]{Color.parseColor("#CE93D8"),Color.parseColor("#BA68C8"),Color.parseColor("#9C27B0")};
+        if(lvl<40) return new int[]{Color.parseColor("#66BB6A"),Color.parseColor("#00E676"),Color.parseColor("#00C853")};
+        if(lvl<50) return new int[]{Color.parseColor("#FFA726"),Color.parseColor("#FF7043"),Color.parseColor("#FF5722")};
+        if(lvl<60) return new int[]{Color.parseColor("#AB47BC"),Color.parseColor("#FF7043"),Color.parseColor("#FFA726")};
+        if(lvl<70) return new int[]{Color.parseColor("#42A5F5"),Color.parseColor("#7E57C2"),Color.parseColor("#5C6BC0")};
+        if(lvl<80) return new int[]{Color.parseColor("#9C27B0"),Color.parseColor("#7B1FA2"),Color.parseColor("#4A148C")};
+        if(lvl<90) return new int[]{Color.parseColor("#FFD700"),Color.parseColor("#FFC107"),Color.parseColor("#FF9800")};
+        if(lvl<100) return new int[]{Color.parseColor("#FFD700"),Color.parseColor("#8D6E63"),Color.parseColor("#6D4C41")};
+        return new int[]{Color.parseColor("#FFEA00"),Color.parseColor("#FFD700"),Color.parseColor("#FF6D00"),Color.parseColor("#FFAB00")};
+    }
+    private String getLevelTitle(int lvl){if(lvl<=0)return "Newbie";if(lvl<10)return "Rising Star";if(lvl<20)return "Blue Star";if(lvl<30)return "Purple Dream";if(lvl<40)return "Emerald";if(lvl<50)return "Fire Star";if(lvl<60)return "Royal Mix";if(lvl<70)return "Ocean King";if(lvl<80)return "Purple Emperor";if(lvl<90)return "Golden King";if(lvl<100)return "Golden Emperor";return "Legend 100 👑";}
+    private void updateLevelBadge(){
+        if(txtLevelBadge==null) return;
+        txtLevelBadge.setText("⭐ Wealth Lv."+myWealthLevel+" • 💎 Charm Lv."+myCharmLevel+" • "+getLevelTitle(myWealthLevel));
+        GradientDrawable bg=new GradientDrawable();
+        bg.setColors(getLevelColors(myWealthLevel));
+        bg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT);
+        bg.setCornerRadius(24);
+        txtLevelBadge.setBackground(bg);
+        txtLevelBadge.setVisibility(View.VISIBLE);
+        txtLevelBadge.setOnClickListener(v->showLevelDialog());
+    }
+    private void showLevelDialog(){
+        try{
+            AlertDialog.Builder b=new AlertDialog.Builder(this);
+            ScrollView sv=new ScrollView(this); sv.setPadding(24,24,24,24);
+            sv.setBackgroundColor(Color.parseColor("#0A0518"));
+            LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL);
+            sv.addView(root);
+            TextView title=new TextView(this); title.setText("⭐ My Level"); title.setTextColor(Color.WHITE); title.setTextSize(22); title.setTypeface(null,Typeface.BOLD); title.setGravity(Gravity.CENTER); title.setPadding(0,0,0,16); root.addView(title);
+            // WEALTH CARD
+            root.addView(makeLevelCard("💰 Wealth Level", myWealthLevel, myTotalSending, "Sending"));
+            // CHARM CARD
+            root.addView(makeLevelCard("💎 Charm Level", myCharmLevel, myTotalReceiving, "Receiving"));
+            // ALL LEVELS PREVIEW - GORGEOUS
+            TextView allTitle=new TextView(this); allTitle.setText("🏆 All Levels 0-100"); allTitle.setTextColor(Color.parseColor("#FFD700")); allTitle.setTextSize(15); allTitle.setTypeface(null,Typeface.BOLD); allTitle.setPadding(8,20,8,8); root.addView(allTitle);
+            int[][] groups={{0,"Newbie"},{10,"Blue Star"},{20,"Purple Dream"},{30,"Emerald"},{40,"Fire Star"},{50,"Royal Mix"},{60,"Ocean King"},{70,"Purple Emperor"},{80,"Golden King"},{90,"Golden Emperor"},{100,"Legend"}};
+            // groups as pairs - build manually
+            int[] starts={0,10,20,30,40,50,60,70,80,90,100};
+            String[] names={"Newbie","Blue Star","Purple Dream","Emerald","Fire Star","Royal Mix","Ocean King","Purple Emperor","Golden King","Golden Emperor","Legend 100 👑"};
+            for(int i=0;i<starts.length;i++){
+                int s=starts[i]; int lvlForColor=s==100?100:s+5;
+                LinearLayout row=new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL); row.setGravity(Gravity.CENTER_VERTICAL); row.setPadding(20,14,20,14);
+                GradientDrawable bg=new GradientDrawable(); bg.setColors(getLevelColors(lvlForColor)); bg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT); bg.setCornerRadius(20); row.setBackground(bg);
+                LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT); lp.setMargins(0,0,0,10); row.setLayoutParams(lp);
+                TextView t=new TextView(this); t.setText((s==100?"Lv.100":"Lv."+s+" - "+(s==100?"100":(s+9)))+" • "+names[i]); t.setTextColor(Color.WHITE); t.setTextSize(14); t.setTypeface(null,Typeface.BOLD); t.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1)); row.addView(t);
+                TextView check=new TextView(this); check.setText((myWealthLevel>=s?"✅":"")); check.setTextColor(Color.WHITE); row.addView(check);
+                root.addView(row);
+            }
+            TextView note=new TextView(this); note.setText("Wealth = Gift Sending • Charm = Gift Receiving\nGift মারলেই Level Auto বাড়বে"); note.setTextColor(Color.parseColor("#B0BEC5")); note.setTextSize(12); note.setGravity(Gravity.CENTER); note.setPadding(0,16,0,0); root.addView(note);
+            b.setView(sv); b.setPositiveButton("Close",null); b.show();
+        }catch(Exception e){ Toast.makeText(this,"Level - Coming Soon",Toast.LENGTH_SHORT).show(); }
+    }
+    private LinearLayout makeLevelCard(String label,int lvl,long exp,String type){
+        LinearLayout card=new LinearLayout(this); card.setOrientation(LinearLayout.VERTICAL); card.setPadding(28,24,28,24);
+        GradientDrawable bg=new GradientDrawable(); bg.setColors(getLevelColors(lvl)); bg.setOrientation(GradientDrawable.Orientation.TL_BR); bg.setCornerRadius(28); card.setBackground(bg);
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT); lp.setMargins(0,0,0,16); card.setLayoutParams(lp);
+        TextView t1=new TextView(this); t1.setText(label); t1.setTextColor(Color.WHITE); t1.setTextSize(18); t1.setTypeface(null,Typeface.BOLD); card.addView(t1);
+        TextView t2=new TextView(this); t2.setText("Lv."+lvl+" • "+getLevelTitle(lvl)); t2.setTextColor(Color.WHITE); t2.setTextSize(15); t2.setTypeface(null,Typeface.BOLD); card.addView(t2);
+        TextView t3=new TextView(this); t3.setText(type+": "+exp+" Coins"); t3.setTextColor(Color.WHITE); t3.setTextSize(13); card.addView(t3);
+        long cur=expForLevel(lvl); long nxt=expForLevel(lvl+1);
+        ProgressBar pb=new ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal); pb.setMax(100);
+        int pct=0; if(lvl>=100) pct=100; else if(nxt>cur) pct=(int)((exp-cur)*100/(nxt-cur)); if(pct<0)pct=0; if(pct>100)pct=100;
+        pb.setProgress(pct); pb.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,28)); card.addView(pb);
+        TextView t4=new TextView(this);
+        if(lvl>=100) t4.setText("MAX LEVEL 👑 - Legend!");
+        else t4.setText("Next Lv."+(lvl+1)+" - Need "+(nxt-exp)+" more Coins • "+pct+"%");
+        t4.setTextColor(Color.WHITE); t4.setTextSize(12); card.addView(t4);
+        return card;
+    }
+
     private String getMyAnyIdFromPrefs() {
         String v = prefs.getString("MY_PROFILE_ID", "");
         if (v == null || v.isEmpty()) v = prefs.getString("PROFILE_ID", "");
@@ -91,7 +174,6 @@ public class MeActivity extends AppCompatActivity {
         if (id == null || id.isEmpty()) return;
         myAnyId = id.trim();
         myProfileId = myAnyId;
-        // PROFILE ID - Sob key te save korbo - jate Wallet / onno jayga theke pay
         prefs.edit().putString("MY_PROFILE_ID", myAnyId).putString("PROFILE_ID", myAnyId).putString("MY_ANY_ID", myAnyId).putString("MY_9_DIGIT_ID", myAnyId).apply();
     }
     private String safeStr(DataSnapshot s, String k) {
@@ -113,6 +195,7 @@ public class MeActivity extends AppCompatActivity {
         try { Object v = snap.child("businessBalance").getValue(); if (v != null) b4 = Long.parseLong(String.valueOf(v)); } catch (Exception ignored) {}
         return Math.max(Math.max(b1, b2), Math.max(b3, b4));
     }
+    private long getLongVal(DataSnapshot s,String k){ try{ Object v=s.child(k).getValue(); if(v==null) return 0; if(v instanceof Number) return ((Number)v).longValue(); return Long.parseLong(String.valueOf(v).replace(",","").trim()); }catch(Exception e){ return 0; } }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,7 +207,6 @@ public class MeActivity extends AppCompatActivity {
         myAnyId = getMyAnyIdFromPrefs();
         myProfileId = myAnyId;
         myUidResolved = firebaseUid;
-        // User ref - Profile ID key hole setai - na hole UID
         if (!myAnyId.isEmpty()) {
             userRef = FirebaseDatabase.getInstance().getReference("users").child(myAnyId);
         } else if (!firebaseUid.isEmpty()) {
@@ -210,6 +292,18 @@ public class MeActivity extends AppCompatActivity {
         txtVipBadge.setTypeface(null, Typeface.BOLD);
         txtVipBadge.setVisibility(View.GONE);
         nameBox.addView(txtVipBadge);
+        // ===== LEVEL BADGE - HEADER =====
+        txtLevelBadge = new TextView(this);
+        txtLevelBadge.setText("⭐ Wealth Lv.0 • 💎 Charm Lv.0");
+        txtLevelBadge.setTextColor(Color.WHITE);
+        txtLevelBadge.setTextSize(12);
+        txtLevelBadge.setTypeface(null, Typeface.BOLD);
+        txtLevelBadge.setGravity(Gravity.CENTER);
+        txtLevelBadge.setPadding(18,10,18,10);
+        LinearLayout.LayoutParams lvlLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        lvlLp.setMargins(0,10,0,0);
+        txtLevelBadge.setLayoutParams(lvlLp);
+        nameBox.addView(txtLevelBadge);
         TextView btnProfileArrow = new TextView(this);
         btnProfileArrow.setText(">");
         btnProfileArrow.setTextSize(26);
@@ -302,8 +396,6 @@ public class MeActivity extends AppCompatActivity {
         walletArrow.setTextSize(13);
         walletArrow.setTypeface(null, Typeface.BOLD);
         walletBox.addView(walletArrow);
-
-        // ===== SELLER BUSINESS WALLET BOX - ONLY SELLER SEES - DEFAULT GONE =====
         sellerWalletBox = new LinearLayout(this);
         sellerWalletBox.setOrientation(LinearLayout.HORIZONTAL);
         sellerWalletBox.setGravity(Gravity.CENTER_VERTICAL);
@@ -320,7 +412,6 @@ public class MeActivity extends AppCompatActivity {
         sellerWalletBox.setOnClickListener(v -> {
             if (!isSellerActive) return;
             Intent i = new Intent(MeActivity.this, SellerBusinessWalletActivity.class);
-            // PROFILE ID ONLY - UID pathabo na
             i.putExtra("SELLER_PROFILE_ID", myProfileId);
             i.putExtra("SELLER_ANY_ID", myProfileId);
             i.putExtra("SELLER_9DIGIT_ID", myProfileId);
@@ -350,7 +441,6 @@ public class MeActivity extends AppCompatActivity {
         sellerArrow.setTextSize(13);
         sellerArrow.setTypeface(null, Typeface.BOLD);
         sellerWalletBox.addView(sellerArrow);
-
         LinearLayout vipRow = new LinearLayout(this);
         vipRow.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams vipRowLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -413,7 +503,8 @@ public class MeActivity extends AppCompatActivity {
         addToolItem(toolsRow, "🛍️", "Store", v -> openStore());
         addToolItem(toolsRow, "👗", "Dress");
         addToolItem(toolsRow, "🎂", "Birthday");
-        addToolItem(toolsRow, "📊", "Level");
+        // ===== LEVEL BUTTON - FIXED - COMING SOON NA - POPUP KHULBE =====
+        levelToolView = addToolItem(toolsRow, "📊", "Level", v -> showLevelDialog());
         agencyToolView = addToolItem(toolsRow, "🏛️", "Agency", v -> openAgency());
         if (agencyToolView != null) agencyToolView.setVisibility(View.GONE);
         TextView serviceTitle = new TextView(this);
@@ -481,14 +572,9 @@ public class MeActivity extends AppCompatActivity {
         listenFirestoreRole();
         listenSellerStatus();
     }
-
-    // ===== SELLER LISTENER - PROFILE ID ONLY - 4 JAYGA THEKE MAX BALANCE =====
-    // sellers/{Profile ID} + sellers/{UID} + users/{UID} + users/{Profile ID}
-    // Jekhane beshi - oitai dekhabe - 0 diye 100000 muche felbo na - EITA AGE BUG CHILO
     private void listenSellerStatus() {
         if (sellerListenerStarted) return;
         sellerListenerStarted = true;
-        // 1. sellers/{Profile ID}
         if (!myProfileId.isEmpty()) {
             FirebaseDatabase.getInstance().getReference("sellers").child(myProfileId)
                 .addValueEventListener(new ValueEventListener() {
@@ -496,7 +582,6 @@ public class MeActivity extends AppCompatActivity {
                     @Override public void onCancelled(@NonNull DatabaseError e) {}
                 });
         }
-        // 2. sellers/{UID} - Admin ekhane Load korechilo
         if (!firebaseUid.isEmpty() && !firebaseUid.equals(myProfileId)) {
             FirebaseDatabase.getInstance().getReference("sellers").child(firebaseUid)
                 .addValueEventListener(new ValueEventListener() {
@@ -504,7 +589,6 @@ public class MeActivity extends AppCompatActivity {
                     @Override public void onCancelled(@NonNull DatabaseError e) {}
                 });
         }
-        // 3. users/{UID} - Flag + Balance
         if (!firebaseUid.isEmpty()) {
             FirebaseDatabase.getInstance().getReference("users").child(firebaseUid)
                 .addValueEventListener(new ValueEventListener() {
@@ -512,7 +596,6 @@ public class MeActivity extends AppCompatActivity {
                         if (!snap.exists()) return;
                         boolean flag = getBool(snap, "isSeller", false) || getBool(snap, "showSellerWallet", false);
                         if (!flag) return;
-                        // Profile ID auto save - jodi ekhono Profile ID na thake
                         String pid = safeStr(snap, "profileId");
                         if (pid.isEmpty()) pid = safeStr(snap, "anyId");
                         if (!pid.isEmpty() && myProfileId.isEmpty()) saveMyAnyId(pid);
@@ -523,7 +606,6 @@ public class MeActivity extends AppCompatActivity {
                     @Override public void onCancelled(@NonNull DatabaseError e) {}
                 });
         }
-        // 4. users/{Profile ID}
         if (!myProfileId.isEmpty() && !myProfileId.equals(firebaseUid)) {
             FirebaseDatabase.getInstance().getReference("users").child(myProfileId)
                 .addValueEventListener(new ValueEventListener() {
@@ -539,7 +621,6 @@ public class MeActivity extends AppCompatActivity {
         }
     }
     private void applySellerBalance(long bal, boolean active) {
-        // MAX rakhbo - 0 asle ager 100000 muche felbo na
         if (bal > sellerBusinessCoins) sellerBusinessCoins = bal;
         else if (sellerBusinessCoins == 0) sellerBusinessCoins = bal;
         if (active) isSellerActive = true;
@@ -558,7 +639,7 @@ public class MeActivity extends AppCompatActivity {
             if (snap.exists()) isSeller = true;
             String status = getStr(snap, "status", "").toLowerCase();
             boolean active = isSeller && !"blocked".equals(status) && !"rejected".equals(status) && !"pending".equals(status);
-            if (!active) return; // Blocked hole sudhu hide korbo na - MAX balance dhore rakhbo - vul kore 0 korbo na
+            if (!active) return;
             long bal = getMaxSellerBalance(snap);
             applySellerBalance(bal, true);
         } catch (Exception ignored) {}
@@ -568,7 +649,6 @@ public class MeActivity extends AppCompatActivity {
         if (sellerWalletBox != null) sellerWalletBox.setVisibility(show ? View.VISIBLE : View.GONE);
         if (txtSellerBalance != null) txtSellerBalance.setText("Business Coins: " + sellerBusinessCoins);
     }
-
     private void showVipListDialog() {
         try {
             List<VipModel> list = VipModel.createPremiumList();
@@ -800,10 +880,12 @@ public class MeActivity extends AppCompatActivity {
         String name = prefs.getString("USER_NAME", "User"); String photo = prefs.getString("USER_PHOTO", "");
         if (photo.isEmpty()) photo = prefs.getString("PROFILE_PHOTO", "");
         myAnyId = getMyAnyIdFromPrefs(); myProfileId = myAnyId; myVipLevel = prefs.getInt("VIP_LEVEL", 0);
+        myWealthLevel = prefs.getInt("WEALTH_LEVEL", myWealthLevel);
+        myCharmLevel = prefs.getInt("CHARM_LEVEL", myCharmLevel);
         if (txtName != null) txtName.setText(name);
         if (txtId != null) txtId.setText("ID: " + myAnyId);
         if (txtGenderCountry != null) txtGenderCountry.setText(getGenderCountryText());
-        updateVipUI(); showPhoto(photo, imgAvatar);
+        updateVipUI(); updateLevelBadge(); showPhoto(photo, imgAvatar);
     }
     private void loadMeData() {
         if (userRef == null) return; if (rtdbListenerStarted) return; rtdbListenerStarted = true;
@@ -819,7 +901,6 @@ public class MeActivity extends AppCompatActivity {
                         return;
                     }
                     String name = getStr(snap, "name", prefs.getString("USER_NAME", "User"));
-                    // PROFILE ID - sob field theke try koro - profileId age
                     String id = getStr(snap, "profileId", "");
                     if (id.isEmpty()) id = getStr(snap, "anyId", "");
                     if (id.isEmpty()) id = getStr(snap, "myId", "");
@@ -838,6 +919,18 @@ public class MeActivity extends AppCompatActivity {
                     String coins = getStr(snap, "coins", "0");
                     if (coins.equals("0")) coins = getStr(snap, "walletCoins", "0");
                     if (coins.equals("0")) coins = getStr(snap, "sendingCoins", "0");
+                    // ===== LEVEL FROM SENDING / RECEIVING - MAX NA - SOB FIELD =====
+                    long sending = Math.max(getLongVal(snap,"sending"), getLongVal(snap,"totalSending"));
+                    long receiving = Math.max(getLongVal(snap,"receiving"), getLongVal(snap,"totalReceiving"));
+                    // targetCoins o receiving er part
+                    receiving = Math.max(receiving, Math.max(getLongVal(snap,"targetCoins"), getLongVal(snap,"totalTargetCoins")));
+                    myTotalSending = sending; myTotalReceiving = receiving;
+                    int wealth = getLongVal(snap,"wealthLevel")>0 ? (int)getLongVal(snap,"wealthLevel") : levelFromExp(sending);
+                    int charm = getLongVal(snap,"charmLevel")>0 ? (int)getLongVal(snap,"charmLevel") : levelFromExp(receiving);
+                    // Jodi Firebase er level purano hoy - Sending diye recalc koro - nicher ta boro hole oitai
+                    wealth = Math.max(wealth, levelFromExp(sending));
+                    charm = Math.max(charm, levelFromExp(receiving));
+                    myWealthLevel = wealth; myCharmLevel = charm;
                     int vip = 0; try { String vipStr = getStr(snap, "vipLevel", "0"); vip = Integer.parseInt(vipStr); } catch (Exception ignored) {}
                     if (myVipLevel > vip) vip = myVipLevel;
                     myVipLevel = vip;
@@ -862,7 +955,10 @@ public class MeActivity extends AppCompatActivity {
                         .putString("AGENCY_NAME", agencyName).putString("AGENCY_PERCENT", agencyPercent)
                         .putBoolean("IS_HOST", isHost).putBoolean("HOST_ACTIVE", hostActive)
                         .putString("HOST_AGENCY_ID", agencyIdForHost).putString("HOST_AGENCY_NAME", hostAgencyName)
-                        .putString("USER_ROLE", role).putInt("VIP_LEVEL", vip).apply();
+                        .putString("USER_ROLE", role).putInt("VIP_LEVEL", vip)
+                        .putInt("WEALTH_LEVEL", wealth).putInt("CHARM_LEVEL", charm)
+                        .putString("USER_LEVEL", String.valueOf(wealth))
+                        .putLong("TOTAL_SENDING", sending).putLong("TOTAL_RECEIVING", receiving).apply();
                     if (txtName != null) txtName.setText(name);
                     if (txtId != null) txtId.setText("ID: " + myAnyId);
                     if (txtGenderCountry != null) txtGenderCountry.setText(getGenderCountryText());
@@ -870,7 +966,7 @@ public class MeActivity extends AppCompatActivity {
                     if (txtFans != null) txtFans.setText(fansCount);
                     if (txtVisitor != null) txtVisitor.setText(visitorCount);
                     if (txtWalletCoins != null) txtWalletCoins.setText("Coins: " + coins);
-                    showPhoto(photo, imgAvatar); applyRoleVisibility(); updateVipUI();
+                    showPhoto(photo, imgAvatar); applyRoleVisibility(); updateVipUI(); updateLevelBadge();
                     boolean pending = getBool(snap, "pendingHostInvite", false);
                     String pendingAgency = getStr(snap, "pendingAgencyName", "");
                     String pendingAgencyId = getStr(snap, "pendingAgencyId", "");
