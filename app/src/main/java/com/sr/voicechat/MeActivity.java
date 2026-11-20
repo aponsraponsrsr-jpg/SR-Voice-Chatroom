@@ -64,18 +64,18 @@ public class MeActivity extends AppCompatActivity {
     private TextView txtSvipStatus;
     private TextView txtVipStatus;
     private int myVipLevel = 0;
-    // ===== LEVEL 1-150 - FINAL - LevelUtils USE KORBO - SQRT BAD =====
     private TextView txtLevelBadge = null;
     private long myTotalSending = 0;
     private long myTotalReceiving = 0;
     private int myWealthLevel = 1;
     private int myCharmLevel = 1;
-
     private LinearLayout sellerWalletBox = null;
     private TextView txtSellerBalance = null;
     private boolean isSellerActive = false;
     private long sellerBusinessCoins = 0;
     private boolean sellerListenerStarted = false;
+    // ===== PREMIUM PERMANENT CACHE - AGENCY / PHOTO / VIP - KOKHONO HARABE NA =====
+    private String cachedPhoto = "";
 
     private BroadcastReceiver profileReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
@@ -84,7 +84,6 @@ public class MeActivity extends AppCompatActivity {
         }
     };
 
-    // ===== LEVEL UI - SOB LevelUtils THEKE - 150 + NEW GORGEOUS COLOR =====
     private void updateLevelBadge(){
         if(txtLevelBadge==null) return;
         txtLevelBadge.setText("⭐ Wealth Lv."+myWealthLevel+" • 💎 Charm Lv."+myCharmLevel+" • "+LevelUtils.getLevelTitle(myWealthLevel));
@@ -137,7 +136,6 @@ public class MeActivity extends AppCompatActivity {
         t4.setTextColor(Color.WHITE); t4.setTextSize(12); card.addView(t4);
         return card;
     }
-
     private String getMyAnyIdFromPrefs() {
         String v = prefs.getString("MY_PROFILE_ID", "");
         if (v == null || v.isEmpty()) v = prefs.getString("PROFILE_ID", "");
@@ -172,6 +170,20 @@ public class MeActivity extends AppCompatActivity {
         return Math.max(Math.max(b1, b2), Math.max(b3, b4));
     }
     private long getLongVal(DataSnapshot s,String k){ try{ Object v=s.child(k).getValue(); if(v==null) return 0; if(v instanceof Number) return ((Number)v).longValue(); return Long.parseLong(String.valueOf(v).replace(",","").trim()); }catch(Exception e){ return 0; } }
+    // ===== FIX - PERMANENT PHOTO - Khali photo kokhono cache muche na =====
+    private String getCachedPhoto(){
+        if(cachedPhoto!=null && !cachedPhoto.isEmpty() && !cachedPhoto.equals("null")) return cachedPhoto;
+        String p=prefs.getString("USER_PHOTO","");
+        if(p==null||p.isEmpty()||p.equals("null")) p=prefs.getString("PROFILE_PHOTO","");
+        if(p==null||p.isEmpty()||p.equals("null")) p=prefs.getString("USER_PHOTO_URL","");
+        if(p!=null && !p.isEmpty() && !p.equals("null")) cachedPhoto=p;
+        return cachedPhoto==null?"":cachedPhoto;
+    }
+    private void savePhotoPermanent(String photo){
+        if(photo==null||photo.isEmpty()||photo.equals("null")) return; // Khali asle save korbo na - ager ta thakbe
+        cachedPhoto=photo;
+        prefs.edit().putString("USER_PHOTO",photo).putString("PROFILE_PHOTO",photo).putString("USER_PHOTO_URL",photo).apply();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -183,6 +195,7 @@ public class MeActivity extends AppCompatActivity {
         myAnyId = getMyAnyIdFromPrefs();
         myProfileId = myAnyId;
         myUidResolved = firebaseUid;
+        cachedPhoto=getCachedPhoto();
         if (!myAnyId.isEmpty()) {
             userRef = FirebaseDatabase.getInstance().getReference("users").child(myAnyId);
         } else if (!firebaseUid.isEmpty()) {
@@ -261,12 +274,14 @@ public class MeActivity extends AppCompatActivity {
         txtGenderCountry.setTextColor(Color.parseColor("#B0BEC5"));
         txtGenderCountry.setTextSize(12);
         nameBox.addView(txtGenderCountry);
+        // ===== FIX - VIP BADGE PREMIUM - Shudhu VIP 7 - Emperor Dragon lekha nai =====
         txtVipBadge = new TextView(this);
         txtVipBadge.setText("");
         txtVipBadge.setTextColor(Color.parseColor("#FFD700"));
         txtVipBadge.setTextSize(13);
         txtVipBadge.setTypeface(null, Typeface.BOLD);
         txtVipBadge.setVisibility(View.GONE);
+        txtVipBadge.setPadding(14,6,14,6);
         nameBox.addView(txtVipBadge);
         txtLevelBadge = new TextView(this);
         txtLevelBadge.setText("⭐ Wealth Lv.1 • 💎 Charm Lv.1");
@@ -332,7 +347,7 @@ public class MeActivity extends AppCompatActivity {
         svipT1.setTypeface(null, Typeface.BOLD);
         svipBox.addView(svipT1);
         txtSvipStatus = new TextView(this);
-        txtSvipStatus.setText("SVIP 1-7  •  Emperor Dragon  •  Tap to View  >");
+        txtSvipStatus.setText("SVIP 1-7  •  Tap to View  >");
         txtSvipStatus.setTextColor(Color.parseColor("#3A2A00"));
         txtSvipStatus.setTextSize(13);
         svipBox.addView(txtSvipStatus);
@@ -444,7 +459,7 @@ public class MeActivity extends AppCompatActivity {
         vipT1.setGravity(Gravity.CENTER);
         vipBox.addView(vipT1);
         txtVipStatus = new TextView(this);
-        txtVipStatus.setText("Black Tiger • Eagle Fire • Dragon\nTap to View >");
+        txtVipStatus.setText("Tap to View >");
         txtVipStatus.setTextColor(Color.WHITE);
         txtVipStatus.setTextSize(12);
         txtVipStatus.setGravity(Gravity.CENTER);
@@ -676,26 +691,34 @@ public class MeActivity extends AppCompatActivity {
             try { Object ex = snap.child("expireAt").getValue(); if (ex != null) expire = Long.parseLong(String.valueOf(ex)); } catch (Exception ignored) {}
             if (expire == 0) { try { Object ex2 = snap.child("expireTs").getValue(); if (ex2 != null) expire = Long.parseLong(String.valueOf(ex2)); } catch (Exception ignored) {} }
             if (expire > 0 && System.currentTimeMillis() > expire) v = 0;
+            // FIX - VIP kokhono 0 diye overwrite hobe na jodi age VIP thake - Expire na hole
+            if (v == 0 && myVipLevel > 0 && expire == 0) return;
             if (v != myVipLevel) {
                 myVipLevel = v;
                 prefs.edit().putInt("VIP_LEVEL", v).apply();
                 updateVipUI();
-            }
+            } else updateVipUI();
         } catch (Exception ignored) {}
     }
+    // ===== FIX - VIP PREMIUM BADGE ONLY - Emperor Dragon lekha nai =====
     private void updateVipUI() {
         if (txtVipBadge == null) return;
         if (myVipLevel >= 1 && myVipLevel <= 8) {
-            String[] names = {"", "Black Tiger", "White Tiger", "Eagle Fire", "Phoenix Fire Bird", "Dragon", "Golden Dragon King", "Emperor Dragon", "Purple Dragon"};
             String[] emojis = {"", "🐅", "🐯", "🦅", "🔥", "🐉", "👑", "🐲", "💜"};
-            txtVipBadge.setText(emojis[myVipLevel] + " VIP " + myVipLevel + " • " + names[myVipLevel]);
+            txtVipBadge.setText(emojis[myVipLevel] + " VIP " + myVipLevel);
+            GradientDrawable bg=new GradientDrawable();
+            bg.setColors(new int[]{Color.parseColor("#FFD700"), Color.parseColor("#FF9800")});
+            bg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT);
+            bg.setCornerRadius(20);
+            txtVipBadge.setBackground(bg);
+            txtVipBadge.setTextColor(Color.parseColor("#0A0518"));
             txtVipBadge.setVisibility(View.VISIBLE);
-            if (txtVipStatus != null) txtVipStatus.setText("✅ You Have VIP " + myVipLevel + "\n" + names[myVipLevel] + " Active");
-            if (txtSvipStatus != null) txtSvipStatus.setText("✅ You Have VIP " + myVipLevel + "  •  Tap to View  >");
+            if (txtVipStatus != null) txtVipStatus.setText("✅ VIP " + myVipLevel + " Active\nTap to View >");
+            if (txtSvipStatus != null) txtSvipStatus.setText("✅ VIP " + myVipLevel + "  •  Tap to View  >");
         } else {
             txtVipBadge.setVisibility(View.GONE);
-            if (txtVipStatus != null) txtVipStatus.setText("Black Tiger • Eagle Fire • Dragon\nTap to View >");
-            if (txtSvipStatus != null) txtSvipStatus.setText("SVIP 1-7  •  Emperor Dragon  •  Tap to View  >");
+            if (txtVipStatus != null) txtVipStatus.setText("Tap to View >");
+            if (txtSvipStatus != null) txtSvipStatus.setText("SVIP 1-7  •  Tap to View  >");
         }
     }
     private void copyId() {
@@ -734,8 +757,15 @@ public class MeActivity extends AppCompatActivity {
             catch (Exception e2) { Toast.makeText(this, "Host Center - Coming Soon", Toast.LENGTH_SHORT).show(); }
         }
     }
+    // ===== FIX - AGENCY PERMANENT - Cache age, Firebase pore - 1st bar o dekhabe =====
     private void applyRoleVisibility() {
-        boolean showAgency = prefs.getBoolean("IS_AGENCY", false) && prefs.getBoolean("AGENCY_ACTIVE", false);
+        boolean cacheAgency = prefs.getBoolean("IS_AGENCY", false);
+        boolean cacheActive = prefs.getBoolean("AGENCY_ACTIVE", false);
+        boolean rtdbAgency = prefs.getBoolean("RTDB_IS_AGENCY", false);
+        // Ekbar Agency hole cache e thakbe - Firebase late asleo hide hobe na
+        boolean showAgency = (cacheAgency && cacheActive) || (rtdbAgency && cacheActive) || (cacheAgency && rtdbAgency);
+        // Jodi kokhono Agency chilo - ar Firestore bole nai - taholeo cache rakhbo
+        if(cacheAgency && prefs.getBoolean("AGENCY_EVER", false)) showAgency = cacheActive || true;
         boolean showHost = prefs.getBoolean("IS_HOST", false) && prefs.getBoolean("HOST_ACTIVE", false);
         isAgencyActive = showAgency; isHostActive = showHost;
         if (agencyToolView != null) agencyToolView.setVisibility(showAgency ? View.VISIBLE : View.GONE);
@@ -752,11 +782,15 @@ public class MeActivity extends AppCompatActivity {
                         Object st = snap.get("status"); String status = st == null ? "" : String.valueOf(st).toLowerCase();
                         boolean active = !"blocked".equals(status) && !"rejected".equals(status) && !"pending".equals(status);
                         if (status.isEmpty()) active = true;
-                        prefs.edit().putBoolean("IS_AGENCY", true).putBoolean("AGENCY_ACTIVE", active).apply();
+                        // PERMANENT - Agency ekbar true hole AGENCY_EVER true - ar kokhono false hobe na jotokkhon blocked/rejected na hoy
+                        prefs.edit().putBoolean("IS_AGENCY", true).putBoolean("AGENCY_ACTIVE", active).putBoolean("AGENCY_EVER", true).apply();
                         Object nm = snap.get("name"); if (nm != null) prefs.edit().putString("AGENCY_NAME", String.valueOf(nm)).apply();
                     } else {
+                        // FIX - Firestore e doc na thakle Agency muche felbo na - RTDB check korbo
                         boolean rtdbAgency = prefs.getBoolean("RTDB_IS_AGENCY", false);
-                        if (!rtdbAgency) prefs.edit().putBoolean("IS_AGENCY", false).putBoolean("AGENCY_ACTIVE", false).apply();
+                        boolean ever = prefs.getBoolean("AGENCY_EVER", false);
+                        if (!rtdbAgency && !ever) prefs.edit().putBoolean("IS_AGENCY", false).putBoolean("AGENCY_ACTIVE", false).apply();
+                        // ever hole kichu korbo na - cache thakbe
                     }
                     applyRoleVisibility();
                 });
@@ -766,13 +800,13 @@ public class MeActivity extends AppCompatActivity {
                         if (snap != null && snap.exists()) {
                             Object st = snap.get("status"); String status = st == null ? "" : String.valueOf(st).toLowerCase();
                             boolean active = !"blocked".equals(status) && !"rejected".equals(status);
-                            prefs.edit().putBoolean("IS_AGENCY", true).putBoolean("AGENCY_ACTIVE", active).apply();
+                            prefs.edit().putBoolean("IS_AGENCY", true).putBoolean("AGENCY_ACTIVE", active).putBoolean("AGENCY_EVER", true).apply();
                             applyRoleVisibility();
                         }
                     });
                     db.collection("agencies").whereEqualTo("ownerUid", firebaseUid).addSnapshotListener((snaps, e) -> {
                         if (e != null || snaps == null) return;
-                        if (!snaps.isEmpty()) { prefs.edit().putBoolean("IS_AGENCY", true).putBoolean("AGENCY_ACTIVE", true).apply(); applyRoleVisibility(); }
+                        if (!snaps.isEmpty()) { prefs.edit().putBoolean("IS_AGENCY", true).putBoolean("AGENCY_ACTIVE", true).putBoolean("AGENCY_EVER", true).apply(); applyRoleVisibility(); }
                     });
                 }
             }
@@ -845,14 +879,17 @@ public class MeActivity extends AppCompatActivity {
     private String getGenderCountryText() {
         String g = prefs.getString("USER_GENDER", ""); String c = prefs.getString("USER_COUNTRY", ""); String base = "";
         if (!g.isEmpty() && !c.isEmpty()) base = g + " | " + c; else if (!c.isEmpty()) base = c; else if (!g.isEmpty()) base = g; else base = "Complete Your Profile";
-        if (prefs.getBoolean("IS_AGENCY", false) && prefs.getBoolean("AGENCY_ACTIVE", false)) base = base + "  |  🏷️ AGENCY";
+        // FIX - AGENCY badge - Cache thekeo dekhabe - 1st bar o harabe na
+        boolean showAgency = prefs.getBoolean("IS_AGENCY", false) && prefs.getBoolean("AGENCY_ACTIVE", false);
+        if(!showAgency && prefs.getBoolean("AGENCY_EVER", false) && prefs.getBoolean("IS_AGENCY", false)) showAgency=true;
+        if (showAgency) base = base + "  |  🏷️ AGENCY";
         if (prefs.getBoolean("IS_SELLER", false)) base = base + "  |  🏪 SELLER";
         return base;
     }
     @Override protected void onResume() { super.onResume(); showFromPrefs(); applyRoleVisibility(); applySellerVisibility(); loadMeData(); }
     private void showFromPrefs() {
-        String name = prefs.getString("USER_NAME", "User"); String photo = prefs.getString("USER_PHOTO", "");
-        if (photo.isEmpty()) photo = prefs.getString("PROFILE_PHOTO", "");
+        String name = prefs.getString("USER_NAME", "User");
+        String photo = getCachedPhoto();
         myAnyId = getMyAnyIdFromPrefs(); myProfileId = myAnyId; myVipLevel = prefs.getInt("VIP_LEVEL", 0);
         myWealthLevel = prefs.getInt("WEALTH_LEVEL", 1);
         myCharmLevel = prefs.getInt("CHARM_LEVEL", 1);
@@ -863,7 +900,8 @@ public class MeActivity extends AppCompatActivity {
         if (txtName != null) txtName.setText(name);
         if (txtId != null) txtId.setText("ID: " + myAnyId);
         if (txtGenderCountry != null) txtGenderCountry.setText(getGenderCountryText());
-        updateVipUI(); updateLevelBadge(); showPhoto(photo, imgAvatar);
+        updateVipUI(); updateLevelBadge();
+        if(!photo.isEmpty()) showPhoto(photo, imgAvatar);
     }
     private void loadMeData() {
         if (userRef == null) return; if (rtdbListenerStarted) return; rtdbListenerStarted = true;
@@ -897,12 +935,10 @@ public class MeActivity extends AppCompatActivity {
                     String coins = getStr(snap, "coins", "0");
                     if (coins.equals("0")) coins = getStr(snap, "walletCoins", "0");
                     if (coins.equals("0")) coins = getStr(snap, "sendingCoins", "0");
-                    // ===== LEVEL 1-150 - LevelUtils ONLY - SQRT BAD =====
                     long sending = Math.max(getLongVal(snap,"sending"), getLongVal(snap,"totalSending"));
                     long receiving = Math.max(getLongVal(snap,"receiving"), getLongVal(snap,"totalReceiving"));
                     receiving = Math.max(receiving, Math.max(getLongVal(snap,"targetCoins"), getLongVal(snap,"totalTargetCoins")));
                     myTotalSending = sending; myTotalReceiving = receiving;
-                    // Firebase e purano wealthLevel thakle o LevelUtils diye recalc - boro ta nibo - vul level asbe na
                     int wealth = LevelUtils.calculateWealthLevel(sending);
                     int charm = LevelUtils.calculateCharmLevel(receiving);
                     if (getLongVal(snap,"wealthLevel") > wealth) wealth = (int) getLongVal(snap,"wealthLevel");
@@ -927,10 +963,18 @@ public class MeActivity extends AppCompatActivity {
                     boolean agencyActive = isAgency && !"blocked".equals(agencyStatus) && !"rejected".equals(agencyStatus);
                     boolean hostActive = isHost && !"blocked".equals(hostStatus) && !"rejected".equals(hostStatus);
                     if (!id.isEmpty()) { saveMyAnyId(id); }
+                    // FIX - PHOTO PERMANENT - Firebase e photo khali asle cache muche felbo na
+                    String finalPhoto = photo;
+                    if(finalPhoto==null || finalPhoto.isEmpty() || finalPhoto.equals("null")) finalPhoto = getCachedPhoto();
+                    else savePhotoPermanent(finalPhoto);
+                    // FIX - AGENCY PERMANENT - RTDB te Agency hole EVER true
+                    boolean everAgency = prefs.getBoolean("AGENCY_EVER", false) || isAgency;
+                    // Jodi age Agency chilo ar ekhon RTDB te isAgency false bole (late/missing) - tahole ager ta rakhbo
+                    boolean finalIsAgency = isAgency || (everAgency && prefs.getBoolean("IS_AGENCY", false));
+                    boolean finalAgencyActive = agencyActive || (everAgency && prefs.getBoolean("AGENCY_ACTIVE", false) && !agencyStatus.equals("blocked") && !agencyStatus.equals("rejected"));
                     prefs.edit().putString("USER_NAME", name).putString("USER_COUNTRY", country).putString("USER_GENDER", gender)
-                        .putString("USER_PHOTO", photo).putString("PROFILE_PHOTO", photo)
                         .putBoolean("RTDB_IS_AGENCY", isAgency).putBoolean("RTDB_IS_HOST", isHost)
-                        .putBoolean("IS_AGENCY", isAgency).putBoolean("AGENCY_ACTIVE", agencyActive)
+                        .putBoolean("IS_AGENCY", finalIsAgency).putBoolean("AGENCY_ACTIVE", finalAgencyActive).putBoolean("AGENCY_EVER", everAgency)
                         .putString("AGENCY_NAME", agencyName).putString("AGENCY_PERCENT", agencyPercent)
                         .putBoolean("IS_HOST", isHost).putBoolean("HOST_ACTIVE", hostActive)
                         .putString("HOST_AGENCY_ID", agencyIdForHost).putString("HOST_AGENCY_NAME", hostAgencyName)
@@ -938,6 +982,8 @@ public class MeActivity extends AppCompatActivity {
                         .putInt("WEALTH_LEVEL", wealth).putInt("CHARM_LEVEL", charm)
                         .putString("USER_LEVEL", String.valueOf(wealth))
                         .putLong("TOTAL_SENDING", sending).putLong("TOTAL_RECEIVING", receiving).apply();
+                    // Photo alada kore save - khali hole save hobe na
+                    if(finalPhoto!=null && !finalPhoto.isEmpty() && !finalPhoto.equals("null")) prefs.edit().putString("USER_PHOTO", finalPhoto).putString("PROFILE_PHOTO", finalPhoto).apply();
                     if (txtName != null) txtName.setText(name);
                     if (txtId != null) txtId.setText("ID: " + myAnyId);
                     if (txtGenderCountry != null) txtGenderCountry.setText(getGenderCountryText());
@@ -945,7 +991,8 @@ public class MeActivity extends AppCompatActivity {
                     if (txtFans != null) txtFans.setText(fansCount);
                     if (txtVisitor != null) txtVisitor.setText(visitorCount);
                     if (txtWalletCoins != null) txtWalletCoins.setText("Coins: " + coins);
-                    showPhoto(photo, imgAvatar); applyRoleVisibility(); updateVipUI(); updateLevelBadge();
+                    if(finalPhoto!=null && !finalPhoto.isEmpty()) showPhoto(finalPhoto, imgAvatar);
+                    applyRoleVisibility(); updateVipUI(); updateLevelBadge();
                     boolean pending = getBool(snap, "pendingHostInvite", false);
                     String pendingAgency = getStr(snap, "pendingAgencyName", "");
                     String pendingAgencyId = getStr(snap, "pendingAgencyId", "");
@@ -983,7 +1030,7 @@ public class MeActivity extends AppCompatActivity {
         Toast.makeText(this, "Invite Reject kora hoyeche", Toast.LENGTH_SHORT).show();
     }
     private void showPhoto(String photo, ImageView iv) {
-        if (iv == null || photo == null || photo.isEmpty()) return;
+        if (iv == null || photo == null || photo.isEmpty() || photo.equals("null")) return;
         try { if (photo.startsWith("http")) Glide.with(this).load(photo).circleCrop().into(iv); else showBase64Image(photo, iv); } catch (Exception ignored) {} }
     private void showBase64Image(String base64, ImageView iv) {
         if (iv == null || base64 == null || base64.isEmpty()) return;
