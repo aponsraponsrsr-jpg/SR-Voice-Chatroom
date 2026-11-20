@@ -36,12 +36,37 @@ public class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder
         return new GiftViewHolder(view);
     }
 
+    // GiftModel এ Image 0 দেওয়া - তাই নাম দেখে Emoji বসাবো - Permanent Fix
+    private String getEmojiForGift(String name) {
+        if (name == null) return "🎁";
+        String n = name.toLowerCase();
+        if (n.contains("rose")) return "🌹";
+        if (n.contains("angel")) return "👼";
+        if (n.contains("rocket")) return "🚀";
+        if (n.contains("porsche") || n.contains("car")) return "🏎️";
+        if (n.contains("heart")) return "❤️";
+        if (n.contains("cake")) return "🎂";
+        if (n.contains("diamond")) return "💎";
+        if (n.contains("crown")) return "👑";
+        return "🎁";
+    }
+
     @Override
     public void onBindViewHolder(@NonNull GiftViewHolder holder, int position) {
         GiftModel gift = giftList.get(position);
         holder.txtGiftName.setText(gift.getGiftName());
         holder.txtGiftPrice.setText(gift.getGiftPrice() + " Coins");
-        holder.imgGiftIcon.setImageResource(gift.getGiftImageRes());
+
+        // যদি আসল ছবি থাকে - ছবি দেখাও - না থাকলে Mic লুকিয়ে Emoji দেখাও
+        if (gift.getGiftImageRes() != 0) {
+            holder.imgGiftIcon.setVisibility(View.VISIBLE);
+            holder.imgGiftIcon.setImageResource(gift.getGiftImageRes());
+            holder.txtGiftEmoji.setVisibility(View.GONE);
+        } else {
+            holder.imgGiftIcon.setVisibility(View.GONE);
+            holder.txtGiftEmoji.setVisibility(View.VISIBLE);
+            holder.txtGiftEmoji.setText(getEmojiForGift(gift.getGiftName()));
+        }
 
         if (selectedPosition == position) {
             holder.itemView.setBackgroundColor(Color.parseColor("#44FFD700"));
@@ -73,13 +98,14 @@ public class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder
 
     public static class GiftViewHolder extends RecyclerView.ViewHolder {
         ImageView imgGiftIcon;
-        TextView txtGiftName, txtGiftPrice;
+        TextView txtGiftName, txtGiftPrice, txtGiftEmoji;
 
         public GiftViewHolder(@NonNull View itemView) {
             super(itemView);
             imgGiftIcon = itemView.findViewById(R.id.imgGiftIcon);
             txtGiftName = itemView.findViewById(R.id.txtGiftName);
             txtGiftPrice = itemView.findViewById(R.id.txtGiftPrice);
+            txtGiftEmoji = itemView.findViewById(R.id.txtGiftEmoji);
         }
     }
 }
