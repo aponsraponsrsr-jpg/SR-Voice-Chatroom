@@ -46,7 +46,8 @@ public class MeActivity extends AppCompatActivity {
     private TextView txtName, txtId, txtGenderCountry, txtFollow, txtFans, txtVisitor, txtWalletCoins;
     private SharedPreferences prefs;
     private String firebaseUid = "";
-    private String my9DigitId = "";
+    // ANY ID SYSTEM - 2 digit / 3 digit / 10 digit / UID - SOB CHOLBE - NO LENGTH CHECK
+    private String myAnyId = "";
     private DatabaseReference userRef;
     private String followCount = "0", fansCount = "0", visitorCount = "0";
     private LinearLayout agencyToolView = null;
@@ -61,7 +62,7 @@ public class MeActivity extends AppCompatActivity {
     private TextView txtVipStatus;
     private int myVipLevel = 0;
 
-    // ===== SELLER BUSINESS WALLET - NEW - PERMANENT =====
+    // ===== SELLER BUSINESS WALLET - ONLY SELLER SEES - PERMANENT =====
     private LinearLayout sellerWalletBox = null;
     private TextView txtSellerBalance = null;
     private boolean isSellerActive = false;
@@ -75,6 +76,18 @@ public class MeActivity extends AppCompatActivity {
         }
     };
 
+    private String getMyAnyIdFromPrefs() {
+        String v = prefs.getString("MY_ANY_ID", "");
+        if (v == null || v.isEmpty()) v = prefs.getString("MY_9_DIGIT_ID", "");
+        if (v == null) v = "";
+        return v.trim();
+    }
+    private void saveMyAnyId(String id) {
+        if (id == null || id.isEmpty()) return;
+        myAnyId = id.trim();
+        prefs.edit().putString("MY_ANY_ID", myAnyId).putString("MY_9_DIGIT_ID", myAnyId).apply();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,9 +95,10 @@ public class MeActivity extends AppCompatActivity {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user != null) firebaseUid = user.getUid();
         if (firebaseUid.isEmpty()) firebaseUid = prefs.getString("FIREBASE_UID", "");
-        my9DigitId = prefs.getString("MY_9_DIGIT_ID", "");
-        if (!my9DigitId.isEmpty()) {
-            userRef = FirebaseDatabase.getInstance().getReference("users").child(my9DigitId);
+        myAnyId = getMyAnyIdFromPrefs();
+        // User ref - ANY ID key hole setai - na hole UID
+        if (!myAnyId.isEmpty()) {
+            userRef = FirebaseDatabase.getInstance().getReference("users").child(myAnyId);
         } else if (!firebaseUid.isEmpty()) {
             userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
         }
@@ -144,7 +158,7 @@ public class MeActivity extends AppCompatActivity {
         idRow.setGravity(Gravity.CENTER_VERTICAL);
         nameBox.addView(idRow);
         txtId = new TextView(this);
-        txtId.setText("ID: " + my9DigitId);
+        txtId.setText("ID: " + myAnyId);
         txtId.setTextColor(Color.parseColor("#FFD700"));
         txtId.setTextSize(14);
         txtId.setTypeface(null, Typeface.BOLD);
@@ -261,7 +275,7 @@ public class MeActivity extends AppCompatActivity {
         walletArrow.setTypeface(null, Typeface.BOLD);
         walletBox.addView(walletArrow);
 
-        // ===== SELLER BUSINESS WALLET BOX - ONLY SELLER SEES =====
+        // ===== SELLER BUSINESS WALLET BOX - ONLY SELLER SEES - DEFAULT GONE =====
         sellerWalletBox = new LinearLayout(this);
         sellerWalletBox.setOrientation(LinearLayout.HORIZONTAL);
         sellerWalletBox.setGravity(Gravity.CENTER_VERTICAL);
@@ -278,7 +292,8 @@ public class MeActivity extends AppCompatActivity {
         sellerWalletBox.setOnClickListener(v -> {
             if (!isSellerActive) return;
             Intent i = new Intent(MeActivity.this, SellerBusinessWalletActivity.class);
-            i.putExtra("SELLER_9DIGIT_ID", my9DigitId);
+            i.putExtra("SELLER_ANY_ID", myAnyId);
+            i.putExtra("SELLER_9DIGIT_ID", myAnyId);
             startActivity(i);
         });
         menuContainer.addView(sellerWalletBox);
@@ -433,15 +448,16 @@ public class MeActivity extends AppCompatActivity {
         loadMeData();
         listenVipAssignments();
         listenFirestoreRole();
-        listenSellerStatus(); // NEW
+        listenSellerStatus();
     }
 
-    // ===== SELLER LISTENER - checks sellers/{9DigitId} AND sellers/{firebaseUid} =====
+    // ===== SELLER LISTENER - ONLY SELLER - sellers/{ANY ID} + sellers/{UID} + users/{UID} =====
     private void listenSellerStatus() {
         if (sellerListenerStarted) return;
         sellerListenerStarted = true;
-        if (!my9DigitId.isEmpty()) {
-            FirebaseDatabase.getInstance().getReference("sellers").child(my9DigitId)
+        // 1. sellers/{ANY ID}
+        if (!myAnyId.isEmpty()) {
+            FirebaseDatabase.getInstance().getReference("sellers").child(myAnyId)
                 .addValueEventListener(new ValueEventListener() {
                     @Override public void onDataChange(@NonNull DataSnapshot snap) {
                         if (snap.exists()) { applySellerSnap(snap); return; }
@@ -454,33 +470,55 @@ public class MeActivity extends AppCompatActivity {
         }
     }
     private void listenSellerByFirebaseUid() {
-        if (firebaseUid.isEmpty() || firebaseUid.equals(my9DigitId)) return;
+        if (firebaseUid.isEmpty()) { listenSellerByUserFlag(); return; }
+        if (firebaseUid.equals(myAnyId)) { listenSellerByUserFlag(); return; }
         FirebaseDatabase.getInstance().getReference("sellers").child(firebaseUid)
             .addValueEventListener(new ValueEventListener() {
                 @Override public void onDataChange(@NonNull DataSnapshot snap) {
-                    if (snap.exists()) applySellerSnap(snap);
+                    if (snap.exists()) { applySellerSnap(snap); return; }
+                    listenSellerByUserFlag();
+                }
+                @Override public void onCancelled(@NonNull DatabaseError e) { listenSellerByUserFlag(); }
+            });
+    }
+    private void listenSellerByUserFlag() {
+        // 3. users/{UID} isSeller / showSellerWallet - Admin Panel theke flag asle
+        if (firebaseUid.isEmpty()) { hideSellerWallet(); return; }
+        FirebaseDatabase.getInstance().getReference("users").child(firebaseUid)
+            .addValueEventListener(new ValueEventListener() {
+                @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                    if (!snap.exists()) { hideSellerWallet(); return; }
+                    boolean flag = getBool(snap, "isSeller", false) || getBool(snap, "showSellerWallet", false);
+                    String st = getStr(snap, "sellerStatus", "").toLowerCase();
+                    if (!flag || "blocked".equals(st) || "rejected".equals(st) || "pending".equals(st)) { hideSellerWallet(); return; }
+                    long bal = 0;
+                    try { Object b = snap.child("businessCoins").getValue(); if (b != null) bal = Long.parseLong(String.valueOf(b)); } catch (Exception ignored) {}
+                    if (bal == 0) { try { Object b2 = snap.child("sellerCoinBalance").getValue(); if (b2 != null) bal = Long.parseLong(String.valueOf(b2)); } catch (Exception ignored) {} }
+                    isSellerActive = true;
+                    sellerBusinessCoins = bal;
+                    prefs.edit().putBoolean("IS_SELLER", true).putLong("SELLER_BUSINESS_COINS", bal).apply();
+                    applySellerVisibility();
                 }
                 @Override public void onCancelled(@NonNull DatabaseError e) {}
             });
     }
+    private void hideSellerWallet() {
+        isSellerActive = false;
+        sellerBusinessCoins = 0;
+        prefs.edit().putBoolean("IS_SELLER", false).putLong("SELLER_BUSINESS_COINS", 0).apply();
+        applySellerVisibility();
+    }
     private void applySellerSnap(DataSnapshot snap) {
         try {
-            boolean isSeller = getBool(snap, "isSeller", false);
+            boolean isSeller = getBool(snap, "isSeller", false) || getBool(snap, "showSellerWallet", false);
+            // sellers node e thaka manei seller - Admin Panel theke create hoile isSeller na thakleo dhorbo
+            if (snap.exists()) isSeller = true;
             String status = getStr(snap, "status", "").toLowerCase();
-            // status: active = show, blocked / pending / rejected = hide
             boolean active = isSeller && !"blocked".equals(status) && !"rejected".equals(status) && !"pending".equals(status);
             long bal = 0;
-            try {
-                Object b = snap.child("businessCoins").getValue();
-                if (b != null) bal = Long.parseLong(String.valueOf(b));
-            } catch (Exception ignored) {}
-            // Also support businessBalance field name
-            if (bal == 0) {
-                try {
-                    Object b2 = snap.child("businessBalance").getValue();
-                    if (b2 != null) bal = Long.parseLong(String.valueOf(b2));
-                } catch (Exception ignored) {}
-            }
+            try { Object b = snap.child("businessCoins").getValue(); if (b != null) bal = Long.parseLong(String.valueOf(b)); } catch (Exception ignored) {}
+            if (bal == 0) { try { Object b2 = snap.child("coinBalance").getValue(); if (b2 != null) bal = Long.parseLong(String.valueOf(b2)); } catch (Exception ignored) {} }
+            if (bal == 0) { try { Object b3 = snap.child("businessBalance").getValue(); if (b3 != null) bal = Long.parseLong(String.valueOf(b3)); } catch (Exception ignored) {} }
             isSellerActive = active;
             sellerBusinessCoins = bal;
             prefs.edit().putBoolean("IS_SELLER", active).putLong("SELLER_BUSINESS_COINS", bal).apply();
@@ -488,9 +526,9 @@ public class MeActivity extends AppCompatActivity {
         } catch (Exception ignored) {}
     }
     private void applySellerVisibility() {
-        boolean show = prefs.getBoolean("IS_SELLER", false);
-        // Double check: if prefs says seller but live flag false, hide
-        if (!isSellerActive && sellerListenerStarted) show = false;
+        boolean show = isSellerActive && prefs.getBoolean("IS_SELLER", false);
+        // Live flag false hole hide - Normal user kokhono dekhbe na
+        if (!isSellerActive) show = false;
         isSellerActive = show;
         if (sellerWalletBox != null) sellerWalletBox.setVisibility(show ? View.VISIBLE : View.GONE);
         if (txtSellerBalance != null) txtSellerBalance.setText("Business Coins: " + sellerBusinessCoins);
@@ -517,8 +555,8 @@ public class MeActivity extends AppCompatActivity {
     private void listenVipAssignments() {
         if (vipAssignmentListenerStarted) return;
         vipAssignmentListenerStarted = true;
-        if (!my9DigitId.isEmpty()) {
-            FirebaseDatabase.getInstance().getReference("vip_assignments").child(my9DigitId)
+        if (!myAnyId.isEmpty()) {
+            FirebaseDatabase.getInstance().getReference("vip_assignments").child(myAnyId)
                 .addValueEventListener(new ValueEventListener() {
                     @Override public void onDataChange(@NonNull DataSnapshot snap) {
                         if (snap.exists()) { applyVipSnap(snap); return; }
@@ -531,7 +569,7 @@ public class MeActivity extends AppCompatActivity {
         }
     }
     private void listenVipByFirebaseUid() {
-        if (firebaseUid.isEmpty() || firebaseUid.equals(my9DigitId)) return;
+        if (firebaseUid.isEmpty() || firebaseUid.equals(myAnyId)) return;
         FirebaseDatabase.getInstance().getReference("vip_assignments").child(firebaseUid)
             .addValueEventListener(new ValueEventListener() {
                 @Override public void onDataChange(@NonNull DataSnapshot snap) {
@@ -546,16 +584,8 @@ public class MeActivity extends AppCompatActivity {
             int v = 0;
             try { v = Integer.parseInt(lvlStr); } catch (Exception ignored) {}
             long expire = 0;
-            try {
-                Object ex = snap.child("expireAt").getValue();
-                if (ex != null) expire = Long.parseLong(String.valueOf(ex));
-            } catch (Exception ignored) {}
-            if (expire == 0) {
-                try {
-                    Object ex2 = snap.child("expireTs").getValue();
-                    if (ex2 != null) expire = Long.parseLong(String.valueOf(ex2));
-                } catch (Exception ignored) {}
-            }
+            try { Object ex = snap.child("expireAt").getValue(); if (ex != null) expire = Long.parseLong(String.valueOf(ex)); } catch (Exception ignored) {}
+            if (expire == 0) { try { Object ex2 = snap.child("expireTs").getValue(); if (ex2 != null) expire = Long.parseLong(String.valueOf(ex2)); } catch (Exception ignored) {} }
             if (expire > 0 && System.currentTimeMillis() > expire) v = 0;
             if (v != myVipLevel) {
                 myVipLevel = v;
@@ -580,10 +610,10 @@ public class MeActivity extends AppCompatActivity {
         }
     }
     private void copyId() {
-        if (my9DigitId.isEmpty()) return;
+        if (myAnyId.isEmpty()) return;
         ClipboardManager cm = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        cm.setPrimaryClip(ClipData.newPlainText("ID", my9DigitId));
-        Toast.makeText(this, "ID Copied: " + my9DigitId, Toast.LENGTH_SHORT).show();
+        cm.setPrimaryClip(ClipData.newPlainText("ID", myAnyId));
+        Toast.makeText(this, "ID Copied: " + myAnyId, Toast.LENGTH_SHORT).show();
     }
     private void openStore() {
         try {
@@ -626,8 +656,8 @@ public class MeActivity extends AppCompatActivity {
     private void listenFirestoreRole() {
         try {
             FirebaseFirestore db = FirebaseFirestore.getInstance();
-            if (!my9DigitId.isEmpty()) {
-                db.collection("agencies").document(my9DigitId).addSnapshotListener((snap, e) -> {
+            if (!myAnyId.isEmpty()) {
+                db.collection("agencies").document(myAnyId).addSnapshotListener((snap, e) -> {
                     if (e != null) return;
                     if (snap != null && snap.exists()) {
                         Object st = snap.get("status"); String status = st == null ? "" : String.valueOf(st).toLowerCase();
@@ -668,8 +698,8 @@ public class MeActivity extends AppCompatActivity {
                     if (e != null || snaps == null) return;
                     if (!snaps.isEmpty()) { prefs.edit().putBoolean("IS_HOST", true).putBoolean("HOST_ACTIVE", true).apply(); applyRoleVisibility(); }
                 });
-                if (!my9DigitId.isEmpty()) {
-                    db.collection("hosts").document(my9DigitId).addSnapshotListener((snap, e) -> {
+                if (!myAnyId.isEmpty()) {
+                    db.collection("hosts").document(myAnyId).addSnapshotListener((snap, e) -> {
                         if (e != null) return;
                         if (snap != null && snap.exists()) { prefs.edit().putBoolean("IS_HOST", true).putBoolean("HOST_ACTIVE", true).apply(); applyRoleVisibility(); }
                     });
@@ -719,7 +749,7 @@ public class MeActivity extends AppCompatActivity {
         return row;
     }
     private void goProfile() {
-        try { Intent i = new Intent(MeActivity.this, PublicProfileActivity.class); i.putExtra("TARGET_9DIGIT_ID", my9DigitId); i.putExtra("TARGET_NAME", prefs.getString("USER_NAME", "User")); startActivity(i); }
+        try { Intent i = new Intent(MeActivity.this, PublicProfileActivity.class); i.putExtra("TARGET_ANY_ID", myAnyId); i.putExtra("TARGET_9DIGIT_ID", myAnyId); i.putExtra("TARGET_NAME", prefs.getString("USER_NAME", "User")); startActivity(i); }
         catch (Exception e) { Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show(); }
     }
     private void showCountDialog(String type, String count) { new AlertDialog.Builder(this).setTitle(type + " - " + count).setMessage("Your " + type + " list will appear here.\n\nOnly you can see this.").setPositiveButton("OK", null).show(); }
@@ -734,9 +764,9 @@ public class MeActivity extends AppCompatActivity {
     private void showFromPrefs() {
         String name = prefs.getString("USER_NAME", "User"); String photo = prefs.getString("USER_PHOTO", "");
         if (photo.isEmpty()) photo = prefs.getString("PROFILE_PHOTO", "");
-        my9DigitId = prefs.getString("MY_9_DIGIT_ID", my9DigitId); myVipLevel = prefs.getInt("VIP_LEVEL", 0);
+        myAnyId = getMyAnyIdFromPrefs(); myVipLevel = prefs.getInt("VIP_LEVEL", 0);
         if (txtName != null) txtName.setText(name);
-        if (txtId != null) txtId.setText("ID: " + my9DigitId);
+        if (txtId != null) txtId.setText("ID: " + myAnyId);
         if (txtGenderCountry != null) txtGenderCountry.setText(getGenderCountryText());
         updateVipUI(); showPhoto(photo, imgAvatar);
     }
@@ -745,11 +775,25 @@ public class MeActivity extends AppCompatActivity {
         userRef.addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 try {
-                    if (!snap.exists()) return;
+                    if (!snap.exists()) {
+                        // users/{ANY ID} na paile users/{UID} try koro - ANY ID key alada hoite pare
+                        if (!firebaseUid.isEmpty() && !firebaseUid.equals(myAnyId)) {
+                            userRef = FirebaseDatabase.getInstance().getReference("users").child(firebaseUid);
+                            rtdbListenerStarted = false;
+                            loadMeData();
+                        }
+                        return;
+                    }
                     String name = getStr(snap, "name", prefs.getString("USER_NAME", "User"));
-                    String id = getStr(snap, "my9DigitId", my9DigitId);
-                    if (id.isEmpty()) id = getStr(snap, "idNumber", my9DigitId);
-                    if (id.isEmpty()) id = getStr(snap, "nineDigitId", my9DigitId);
+                    // ANY ID - sob field theke try koro
+                    String id = getStr(snap, "anyId", "");
+                    if (id.isEmpty()) id = getStr(snap, "myId", "");
+                    if (id.isEmpty()) id = getStr(snap, "idNumber", "");
+                    if (id.isEmpty()) id = getStr(snap, "my9DigitId", "");
+                    if (id.isEmpty()) id = getStr(snap, "nineDigitId", "");
+                    if (id.isEmpty()) id = getStr(snap, "srId", "");
+                    if (id.isEmpty()) id = getStr(snap, "userId", "");
+                    if (id.isEmpty()) id = snap.getKey() == null ? myAnyId : snap.getKey();
                     String country = getStr(snap, "country", prefs.getString("USER_COUNTRY", ""));
                     String gender = getStr(snap, "gender", prefs.getString("USER_GENDER", ""));
                     String photo = getStr(snap, "photoUrl", "");
@@ -775,7 +819,7 @@ public class MeActivity extends AppCompatActivity {
                     String hostAgencyName = getStr(snap, "hostAgencyName", "");
                     boolean agencyActive = isAgency && !"blocked".equals(agencyStatus) && !"rejected".equals(agencyStatus);
                     boolean hostActive = isHost && !"blocked".equals(hostStatus) && !"rejected".equals(hostStatus);
-                    if (!id.isEmpty()) { my9DigitId = id; prefs.edit().putString("MY_9_DIGIT_ID", id).apply(); }
+                    if (!id.isEmpty()) { saveMyAnyId(id); }
                     prefs.edit().putString("USER_NAME", name).putString("USER_COUNTRY", country).putString("USER_GENDER", gender)
                         .putString("USER_PHOTO", photo).putString("PROFILE_PHOTO", photo)
                         .putBoolean("RTDB_IS_AGENCY", isAgency).putBoolean("RTDB_IS_HOST", isHost)
@@ -785,7 +829,7 @@ public class MeActivity extends AppCompatActivity {
                         .putString("HOST_AGENCY_ID", agencyIdForHost).putString("HOST_AGENCY_NAME", hostAgencyName)
                         .putString("USER_ROLE", role).putInt("VIP_LEVEL", vip).apply();
                     if (txtName != null) txtName.setText(name);
-                    if (txtId != null) txtId.setText("ID: " + my9DigitId);
+                    if (txtId != null) txtId.setText("ID: " + myAnyId);
                     if (txtGenderCountry != null) txtGenderCountry.setText(getGenderCountryText());
                     if (txtFollow != null) txtFollow.setText(followCount);
                     if (txtFans != null) txtFans.setText(fansCount);
@@ -807,7 +851,7 @@ public class MeActivity extends AppCompatActivity {
     }
     private void acceptHostInvite(String agencyId, String agencyName) {
         if (firebaseUid.isEmpty()) return;
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(my9DigitId.isEmpty() ? firebaseUid : my9DigitId);
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(myAnyId.isEmpty() ? firebaseUid : myAnyId);
         ref.child("isHost").setValue(true); ref.child("hostStatus").setValue("active"); ref.child("role").setValue("host");
         ref.child("hostAgencyId").setValue(agencyId); ref.child("hostAgencyName").setValue(agencyName);
         ref.child("pendingHostInvite").setValue(false); ref.child("pendingAgencyId").setValue(null); ref.child("pendingAgencyName").setValue(null);
@@ -824,7 +868,7 @@ public class MeActivity extends AppCompatActivity {
     }
     private void rejectHostInvite() {
         if (firebaseUid.isEmpty()) return;
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(my9DigitId.isEmpty() ? firebaseUid : my9DigitId);
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(myAnyId.isEmpty() ? firebaseUid : myAnyId);
         ref.child("pendingHostInvite").setValue(false); ref.child("pendingAgencyId").setValue(null); ref.child("pendingAgencyName").setValue(null);
         Toast.makeText(this, "Invite Reject kora hoyeche", Toast.LENGTH_SHORT).show();
     }
