@@ -8,6 +8,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
@@ -18,6 +19,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -34,6 +36,11 @@ public class HomeActivity extends AppCompatActivity {
     private RoomGridAdapter roomGridAdapter;
     private DatabaseReference activeRoomsRef, roomsRef;
     private SharedPreferences prefs;
+    // ===== PREMIUM PERMANENT - PULL TO REFRESH =====
+    private SwipeRefreshLayout swipeRefresh = null;
+    private ValueEventListener activeRoomsListener = null;
+    private boolean roomsListenerStarted = false;
+    private boolean isRefreshingManual = false;
 
     private BroadcastReceiver profileReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
@@ -58,7 +65,10 @@ public class HomeActivity extends AppCompatActivity {
         roomGridView = findViewById(R.id.roomGridView);
         roomModelList = new ArrayList<>();
         roomGridAdapter = new RoomGridAdapter(this, roomModelList);
-        if (roomGridView != null) roomGridView.setAdapter(roomGridAdapter);
+        if (roomGridView != null) roomGridAdapter.setAdapter(roomGridAdapter);
+
+        // ===== FIX - PULL TO REFRESH - XML Change Lagbe Na - Code Diye Wrap Korlam - Premium =====
+        setupPullToRefresh();
 
         try {
             IntentFilter filter = new IntentFilter("com.sr.voicechat.PROFILE_UPDATED");
@@ -85,17 +95,62 @@ public class HomeActivity extends AppCompatActivity {
                 }
             });
         }
-        if (btnHomeTab != null) btnHomeTab.setOnClickListener(v -> Toast.makeText(this, "Home", Toast.LENGTH_SHORT).show());
+        if (btnHomeTab != null) btnHomeTab.setOnClickListener(v -> {
+            // FIX - Home Tab e click korle o Refresh hobe
+            doManualRefresh();
+            Toast.makeText(this, "Home", Toast.LENGTH_SHORT).show();
+        });
         if (btnInboxTab != null) btnInboxTab.setOnClickListener(v -> { Intent intent = new Intent(HomeActivity.this, InboxActivity.class); startActivity(intent); });
         if (btnMeTab != null) btnMeTab.setOnClickListener(v -> { Intent intent = new Intent(HomeActivity.this, MeActivity.class); startActivity(intent); });
-        // Moment ager motoi thaklo - Permanent
         if (btnMomentTab != null) btnMomentTab.setOnClickListener(v -> Toast.makeText(this, "SR Moments Coming Soon!", Toast.LENGTH_SHORT).show());
-        // GAME REMOVED FROM HOME - Game ekhon sudhu Room er vitore thakbe
+    }
+
+    // ===== PULL TO REFRESH - GridView ke SwipeRefreshLayout diye wrap =====
+    private void setupPullToRefresh(){
+        try{
+            ViewGroup root = findViewById(android.R.id.content);
+            if(root==null || root.getChildCount()==0) return;
+            View content = root.getChildAt(0);
+            // Age theke wrap kora thakle abar korbo na
+            if(content instanceof SwipeRefreshLayout) { swipeRefresh=(SwipeRefreshLayout)content; return; }
+            root.removeView(content);
+            swipeRefresh = new SwipeRefreshLayout(this);
+            swipeRefresh.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            // Premium Color - Gold / Purple
+            swipeRefresh.setColorSchemeColors(0xFFFFD700, 0xFFFF4081, 0xFF7B1FA2, 0xFF00BCD4);
+            swipeRefresh.addView(content, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+            root.addView(swipeRefresh);
+            swipeRefresh.setOnRefreshListener(() -> doManualRefresh());
+        }catch(Exception ignored){}
+    }
+    private void doManualRefresh(){
+        if(swipeRefresh!=null && !swipeRefresh.isRefreshing()) swipeRefresh.setRefreshing(true);
+        isRefreshingManual = true;
+        // Single fetch - Listener double hobe na
+        activeRoomsRef.addListenerForSingleValueEvent(new ValueEventListener(){
+            @Override public void onDataChange(@NonNull DataSnapshot snapshot){
+                applyRoomsSnapshot(snapshot);
+                stopRefresh();
+            }
+            @Override public void onCancelled(@NonNull DatabaseError error){ stopRefresh(); }
+        });
+        // 3 sec poreo jodi atke thake - force stop
+        if(roomGridView!=null) roomGridView.postDelayed(this::stopRefresh, 3000);
+    }
+    private void stopRefresh(){
+        isRefreshingManual = false;
+        if(swipeRefresh!=null && swipeRefresh.isRefreshing()) swipeRefresh.setRefreshing(false);
     }
 
     @Override protected void onDestroy() {
         super.onDestroy();
         try { unregisterReceiver(profileReceiver); } catch (Exception ignored) {}
+        try { if(activeRoomsRef!=null && activeRoomsListener!=null) activeRoomsRef.removeEventListener(activeRoomsListener); } catch(Exception ignored){}
+    }
+    @Override protected void onResume(){
+        super.onResume();
+        // FIX - Home e firle auto refresh - Room list purano thakbe na
+        if(!isRefreshingManual) loadActiveRooms();
     }
 
     private void checkAndCreateRoom() {
@@ -139,6 +194,11 @@ public class HomeActivity extends AppCompatActivity {
             roomMetaRef.child("roomOwnerImage").setValue(userImage);
             roomMetaRef.child("roomOwnerId").setValue(myId);
             roomMetaRef.child("roomId").setValue(myId);
+            // FIX - Permanent - Create er somoy announcement/theme/label o save - pore Room Set e khali dekhabe na
+            roomMetaRef.child("announcement").setValue(roomBio);
+            roomMetaRef.child("theme").setValue("Default");
+            roomMetaRef.child("roomLabel").setValue("Friends");
+            roomMetaRef.child("roomPhoto").setValue(userImage);
             DatabaseReference singleActiveRoomRef = activeRoomsRef.child(myId);
             singleActiveRoomRef.child("roomOwnerId").setValue(myId);
             singleActiveRoomRef.child("roomId").setValue(myId);
@@ -153,30 +213,44 @@ public class HomeActivity extends AppCompatActivity {
         builder.show();
     }
 
+    // ===== FIX - Listener 1 bar e - Bar bar add hobe na =====
     private void loadActiveRooms() {
-        activeRoomsRef.addValueEventListener(new ValueEventListener() {
+        if(roomsListenerStarted) {
+            // Already listening - manual refresh chaile single fetch korbe
+            if(isRefreshingManual) return;
+            return;
+        }
+        roomsListenerStarted = true;
+        activeRoomsListener = new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snapshot) {
-                roomModelList.clear();
-                for (DataSnapshot child : snapshot.getChildren()) {
-                    String ownerId = child.child("roomOwnerId").getValue(String.class);
-                    if (ownerId == null) ownerId = child.getKey();
-                    String roomName = child.child("roomName").getValue(String.class);
-                    String roomBio = child.child("roomBio").getValue(String.class);
-                    String roomImage = child.child("roomOwnerImage").getValue(String.class);
-                    if (ownerId != null) {
-                        RoomModel rm = new RoomModel(ownerId, roomName, roomBio, roomImage);
-                        roomModelList.add(rm);
-                        refreshRoomImage(rm);
-                    }
-                }
-                roomGridAdapter.notifyDataSetChanged();
+                applyRoomsSnapshot(snapshot);
+                stopRefresh();
             }
-            @Override public void onCancelled(@NonNull DatabaseError error) {}
-        });
+            @Override public void onCancelled(@NonNull DatabaseError error) { stopRefresh(); }
+        };
+        activeRoomsRef.addValueEventListener(activeRoomsListener);
+    }
+    private void applyRoomsSnapshot(DataSnapshot snapshot){
+        roomModelList.clear();
+        for (DataSnapshot child : snapshot.getChildren()) {
+            String ownerId = child.child("roomOwnerId").getValue(String.class);
+            if (ownerId == null) ownerId = child.getKey();
+            String roomName = child.child("roomName").getValue(String.class);
+            String roomBio = child.child("roomBio").getValue(String.class);
+            String roomImage = child.child("roomOwnerImage").getValue(String.class);
+            if (roomName==null||roomName.isEmpty()) roomName = "Voice Room";
+            if (ownerId != null) {
+                RoomModel rm = new RoomModel(ownerId, roomName, roomBio, roomImage);
+                roomModelList.add(rm);
+                refreshRoomImage(rm);
+            }
+        }
+        if(roomGridAdapter!=null) roomGridAdapter.notifyDataSetChanged();
     }
 
     private void refreshRoomImage(RoomModel rm) {
         try {
+            // FIX - Jodi age theke image thake - khali diye overwrite korbo na
             FirebaseDatabase.getInstance().getReference("users")
                 .orderByChild("my9DigitId").equalTo(rm.getRoomOwnerId())
                 .addListenerForSingleValueEvent(new ValueEventListener() {
@@ -185,7 +259,7 @@ public class HomeActivity extends AppCompatActivity {
                             String fresh = null;
                             if (ds.child("photoUrl").getValue() != null) fresh = String.valueOf(ds.child("photoUrl").getValue());
                             if ((fresh == null || fresh.isEmpty()) && ds.child("photo").getValue() != null) fresh = String.valueOf(ds.child("photo").getValue());
-                            if (fresh != null && !fresh.isEmpty() && !fresh.equals(rm.getRoomImage())) {
+                            if (fresh != null && !fresh.isEmpty() && !fresh.equals("null") && !fresh.equals(rm.getRoomImage())) {
                                 rm.setRoomImage(fresh);
                                 if (roomGridAdapter != null) roomGridAdapter.notifyDataSetChanged();
                             }
