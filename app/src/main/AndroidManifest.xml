@@ -78,8 +78,17 @@
         <!-- PRIVATE CHAT - GLOBAL FRIEND / FOLLOW / SMS - EITA NA THAKLE BUILD FAIL KORTO -->
         <activity android:name=".PrivateChatActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
 
-        <!-- SELLER BUSINESS WALLET - NEW - PERMANENT - ONLY SELLER SEES - SELLER CANNOT CREATE COINS - ANY ID -->
+        <!-- SELLER BUSINESS WALLET - NEW - PERMANENT - ONLY SELLER SEES - SELLER CANNOT CREATE COINS - PROFILE ID ONLY -->
         <activity android:name=".SellerBusinessWalletActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
+
+        <!-- SUPER PANEL LOGIN - ADDED - MeActivity Avatar Long Press - EITA NA THAKLE CRASH KORTO -->
+        <activity android:name=".SuperPanelLoginActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
+
+        <!-- HOST CENTER - ADDED - MeActivity Host Center - EITA NA THAKLE CRASH KORTO -->
+        <activity android:name=".HostCenterActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
+
+        <!-- HOST POLICY - ADDED - Host Center Backup - EITA NA THAKLE CRASH KORTO -->
+        <activity android:name=".HostPolicyActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
 
     </application>
 </manifest>
