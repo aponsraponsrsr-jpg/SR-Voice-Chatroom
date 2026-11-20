@@ -49,6 +49,11 @@ public class PublicProfileActivity extends AppCompatActivity {
     private ValueEventListener userListener = null;
     private DatabaseReference userQueryRef = null;
     private boolean profileTabBuilt = false;
+    // ===== LEVEL 1-150 - LevelUtils ONLY - Me + VoiceRoom SAME - NEW GORGEOUS COLOR =====
+    private int myWealthLevel = 1;
+    private int myCharmLevel = 1;
+    private long myTotalSending = 0;
+    private long myTotalReceiving = 0;
 
     private BroadcastReceiver profileReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
@@ -56,6 +61,47 @@ public class PublicProfileActivity extends AppCompatActivity {
             loadUser();
         }
     };
+
+    private long getLongVal(DataSnapshot s, String k){ try{ Object v=s.child(k).getValue(); if(v==null) return 0; if(v instanceof Number) return ((Number)v).longValue(); return Long.parseLong(String.valueOf(v).replace(",","").trim()); }catch(Exception e){ return 0; } }
+
+    // ===== LEVEL BADGE - 150 + NEW COLOR - SOB JAYGAY EKI =====
+    private void updateLevelBadge(){
+        if(txtLevelBadge==null) return;
+        txtLevelBadge.setText("  ⭐ Wealth Lv."+myWealthLevel+" • 💎 Charm Lv."+myCharmLevel+" • "+LevelUtils.getLevelTitle(myWealthLevel)+"  ");
+        txtLevelBadge.setTextColor(Color.WHITE);
+        GradientDrawable bg=new GradientDrawable();
+        bg.setColors(LevelUtils.getLevelColors(myWealthLevel));
+        bg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT);
+        bg.setCornerRadius(30);
+        txtLevelBadge.setBackground(bg);
+        txtLevelBadge.setOnClickListener(v->showLevelDialog());
+    }
+    private void showLevelDialog(){
+        try{
+            androidx.appcompat.app.AlertDialog.Builder b=new androidx.appcompat.app.AlertDialog.Builder(this);
+            ScrollView sv=new ScrollView(this); sv.setPadding(24,24,24,24); sv.setBackgroundColor(Color.parseColor("#0A0518"));
+            LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); sv.addView(root);
+            TextView title=new TextView(this); title.setText("⭐ Level - 1 to 150"); title.setTextColor(Color.WHITE); title.setTextSize(22); title.setTypeface(null,Typeface.BOLD); title.setGravity(Gravity.CENTER); title.setPadding(0,0,0,16); root.addView(title);
+            root.addView(makeLevelCard("💰 Wealth Level", myWealthLevel, myTotalSending, "Sending"));
+            root.addView(makeLevelCard("💎 Charm Level", myCharmLevel, myTotalReceiving, "Receiving"));
+            b.setView(sv); b.setPositiveButton("Close",null); b.show();
+        }catch(Exception e){ Toast.makeText(this,"Level - Coming Soon",Toast.LENGTH_SHORT).show(); }
+    }
+    private LinearLayout makeLevelCard(String label,int lvl,long exp,String type){
+        LinearLayout card=new LinearLayout(this); card.setOrientation(LinearLayout.VERTICAL); card.setPadding(28,24,28,24);
+        GradientDrawable bg=new GradientDrawable(); bg.setColors(LevelUtils.getLevelColors(lvl)); bg.setOrientation(GradientDrawable.Orientation.TL_BR); bg.setCornerRadius(28); card.setBackground(bg);
+        LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT); lp.setMargins(0,0,0,16); card.setLayoutParams(lp);
+        TextView t1=new TextView(this); t1.setText(label); t1.setTextColor(Color.WHITE); t1.setTextSize(18); t1.setTypeface(null,Typeface.BOLD); card.addView(t1);
+        TextView t2=new TextView(this); t2.setText("Lv."+lvl+" • "+LevelUtils.getLevelTitle(lvl)); t2.setTextColor(Color.WHITE); t2.setTextSize(15); t2.setTypeface(null,Typeface.BOLD); card.addView(t2);
+        TextView t3=new TextView(this); t3.setText(type+": "+LevelUtils.formatCoins(exp)+" • Target: "+LevelUtils.getLevelTargetCoinsFormatted(lvl)); t3.setTextColor(Color.WHITE); t3.setTextSize(13); card.addView(t3);
+        int pct = LevelUtils.getLevelProgressPercent(lvl, exp);
+        android.widget.ProgressBar pb=new android.widget.ProgressBar(this,null,android.R.attr.progressBarStyleHorizontal); pb.setMax(100); pb.setProgress(pct); pb.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,28)); card.addView(pb);
+        TextView t4=new TextView(this);
+        if(lvl>=150) t4.setText("MAX LEVEL 👑 - Legend 150!");
+        else t4.setText("Next Lv."+(lvl+1)+" - Need "+LevelUtils.formatCoins(LevelUtils.getCoinsToNextLevel(lvl,exp))+" • "+pct+"%");
+        t4.setTextColor(Color.WHITE); t4.setTextSize(12); card.addView(t4);
+        return card;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +114,13 @@ public class PublicProfileActivity extends AppCompatActivity {
         targetId = getIntent().getStringExtra("TARGET_9DIGIT_ID");
         if (targetId == null || targetId.isEmpty()) targetId = myId;
         boolean isMine = targetId.equals(myId);
+        // Cached Level - 1-150 - 0 ar asbe na
+        try{ myWealthLevel = Integer.parseInt(prefs.getString("CACHED_LEVEL_" + targetId, "1")); }catch(Exception e){ myWealthLevel=1; }
+        if(myWealthLevel<1) myWealthLevel=1; if(myWealthLevel>150) myWealthLevel=150;
+        try{ myCharmLevel = Integer.parseInt(prefs.getString("CACHED_CHARM_" + targetId, "1")); }catch(Exception e){ myCharmLevel=1; }
+        if(myCharmLevel<1) myCharmLevel=1; if(myCharmLevel>150) myCharmLevel=150;
+        myTotalSending = prefs.getLong("CACHED_SENDING_" + targetId, 0);
+        myTotalReceiving = prefs.getLong("CACHED_RECEIVING_" + targetId, 0);
 
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
@@ -166,7 +219,6 @@ public class PublicProfileActivity extends AppCompatActivity {
         nameBox.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
         topRow.addView(nameBox);
 
-        // FIXED - Loading... Uthay dilam. Cached name instantly dekhabe
         txtName = new TextView(this);
         txtName.setText(getCachedName());
         txtName.setTextSize(20);
@@ -186,13 +238,14 @@ public class PublicProfileActivity extends AppCompatActivity {
         nameBox.addView(txtId);
 
         txtLevelBadge = new TextView(this);
-        txtLevelBadge.setText("  Level " + prefs.getString("CACHED_LEVEL_" + targetId, "0") + "  ");
-        txtLevelBadge.setTextColor(Color.parseColor("#FFD700"));
+        txtLevelBadge.setText("  ⭐ Wealth Lv."+myWealthLevel+" • 💎 Charm Lv."+myCharmLevel+"  ");
+        txtLevelBadge.setTextColor(Color.WHITE);
         txtLevelBadge.setTextSize(12);
         txtLevelBadge.setTypeface(null, Typeface.BOLD);
         txtLevelBadge.setPadding(18, 8, 18, 8);
         GradientDrawable lbg = new GradientDrawable();
-        lbg.setColor(Color.parseColor("#1A1A1A"));
+        lbg.setColors(LevelUtils.getLevelColors(myWealthLevel));
+        lbg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT);
         lbg.setCornerRadius(30);
         txtLevelBadge.setBackground(lbg);
         LinearLayout.LayoutParams lbLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -291,12 +344,10 @@ public class PublicProfileActivity extends AppCompatActivity {
                 registerReceiver(profileReceiver, filter);
             }
         } catch (Exception ignored) {}
-        // STRONG - Prothome cached dekhabe, tarpor background e Firebase update korbe
         showCachedInstantly();
         loadUser();
     }
 
-    // STRONG CACHE SYSTEM - Kokhono Loading... dekhabe na
     private String getCachedName() {
         if (targetId.equals(myId)) {
             String n = prefs.getString("USER_NAME", "");
@@ -322,11 +373,11 @@ public class PublicProfileActivity extends AppCompatActivity {
             txtName.setText(cached);
             user.name = cached;
         }
-        // Cached photo instantly
         String cachedPhoto = "";
         if (targetId.equals(myId)) cachedPhoto = prefs.getString("USER_PHOTO", "");
         else cachedPhoto = prefs.getString("CACHED_PHOTO_" + targetId, "");
         if (!cachedPhoto.isEmpty() && imgAvatar != null) showPhoto(cachedPhoto, imgAvatar);
+        updateLevelBadge();
     }
 
     @Override protected void onDestroy() {
@@ -441,7 +492,7 @@ public class PublicProfileActivity extends AppCompatActivity {
         LinearLayout row1 = new LinearLayout(this);
         row1.setOrientation(LinearLayout.HORIZONTAL);
         tabProfileContent.addView(row1);
-        row1.addView(makeBadgeCard("🏷️", "Nameplate", "Level " + user.level, 1));
+        row1.addView(makeBadgeCard("🏷️", "Nameplate", "Lv."+myWealthLevel+" • "+LevelUtils.getLevelTitle(myWealthLevel), 1));
         row1.addView(makeBadgeCard("💎", "Supporter", user.supporterName.isEmpty() ? "No supporter yet" : user.supporterName, 1));
         LinearLayout row2 = new LinearLayout(this);
         row2.setOrientation(LinearLayout.HORIZONTAL);
@@ -454,6 +505,8 @@ public class PublicProfileActivity extends AppCompatActivity {
         row3.addView(makeBadgeCard("🎩", "Headwear (" + user.headwearCount + ")", headwearText, 1));
         row3.addView(makeBadgeCard("🚗", "Car (" + user.carCount + ")", "View >", 1));
         addProfileRow(tabProfileContent, "🎁 Gift (" + user.giftCount + ")", "All gifts - Dollar is Private");
+        addProfileRow(tabProfileContent, "⭐ Wealth Level", "Lv."+myWealthLevel+" • "+LevelUtils.getLevelTitle(myWealthLevel)+" • Sending: "+LevelUtils.formatCoins(myTotalSending));
+        addProfileRow(tabProfileContent, "💎 Charm Level", "Lv."+myCharmLevel+" • "+LevelUtils.getLevelTitle(myCharmLevel)+" • Receiving: "+LevelUtils.formatCoins(myTotalReceiving));
     }
 
     private LinearLayout makeBadgeCard(String icon, String title, String value, int weight) {
@@ -659,14 +712,12 @@ public class PublicProfileActivity extends AppCompatActivity {
     }
 
     private void loadUser() {
-        // 1. Instant cache - kokhono khali / Loading dekhabe na
         showCachedInstantly();
         if (userListener != null && userQueryRef != null) {
             try { userQueryRef.removeEventListener(userListener); } catch (Exception ignored) {}
         }
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users");
         userQueryRef = ref.orderByChild("my9DigitId").equalTo(targetId).getRef();
-        // Real-Time Listener - SingleValue na, ValueEventListener - naam change hole sathe sathe update hobe
         userListener = new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 if (!snap.exists()) return;
@@ -697,7 +748,18 @@ public class PublicProfileActivity extends AppCompatActivity {
                     if (ds.child("coverUrl").getValue() != null) coverUrl = String.valueOf(ds.child("coverUrl").getValue());
                     if (coverUrl.isEmpty() && ds.child("coverPhoto").getValue() != null) coverUrl = String.valueOf(ds.child("coverPhoto").getValue());
                     if (coverUrl.isEmpty() && ds.child("coverImage").getValue() != null) coverUrl = String.valueOf(ds.child("coverImage").getValue());
-                    if (ds.child("level").getValue() != null) user.level = String.valueOf(ds.child("level").getValue());
+                    // ===== LEVEL 1-150 - LevelUtils - Sending / Receiving theke - Purano level field keo recalc diye override =====
+                    myTotalSending = Math.max(getLongVal(ds,"sending"), getLongVal(ds,"totalSending"));
+                    myTotalReceiving = Math.max(getLongVal(ds,"receiving"), getLongVal(ds,"totalReceiving"));
+                    myTotalReceiving = Math.max(myTotalReceiving, Math.max(getLongVal(ds,"targetCoins"), getLongVal(ds,"totalTargetCoins")));
+                    myWealthLevel = LevelUtils.calculateWealthLevel(myTotalSending);
+                    myCharmLevel = LevelUtils.calculateCharmLevel(myTotalReceiving);
+                    // Firebase e purano wealthLevel thakle - boro ta nibo
+                    if(getLongVal(ds,"wealthLevel") > myWealthLevel) myWealthLevel = (int) getLongVal(ds,"wealthLevel");
+                    if(getLongVal(ds,"charmLevel") > myCharmLevel) myCharmLevel = (int) getLongVal(ds,"charmLevel");
+                    if(myWealthLevel<1) myWealthLevel=1; if(myWealthLevel>150) myWealthLevel=150;
+                    if(myCharmLevel<1) myCharmLevel=1; if(myCharmLevel>150) myCharmLevel=150;
+                    user.level = String.valueOf(myWealthLevel);
                     if (ds.child("giftCount").getValue() != null) user.giftCount = String.valueOf(ds.child("giftCount").getValue());
                     if (ds.child("followCount").getValue() != null) user.followCount = String.valueOf(ds.child("followCount").getValue());
                     if (ds.child("fansCount").getValue() != null) user.fansCount = String.valueOf(ds.child("fansCount").getValue());
@@ -718,8 +780,8 @@ public class PublicProfileActivity extends AppCompatActivity {
                 }
                 if (user.name == null || user.name.isEmpty()) user.name = getCachedName();
                 txtName.setText(user.name + "  " + user.getFlag() + "  " + user.getGenderIcon());
-                txtId.setText("ID: " + targetId + "  •  Level " + user.level + "  •  " + user.country + "  📋");
-                if (txtLevelBadge != null) txtLevelBadge.setText("  Level " + user.level + "  ");
+                txtId.setText("ID: " + targetId + "  •  Wealth Lv." + myWealthLevel + " • Charm Lv." + myCharmLevel + "  •  " + user.country + "  📋");
+                updateLevelBadge();
                 txtFollow.setText(user.followCount);
                 txtFans.setText(user.fansCount);
                 txtVisitor.setText(user.visitorCount);
@@ -730,11 +792,13 @@ public class PublicProfileActivity extends AppCompatActivity {
                     if (targetId.equals(myId)) prefs.edit().putString("USER_PHOTO", finalPhoto).putString("PROFILE_PHOTO", finalPhoto).apply();
                     else prefs.edit().putString("CACHED_PHOTO_" + targetId, finalPhoto).apply();
                 }
-                // STRONG CACHE - Porer bar khulle sathe sathe ei naam dekhabe, Loading nibe na
                 SharedPreferences.Editor ed = prefs.edit();
                 if (targetId.equals(myId)) ed.putString("USER_NAME", user.name);
                 else ed.putString("CACHED_NAME_" + targetId, user.name);
-                ed.putString("CACHED_LEVEL_" + targetId, user.level);
+                ed.putString("CACHED_LEVEL_" + targetId, String.valueOf(myWealthLevel));
+                ed.putString("CACHED_CHARM_" + targetId, String.valueOf(myCharmLevel));
+                ed.putLong("CACHED_SENDING_" + targetId, myTotalSending);
+                ed.putLong("CACHED_RECEIVING_" + targetId, myTotalReceiving);
                 ed.putString("CACHED_FOLLOW_" + targetId, user.followCount);
                 ed.putString("CACHED_FANS_" + targetId, user.fansCount);
                 ed.putString("CACHED_VISITOR_" + targetId, user.visitorCount);
@@ -749,7 +813,6 @@ public class PublicProfileActivity extends AppCompatActivity {
                         if (targetId.equals(myId)) prefs.edit().putString("HEADWEAR_IMAGE", headwearImage).putString("HEADWEAR_NAME", headwearName).apply();
                     } catch (Exception ignored) {}
                 }
-                // Tab rebuild - sudhu 1 bar na, name change holeo update hobe kintu flicker korbe na
                 if (tabProfileContent != null) {
                     tabProfileContent.removeAllViews();
                     buildProfileTab();
