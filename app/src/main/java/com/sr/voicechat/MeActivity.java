@@ -61,6 +61,13 @@ public class MeActivity extends AppCompatActivity {
     private TextView txtVipStatus;
     private int myVipLevel = 0;
 
+    // ===== SELLER BUSINESS WALLET - NEW - PERMANENT =====
+    private LinearLayout sellerWalletBox = null;
+    private TextView txtSellerBalance = null;
+    private boolean isSellerActive = false;
+    private long sellerBusinessCoins = 0;
+    private boolean sellerListenerStarted = false;
+
     private BroadcastReceiver profileReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             showFromPrefs();
@@ -253,6 +260,51 @@ public class MeActivity extends AppCompatActivity {
         walletArrow.setTextSize(13);
         walletArrow.setTypeface(null, Typeface.BOLD);
         walletBox.addView(walletArrow);
+
+        // ===== SELLER BUSINESS WALLET BOX - ONLY SELLER SEES =====
+        sellerWalletBox = new LinearLayout(this);
+        sellerWalletBox.setOrientation(LinearLayout.HORIZONTAL);
+        sellerWalletBox.setGravity(Gravity.CENTER_VERTICAL);
+        sellerWalletBox.setPadding(28, 24, 28, 24);
+        GradientDrawable sellerBg = new GradientDrawable();
+        sellerBg.setColors(new int[]{Color.parseColor("#00C853"), Color.parseColor("#00796B")});
+        sellerBg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT);
+        sellerBg.setCornerRadius(24);
+        sellerWalletBox.setBackground(sellerBg);
+        LinearLayout.LayoutParams sellerLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        sellerLp.setMargins(0, 0, 0, 14);
+        sellerWalletBox.setLayoutParams(sellerLp);
+        sellerWalletBox.setVisibility(View.GONE); // Default GONE - Normal user never sees
+        sellerWalletBox.setOnClickListener(v -> {
+            if (!isSellerActive) return;
+            Intent i = new Intent(MeActivity.this, SellerBusinessWalletActivity.class);
+            i.putExtra("SELLER_9DIGIT_ID", my9DigitId);
+            startActivity(i);
+        });
+        menuContainer.addView(sellerWalletBox);
+        LinearLayout sellerLeft = new LinearLayout(this);
+        sellerLeft.setOrientation(LinearLayout.VERTICAL);
+        sellerLeft.setLayoutParams(new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1));
+        sellerWalletBox.addView(sellerLeft);
+        TextView sellerTitle = new TextView(this);
+        sellerTitle.setText("🏪 Seller Business Wallet");
+        sellerTitle.setTextColor(Color.WHITE);
+        sellerTitle.setTextSize(16);
+        sellerTitle.setTypeface(null, Typeface.BOLD);
+        sellerLeft.addView(sellerTitle);
+        txtSellerBalance = new TextView(this);
+        txtSellerBalance.setText("Business Coins: 0");
+        txtSellerBalance.setTextColor(Color.WHITE);
+        txtSellerBalance.setTextSize(14);
+        txtSellerBalance.setTypeface(null, Typeface.BOLD);
+        sellerLeft.addView(txtSellerBalance);
+        TextView sellerArrow = new TextView(this);
+        sellerArrow.setText("Sell Coins  >");
+        sellerArrow.setTextColor(Color.WHITE);
+        sellerArrow.setTextSize(13);
+        sellerArrow.setTypeface(null, Typeface.BOLD);
+        sellerWalletBox.addView(sellerArrow);
+
         LinearLayout vipRow = new LinearLayout(this);
         vipRow.setOrientation(LinearLayout.HORIZONTAL);
         LinearLayout.LayoutParams vipRowLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -377,9 +429,71 @@ public class MeActivity extends AppCompatActivity {
         } catch (Exception ignored) {}
         showFromPrefs();
         applyRoleVisibility();
+        applySellerVisibility();
         loadMeData();
         listenVipAssignments();
         listenFirestoreRole();
+        listenSellerStatus(); // NEW
+    }
+
+    // ===== SELLER LISTENER - checks sellers/{9DigitId} AND sellers/{firebaseUid} =====
+    private void listenSellerStatus() {
+        if (sellerListenerStarted) return;
+        sellerListenerStarted = true;
+        if (!my9DigitId.isEmpty()) {
+            FirebaseDatabase.getInstance().getReference("sellers").child(my9DigitId)
+                .addValueEventListener(new ValueEventListener() {
+                    @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                        if (snap.exists()) { applySellerSnap(snap); return; }
+                        listenSellerByFirebaseUid();
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError e) { listenSellerByFirebaseUid(); }
+                });
+        } else {
+            listenSellerByFirebaseUid();
+        }
+    }
+    private void listenSellerByFirebaseUid() {
+        if (firebaseUid.isEmpty() || firebaseUid.equals(my9DigitId)) return;
+        FirebaseDatabase.getInstance().getReference("sellers").child(firebaseUid)
+            .addValueEventListener(new ValueEventListener() {
+                @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                    if (snap.exists()) applySellerSnap(snap);
+                }
+                @Override public void onCancelled(@NonNull DatabaseError e) {}
+            });
+    }
+    private void applySellerSnap(DataSnapshot snap) {
+        try {
+            boolean isSeller = getBool(snap, "isSeller", false);
+            String status = getStr(snap, "status", "").toLowerCase();
+            // status: active = show, blocked / pending / rejected = hide
+            boolean active = isSeller && !"blocked".equals(status) && !"rejected".equals(status) && !"pending".equals(status);
+            long bal = 0;
+            try {
+                Object b = snap.child("businessCoins").getValue();
+                if (b != null) bal = Long.parseLong(String.valueOf(b));
+            } catch (Exception ignored) {}
+            // Also support businessBalance field name
+            if (bal == 0) {
+                try {
+                    Object b2 = snap.child("businessBalance").getValue();
+                    if (b2 != null) bal = Long.parseLong(String.valueOf(b2));
+                } catch (Exception ignored) {}
+            }
+            isSellerActive = active;
+            sellerBusinessCoins = bal;
+            prefs.edit().putBoolean("IS_SELLER", active).putLong("SELLER_BUSINESS_COINS", bal).apply();
+            applySellerVisibility();
+        } catch (Exception ignored) {}
+    }
+    private void applySellerVisibility() {
+        boolean show = prefs.getBoolean("IS_SELLER", false);
+        // Double check: if prefs says seller but live flag false, hide
+        if (!isSellerActive && sellerListenerStarted) show = false;
+        isSellerActive = show;
+        if (sellerWalletBox != null) sellerWalletBox.setVisibility(show ? View.VISIBLE : View.GONE);
+        if (txtSellerBalance != null) txtSellerBalance.setText("Business Coins: " + sellerBusinessCoins);
     }
 
     private void showVipListDialog() {
@@ -400,8 +514,6 @@ public class MeActivity extends AppCompatActivity {
             Toast.makeText(this, "VIP - Coming Soon", Toast.LENGTH_SHORT).show();
         }
     }
-
-    // FIXED - Panel Firebase UID te likhe, Me 9-Digit ID te khuje - ekhon 2 ta diyei khujbe
     private void listenVipAssignments() {
         if (vipAssignmentListenerStarted) return;
         vipAssignmentListenerStarted = true;
@@ -418,7 +530,6 @@ public class MeActivity extends AppCompatActivity {
             listenVipByFirebaseUid();
         }
     }
-
     private void listenVipByFirebaseUid() {
         if (firebaseUid.isEmpty() || firebaseUid.equals(my9DigitId)) return;
         FirebaseDatabase.getInstance().getReference("vip_assignments").child(firebaseUid)
@@ -429,7 +540,6 @@ public class MeActivity extends AppCompatActivity {
                 @Override public void onCancelled(@NonNull DatabaseError e) {}
             });
     }
-
     private void applyVipSnap(DataSnapshot snap) {
         try {
             String lvlStr = snap.child("vipLevel").getValue() == null ? "0" : String.valueOf(snap.child("vipLevel").getValue());
@@ -454,7 +564,6 @@ public class MeActivity extends AppCompatActivity {
             }
         } catch (Exception ignored) {}
     }
-
     private void updateVipUI() {
         if (txtVipBadge == null) return;
         if (myVipLevel >= 1 && myVipLevel <= 8) {
@@ -618,9 +727,10 @@ public class MeActivity extends AppCompatActivity {
         String g = prefs.getString("USER_GENDER", ""); String c = prefs.getString("USER_COUNTRY", ""); String base = "";
         if (!g.isEmpty() && !c.isEmpty()) base = g + " | " + c; else if (!c.isEmpty()) base = c; else if (!g.isEmpty()) base = g; else base = "Complete Your Profile";
         if (prefs.getBoolean("IS_AGENCY", false) && prefs.getBoolean("AGENCY_ACTIVE", false)) base = base + "  |  🏷️ AGENCY";
+        if (prefs.getBoolean("IS_SELLER", false)) base = base + "  |  🏪 SELLER";
         return base;
     }
-    @Override protected void onResume() { super.onResume(); showFromPrefs(); applyRoleVisibility(); loadMeData(); }
+    @Override protected void onResume() { super.onResume(); showFromPrefs(); applyRoleVisibility(); applySellerVisibility(); loadMeData(); }
     private void showFromPrefs() {
         String name = prefs.getString("USER_NAME", "User"); String photo = prefs.getString("USER_PHOTO", "");
         if (photo.isEmpty()) photo = prefs.getString("PROFILE_PHOTO", "");
