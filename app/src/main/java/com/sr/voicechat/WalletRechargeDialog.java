@@ -28,10 +28,16 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
 
     private TextView tvCoinBalance;
     private DatabaseReference userRef;
+    private DatabaseReference userRefProfileId;
     private ValueEventListener coinEventListener;
+    private ValueEventListener coinEventListenerProfileId;
     private SharedPreferences prefs;
 
-    // 5 Packages - Same as Demo
+    // UNIFIED WALLET - ANY DIGIT PROFILE ID - NO LENGTH CHECK - 2 / 5 / 9 / 10 / ANY - SOB CHOLBE
+    // Profile ID Dilei - Firebase Theke Auto UID Milbe - Tumi UID Likhba Na
+    private long balanceUidNode = 0;
+    private long balanceProfileNode = 0;
+
     private final long[] PACKAGE_COINS = {100000, 500000, 1000000, 5000000, 10000000};
     private final String[] PACKAGE_PRICES = {"USD 0.99", "USD 4.99", "USD 9.99", "USD 49.99", "USD 99.99"};
     private int selectedIndex = 0;
@@ -46,22 +52,35 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
         FirebaseUser fu = FirebaseAuth.getInstance().getCurrentUser();
         if (fu != null) firebaseUid = fu.getUid();
         if (firebaseUid == null || firebaseUid.isEmpty()) firebaseUid = prefs.getString("FIREBASE_UID", "");
-        String nineDigitId = prefs.getString("MY_9_DIGIT_ID", "");
-        if (nineDigitId == null) nineDigitId = "";
+        if (firebaseUid == null) firebaseUid = "";
 
-        if (firebaseUid != null && !firebaseUid.isEmpty()) {
+        // PROFILE ID - ANY DIGIT - NO LENGTH CHECK - KHALI CHECK SUDHU - LENGTH CHECK NAI
+        // Purano Key Gulao Pori - Jate Purano User Der ID Haray Na Jay
+        String profileId = prefs.getString("PROFILE_ID", "");
+        if (profileId == null || profileId.isEmpty()) profileId = prefs.getString("MY_9_DIGIT_ID", "");
+        if (profileId == null || profileId.isEmpty()) profileId = prefs.getString("MY_ID", "");
+        if (profileId == null || profileId.isEmpty()) profileId = prefs.getString("USER_PROFILE_ID", "");
+        if (profileId == null || profileId.isEmpty()) profileId = prefs.getString("DISPLAY_ID", "");
+        if (profileId == null) profileId = "";
+        profileId = profileId.trim();
+        // EKHANE KONO LENGTH CHECK NAI - 2 Digit Holeo Cholbe - 20 Digit Holeo Cholbe
+
+        if (!firebaseUid.isEmpty()) {
             userRef = FirebaseDatabase.getInstance().getReference().child("users").child(firebaseUid);
-        } else if (!nineDigitId.isEmpty()) {
-            userRef = FirebaseDatabase.getInstance().getReference().child("users").child(nineDigitId);
+        }
+        if (!profileId.isEmpty() && !profileId.equals(firebaseUid)) {
+            userRefProfileId = FirebaseDatabase.getInstance().getReference().child("users").child(profileId);
+        }
+        if (userRef == null && userRefProfileId != null) {
+            userRef = userRefProfileId;
+            userRefProfileId = null;
         }
 
-        // ===== ROOT - WHITE PREMIUM SHEET =====
         LinearLayout root = new LinearLayout(requireContext());
         root.setOrientation(LinearLayout.VERTICAL);
         root.setBackgroundColor(Color.WHITE);
         root.setPadding(28, 28, 28, 28);
 
-        // Top Bar - Back + Coins Title
         LinearLayout topBar = new LinearLayout(requireContext());
         topBar.setOrientation(LinearLayout.HORIZONTAL);
         topBar.setGravity(Gravity.CENTER_VERTICAL);
@@ -89,7 +108,6 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
         spacer.setText("   ");
         topBar.addView(spacer);
 
-        // Coins Balance Row - Like Demo
         LinearLayout coinsRow = new LinearLayout(requireContext());
         coinsRow.setOrientation(LinearLayout.HORIZONTAL);
         coinsRow.setGravity(Gravity.CENTER_VERTICAL);
@@ -109,7 +127,6 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
         tvCoinBalance.setTextColor(Color.BLACK);
         coinsRow.addView(tvCoinBalance);
 
-        // Detailed Bill
         TextView bill = new TextView(requireContext());
         bill.setText("Detailed Bill  >");
         bill.setTextSize(13);
@@ -117,7 +134,6 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
         bill.setPadding(10, 4, 10, 20);
         root.addView(bill);
 
-        // Recharge Label
         TextView rechargeLabel = new TextView(requireContext());
         rechargeLabel.setText("Recharge");
         rechargeLabel.setTextSize(17);
@@ -126,7 +142,6 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
         rechargeLabel.setPadding(10, 4, 10, 14);
         root.addView(rechargeLabel);
 
-        // ===== 5 PACKAGE BOXES - SEPARATE BANNERS =====
         for (int i = 0; i < 5; i++) {
             final int index = i;
             LinearLayout box = new LinearLayout(requireContext());
@@ -167,7 +182,6 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
         }
         updateSelection();
 
-        // ===== BIG CHARGE BUTTON - YELLOW =====
         TextView btnCharge = new TextView(requireContext());
         btnCharge.setText("Charge");
         btnCharge.setTextSize(17);
@@ -186,29 +200,55 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
         btnCharge.setOnClickListener(v -> showContactSeller());
         root.addView(btnCharge);
 
-        // Load Coins Live
         if (userRef != null) {
             coinEventListener = new ValueEventListener() {
                 @Override public void onDataChange(@NonNull DataSnapshot snap) {
                     if (!isAdded()) return;
-                    Long coins = null;
-                    if (snap.child("sendingCoins").getValue() != null) {
-                        try { coins = snap.child("sendingCoins").getValue(Long.class); } catch (Exception ignored) {}
-                    }
-                    if (coins == null && snap.child("coins").getValue() != null) {
-                        try { coins = snap.child("coins").getValue(Long.class); } catch (Exception ignored) {}
-                    }
-                    if (coins == null && snap.child("walletCoins").getValue() != null) {
-                        try { coins = snap.child("walletCoins").getValue(Long.class); } catch (Exception ignored) {}
-                    }
-                    if (tvCoinBalance != null) tvCoinBalance.setText(coins != null ? String.format("%,d", coins) : "0");
+                    balanceUidNode = readWalletBalance(snap);
+                    refreshBalanceUI();
                 }
                 @Override public void onCancelled(@NonNull DatabaseError e) {}
             };
             userRef.addValueEventListener(coinEventListener);
         }
+        if (userRefProfileId != null) {
+            coinEventListenerProfileId = new ValueEventListener() {
+                @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                    if (!isAdded()) return;
+                    balanceProfileNode = readWalletBalance(snap);
+                    refreshBalanceUI();
+                }
+                @Override public void onCancelled(@NonNull DatabaseError e) {}
+            };
+            userRefProfileId.addValueEventListener(coinEventListenerProfileId);
+        }
 
         return root;
+    }
+
+    private long readWalletBalance(DataSnapshot snap) {
+        long max = 0;
+        max = Math.max(max, getLong(snap, "coins"));
+        max = Math.max(max, getLong(snap, "coinBalance"));
+        max = Math.max(max, getLong(snap, "walletCoins"));
+        max = Math.max(max, getLong(snap, "sendingCoins"));
+        max = Math.max(max, getLong(snap, "totalCoins"));
+        return max;
+    }
+
+    private long getLong(DataSnapshot snap, String key) {
+        try {
+            Object v = snap.child(key).getValue();
+            if (v == null) return 0;
+            if (v instanceof Number) return ((Number) v).longValue();
+            return Long.parseLong(String.valueOf(v).replace(",", "").trim());
+        } catch (Exception e) { return 0; }
+    }
+
+    private void refreshBalanceUI() {
+        if (tvCoinBalance == null || !isAdded()) return;
+        long real = Math.max(balanceUidNode, balanceProfileNode);
+        tvCoinBalance.setText(String.format("%,d", real));
     }
 
     private void selectPackage(int index) {
@@ -232,8 +272,6 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
         }
     }
 
-    // PERMANENT LOCK - No Google Play, No Card, No Online Payment
-    // Click Charge -> Only Contact Seller / Coming Soon in ENGLISH
     private void showContactSeller() {
         if (!isAdded()) return;
         long selectedCoins = PACKAGE_COINS[selectedIndex];
@@ -242,8 +280,6 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
             .setTitle("Coming Soon")
             .setMessage("You selected: " + selectedCoins + " Coins - " + selectedPrice + "\n\nOnline Recharge is currently OFF.\n\nTo buy coins, please Contact Seller.\n\nOfficial Seller will add coins to your Wallet.")
             .setPositiveButton("Contact Seller", (d, w) -> {
-                // Future: Open Seller WhatsApp / Seller List
-                // For now, only show message - No payment will open
                 new AlertDialog.Builder(requireContext())
                     .setTitle("Contact Seller")
                     .setMessage("Please contact Official Seller to buy coins.\n\nYour ID will be used to add coins to your Wallet.")
@@ -258,5 +294,6 @@ public class WalletRechargeDialog extends BottomSheetDialogFragment {
     public void onDestroyView() {
         super.onDestroyView();
         if (userRef != null && coinEventListener != null) userRef.removeEventListener(coinEventListener);
+        if (userRefProfileId != null && coinEventListenerProfileId != null) userRefProfileId.removeEventListener(coinEventListenerProfileId);
     }
 }
