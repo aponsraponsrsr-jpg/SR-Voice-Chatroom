@@ -4,15 +4,15 @@
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="#1B1035"
-    android:padding="20dp">
+    android:padding="16dp">
 
-    <!-- প্যানেল টাইটেল ও হেডার -->
+    <!-- Title + Balance - তোমার আগেরটাই -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingBottom="12dp">
+        android:paddingBottom="10dp">
 
         <TextView
             android:layout_width="0dp"
@@ -33,36 +33,76 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- টার্গেট সিট বা ইউজার সিলেকশন ঘর -->
+    <!-- NEW: উপরে Active Profile Row - Gift এর ঠিক উপরে -->
+    <!-- All Mic / All Room / নিজের ID / Active সবাই এইখানে আসবে -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvGiftTargets"
+        android:layout_width="match_parent"
+        android:layout_height="78dp"
+        android:orientation="horizontal"
+        android:layout_marginBottom="10dp" />
+
+    <!-- পুরাতন Target Edit - লুকানো রাখলাম, যাতে পুরাতন Code না ভাঙে -->
     <EditText
         android:id="@+id/editTargetSeat"
         android:layout_width="match_parent"
-        android:layout_height="45dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
         android:background="#2A1B4E"
         android:textColor="#FFFFFF"
-        android:textColorHint="#AAAAAA"
-        android:hint="Target Seat (0 to 9 or type 'All')..."
-        android:textSize="14sp"
-        android:paddingHorizontal="15dp"
-        android:layout_marginBottom="12dp" />
+        android:hint="Target Seat" />
 
-    <!-- গিফট গ্রিড লিস্ট (RecyclerView) -->
+    <!-- Gift Grid - তোমার আগেরটাই -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvGifts"
         android:layout_width="match_parent"
         android:layout_height="320dp"
         android:scrollbars="vertical"
-        android:layout_marginBottom="15dp" />
+        android:layout_marginBottom="12dp" />
 
-    <!-- সেন্ড বাটন -->
-    <Button
-        android:id="@+id/btnSendGift"
+    <!-- NEW: নিচের Bar - Target ID + Quantity Menu + Send -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:text="🚀 Send Luxury Gift"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:backgroundTint="#FF4081" />
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- Target ID দেখাবে - যাকে Select করবা -->
+        <TextView
+            android:id="@+id/tvSelectedTargetId"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_weight="1"
+            android:background="#2A1B4E"
+            android:text="To: All Mic"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="12dp" />
+
+        <!-- Quantity Menu - x1 তে Touch করলে ছোট Popup - 1 / 5 / 10 -->
+        <Button
+            android:id="@+id/btnGiftQuantity"
+            android:layout_width="70dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="8dp"
+            android:text="x1"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:backgroundTint="#2A1B4E" />
+
+        <!-- Send - তোমার আগের ID টাই রাখলাম -->
+        <Button
+            android:id="@+id/btnSendGift"
+            android:layout_width="110dp"
+            android:layout_height="50dp"
+            android:layout_marginStart="8dp"
+            android:text="🚀 Send"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:backgroundTint="#FF4081" />
+    </LinearLayout>
 
 </LinearLayout>
