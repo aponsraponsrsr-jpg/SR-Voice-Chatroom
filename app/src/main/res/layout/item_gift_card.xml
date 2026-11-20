@@ -1,19 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="110dp"
+    android:layout_height="120dp"
     android:orientation="vertical"
     android:gravity="center"
     android:padding="8dp"
     android:background="#2A1B4E">
 
+    <!-- GiftAdapter.java এর জন্য - আসল Image -->
+    <ImageView
+        android:id="@+id/imgGiftIcon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@mipmap/ic_launcher"
+        android:scaleType="centerCrop" />
+
+    <!-- VoiceRoomActivity.java এর জন্য - Emoji -->
     <TextView
         android:id="@+id/txtGiftEmoji"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="🌹"
-        android:textSize="28sp" />
+        android:textSize="14sp" />
 
+    <!-- ২টা Java ই এই ২টা খুঁজে - তাই এই ২টা Must -->
     <TextView
         android:id="@+id/txtGiftName"
         android:layout_width="wrap_content"
@@ -21,7 +31,8 @@
         android:text="Rose"
         android:textColor="#FFFFFF"
         android:textSize="12sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:maxLines="1" />
 
     <TextView
         android:id="@+id/txtGiftPrice"
