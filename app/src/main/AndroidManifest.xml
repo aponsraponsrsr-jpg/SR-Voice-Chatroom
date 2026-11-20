@@ -78,7 +78,7 @@
         <!-- PRIVATE CHAT - GLOBAL FRIEND / FOLLOW / SMS - EITA NA THAKLE BUILD FAIL KORTO -->
         <activity android:name=".PrivateChatActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
 
-        <!-- SELLER BUSINESS WALLET - NEW - PERMANENT - ONLY SELLER SEES - SELLER CANNOT CREATE COINS -->
+        <!-- SELLER BUSINESS WALLET - NEW - PERMANENT - ONLY SELLER SEES - SELLER CANNOT CREATE COINS - ANY ID -->
         <activity android:name=".SellerBusinessWalletActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
 
     </application>
