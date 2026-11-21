@@ -2,7 +2,6 @@ package com.sr.voicechat;
 
 public class SalaryPolicy {
     // SR VOICE CHAT ROOM - OFFICIAL HOST SALARY POLICY 1-22
-    // Tumi je chobi dicha, oi number gulai ekhane
 
     public static final int[] LEVELS = {1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22};
 
@@ -13,12 +12,12 @@ public class SalaryPolicy {
         288000000L, 350000000L, 460000000L
     };
 
-    // Host pabe - 80%
+    // Host pabe - 80% - Host sudhu eitai dekhbe
     public static final double[] ANCHOR_SALARY = {
         1, 2, 4.5, 7, 14, 24, 32, 40, 56, 76, 104, 132, 168, 220, 292, 348, 440, 584, 752, 1024, 1240, 1600
     };
 
-    // Agency pabe - 20% - Host dekhbe na
+    // Agency pabe - 20% - Host dekhbe na, sudhu Agency dekhbe
     public static final double[] AGENCY_COMMISSION = {
         0.5, 1, 1.5, 2, 3, 6, 8, 10, 14, 19, 26, 33, 42, 55, 73, 87, 110, 146, 188, 256, 310, 400
     };
@@ -31,5 +30,43 @@ public class SalaryPolicy {
     public static String money(double d) {
         if (d == (long) d) return "$" + (long) d;
         return "$" + d;
+    }
+
+    // --- STRICT RULE: Pura target fill na hole 0$ ---
+    // Example: 287,999 = 0$, 288,000 = 1$
+    public static int getAchievedLevel(long receivedCoins) {
+        int level = 0;
+        for (int i = 0; i < TARGET_COINS.length; i++) {
+            if (receivedCoins >= TARGET_COINS[i]) {
+                level = i + 1;
+            } else {
+                break;
+            }
+        }
+        return level;
+    }
+
+    public static double getHostSalary(long receivedCoins) {
+        int lvl = getAchievedLevel(receivedCoins);
+        if (lvl == 0) return 0;
+        return ANCHOR_SALARY[lvl - 1];
+    }
+
+    public static double getAgencyCommission(long receivedCoins) {
+        int lvl = getAchievedLevel(receivedCoins);
+        if (lvl == 0) return 0;
+        return AGENCY_COMMISSION[lvl - 1];
+    }
+
+    public static long getNextTarget(long receivedCoins) {
+        int lvl = getAchievedLevel(receivedCoins);
+        if (lvl >= TARGET_COINS.length) return -1; // Max Level Complete
+        return TARGET_COINS[lvl];
+    }
+
+    public static long getRemainingToNext(long receivedCoins) {
+        long next = getNextTarget(receivedCoins);
+        if (next == -1) return 0;
+        return next - receivedCoins;
     }
 }
