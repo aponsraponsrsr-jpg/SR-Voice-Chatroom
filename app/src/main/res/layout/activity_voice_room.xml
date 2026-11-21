@@ -284,6 +284,17 @@
                     android:textSize="11sp"
                     android:textColor="#FFD700"
                     android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/seatCoin_0"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🪙 0"
+                    android:textSize="11sp"
+                    android:textColor="#FFD700"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <LinearLayout
@@ -324,6 +335,17 @@
                     android:textSize="11sp"
                     android:textColor="#FFFFFF"
                     android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/seatCoin_1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🪙 0"
+                    android:textSize="11sp"
+                    android:textColor="#FFD700"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <LinearLayout
@@ -364,6 +386,17 @@
                     android:textSize="11sp"
                     android:textColor="#FFFFFF"
                     android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/seatCoin_2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🪙 0"
+                    android:textSize="11sp"
+                    android:textColor="#FFD700"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <LinearLayout
@@ -404,6 +437,17 @@
                     android:textSize="11sp"
                     android:textColor="#FFFFFF"
                     android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/seatCoin_3"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🪙 0"
+                    android:textSize="11sp"
+                    android:textColor="#FFD700"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <LinearLayout
@@ -444,6 +488,17 @@
                     android:textSize="11sp"
                     android:textColor="#FFFFFF"
                     android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/seatCoin_4"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🪙 0"
+                    android:textSize="11sp"
+                    android:textColor="#FFD700"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:visibility="gone" />
             </LinearLayout>
         </LinearLayout>
 
@@ -493,6 +548,17 @@
                     android:textSize="11sp"
                     android:textColor="#FFFFFF"
                     android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/seatCoin_5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🪙 0"
+                    android:textSize="11sp"
+                    android:textColor="#FFD700"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <LinearLayout
@@ -533,6 +599,17 @@
                     android:textSize="11sp"
                     android:textColor="#FFFFFF"
                     android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/seatCoin_6"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🪙 0"
+                    android:textSize="11sp"
+                    android:textColor="#FFD700"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <LinearLayout
@@ -573,6 +650,17 @@
                     android:textSize="11sp"
                     android:textColor="#FFFFFF"
                     android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/seatCoin_7"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🪙 0"
+                    android:textSize="11sp"
+                    android:textColor="#FFD700"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <LinearLayout
@@ -613,6 +701,17 @@
                     android:textSize="11sp"
                     android:textColor="#FFFFFF"
                     android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/seatCoin_8"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🪙 0"
+                    android:textSize="11sp"
+                    android:textColor="#FFD700"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:visibility="gone" />
             </LinearLayout>
 
             <LinearLayout
@@ -653,6 +752,17 @@
                     android:textSize="11sp"
                     android:textColor="#FFFFFF"
                     android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/seatCoin_9"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🪙 0"
+                    android:textSize="11sp"
+                    android:textColor="#FFD700"
+                    android:textStyle="bold"
+                    android:gravity="center"
+                    android:visibility="gone" />
             </LinearLayout>
         </LinearLayout>
 
