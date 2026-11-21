@@ -38,7 +38,10 @@ import java.util.Map;
 
 public class PublicProfileActivity extends AppCompatActivity {
     private String targetId = "", myId = "";
-    private TextView txtName, txtId, txtFollow, txtFans, txtVisitor, txtLevelBadge;
+    private TextView txtName, txtId, txtFollow, txtFans, txtVisitor;
+    private TextView txtWealthBadge, txtCharmBadge, txtVipBadge;
+    private LinearLayout levelIconsRow;
+    private int myVipLevel = 0;
     private ImageView imgAvatar, imgCover, imgHeadwear;
     private LinearLayout tabProfileContent, tabAlbumContent, tabMomentsContent, tabIntimacyContent;
     private TextView tabProfile, tabAlbum, tabMoments, tabIntimacy;
@@ -49,7 +52,6 @@ public class PublicProfileActivity extends AppCompatActivity {
     private ValueEventListener userListener = null;
     private DatabaseReference userQueryRef = null;
     private boolean profileTabBuilt = false;
-    // ===== LEVEL 1-150 - LevelUtils ONLY - Me + VoiceRoom SAME - NEW GORGEOUS COLOR =====
     private int myWealthLevel = 1;
     private int myCharmLevel = 1;
     private long myTotalSending = 0;
@@ -64,17 +66,134 @@ public class PublicProfileActivity extends AppCompatActivity {
 
     private long getLongVal(DataSnapshot s, String k){ try{ Object v=s.child(k).getValue(); if(v==null) return 0; if(v instanceof Number) return ((Number)v).longValue(); return Long.parseLong(String.valueOf(v).replace(",","").trim()); }catch(Exception e){ return 0; } }
 
-    // ===== LEVEL BADGE - 150 + NEW COLOR - SOB JAYGAY EKI =====
+    // ===== GLOBAL FLAG - Jekono Country - Shudhu Flag + Code - Country naam lekha nai =====
+    private String getCountryShort(String c){
+        if(c==null||c.isEmpty()) return "";
+        String cl=c.trim().toLowerCase();
+        if(cl.contains("bangladesh")||cl.equals("bd")||cl.contains("🇧🇩")) return "🇧🇩 BD";
+        if(cl.contains("india")||cl.equals("in")) return "🇮🇳 IN";
+        if(cl.contains("pakistan")||cl.equals("pk")) return "🇵🇰 PK";
+        if(cl.contains("nepal")||cl.equals("np")) return "🇳🇵 NP";
+        if(cl.contains("sri lanka")||cl.contains("srilanka")) return "🇱🇰 LK";
+        if(cl.contains("bhutan")) return "🇧🇹 BT";
+        if(cl.contains("afghanistan")) return "🇦🇫 AF";
+        if(cl.contains("myanmar")||cl.contains("burma")) return "🇲🇲 MM";
+        if(cl.contains("thailand")) return "🇹🇭 TH";
+        if(cl.contains("malaysia")) return "🇲🇾 MY";
+        if(cl.contains("indonesia")) return "🇮🇩 ID";
+        if(cl.contains("singapore")) return "🇸🇬 SG";
+        if(cl.contains("philippines")) return "🇵🇭 PH";
+        if(cl.contains("vietnam")) return "🇻🇳 VN";
+        if(cl.contains("cambodia")) return "🇰🇭 KH";
+        if(cl.contains("laos")) return "🇱🇦 LA";
+        if(cl.contains("china")) return "🇨🇳 CN";
+        if(cl.contains("hong kong")) return "🇭🇰 HK";
+        if(cl.contains("taiwan")) return "🇹🇼 TW";
+        if(cl.contains("japan")) return "🇯🇵 JP";
+        if(cl.contains("korea")&&cl.contains("south")) return "🇰🇷 KR";
+        if(cl.contains("korea")&&cl.contains("north")) return "🇰🇵 KP";
+        if(cl.contains("korea")) return "🇰🇷 KR";
+        if(cl.contains("mongolia")) return "🇲🇳 MN";
+        if(cl.contains("united arab")||cl.contains("uae")||cl.contains("dubai")||cl.contains("abu dhabi")) return "🇦🇪 AE";
+        if(cl.contains("saudi")) return "🇸🇦 SA";
+        if(cl.contains("qatar")) return "🇶🇦 QA";
+        if(cl.contains("kuwait")) return "🇰🇼 KW";
+        if(cl.contains("oman")) return "🇴🇲 OM";
+        if(cl.contains("bahrain")) return "🇧🇭 BH";
+        if(cl.contains("yemen")) return "🇾🇪 YE";
+        if(cl.contains("jordan")) return "🇯🇴 JO";
+        if(cl.contains("lebanon")) return "🇱🇧 LB";
+        if(cl.contains("iraq")) return "🇮🇶 IQ";
+        if(cl.contains("iran")) return "🇮🇷 IR";
+        if(cl.contains("israel")) return "🇮🇱 IL";
+        if(cl.contains("palestine")) return "🇵🇸 PS";
+        if(cl.contains("turkey")||cl.contains("turkiye")) return "🇹🇷 TR";
+        if(cl.contains("united states")||cl.contains("america")||cl.equals("us")||cl.equals("usa")) return "🇺🇸 US";
+        if(cl.contains("canada")) return "🇨🇦 CA";
+        if(cl.contains("mexico")) return "🇲🇽 MX";
+        if(cl.contains("brazil")) return "🇧🇷 BR";
+        if(cl.contains("argentina")) return "🇦🇷 AR";
+        if(cl.contains("chile")) return "🇨🇱 CL";
+        if(cl.contains("colombia")) return "🇨🇴 CO";
+        if(cl.contains("peru")) return "🇵🇪 PE";
+        if(cl.contains("venezuela")) return "🇻🇪 VE";
+        if(cl.contains("united kingdom")||cl.contains("uk")||cl.contains("england")||cl.contains("london")||cl.contains("britain")) return "🇬🇧 UK";
+        if(cl.contains("ireland")) return "🇮🇪 IE";
+        if(cl.contains("germany")) return "🇩🇪 DE";
+        if(cl.contains("france")) return "🇫🇷 FR";
+        if(cl.contains("italy")) return "🇮🇹 IT";
+        if(cl.contains("spain")) return "🇪🇸 ES";
+        if(cl.contains("portugal")) return "🇵🇹 PT";
+        if(cl.contains("netherlands")||cl.contains("holland")) return "🇳🇱 NL";
+        if(cl.contains("belgium")) return "🇧🇪 BE";
+        if(cl.contains("switzerland")) return "🇨🇭 CH";
+        if(cl.contains("austria")) return "🇦🇹 AT";
+        if(cl.contains("sweden")) return "🇸🇪 SE";
+        if(cl.contains("norway")) return "🇳🇴 NO";
+        if(cl.contains("denmark")) return "🇩🇰 DK";
+        if(cl.contains("finland")) return "🇫🇮 FI";
+        if(cl.contains("poland")) return "🇵🇱 PL";
+        if(cl.contains("greece")) return "🇬🇷 GR";
+        if(cl.contains("ukraine")) return "🇺🇦 UA";
+        if(cl.contains("russia")) return "🇷🇺 RU";
+        if(cl.contains("uzbekistan")) return "🇺🇿 UZ";
+        if(cl.contains("kazakhstan")) return "🇰🇿 KZ";
+        if(cl.contains("kyrgyzstan")) return "🇰🇬 KG";
+        if(cl.contains("tajikistan")) return "🇹🇯 TJ";
+        if(cl.contains("turkmenistan")) return "🇹🇲 TM";
+        if(cl.contains("australia")) return "🇦🇺 AU";
+        if(cl.contains("new zealand")) return "🇳🇿 NZ";
+        if(cl.contains("fiji")) return "🇫🇯 FJ";
+        if(cl.contains("egypt")) return "🇪🇬 EG";
+        if(cl.contains("morocco")) return "🇲🇦 MA";
+        if(cl.contains("algeria")) return "🇩🇿 DZ";
+        if(cl.contains("tunisia")) return "🇹🇳 TN";
+        if(cl.contains("libya")) return "🇱🇾 LY";
+        if(cl.contains("sudan")) return "🇸🇩 SD";
+        if(cl.contains("ethiopia")) return "🇪🇹 ET";
+        if(cl.contains("kenya")) return "🇰🇪 KE";
+        if(cl.contains("nigeria")) return "🇳🇬 NG";
+        if(cl.contains("ghana")) return "🇬🇭 GH";
+        if(cl.contains("south africa")) return "🇿🇦 ZA";
+        if(cl.contains("angola")) return "🇦🇴 AO";
+        if(cl.contains("zimbabwe")) return "🇿🇼 ZW";
+        // Notun / onno jekono country - Flag na thakleo Globe + naam - kintu Bangladesh lekha na
+        return "🌍 " + c.trim();
+    }
+    // ===== GENDER PREMIUM ICON - Male = Blue, Female = Pink =====
+    private String getGenderIconPremium(String g){
+        if(g==null) return "";
+        String gl=g.trim().toLowerCase();
+        if(gl.contains("female")||gl.contains("girl")||gl.contains("woman")||gl.equals("f")||gl.equals("lady")) return "♀️";
+        if(gl.contains("male")||gl.contains("boy")||gl.contains("man")||gl.equals("m")) return "♂️";
+        return "";
+    }
+
     private void updateLevelBadge(){
-        if(txtLevelBadge==null) return;
-        txtLevelBadge.setText("  ⭐ Wealth Lv."+myWealthLevel+" • 💎 Charm Lv."+myCharmLevel+" • "+LevelUtils.getLevelTitle(myWealthLevel)+"  ");
-        txtLevelBadge.setTextColor(Color.WHITE);
-        GradientDrawable bg=new GradientDrawable();
-        bg.setColors(LevelUtils.getLevelColors(myWealthLevel));
-        bg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT);
-        bg.setCornerRadius(30);
-        txtLevelBadge.setBackground(bg);
-        txtLevelBadge.setOnClickListener(v->showLevelDialog());
+        if(txtWealthBadge==null || txtCharmBadge==null) return;
+        txtWealthBadge.setText("💎 " + myWealthLevel);
+        GradientDrawable bgW=new GradientDrawable();
+        try{ bgW.setColors(LevelUtils.getLevelColors(myWealthLevel)); }catch(Exception e){ bgW.setColors(new int[]{Color.parseColor("#2196F3"), Color.parseColor("#00BCD4")}); }
+        bgW.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT); bgW.setCornerRadius(20);
+        txtWealthBadge.setBackground(bgW); txtWealthBadge.setTextColor(Color.WHITE); txtWealthBadge.setVisibility(View.VISIBLE);
+        txtWealthBadge.setOnClickListener(v->showLevelDialog());
+        txtCharmBadge.setText("💖 " + myCharmLevel);
+        GradientDrawable bgC=new GradientDrawable();
+        try{ bgC.setColors(LevelUtils.getLevelColors(myCharmLevel)); }catch(Exception e){ bgC.setColors(new int[]{Color.parseColor("#E91E63"), Color.parseColor("#FF4081")}); }
+        bgC.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT); bgC.setCornerRadius(20);
+        txtCharmBadge.setBackground(bgC); txtCharmBadge.setTextColor(Color.WHITE); txtCharmBadge.setVisibility(View.VISIBLE);
+        txtCharmBadge.setOnClickListener(v->showLevelDialog());
+        updateVipSmallIcon();
+        if(levelIconsRow!=null) levelIconsRow.setVisibility(View.VISIBLE);
+    }
+    private void updateVipSmallIcon(){
+        if(txtVipBadge==null) return;
+        if(myVipLevel>=1 && myVipLevel<=8){
+            String[] emojis={"", "🐅","🐯","🦅","🔥","🐉","👑","🐲","💜"};
+            txtVipBadge.setText(emojis[myVipLevel]+" VIP "+myVipLevel);
+            GradientDrawable bg=new GradientDrawable(); bg.setColors(new int[]{Color.parseColor("#FFD700"), Color.parseColor("#FF9800")}); bg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT); bg.setCornerRadius(20);
+            txtVipBadge.setBackground(bg); txtVipBadge.setTextColor(Color.parseColor("#0A0518")); txtVipBadge.setVisibility(View.VISIBLE);
+        } else txtVipBadge.setVisibility(View.GONE);
     }
     private void showLevelDialog(){
         try{
@@ -84,6 +203,22 @@ public class PublicProfileActivity extends AppCompatActivity {
             TextView title=new TextView(this); title.setText("⭐ Level - 1 to 150"); title.setTextColor(Color.WHITE); title.setTextSize(22); title.setTypeface(null,Typeface.BOLD); title.setGravity(Gravity.CENTER); title.setPadding(0,0,0,16); root.addView(title);
             root.addView(makeLevelCard("💰 Wealth Level", myWealthLevel, myTotalSending, "Sending"));
             root.addView(makeLevelCard("💎 Charm Level", myCharmLevel, myTotalReceiving, "Receiving"));
+            TextView allTitle=new TextView(this); allTitle.setText("🏆 All Levels 1-150 - 10 Level Por Por Color Change"); allTitle.setTextColor(Color.parseColor("#FFD700")); allTitle.setTextSize(15); allTitle.setTypeface(null,Typeface.BOLD); allTitle.setPadding(8,20,8,8); root.addView(allTitle);
+            int[] starts={1,11,21,31,41,51,61,71,81,91,101,111,121,131,141};
+            for(int s: starts){
+                int lvlForColor=s+5; if(lvlForColor>150) lvlForColor=150;
+                LinearLayout row=new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL); row.setGravity(Gravity.CENTER_VERTICAL); row.setPadding(20,14,20,14);
+                GradientDrawable bg=new GradientDrawable(); bg.setColors(LevelUtils.getLevelColors(lvlForColor)); bg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT); bg.setCornerRadius(20); row.setBackground(bg);
+                LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT); lp.setMargins(0,0,0,10); row.setLayoutParams(lp);
+                TextView icon=new TextView(this); icon.setText("💎 "+s); icon.setTextColor(Color.WHITE); icon.setTextSize(12); icon.setTypeface(null,Typeface.BOLD); icon.setPadding(12,6,12,6);
+                GradientDrawable iconBg=new GradientDrawable(); iconBg.setColors(LevelUtils.getLevelColors(lvlForColor)); iconBg.setOrientation(GradientDrawable.Orientation.TL_BR); iconBg.setCornerRadius(16); icon.setBackground(iconBg);
+                LinearLayout.LayoutParams iconLp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT); iconLp.setMargins(0,0,12,0); icon.setLayoutParams(iconLp); row.addView(icon);
+                String range=(s==141?"Lv.141-150":"Lv."+s+"-"+(s+9));
+                TextView t=new TextView(this); t.setText(range+" • "+LevelUtils.getLevelTitle(lvlForColor)); t.setTextColor(Color.WHITE); t.setTextSize(14); t.setTypeface(null,Typeface.BOLD); t.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1)); row.addView(t);
+                TextView check=new TextView(this); check.setText((myWealthLevel>=s?"✅":"")); check.setTextColor(Color.WHITE); row.addView(check);
+                root.addView(row);
+            }
+            TextView note=new TextView(this); note.setText("Wealth = Gift Sending • Charm = Gift Receiving\nGift মারলেই Level Auto বাড়বে • Max Lv.150"); note.setTextColor(Color.parseColor("#B0BEC5")); note.setTextSize(12); note.setGravity(Gravity.CENTER); note.setPadding(0,16,0,0); root.addView(note);
             b.setView(sv); b.setPositiveButton("Close",null); b.show();
         }catch(Exception e){ Toast.makeText(this,"Level - Coming Soon",Toast.LENGTH_SHORT).show(); }
     }
@@ -114,13 +249,13 @@ public class PublicProfileActivity extends AppCompatActivity {
         targetId = getIntent().getStringExtra("TARGET_9DIGIT_ID");
         if (targetId == null || targetId.isEmpty()) targetId = myId;
         boolean isMine = targetId.equals(myId);
-        // Cached Level - 1-150 - 0 ar asbe na
         try{ myWealthLevel = Integer.parseInt(prefs.getString("CACHED_LEVEL_" + targetId, "1")); }catch(Exception e){ myWealthLevel=1; }
         if(myWealthLevel<1) myWealthLevel=1; if(myWealthLevel>150) myWealthLevel=150;
         try{ myCharmLevel = Integer.parseInt(prefs.getString("CACHED_CHARM_" + targetId, "1")); }catch(Exception e){ myCharmLevel=1; }
         if(myCharmLevel<1) myCharmLevel=1; if(myCharmLevel>150) myCharmLevel=150;
         myTotalSending = prefs.getLong("CACHED_SENDING_" + targetId, 0);
         myTotalReceiving = prefs.getLong("CACHED_RECEIVING_" + targetId, 0);
+        if(isMine) myVipLevel = prefs.getInt("VIP_LEVEL", 0);
 
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
@@ -237,21 +372,32 @@ public class PublicProfileActivity extends AppCompatActivity {
         });
         nameBox.addView(txtId);
 
-        txtLevelBadge = new TextView(this);
-        txtLevelBadge.setText("  ⭐ Wealth Lv."+myWealthLevel+" • 💎 Charm Lv."+myCharmLevel+"  ");
-        txtLevelBadge.setTextColor(Color.WHITE);
-        txtLevelBadge.setTextSize(12);
-        txtLevelBadge.setTypeface(null, Typeface.BOLD);
-        txtLevelBadge.setPadding(18, 8, 18, 8);
-        GradientDrawable lbg = new GradientDrawable();
-        lbg.setColors(LevelUtils.getLevelColors(myWealthLevel));
-        lbg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT);
-        lbg.setCornerRadius(30);
-        txtLevelBadge.setBackground(lbg);
-        LinearLayout.LayoutParams lbLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        lbLp.setMargins(0, 10, 0, 0);
-        txtLevelBadge.setLayoutParams(lbLp);
-        nameBox.addView(txtLevelBadge);
+        levelIconsRow = new LinearLayout(this);
+        levelIconsRow.setOrientation(LinearLayout.HORIZONTAL);
+        levelIconsRow.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams iconsLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        iconsLp.setMargins(0, 10, 0, 0);
+        levelIconsRow.setLayoutParams(iconsLp);
+        nameBox.addView(levelIconsRow);
+
+        txtVipBadge = new TextView(this);
+        txtVipBadge.setText("");
+        txtVipBadge.setTextSize(11); txtVipBadge.setTypeface(null, Typeface.BOLD); txtVipBadge.setGravity(Gravity.CENTER); txtVipBadge.setPadding(14,6,14,6); txtVipBadge.setVisibility(View.GONE);
+        levelIconsRow.addView(txtVipBadge);
+
+        txtWealthBadge = new TextView(this);
+        txtWealthBadge.setText("💎 "+myWealthLevel);
+        txtWealthBadge.setTextSize(11); txtWealthBadge.setTypeface(null, Typeface.BOLD); txtWealthBadge.setGravity(Gravity.CENTER); txtWealthBadge.setPadding(14,6,14,6);
+        LinearLayout.LayoutParams wLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT); wLp.setMargins(8,0,0,0); txtWealthBadge.setLayoutParams(wLp);
+        txtWealthBadge.setOnClickListener(v->showLevelDialog());
+        levelIconsRow.addView(txtWealthBadge);
+
+        txtCharmBadge = new TextView(this);
+        txtCharmBadge.setText("💖 "+myCharmLevel);
+        txtCharmBadge.setTextSize(11); txtCharmBadge.setTypeface(null, Typeface.BOLD); txtCharmBadge.setGravity(Gravity.CENTER); txtCharmBadge.setPadding(14,6,14,6);
+        LinearLayout.LayoutParams cLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT); cLp.setMargins(8,0,0,0); txtCharmBadge.setLayoutParams(cLp);
+        txtCharmBadge.setOnClickListener(v->showLevelDialog());
+        levelIconsRow.addView(txtCharmBadge);
 
         imgHeadwear = new ImageView(this);
         imgHeadwear.setLayoutParams(new LinearLayout.LayoutParams(120, 120));
@@ -748,17 +894,16 @@ public class PublicProfileActivity extends AppCompatActivity {
                     if (ds.child("coverUrl").getValue() != null) coverUrl = String.valueOf(ds.child("coverUrl").getValue());
                     if (coverUrl.isEmpty() && ds.child("coverPhoto").getValue() != null) coverUrl = String.valueOf(ds.child("coverPhoto").getValue());
                     if (coverUrl.isEmpty() && ds.child("coverImage").getValue() != null) coverUrl = String.valueOf(ds.child("coverImage").getValue());
-                    // ===== LEVEL 1-150 - LevelUtils - Sending / Receiving theke - Purano level field keo recalc diye override =====
                     myTotalSending = Math.max(getLongVal(ds,"sending"), getLongVal(ds,"totalSending"));
                     myTotalReceiving = Math.max(getLongVal(ds,"receiving"), getLongVal(ds,"totalReceiving"));
                     myTotalReceiving = Math.max(myTotalReceiving, Math.max(getLongVal(ds,"targetCoins"), getLongVal(ds,"totalTargetCoins")));
                     myWealthLevel = LevelUtils.calculateWealthLevel(myTotalSending);
                     myCharmLevel = LevelUtils.calculateCharmLevel(myTotalReceiving);
-                    // Firebase e purano wealthLevel thakle - boro ta nibo
                     if(getLongVal(ds,"wealthLevel") > myWealthLevel) myWealthLevel = (int) getLongVal(ds,"wealthLevel");
                     if(getLongVal(ds,"charmLevel") > myCharmLevel) myCharmLevel = (int) getLongVal(ds,"charmLevel");
                     if(myWealthLevel<1) myWealthLevel=1; if(myWealthLevel>150) myWealthLevel=150;
                     if(myCharmLevel<1) myCharmLevel=1; if(myCharmLevel>150) myCharmLevel=150;
+                    try{ if(ds.child("vipLevel").getValue()!=null) myVipLevel=Integer.parseInt(String.valueOf(ds.child("vipLevel").getValue())); }catch(Exception ignored){}
                     user.level = String.valueOf(myWealthLevel);
                     if (ds.child("giftCount").getValue() != null) user.giftCount = String.valueOf(ds.child("giftCount").getValue());
                     if (ds.child("followCount").getValue() != null) user.followCount = String.valueOf(ds.child("followCount").getValue());
@@ -779,8 +924,13 @@ public class PublicProfileActivity extends AppCompatActivity {
                     break;
                 }
                 if (user.name == null || user.name.isEmpty()) user.name = getCachedName();
-                txtName.setText(user.name + "  " + user.getFlag() + "  " + user.getGenderIcon());
-                txtId.setText("ID: " + targetId + "  •  Wealth Lv." + myWealthLevel + " • Charm Lv." + myCharmLevel + "  •  " + user.country + "  📋");
+                // NAME + FLAG + GENDER PREMIUM - Country naam lekha nai
+                String flag = getCountryShort(user.country);
+                String genderIcon = getGenderIconPremium(user.gender);
+                if(genderIcon.isEmpty()) genderIcon = user.getGenderIcon();
+                txtName.setText(user.name + "  " + flag + "  " + genderIcon);
+                // ID - Shudhu ID + Flag + Gender - Wealth/Charm lomba lekha nai
+                txtId.setText("ID: " + targetId + "  •  " + flag + "  " + genderIcon + "  📋");
                 updateLevelBadge();
                 txtFollow.setText(user.followCount);
                 txtFans.setText(user.fansCount);
