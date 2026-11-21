@@ -64,7 +64,10 @@ public class MeActivity extends AppCompatActivity {
     private TextView txtSvipStatus;
     private TextView txtVipStatus;
     private int myVipLevel = 0;
-    private TextView txtLevelBadge = null;
+    // SMALL ICONS - NO BIG BANNER - Wealth + Charm small pill
+    private TextView txtWealthBadge = null;
+    private TextView txtCharmBadge = null;
+    private LinearLayout levelIconsRow = null;
     private long myTotalSending = 0;
     private long myTotalReceiving = 0;
     private int myWealthLevel = 1;
@@ -74,7 +77,6 @@ public class MeActivity extends AppCompatActivity {
     private boolean isSellerActive = false;
     private long sellerBusinessCoins = 0;
     private boolean sellerListenerStarted = false;
-    // ===== PREMIUM PERMANENT CACHE - AGENCY / PHOTO / VIP - KOKHONO HARABE NA =====
     private String cachedPhoto = "";
 
     private BroadcastReceiver profileReceiver = new BroadcastReceiver() {
@@ -84,17 +86,32 @@ public class MeActivity extends AppCompatActivity {
         }
     };
 
+    // ===== SMALL LEVEL ICONS - Banner na, chotto Pill Icon =====
     private void updateLevelBadge(){
-        if(txtLevelBadge==null) return;
-        txtLevelBadge.setText("⭐ Wealth Lv."+myWealthLevel+" • 💎 Charm Lv."+myCharmLevel+" • "+LevelUtils.getLevelTitle(myWealthLevel));
-        GradientDrawable bg=new GradientDrawable();
-        bg.setColors(LevelUtils.getLevelColors(myWealthLevel));
-        bg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT);
-        bg.setCornerRadius(24);
-        txtLevelBadge.setBackground(bg);
-        txtLevelBadge.setVisibility(View.VISIBLE);
-        txtLevelBadge.setOnClickListener(v->showLevelDialog());
+        if(txtWealthBadge==null || txtCharmBadge==null) return;
+        // Wealth - chotto pill, Mixing Glossy Color from LevelUtils
+        txtWealthBadge.setText("💎 " + myWealthLevel);
+        GradientDrawable bgW = new GradientDrawable();
+        try { bgW.setColors(LevelUtils.getLevelColors(myWealthLevel)); } catch(Exception e){ bgW.setColors(new int[]{Color.parseColor("#2196F3"), Color.parseColor("#00BCD4")}); }
+        bgW.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT);
+        bgW.setCornerRadius(20);
+        txtWealthBadge.setBackground(bgW);
+        txtWealthBadge.setTextColor(Color.WHITE);
+        txtWealthBadge.setVisibility(View.VISIBLE);
+        txtWealthBadge.setOnClickListener(v->showLevelDialog());
+        // Charm - chotto pill
+        txtCharmBadge.setText("💖 " + myCharmLevel);
+        GradientDrawable bgC = new GradientDrawable();
+        try { bgC.setColors(LevelUtils.getLevelColors(myCharmLevel)); } catch(Exception e){ bgC.setColors(new int[]{Color.parseColor("#E91E63"), Color.parseColor("#FF4081")}); }
+        bgC.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT);
+        bgC.setCornerRadius(20);
+        txtCharmBadge.setBackground(bgC);
+        txtCharmBadge.setTextColor(Color.WHITE);
+        txtCharmBadge.setVisibility(View.VISIBLE);
+        txtCharmBadge.setOnClickListener(v->showLevelDialog());
+        if(levelIconsRow!=null) levelIconsRow.setVisibility(View.VISIBLE);
     }
+
     private void showLevelDialog(){
         try{
             AlertDialog.Builder b=new AlertDialog.Builder(this);
@@ -112,6 +129,10 @@ public class MeActivity extends AppCompatActivity {
                 LinearLayout row=new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL); row.setGravity(Gravity.CENTER_VERTICAL); row.setPadding(20,14,20,14);
                 GradientDrawable bg=new GradientDrawable(); bg.setColors(LevelUtils.getLevelColors(lvlForColor)); bg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT); bg.setCornerRadius(20); row.setBackground(bg);
                 LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT); lp.setMargins(0,0,0,10); row.setLayoutParams(lp);
+                // SMALL ICON LEFT - Demo er moto chotto
+                TextView icon=new TextView(this); icon.setText("💎 "+s); icon.setTextColor(Color.WHITE); icon.setTextSize(12); icon.setTypeface(null,Typeface.BOLD); icon.setPadding(12,6,12,6);
+                GradientDrawable iconBg=new GradientDrawable(); iconBg.setColors(LevelUtils.getLevelColors(lvlForColor)); iconBg.setOrientation(GradientDrawable.Orientation.TL_BR); iconBg.setCornerRadius(16); icon.setBackground(iconBg);
+                LinearLayout.LayoutParams iconLp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT); iconLp.setMargins(0,0,12,0); icon.setLayoutParams(iconLp); row.addView(icon);
                 String range = (s==141 ? "Lv.141-150" : "Lv."+s+"-"+(s+9));
                 TextView t=new TextView(this); t.setText(range+" • "+LevelUtils.getLevelTitle(lvlForColor)); t.setTextColor(Color.WHITE); t.setTextSize(14); t.setTypeface(null,Typeface.BOLD); t.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1)); row.addView(t);
                 TextView check=new TextView(this); check.setText((myWealthLevel>=s?"✅":"")); check.setTextColor(Color.WHITE); row.addView(check);
@@ -170,7 +191,6 @@ public class MeActivity extends AppCompatActivity {
         return Math.max(Math.max(b1, b2), Math.max(b3, b4));
     }
     private long getLongVal(DataSnapshot s,String k){ try{ Object v=s.child(k).getValue(); if(v==null) return 0; if(v instanceof Number) return ((Number)v).longValue(); return Long.parseLong(String.valueOf(v).replace(",","").trim()); }catch(Exception e){ return 0; } }
-    // ===== FIX - PERMANENT PHOTO - Khali photo kokhono cache muche na =====
     private String getCachedPhoto(){
         if(cachedPhoto!=null && !cachedPhoto.isEmpty() && !cachedPhoto.equals("null")) return cachedPhoto;
         String p=prefs.getString("USER_PHOTO","");
@@ -180,7 +200,7 @@ public class MeActivity extends AppCompatActivity {
         return cachedPhoto==null?"":cachedPhoto;
     }
     private void savePhotoPermanent(String photo){
-        if(photo==null||photo.isEmpty()||photo.equals("null")) return; // Khali asle save korbo na - ager ta thakbe
+        if(photo==null||photo.isEmpty()||photo.equals("null")) return;
         cachedPhoto=photo;
         prefs.edit().putString("USER_PHOTO",photo).putString("PROFILE_PHOTO",photo).putString("USER_PHOTO_URL",photo).apply();
     }
@@ -274,26 +294,47 @@ public class MeActivity extends AppCompatActivity {
         txtGenderCountry.setTextColor(Color.parseColor("#B0BEC5"));
         txtGenderCountry.setTextSize(12);
         nameBox.addView(txtGenderCountry);
-        // ===== FIX - VIP BADGE PREMIUM - Shudhu VIP 7 - Emperor Dragon lekha nai =====
+        // ===== SMALL ICONS ROW - VIP + WEALTH + CHARM - NO BANNER =====
+        levelIconsRow = new LinearLayout(this);
+        levelIconsRow.setOrientation(LinearLayout.HORIZONTAL);
+        levelIconsRow.setGravity(Gravity.CENTER_VERTICAL);
+        LinearLayout.LayoutParams iconsLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        iconsLp.setMargins(0,10,0,0);
+        levelIconsRow.setLayoutParams(iconsLp);
+        nameBox.addView(levelIconsRow);
         txtVipBadge = new TextView(this);
         txtVipBadge.setText("");
-        txtVipBadge.setTextColor(Color.parseColor("#FFD700"));
-        txtVipBadge.setTextSize(13);
+        txtVipBadge.setTextColor(Color.parseColor("#0A0518"));
+        txtVipBadge.setTextSize(11);
         txtVipBadge.setTypeface(null, Typeface.BOLD);
         txtVipBadge.setVisibility(View.GONE);
         txtVipBadge.setPadding(14,6,14,6);
-        nameBox.addView(txtVipBadge);
-        txtLevelBadge = new TextView(this);
-        txtLevelBadge.setText("⭐ Wealth Lv.1 • 💎 Charm Lv.1");
-        txtLevelBadge.setTextColor(Color.WHITE);
-        txtLevelBadge.setTextSize(12);
-        txtLevelBadge.setTypeface(null, Typeface.BOLD);
-        txtLevelBadge.setGravity(Gravity.CENTER);
-        txtLevelBadge.setPadding(18,10,18,10);
-        LinearLayout.LayoutParams lvlLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        lvlLp.setMargins(0,10,0,0);
-        txtLevelBadge.setLayoutParams(lvlLp);
-        nameBox.addView(txtLevelBadge);
+        txtVipBadge.setGravity(Gravity.CENTER);
+        levelIconsRow.addView(txtVipBadge);
+        txtWealthBadge = new TextView(this);
+        txtWealthBadge.setText("💎 1");
+        txtWealthBadge.setTextColor(Color.WHITE);
+        txtWealthBadge.setTextSize(11);
+        txtWealthBadge.setTypeface(null, Typeface.BOLD);
+        txtWealthBadge.setGravity(Gravity.CENTER);
+        txtWealthBadge.setPadding(14,6,14,6);
+        LinearLayout.LayoutParams wLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        wLp.setMargins(8,0,0,0);
+        txtWealthBadge.setLayoutParams(wLp);
+        txtWealthBadge.setOnClickListener(v->showLevelDialog());
+        levelIconsRow.addView(txtWealthBadge);
+        txtCharmBadge = new TextView(this);
+        txtCharmBadge.setText("💖 1");
+        txtCharmBadge.setTextColor(Color.WHITE);
+        txtCharmBadge.setTextSize(11);
+        txtCharmBadge.setTypeface(null, Typeface.BOLD);
+        txtCharmBadge.setGravity(Gravity.CENTER);
+        txtCharmBadge.setPadding(14,6,14,6);
+        LinearLayout.LayoutParams cLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        cLp.setMargins(8,0,0,0);
+        txtCharmBadge.setLayoutParams(cLp);
+        txtCharmBadge.setOnClickListener(v->showLevelDialog());
+        levelIconsRow.addView(txtCharmBadge);
         TextView btnProfileArrow = new TextView(this);
         btnProfileArrow.setText(">");
         btnProfileArrow.setTextSize(26);
@@ -691,7 +732,6 @@ public class MeActivity extends AppCompatActivity {
             try { Object ex = snap.child("expireAt").getValue(); if (ex != null) expire = Long.parseLong(String.valueOf(ex)); } catch (Exception ignored) {}
             if (expire == 0) { try { Object ex2 = snap.child("expireTs").getValue(); if (ex2 != null) expire = Long.parseLong(String.valueOf(ex2)); } catch (Exception ignored) {} }
             if (expire > 0 && System.currentTimeMillis() > expire) v = 0;
-            // FIX - VIP kokhono 0 diye overwrite hobe na jodi age VIP thake - Expire na hole
             if (v == 0 && myVipLevel > 0 && expire == 0) return;
             if (v != myVipLevel) {
                 myVipLevel = v;
@@ -700,7 +740,7 @@ public class MeActivity extends AppCompatActivity {
             } else updateVipUI();
         } catch (Exception ignored) {}
     }
-    // ===== FIX - VIP PREMIUM BADGE ONLY - Emperor Dragon lekha nai =====
+    // ===== VIP SMALL ICON ONLY - Boro Banner na =====
     private void updateVipUI() {
         if (txtVipBadge == null) return;
         if (myVipLevel >= 1 && myVipLevel <= 8) {
@@ -757,14 +797,11 @@ public class MeActivity extends AppCompatActivity {
             catch (Exception e2) { Toast.makeText(this, "Host Center - Coming Soon", Toast.LENGTH_SHORT).show(); }
         }
     }
-    // ===== FIX - AGENCY PERMANENT - Cache age, Firebase pore - 1st bar o dekhabe =====
     private void applyRoleVisibility() {
         boolean cacheAgency = prefs.getBoolean("IS_AGENCY", false);
         boolean cacheActive = prefs.getBoolean("AGENCY_ACTIVE", false);
         boolean rtdbAgency = prefs.getBoolean("RTDB_IS_AGENCY", false);
-        // Ekbar Agency hole cache e thakbe - Firebase late asleo hide hobe na
         boolean showAgency = (cacheAgency && cacheActive) || (rtdbAgency && cacheActive) || (cacheAgency && rtdbAgency);
-        // Jodi kokhono Agency chilo - ar Firestore bole nai - taholeo cache rakhbo
         if(cacheAgency && prefs.getBoolean("AGENCY_EVER", false)) showAgency = cacheActive || true;
         boolean showHost = prefs.getBoolean("IS_HOST", false) && prefs.getBoolean("HOST_ACTIVE", false);
         isAgencyActive = showAgency; isHostActive = showHost;
@@ -782,15 +819,12 @@ public class MeActivity extends AppCompatActivity {
                         Object st = snap.get("status"); String status = st == null ? "" : String.valueOf(st).toLowerCase();
                         boolean active = !"blocked".equals(status) && !"rejected".equals(status) && !"pending".equals(status);
                         if (status.isEmpty()) active = true;
-                        // PERMANENT - Agency ekbar true hole AGENCY_EVER true - ar kokhono false hobe na jotokkhon blocked/rejected na hoy
                         prefs.edit().putBoolean("IS_AGENCY", true).putBoolean("AGENCY_ACTIVE", active).putBoolean("AGENCY_EVER", true).apply();
                         Object nm = snap.get("name"); if (nm != null) prefs.edit().putString("AGENCY_NAME", String.valueOf(nm)).apply();
                     } else {
-                        // FIX - Firestore e doc na thakle Agency muche felbo na - RTDB check korbo
                         boolean rtdbAgency = prefs.getBoolean("RTDB_IS_AGENCY", false);
                         boolean ever = prefs.getBoolean("AGENCY_EVER", false);
                         if (!rtdbAgency && !ever) prefs.edit().putBoolean("IS_AGENCY", false).putBoolean("AGENCY_ACTIVE", false).apply();
-                        // ever hole kichu korbo na - cache thakbe
                     }
                     applyRoleVisibility();
                 });
@@ -876,10 +910,25 @@ public class MeActivity extends AppCompatActivity {
         catch (Exception e) { Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show(); }
     }
     private void showCountDialog(String type, String count) { new AlertDialog.Builder(this).setTitle(type + " - " + count).setMessage("Your " + type + " list will appear here.\n\nOnly you can see this.").setPositiveButton("OK", null).show(); }
+    // ===== BANGLADESH LEKHA NAI - SHUDHU FLAG + BD =====
     private String getGenderCountryText() {
-        String g = prefs.getString("USER_GENDER", ""); String c = prefs.getString("USER_COUNTRY", ""); String base = "";
-        if (!g.isEmpty() && !c.isEmpty()) base = g + " | " + c; else if (!c.isEmpty()) base = c; else if (!g.isEmpty()) base = g; else base = "Complete Your Profile";
-        // FIX - AGENCY badge - Cache thekeo dekhabe - 1st bar o harabe na
+        String g = prefs.getString("USER_GENDER", "");
+        String c = prefs.getString("USER_COUNTRY", "");
+        // Bangladesh -> shudhu Flag + BD, onno desh holeo shudhu Flag code
+        String countryShort = "";
+        if (c != null && !c.isEmpty()) {
+            String cl = c.trim().toLowerCase();
+            if (cl.contains("bangladesh") || cl.equals("bd") || cl.equals("🇧🇩")) countryShort = "🇧🇩 BD";
+            else if (cl.contains("india")) countryShort = "🇮🇳 IN";
+            else if (cl.contains("pakistan")) countryShort = "🇵🇰 PK";
+            else if (cl.contains("nepal")) countryShort = "🇳🇵 NP";
+            else countryShort = "🇧🇩 BD"; // default - Bangladesh user beshi
+        }
+        String base = "";
+        if (!g.isEmpty() && !countryShort.isEmpty()) base = g + " | " + countryShort;
+        else if (!countryShort.isEmpty()) base = countryShort;
+        else if (!g.isEmpty()) base = g;
+        else base = "Complete Your Profile";
         boolean showAgency = prefs.getBoolean("IS_AGENCY", false) && prefs.getBoolean("AGENCY_ACTIVE", false);
         if(!showAgency && prefs.getBoolean("AGENCY_EVER", false) && prefs.getBoolean("IS_AGENCY", false)) showAgency=true;
         if (showAgency) base = base + "  |  🏷️ AGENCY";
@@ -963,13 +1012,10 @@ public class MeActivity extends AppCompatActivity {
                     boolean agencyActive = isAgency && !"blocked".equals(agencyStatus) && !"rejected".equals(agencyStatus);
                     boolean hostActive = isHost && !"blocked".equals(hostStatus) && !"rejected".equals(hostStatus);
                     if (!id.isEmpty()) { saveMyAnyId(id); }
-                    // FIX - PHOTO PERMANENT - Firebase e photo khali asle cache muche felbo na
                     String finalPhoto = photo;
                     if(finalPhoto==null || finalPhoto.isEmpty() || finalPhoto.equals("null")) finalPhoto = getCachedPhoto();
                     else savePhotoPermanent(finalPhoto);
-                    // FIX - AGENCY PERMANENT - RTDB te Agency hole EVER true
                     boolean everAgency = prefs.getBoolean("AGENCY_EVER", false) || isAgency;
-                    // Jodi age Agency chilo ar ekhon RTDB te isAgency false bole (late/missing) - tahole ager ta rakhbo
                     boolean finalIsAgency = isAgency || (everAgency && prefs.getBoolean("IS_AGENCY", false));
                     boolean finalAgencyActive = agencyActive || (everAgency && prefs.getBoolean("AGENCY_ACTIVE", false) && !agencyStatus.equals("blocked") && !agencyStatus.equals("rejected"));
                     prefs.edit().putString("USER_NAME", name).putString("USER_COUNTRY", country).putString("USER_GENDER", gender)
@@ -982,7 +1028,6 @@ public class MeActivity extends AppCompatActivity {
                         .putInt("WEALTH_LEVEL", wealth).putInt("CHARM_LEVEL", charm)
                         .putString("USER_LEVEL", String.valueOf(wealth))
                         .putLong("TOTAL_SENDING", sending).putLong("TOTAL_RECEIVING", receiving).apply();
-                    // Photo alada kore save - khali hole save hobe na
                     if(finalPhoto!=null && !finalPhoto.isEmpty() && !finalPhoto.equals("null")) prefs.edit().putString("USER_PHOTO", finalPhoto).putString("PROFILE_PHOTO", finalPhoto).apply();
                     if (txtName != null) txtName.setText(name);
                     if (txtId != null) txtId.setText("ID: " + myAnyId);
