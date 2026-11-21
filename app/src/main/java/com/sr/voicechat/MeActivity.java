@@ -766,6 +766,7 @@ public class MeActivity extends AppCompatActivity {
             Toast.makeText(this, "Store khulte parchi na", Toast.LENGTH_SHORT).show();
         }
     }
+    // ===== NEW - GLOBAL - Profile ID = Counting ID =====
     private void openAgency() {
         if (!isAgencyActive) { Toast.makeText(this, "You are not an Agency yet", Toast.LENGTH_SHORT).show(); return; }
         String uid = firebaseUid;
@@ -773,6 +774,9 @@ public class MeActivity extends AppCompatActivity {
         if (uid.isEmpty()) uid = prefs.getString("FIREBASE_UID", "");
         Intent i = new Intent(this, AgencyDashboardActivity.class);
         i.putExtra("AGENCY_OWNER_ID", uid);
+        i.putExtra("AGENCY_UID", uid);
+        i.putExtra("AGENCY_PROFILE_ID", myProfileId);
+        i.putExtra("PROFILE_ID", myProfileId);
         i.putExtra("AGENCY_NAME", prefs.getString("AGENCY_NAME", "SR Agency"));
         startActivity(i);
     }
@@ -781,10 +785,18 @@ public class MeActivity extends AppCompatActivity {
         try {
             Intent i = new Intent(this, HostCenterActivity.class);
             i.putExtra("HOST_UID", firebaseUid);
+            i.putExtra("HOST_PROFILE_ID", myProfileId);
+            i.putExtra("HOST_ANY_ID", myProfileId);
+            i.putExtra("PROFILE_ID", myProfileId);
             i.putExtra("HOST_AGENCY_ID", prefs.getString("HOST_AGENCY_ID", ""));
+            i.putExtra("HOST_AGENCY_NAME", prefs.getString("HOST_AGENCY_NAME", ""));
             startActivity(i);
         } catch (Exception e) {
-            try { Intent i2 = new Intent(this, HostPolicyActivity.class); startActivity(i2); }
+            try { Intent i2 = new Intent(this, HostPolicyActivity.class);
+                i2.putExtra("HOST_PROFILE_ID", myProfileId);
+                i2.putExtra("PROFILE_ID", myProfileId);
+                startActivity(i2);
+            }
             catch (Exception e2) { Toast.makeText(this, "Host Center - Coming Soon", Toast.LENGTH_SHORT).show(); }
         }
     }
@@ -901,7 +913,6 @@ public class MeActivity extends AppCompatActivity {
         catch (Exception e) { Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show(); }
     }
     private void showCountDialog(String type, String count) { new AlertDialog.Builder(this).setTitle(type + " - " + count).setMessage("Your " + type + " list will appear here.\n\nOnly you can see this.").setPositiveButton("OK", null).show(); }
-    // ===== GLOBAL FLAG + PREMIUM GENDER - FIXED - NO DEFAULT BD =====
     private String getCountryShortGlobal(String c){
         if(c==null||c.isEmpty()) return "";
         String cl=c.trim().toLowerCase();
