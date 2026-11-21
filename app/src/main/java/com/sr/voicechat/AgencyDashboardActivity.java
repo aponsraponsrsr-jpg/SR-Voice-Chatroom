@@ -6,6 +6,8 @@ import android.os.Bundle;
 import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.*;
 import java.util.*;
 
@@ -13,18 +15,16 @@ public class AgencyDashboardActivity extends AppCompatActivity {
     private TextView txtAgencyTitle, txtTotalHosts, txtTotalEarnings, txtMonth;
     private Button btnOpenInviteDialog, btnAgencyPolicy;
     private LinearLayout hostListContainer;
-    private String agencyOwnerId = ""; // ALWAYS UID after resolve - never Profile ID
-    private String agencyOwnerProfileId = ""; // Any Digit - 1, 2, 9, any - only for display
+    private String agencyOwnerId = "";
+    private String agencyOwnerProfileId = "";
     private String agencyName = "SR Agency", monthKey = "";
     private DatabaseReference agencyRef, invitationRef, usersRef;
     private double totalCommission = 0;
     private SharedPreferences prefs;
 
-    // KEY RULE: All maps are keyed by UID ONLY. Profile ID is only for display.
-    // So one user's target can NEVER leak into another user's card.
-    private final Map<String, Long> hostCoinsMap = new HashMap<>(); // uid -> coins
-    private final Map<String, String> hostNamesMap = new HashMap<>(); // uid -> name
-    private final Map<String, String> hostProfileIdMap = new HashMap<>(); // uid -> Any Digit Profile ID
+    private final Map<String, Long> hostCoinsMap = new HashMap<>();
+    private final Map<String, String> hostNamesMap = new HashMap<>();
+    private final Map<String, String> hostProfileIdMap = new HashMap<>();
     private final Map<String, ValueEventListener> hostListeners = new HashMap<>();
     private boolean dashboardStarted = false;
 
@@ -37,6 +37,7 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         ScrollView scrollView = new ScrollView(this); scrollView.setFillViewport(true); scrollView.setBackgroundColor(android.graphics.Color.parseColor("#120A2A"));
         LinearLayout rootLayout = new LinearLayout(this); rootLayout.setOrientation(LinearLayout.VERTICAL); rootLayout.setPadding(40, 40, 40, 40);
         txtAgencyTitle = new TextView(this); agencyName = prefs.getString("CACHED_AGENCY_NAME", "SR Agency");
+        if (agencyName == null || agencyName.isEmpty()) agencyName = prefs.getString("AGENCY_NAME", "SR Agency");
         txtAgencyTitle.setText("🏛️ " + agencyName + " - Dashboard"); txtAgencyTitle.setTextColor(android.graphics.Color.parseColor("#FFD700")); txtAgencyTitle.setTextSize(22); txtAgencyTitle.setTypeface(null, android.graphics.Typeface.BOLD); rootLayout.addView(txtAgencyTitle);
         txtMonth = new TextView(this); txtMonth.setText("📅 Month: " + monthKey + " • Monthly - মাস শেষে ZERO হবে"); txtMonth.setTextColor(android.graphics.Color.WHITE); txtMonth.setTextSize(13); rootLayout.addView(txtMonth);
         txtTotalHosts = new TextView(this); txtTotalHosts.setText("👥 Active Hosts: 0"); txtTotalHosts.setTextColor(android.graphics.Color.WHITE); txtTotalHosts.setTextSize(16); txtTotalHosts.setPadding(0, 20, 0, 5); rootLayout.addView(txtTotalHosts);
@@ -47,10 +48,18 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         hostListContainer = new LinearLayout(this); hostListContainer.setOrientation(LinearLayout.VERTICAL); rootLayout.addView(hostListContainer);
         scrollView.addView(rootLayout); setContentView(scrollView);
 
-        // Input can be Profile ID (Any Digit) OR UID - we must resolve to UID FIRST.
+        // ===== GLOBAL - Owner ID Resolve - Me থেকে আসা সব Key Support =====
         String rawOwner = getIntent().getStringExtra("AGENCY_OWNER_ID");
+        if (rawOwner == null || rawOwner.isEmpty()) rawOwner = getIntent().getStringExtra("AGENCY_UID");
+        if (rawOwner == null || rawOwner.isEmpty()) rawOwner = getIntent().getStringExtra("AGENCY_PROFILE_ID");
+        if (rawOwner == null || rawOwner.isEmpty()) rawOwner = getIntent().getStringExtra("PROFILE_ID");
         if (rawOwner == null || rawOwner.isEmpty()) rawOwner = getIntent().getStringExtra("MY_ID");
+        if (rawOwner == null || rawOwner.isEmpty()) rawOwner = prefs.getString("MY_PROFILE_ID", "");
         if (rawOwner == null || rawOwner.isEmpty()) rawOwner = prefs.getString("MY_9_DIGIT_ID", "");
+        if (rawOwner == null || rawOwner.isEmpty()) {
+            FirebaseUser fu = FirebaseAuth.getInstance().getCurrentUser();
+            if (fu != null) rawOwner = fu.getUid();
+        }
         if (rawOwner == null) rawOwner = "";
         agencyOwnerProfileId = rawOwner;
 
@@ -60,13 +69,12 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         btnAgencyPolicy.setOnClickListener(v -> {
             try {
                 Intent i = new Intent(this, AgencyPolicyActivity.class);
-                i.putExtra("AGENCY_OWNER_ID", agencyOwnerId); i.putExtra("MY_ID", agencyOwnerId); i.putExtra("FROM_AGENCY_DASHBOARD", true);
+                i.putExtra("AGENCY_OWNER_ID", agencyOwnerId); i.putExtra("AGENCY_UID", agencyOwnerId); i.putExtra("AGENCY_PROFILE_ID", agencyOwnerProfileId); i.putExtra("PROFILE_ID", agencyOwnerProfileId); i.putExtra("MY_ID", agencyOwnerId); i.putExtra("FROM_AGENCY_DASHBOARD", true);
                 startActivity(i);
             } catch (Exception e) { showPolicyFallbackDialog(); }
         });
         btnOpenInviteDialog.setOnClickListener(v -> showHostInviteInputDialog());
 
-        // Resolve Owner Profile ID -> UID, then start dashboard with UID only.
         resolveAnyIdToUid(rawOwner, new UidCallback() {
             @Override public void onResolved(String uid, String profileId) {
                 agencyOwnerId = uid;
@@ -108,34 +116,21 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         builder.setNegativeButton("Cancel", (d, w) -> d.dismiss()); builder.show();
     }
 
-    // ===== CORE FIX: Any Digit Profile ID -> UID =====
-    // Input can be: Profile ID (1 digit, 2 digit, any digit) OR UID.
-    // We return UID always. Profile ID is only for display, never as Firebase key.
     private void resolveAnyIdToUid(final String inputId, final UidCallback cb) {
         if (inputId == null || inputId.isEmpty()) { cb.onResolved("", ""); return; }
-        // Case 1: Input is already UID - users/{inputId} exists.
         usersRef.child(inputId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 if (snap.exists()) {
                     String pid = getProfileIdFromSnapshot(snap, inputId);
                     cb.onResolved(inputId, pid); return;
                 }
-                // Case 2: Input is Profile ID (Any Digit) - search all users by profileId fields.
                 usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override public void onDataChange(@NonNull DataSnapshot all) {
                         for (DataSnapshot u : all.getChildren()) {
                             if (u.getKey() == null) continue;
                             if (matchesAnyProfileId(u, inputId)) { cb.onResolved(u.getKey(), inputId); return; }
                         }
-                        // Not found: fall back to input as UID so dashboard does not crash.
-                        // But invite will show "No user found" in caller if needed.
-                        if (cb != null) {
-                            // For invite flow, distinguish not-found by checking caller: if this is invite, caller checks uid existence via send method.
-                            // Here we still return input, send method will verify via invitation write.
-                            cb.onResolved(inputId, inputId);
-                            // Show hint only if it was an invite lookup (host list is empty case handled by dashboard).
-                            // Do not toast for dashboard owner fallback to avoid spam.
-                        }
+                        if (cb != null) cb.onResolved(inputId, inputId);
                     }
                     @Override public void onCancelled(@NonNull DatabaseError e) { cb.onResolved(inputId, inputId); }
                 });
@@ -144,14 +139,12 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         });
     }
 
-    // Profile ID can be stored under many field names - check ALL. Any Digit = String compare, not length check.
     private boolean matchesAnyProfileId(DataSnapshot u, String inputId) {
-        String[] fields = {"profileId", "profileID", "profile_id", "userProfileId", "displayId", "displayID", "shortId", "shortID", "MY_9_DIGIT_ID", "nineDigitId", "userShortId", "short_id", "id", "userId", "profileNumber", "publicId"};
+        String[] fields = {"profileId", "profileID", "profile_id", "userProfileId", "displayId", "displayID", "shortId", "shortID", "MY_9_DIGIT_ID", "nineDigitId", "my9DigitId", "my9DigitID", "userShortId", "short_id", "id", "userId", "profileNumber", "publicId", "anyId", "myId", "idNumber", "srId"};
         for (String f : fields) {
             Object v = u.child(f).getValue();
             if (v != null && String.valueOf(v).trim().equals(inputId.trim())) return true;
         }
-        // Also check nested profile / userInfo nodes.
         for (DataSnapshot sub : u.getChildren()) {
             if (sub.hasChild("profileId") && inputId.trim().equals(String.valueOf(sub.child("profileId").getValue()))) return true;
             if (sub.hasChild("shortId") && inputId.trim().equals(String.valueOf(sub.child("shortId").getValue()))) return true;
@@ -160,7 +153,7 @@ public class AgencyDashboardActivity extends AppCompatActivity {
     }
 
     private String getProfileIdFromSnapshot(DataSnapshot u, String fallback) {
-        String[] fields = {"profileId", "profileID", "displayId", "shortId", "MY_9_DIGIT_ID"};
+        String[] fields = {"profileId", "profileID", "displayId", "shortId", "MY_9_DIGIT_ID", "my9DigitId", "anyId"};
         for (String f : fields) {
             Object v = u.child(f).getValue();
             if (v != null && !String.valueOf(v).trim().isEmpty()) return String.valueOf(v).trim();
@@ -170,13 +163,28 @@ public class AgencyDashboardActivity extends AppCompatActivity {
 
     private void sendRealtimeHostInvitation(String targetUid, String typedId) {
         if (targetUid.equals(agencyOwnerId)) { Toast.makeText(this, "You cannot invite yourself!", Toast.LENGTH_SHORT).show(); return; }
-        // Verify target actually exists before sending - prevents invite to wrong / ghost ID.
         usersRef.child(targetUid).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 if (!snap.exists()) { Toast.makeText(AgencyDashboardActivity.this, "No user found for ID: " + typedId, Toast.LENGTH_LONG).show(); return; }
                 String inviteKey = invitationRef.child(targetUid).push().getKey(); if (inviteKey == null) return;
                 Map<String, Object> m = new HashMap<>(); m.put("agencyId", agencyOwnerId); m.put("agencyName", agencyName); m.put("inviterId", agencyOwnerId); m.put("targetId", targetUid); m.put("targetProfileId", typedId); m.put("typedId", typedId); m.put("type", "AGENCY_INVITE"); m.put("status", "Pending"); m.put("timestamp", System.currentTimeMillis());
                 invitationRef.child(targetUid).child(inviteKey).setValue(m);
+                // ===== FIX - Host এর Me Page এ Invite দেখানোর জন্য - MeActivity এইটা শুনে =====
+                // Host এর users/{targetUid} তে pendingHostInvite = true লিখতে হবে
+                // নইলে Host কোনোদিন Invite দেখবে না
+                String targetProfileKey = typedId;
+                // Target এর Profile ID Key - users/{typedId} তেও লিখি - MeActivity যেই Key দিয়ে শুনে
+                usersRef.child(targetUid).child("pendingHostInvite").setValue(true);
+                usersRef.child(targetUid).child("pendingAgencyId").setValue(agencyOwnerId);
+                usersRef.child(targetUid).child("pendingAgencyName").setValue(agencyName);
+                if (!targetProfileKey.equals(targetUid)) {
+                    usersRef.child(targetProfileKey).child("pendingHostInvite").setValue(true);
+                    usersRef.child(targetProfileKey).child("pendingAgencyId").setValue(agencyOwnerId);
+                    usersRef.child(targetProfileKey).child("pendingAgencyName").setValue(agencyName);
+                }
+                // hostInvites - MeActivity Accept করলে এইটা Accepted হবে
+                Map<String, Object> hi = new HashMap<>(); hi.put("hostUid", targetUid); hi.put("hostProfileId", typedId); hi.put("agencyId", agencyOwnerId); hi.put("agencyName", agencyName); hi.put("status", "pending"); hi.put("timestamp", System.currentTimeMillis());
+                FirebaseDatabase.getInstance().getReference("hostInvites").child(inviteKey).setValue(hi);
                 usersRef.child(targetUid).child("inbox").child(inviteKey).setValue(m).addOnCompleteListener(t -> { if (t.isSuccessful()) Toast.makeText(AgencyDashboardActivity.this, "Host invitation sent to ID: " + typedId, Toast.LENGTH_LONG).show(); else Toast.makeText(AgencyDashboardActivity.this, "Failed to send invitation!", Toast.LENGTH_SHORT).show(); });
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
@@ -188,8 +196,6 @@ public class AgencyDashboardActivity extends AppCompatActivity {
             @Override public void onDataChange(@NonNull DataSnapshot snapshot) {
                 Set<String> current = new HashSet<>();
                 for (DataSnapshot h : snapshot.getChildren()) if (h.getKey() != null) current.add(h.getKey());
-                // Hosts are stored by UID in agencies/{ownerUid}/hosts/{hostUid} = true
-                // If old data stored Profile ID as key, resolve it to UID before attaching.
                 for (String key : current) {
                     if (hostListeners.containsKey(key) || hostListeners.containsKey("UID_" + key)) continue;
                     resolveAnyIdToUid(key, (uid, pid) -> { hostProfileIdMap.put(uid, pid); attachHostRealtimeListener(uid); });
@@ -201,7 +207,6 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         });
     }
 
-    // Real-time: users/{UID}/monthly/{month}/receivedCoins - UID key only, so no cross-user leak.
     private void attachHostRealtimeListener(final String hostUid) {
         if (hostListeners.containsKey(hostUid)) return;
         ValueEventListener coinsListener = new ValueEventListener() {
