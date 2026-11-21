@@ -1,10 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="#1B1035"
-    android:padding="16dp">
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="16dp">
+
+    <!-- Handle -->
+    <View
+        android:layout_width="48dp"
+        android:layout_height="5dp"
+        android:background="#55FFFFFF"
+        android:layout_gravity="center"
+        android:layout_marginBottom="10dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -19,7 +31,7 @@
             android:layout_weight="1"
             android:text="🎁 SR Luxury Gift Center"
             android:textColor="#FFD700"
-            android:textSize="18sp"
+            android:textSize="17sp"
             android:textStyle="bold" />
 
         <TextView
@@ -27,17 +39,57 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="💰 999,999 Coins"
-            android:textColor="#00E676"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:textColor="#FFD700"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:background="#33FFD700"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="6dp" />
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvGiftTargets"
+    <!-- Target Row - বাম কোনায় ছোট্ট Popup + ছোট্ট Marble গোল Profile -->
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="78dp"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="10dp" />
+        android:gravity="center_vertical"
+        android:layout_marginBottom="10dp">
+
+        <!-- বাম কোনায় ছোট্ট গোল Popup - All Mic / All Room -->
+        <FrameLayout
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginEnd="8dp">
+            <androidx.cardview.widget.CardView
+                android:id="@+id/btnTargetPopup"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="4dp"
+                app:cardBackgroundColor="#FFD700">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="👥"
+                    android:textSize="20sp" />
+            </androidx.cardview.widget.CardView>
+            <!-- ছোট্ট Dot - Popup আছে বুঝানোর জন্য -->
+            <View
+                android:layout_width="10dp"
+                android:layout_height="10dp"
+                android:layout_gravity="bottom|end"
+                android:background="#00E676" />
+        </FrameLayout>
+
+        <!-- Marble গোল - ছোট্ট ছোট্ট - 52dp - বড় না -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvGiftTargets"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:orientation="horizontal" />
+    </LinearLayout>
 
     <EditText
         android:id="@+id/editTargetSeat"
@@ -48,7 +100,6 @@
         android:textColor="#FFFFFF"
         android:hint="Target Seat" />
 
-    <!-- Hidden - Java এর সাথে মিল রাখার জন্য, চোখে দেখা যাবে না -->
     <TextView
         android:id="@+id/txtGiftCount"
         android:layout_width="0dp"
@@ -56,6 +107,7 @@
         android:visibility="gone"
         android:text="x1" />
 
+    <!-- Gift Grid -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvGifts"
         android:layout_width="match_parent"
@@ -63,6 +115,7 @@
         android:scrollbars="vertical"
         android:layout_marginBottom="12dp" />
 
+    <!-- Bottom - To + Quantity + Send -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -72,27 +125,28 @@
         <TextView
             android:id="@+id/tvSelectedTargetId"
             android:layout_width="0dp"
-            android:layout_height="50dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:background="#2A1B4E"
             android:text="To: All Mic"
             android:textColor="#FFFFFF"
             android:textSize="13sp"
+            android:textStyle="bold"
             android:gravity="center_vertical"
             android:paddingHorizontal="12dp" />
 
+        <!-- Quantity - ছোট্ট Pill - x1 / x5 / x10 -->
         <Button
             android:id="@+id/btnGiftQuantity"
-            android:layout_width="70dp"
-            android:layout_height="50dp"
+            android:layout_width="64dp"
+            android:layout_height="48dp"
             android:layout_marginStart="8dp"
             android:text="x1"
-            android:textColor="#FFFFFF"
+            android:textColor="#000000"
             android:textSize="15sp"
             android:textStyle="bold"
-            android:backgroundTint="#2A1B4E" />
+            android:backgroundTint="#FFD700" />
 
-        <!-- Java এর সাথে মিল রাখার জন্য - একই বাটনকে ২ নামে চিনবে -->
         <Button
             android:id="@+id/btnGiftCount"
             android:layout_width="0dp"
@@ -103,7 +157,7 @@
         <Button
             android:id="@+id/btnSendGift"
             android:layout_width="110dp"
-            android:layout_height="50dp"
+            android:layout_height="48dp"
             android:layout_marginStart="8dp"
             android:text="🚀 Send"
             android:textColor="#FFFFFF"
