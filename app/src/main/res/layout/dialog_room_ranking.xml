@@ -7,7 +7,7 @@
     android:background="#120A2A"
     android:padding="16dp">
 
-    <!-- Header -->
+    <!-- Header - Fixed -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -33,7 +33,7 @@
             android:background="#33FFFFFF" />
     </LinearLayout>
 
-    <!-- Tabs - Daily / Weekly / Monthly -->
+    <!-- Tabs - Fixed -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -68,84 +68,93 @@
             android:backgroundTint="#2A1B4E" />
     </LinearLayout>
 
-    <!-- Top 1-2-3 Podium -->
-    <LinearLayout
-        android:id="@+id/layoutTop3Podium"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="bottom"
-        android:layout_marginBottom="14dp">
-
-        <!-- Top 2 -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:paddingTop="22dp">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🥈" android:textSize="24sp" />
-            <androidx.cardview.widget.CardView android:layout_width="58dp" android:layout_height="58dp" app:cardCornerRadius="29dp" app:cardElevation="4dp" app:cardBackgroundColor="#C0C0C0">
-                <ImageView android:id="@+id/imgTop2Photo" android:layout_width="54dp" android:layout_height="54dp" android:layout_gravity="center" android:scaleType="centerCrop" android:background="#C0C0C0" />
-            </androidx.cardview.widget.CardView>
-            <TextView android:id="@+id/txtTop2Name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Top 2" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold" android:maxLines="1" />
-            <TextView android:id="@+id/txtTop2Coins" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0 🪙" android:textColor="#C0C0C0" android:textSize="11sp" android:textStyle="bold" />
-            <View android:layout_width="match_parent" android:layout_height="42dp" android:background="#C0C0C0" android:layout_marginTop="6dp" />
-        </LinearLayout>
-
-        <!-- Top 1 - Crown -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👑" android:textSize="30sp" />
-            <androidx.cardview.widget.CardView android:layout_width="78dp" android:layout_height="78dp" app:cardCornerRadius="39dp" app:cardElevation="8dp" app:cardBackgroundColor="#FFD700">
-                <ImageView android:id="@+id/imgTop1Photo" android:layout_width="72dp" android:layout_height="72dp" android:layout_gravity="center" android:scaleType="centerCrop" android:background="#FFD700" />
-            </androidx.cardview.widget.CardView>
-            <TextView android:id="@+id/txtTop1Name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Top 1" android:textColor="#FFD700" android:textSize="14sp" android:textStyle="bold" android:maxLines="1" />
-            <TextView android:id="@+id/txtTop1Coins" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0 🪙" android:textColor="#FFD700" android:textSize="12sp" android:textStyle="bold" />
-            <View android:layout_width="match_parent" android:layout_height="72dp" android:background="#FFD700" android:layout_marginTop="6dp" />
-        </LinearLayout>
-
-        <!-- Top 3 -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:paddingTop="32dp">
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🥉" android:textSize="24sp" />
-            <androidx.cardview.widget.CardView android:layout_width="58dp" android:layout_height="58dp" app:cardCornerRadius="29dp" app:cardElevation="4dp" app:cardBackgroundColor="#CD7F32">
-                <ImageView android:id="@+id/imgTop3Photo" android:layout_width="54dp" android:layout_height="54dp" android:layout_gravity="center" android:scaleType="centerCrop" android:background="#CD7F32" />
-            </androidx.cardview.widget.CardView>
-            <TextView android:id="@+id/txtTop3Name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Top 3" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold" android:maxLines="1" />
-            <TextView android:id="@+id/txtTop3Coins" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0 🪙" android:textColor="#CD7F32" android:textSize="11sp" android:textStyle="bold" />
-            <View android:layout_width="match_parent" android:layout_height="32dp" android:background="#CD7F32" android:layout_marginTop="6dp" />
-        </LinearLayout>
-    </LinearLayout>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="✨ Top Senders - Event Ranking"
-        android:textColor="#AAAAAA"
-        android:textSize="12sp"
-        android:textStyle="bold"
-        android:paddingBottom="8dp" />
-
-    <!-- 4 থেকে নিচে - Auto Number List -->
+    <!-- ✅ সব Scroll হবে - Podium + 1-50 List একসাথে -->
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:scrollbars="vertical">
         <LinearLayout
-            android:id="@+id/rankingListContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" />
+            android:orientation="vertical">
+
+            <!-- Top 1-2-3 Podium - এখন Scroll হবে -->
+            <LinearLayout
+                android:id="@+id/layoutTop3Podium"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="bottom"
+                android:layout_marginBottom="14dp">
+
+                <!-- Top 2 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:paddingTop="22dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🥈" android:textSize="24sp" />
+                    <androidx.cardview.widget.CardView android:layout_width="58dp" android:layout_height="58dp" app:cardCornerRadius="29dp" app:cardElevation="4dp" app:cardBackgroundColor="#C0C0C0">
+                        <ImageView android:id="@+id/imgTop2Photo" android:layout_width="54dp" android:layout_height="54dp" android:layout_gravity="center" android:scaleType="centerCrop" android:background="#C0C0C0" />
+                    </androidx.cardview.widget.CardView>
+                    <TextView android:id="@+id/txtTop2Name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Top 2" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold" android:maxLines="1" />
+                    <TextView android:id="@+id/txtTop2Coins" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0 🪙" android:textColor="#C0C0C0" android:textSize="11sp" android:textStyle="bold" />
+                    <View android:layout_width="match_parent" android:layout_height="42dp" android:background="#C0C0C0" android:layout_marginTop="6dp" />
+                </LinearLayout>
+
+                <!-- Top 1 - Crown -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👑" android:textSize="30sp" />
+                    <androidx.cardview.widget.CardView android:layout_width="78dp" android:layout_height="78dp" app:cardCornerRadius="39dp" app:cardElevation="8dp" app:cardBackgroundColor="#FFD700">
+                        <ImageView android:id="@+id/imgTop1Photo" android:layout_width="72dp" android:layout_height="72dp" android:layout_gravity="center" android:scaleType="centerCrop" android:background="#FFD700" />
+                    </androidx.cardview.widget.CardView>
+                    <TextView android:id="@+id/txtTop1Name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Top 1" android:textColor="#FFD700" android:textSize="14sp" android:textStyle="bold" android:maxLines="1" />
+                    <TextView android:id="@+id/txtTop1Coins" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0 🪙" android:textColor="#FFD700" android:textSize="12sp" android:textStyle="bold" />
+                    <View android:layout_width="match_parent" android:layout_height="72dp" android:background="#FFD700" android:layout_marginTop="6dp" />
+                </LinearLayout>
+
+                <!-- Top 3 -->
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:paddingTop="32dp">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🥉" android:textSize="24sp" />
+                    <androidx.cardview.widget.CardView android:layout_width="58dp" android:layout_height="58dp" app:cardCornerRadius="29dp" app:cardElevation="4dp" app:cardBackgroundColor="#CD7F32">
+                        <ImageView android:id="@+id/imgTop3Photo" android:layout_width="54dp" android:layout_height="54dp" android:layout_gravity="center" android:scaleType="centerCrop" android:background="#CD7F32" />
+                    </androidx.cardview.widget.CardView>
+                    <TextView android:id="@+id/txtTop3Name" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Top 3" android:textColor="#FFFFFF" android:textSize="12sp" android:textStyle="bold" android:maxLines="1" />
+                    <TextView android:id="@+id/txtTop3Coins" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0 🪙" android:textColor="#CD7F32" android:textSize="11sp" android:textStyle="bold" />
+                    <View android:layout_width="match_parent" android:layout_height="32dp" android:background="#CD7F32" android:layout_marginTop="6dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="✨ Top Senders - 1 to 50 - Auto Serial"
+                android:textColor="#AAAAAA"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:paddingBottom="8dp" />
+
+            <!-- 1 থেকে 50 - Auto Number List -->
+            <LinearLayout
+                android:id="@+id/rankingListContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </LinearLayout>
     </ScrollView>
 </LinearLayout>
