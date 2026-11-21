@@ -11,6 +11,8 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.*;
 import java.text.NumberFormat;
 import java.util.Calendar;
@@ -20,6 +22,7 @@ public class HostWorkDataActivity extends AppCompatActivity {
     private TextView tvReceived, tvLevel, tvSalary, tvNext, tvMonth;
     private LinearLayout root, lockBox;
     private String myId = "", monthKey = "";
+    private String firebaseUid = "";
     private SharedPreferences prefs;
     private boolean isHost = false;
 
@@ -36,12 +39,25 @@ public class HostWorkDataActivity extends AppCompatActivity {
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
         monthKey = getMonthKey();
 
-        myId = getIntent().getStringExtra("MY_ID");
-        if (myId == null || myId.isEmpty()) myId = getIntent().getStringExtra("HOST_ID");
+        // ===== GLOBAL + PERMANENT - ID RESOLVE - একটাই ID =====
+        FirebaseUser fu = FirebaseAuth.getInstance().getCurrentUser();
+        if (fu != null) firebaseUid = fu.getUid();
+        if (firebaseUid.isEmpty()) firebaseUid = prefs.getString("FIREBASE_UID", "");
+
+        String intentId = getIntent().getStringExtra("HOST_PROFILE_ID");
+        if (intentId == null || intentId.isEmpty()) intentId = getIntent().getStringExtra("HOST_ANY_ID");
+        if (intentId == null || intentId.isEmpty()) intentId = getIntent().getStringExtra("PROFILE_ID");
+        if (intentId == null || intentId.isEmpty()) intentId = getIntent().getStringExtra("HOST_ID");
+        if (intentId == null || intentId.isEmpty()) intentId = getIntent().getStringExtra("MY_ID");
+
+        myId = prefs.getString("MY_PROFILE_ID", "");
         if (myId == null || myId.isEmpty()) myId = prefs.getString("MY_9_DIGIT_ID", "");
         if (myId == null) myId = "";
+        // Intent ID কে Priority - Host Center থেকে যেটা আসছে ওইটাই আসল ID
+        if (intentId != null && !intentId.isEmpty()) myId = intentId.trim();
 
-        isHost = prefs.getBoolean("IS_HOST_" + myId, false) || prefs.getBoolean("HOST_ACCEPTED_" + myId, false);
+        isHost = prefs.getBoolean("IS_HOST", false) && prefs.getBoolean("HOST_ACTIVE", false);
+        if (!isHost) isHost = prefs.getBoolean("IS_HOST_" + myId, false) || prefs.getBoolean("HOST_ACCEPTED_" + myId, false);
         if (getIntent().getBooleanExtra("FROM_HOST_ACCEPT", false)) isHost = true;
 
         ScrollView scroll = new ScrollView(this); scroll.setBackgroundColor(Color.parseColor("#0A0518"));
@@ -97,15 +113,16 @@ public class HostWorkDataActivity extends AppCompatActivity {
 
     private void showUnlocked() {
         if (isHost) return; isHost = true;
-        prefs.edit().putBoolean("IS_HOST_" + myId, true).putBoolean("HOST_ACCEPTED_" + myId, true).apply();
+        prefs.edit().putBoolean("IS_HOST_" + myId, true).putBoolean("HOST_ACCEPTED_" + myId, true).putBoolean("IS_HOST", true).putBoolean("HOST_ACTIVE", true).apply();
         if (lockBox != null) lockBox.setVisibility(View.GONE);
         for (int i = 0; i < root.getChildCount(); i++) { View v = root.getChildAt(i); if (v.getTag() != null && String.valueOf(v.getTag()).startsWith("work_")) v.setVisibility(View.VISIBLE); }
         loadData();
     }
     private void checkHostFromFirebase() {
-        if (myId.isEmpty()) return;
+        if (myId.isEmpty() && firebaseUid.isEmpty()) return;
         DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
-        usersRef.child(myId).addListenerForSingleValueEvent(new ValueEventListener() {
+        String key = myId.isEmpty() ? firebaseUid : myId;
+        usersRef.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) { if (isHostFromSnapshot(snap)) { showUnlocked(); return; } usersRef.orderByChild("my9DigitId").equalTo(myId).addListenerForSingleValueEvent(new ValueEventListener() { @Override public void onDataChange(@NonNull DataSnapshot s2) { for (DataSnapshot ds : s2.getChildren()) if (isHostFromSnapshot(ds)) { showUnlocked(); return; } checkInAgencyHosts(); } @Override public void onCancelled(@NonNull DatabaseError e) { checkInAgencyHosts(); } }); }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
@@ -114,7 +131,9 @@ public class HostWorkDataActivity extends AppCompatActivity {
         if (snap == null || !snap.exists()) return false;
         if (isTrue(snap, "isHost") || isTrue(snap, "isHostAccepted") || isTrue(snap, "hostAccepted") || isTrue(snap, "isAnchor")) return true;
         if (snap.child("hostStatus").getValue() != null && String.valueOf(snap.child("hostStatus").getValue()).equalsIgnoreCase("accepted")) return true;
+        if (snap.child("hostStatus").getValue() != null && String.valueOf(snap.child("hostStatus").getValue()).equalsIgnoreCase("active")) return true;
         if (snap.child("agencyId").getValue() != null && !String.valueOf(snap.child("agencyId").getValue()).isEmpty()) return true;
+        if (snap.child("hostAgencyId").getValue() != null && !String.valueOf(snap.child("hostAgencyId").getValue()).isEmpty()) return true;
         return false;
     }
     private boolean isTrue(DataSnapshot snap, String key) { if (!snap.hasChild(key)) return false; Object v = snap.child(key).getValue(); return v != null && (v.toString().equalsIgnoreCase("true") || v.toString().equals("1")); }
@@ -126,16 +145,26 @@ public class HostWorkDataActivity extends AppCompatActivity {
 
     // --- MONTHLY LOAD: users/{id}/monthly/{2026-11}/receivedCoins ---
     private void loadData() {
-        if (myId.isEmpty()) return;
-        FirebaseDatabase.getInstance().getReference("users").child(myId).child("monthly").child(monthKey).child("receivedCoins").addValueEventListener(new ValueEventListener() {
+        if (myId.isEmpty() && firebaseUid.isEmpty()) return;
+        String key = myId.isEmpty() ? firebaseUid : myId;
+        FirebaseDatabase.getInstance().getReference("users").child(key).child("monthly").child(monthKey).child("receivedCoins").addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 long received = 0;
                 if (snap.exists() && snap.getValue() != null) { try { received = Long.parseLong(String.valueOf(snap.getValue())); } catch (Exception ignored) {} }
-                // Cache - EKI MASER jonno
                 prefs.edit().putLong("CACHED_COINS_" + myId + "_" + monthKey, received).putString("CACHED_MONTH_" + myId, monthKey).apply();
                 updateUI(received);
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
+        // Fallback: Firebase UID দিয়ে ও - UID আলাদা হলেও Coin মিস হবে না
+        if (!firebaseUid.isEmpty() && !firebaseUid.equals(key)) {
+            FirebaseDatabase.getInstance().getReference("users").child(firebaseUid).child("monthly").child(monthKey).child("receivedCoins").addValueEventListener(new ValueEventListener() {
+                @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                    if (!snap.exists() || snap.getValue() == null) return;
+                    try { long c = Long.parseLong(String.valueOf(snap.getValue())); if (c > 0) { prefs.edit().putLong("CACHED_COINS_" + myId + "_" + monthKey, c).putString("CACHED_MONTH_" + myId, monthKey).apply(); updateUI(c); } } catch (Exception ignored) {}
+                }
+                @Override public void onCancelled(@NonNull DatabaseError e) {}
+            });
+        }
     }
 }
