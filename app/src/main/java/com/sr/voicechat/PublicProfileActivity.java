@@ -509,7 +509,7 @@ public class PublicProfileActivity extends AppCompatActivity {
         }
     }
 
-    // FIXED - Cached eo Flag + Gender sathe sathe dekhabe
+    // FIXED - Cached eo Flag + Gender sudhu Name e, ID te Double nai
     private void showCachedInstantly() {
         if (txtName != null) {
             String cached = getCachedName();
@@ -532,7 +532,8 @@ public class PublicProfileActivity extends AppCompatActivity {
             if (genderIcon.isEmpty() && user != null) genderIcon = user.getGenderIcon();
             String suffix = (flag + "  " + genderIcon).trim();
             txtName.setText(suffix.isEmpty() ? cached : cached + "  " + suffix);
-            if (txtId != null) txtId.setText(suffix.isEmpty() ? "ID: " + targetId + "  📋 Tap to Copy" : "ID: " + targetId + "  •  " + suffix + "  📋");
+            // FIXED - ID te Flag/Gender nai - Sudhu ID + Copy
+            if (txtId != null) txtId.setText("ID: " + targetId + "  📋 Tap to Copy");
             user.name = cached;
         }
         String cachedPhoto = "";
@@ -943,8 +944,9 @@ public class PublicProfileActivity extends AppCompatActivity {
                 String flag = getCountryShort(user.country);
                 String genderIcon = getGenderIconPremium(user.gender);
                 if(genderIcon.isEmpty()) genderIcon = user.getGenderIcon();
+                // FIXED - Name e Flag+Gender, ID te sudhu ID + Copy - Double nai
                 txtName.setText(user.name + "  " + flag + "  " + genderIcon);
-                txtId.setText("ID: " + targetId + "  •  " + flag + "  " + genderIcon + "  📋");
+                txtId.setText("ID: " + targetId + "  📋");
                 updateLevelBadge();
                 txtFollow.setText(user.followCount);
                 txtFans.setText(user.fansCount);
