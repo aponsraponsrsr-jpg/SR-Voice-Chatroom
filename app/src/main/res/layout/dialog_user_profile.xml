@@ -4,17 +4,29 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="#FFFFFF"
-    android:padding="16dp"
+    android:background="#1B1035"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="20dp"
     android:gravity="center">
 
-    <!-- TOP TABS - Demo onujayi Profile / Members -->
+    <!-- Premium Handle -->
+    <View
+        android:layout_width="48dp"
+        android:layout_height="5dp"
+        android:background="#55FFFFFF" />
+
+    <!-- TOP TABS - Premium -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        android:layout_marginBottom="14dp">
+        android:background="#2A1B4E"
+        android:padding="6dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="16dp">
 
         <TextView
             android:id="@+id/txtProfileTab"
@@ -22,9 +34,11 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Profile"
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:textStyle="bold"
             android:textColor="#000000"
+            android:background="#FFD700"
+            android:paddingVertical="8dp"
             android:gravity="center" />
 
         <TextView
@@ -33,33 +47,42 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="Members"
-            android:textSize="16sp"
-            android:textColor="#999999"
+            android:textSize="15sp"
+            android:textColor="#FFFFFF"
+            android:paddingVertical="8dp"
             android:gravity="center" />
     </LinearLayout>
 
-    <!-- User Profile Picture + VIP Frame -->
+    <!-- Avatar + Premium Gold Ring -->
     <FrameLayout
-        android:layout_width="110dp"
-        android:layout_height="110dp"
+        android:layout_width="130dp"
+        android:layout_height="130dp"
         android:layout_marginBottom="10dp">
         <androidx.cardview.widget.CardView
-            android:layout_width="90dp"
-            android:layout_height="90dp"
+            android:layout_width="118dp"
+            android:layout_height="118dp"
             android:layout_gravity="center"
-            app:cardCornerRadius="45dp"
-            app:cardElevation="0dp">
-            <ImageView
-                android:id="@+id/imgUserProfile"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:background="#FFE0B2" />
+            app:cardCornerRadius="59dp"
+            app:cardElevation="10dp"
+            app:cardBackgroundColor="#FFD700">
+            <androidx.cardview.widget.CardView
+                android:layout_width="110dp"
+                android:layout_height="110dp"
+                android:layout_gravity="center"
+                app:cardCornerRadius="55dp"
+                app:cardElevation="0dp">
+                <ImageView
+                    android:id="@+id/imgUserProfile"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:background="#FFE0B2" />
+            </androidx.cardview.widget.CardView>
         </androidx.cardview.widget.CardView>
         <ImageView
             android:id="@+id/imgUserFrame"
-            android:layout_width="110dp"
-            android:layout_height="110dp"
+            android:layout_width="130dp"
+            android:layout_height="130dp"
             android:layout_gravity="center"
             android:visibility="gone"
             android:scaleType="fitXY" />
@@ -71,23 +94,25 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="User Name"
-        android:textColor="#000000"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+        android:textColor="#FFFFFF"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:maxLines="1"
+        android:ellipsize="end" />
 
-    <!-- NEW - VIP Badge - Namer thik niche -->
+    <!-- VIP Badge - Premium Gold -->
     <TextView
         android:id="@+id/txtUserVipBadge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text=""
-        android:textColor="#FF9800"
+        android:textColor="#000000"
         android:textSize="13sp"
         android:textStyle="bold"
-        android:background="#33FF9800"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="5dp"
-        android:layout_marginTop="6dp"
+        android:background="#FFD700"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="6dp"
+        android:layout_marginTop="8dp"
         android:visibility="gone" />
 
     <!-- Group Name -->
@@ -96,29 +121,29 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Group Name"
-        android:textColor="#666666"
+        android:textColor="#AAAAAA"
         android:textSize="13sp"
-        android:layout_marginTop="2dp" />
+        android:layout_marginTop="4dp" />
 
-    <!-- ID & Level -->
+    <!-- ID & Level - Premium Pill -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="10dp"
-        android:background="#FFF3E0"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="6dp">
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="12dp"
+        android:background="#33FFD700"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="8dp">
 
         <TextView
             android:id="@+id/txtUserId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="ID: 123456789 📋"
-            android:textColor="#FF9800"
-            android:textSize="14sp"
+            android:textColor="#FFD700"
+            android:textSize="13sp"
             android:textStyle="bold"
             android:layout_marginEnd="12dp"
             android:clickable="true"
@@ -129,12 +154,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="⭐ Level 15"
-            android:textColor="#00C853"
+            android:textColor="#FFFFFF"
             android:textSize="13sp"
             android:textStyle="bold"/>
     </LinearLayout>
 
-    <!-- NEW - Agency Banner - Choto, Premium Green, Icon NAI, Name NAI, Sudhu AGENCY -->
+    <!-- Agency - Premium Green -->
     <LinearLayout
         android:id="@+id/layoutUserAgency"
         android:layout_width="wrap_content"
@@ -142,59 +167,65 @@
         android:orientation="horizontal"
         android:gravity="center"
         android:background="#1E8E3E"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="5dp"
-        android:layout_marginBottom="10dp"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="6dp"
+        android:layout_marginBottom="12dp"
         android:visibility="gone">
         <TextView
             android:id="@+id/txtUserAgency"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="AGENCY"
+            android:text="★ AGENCY ★"
             android:textColor="#FFFFFF"
             android:textSize="11sp"
             android:textStyle="bold"
             android:letterSpacing="0.12" />
     </LinearLayout>
 
-    <!-- Header Info - RoomOwner / Language / Country / Tag -->
+    <!-- Header Info - Premium Dark Card -->
     <LinearLayout
         android:id="@+id/layoutHeaderInfo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="#FFF8E1"
-        android:padding="14dp">
+        android:background="#2A1B4E"
+        android:padding="16dp">
 
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="6dp" android:paddingBottom="6dp">
-            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="RoomOwner" android:textColor="#666666" android:textSize="14sp" />
-            <TextView android:id="@+id/txtRoomOwner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Owner (ID:)" android:textColor="#FF9800" android:textSize="14sp" android:textStyle="bold" />
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="👑 RoomOwner" android:textColor="#AAAAAA" android:textSize="14sp" />
+            <TextView android:id="@+id/txtRoomOwner" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Owner (ID:)" android:textColor="#FFD700" android:textSize="14sp" android:textStyle="bold" />
         </LinearLayout>
 
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="6dp" android:paddingBottom="6dp">
-            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Language" android:textColor="#666666" android:textSize="14sp" />
-            <TextView android:id="@+id/txtHeaderLanguage" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="English" android:textColor="#000000" android:textSize="14sp" />
-        </LinearLayout>
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#22FFFFFF" />
 
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="6dp" android:paddingBottom="6dp">
-            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Country" android:textColor="#666666" android:textSize="14sp" />
-            <TextView android:id="@+id/txtHeaderCountry" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="India" android:textColor="#000000" android:textSize="14sp" />
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="🌐 Language" android:textColor="#AAAAAA" android:textSize="14sp" />
+            <TextView android:id="@+id/txtHeaderLanguage" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="English" android:textColor="#FFFFFF" android:textSize="14sp" android:textStyle="bold" />
         </LinearLayout>
 
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#22FFFFFF" />
+
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="6dp" android:paddingBottom="6dp">
-            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Tag" android:textColor="#666666" android:textSize="14sp" />
-            <TextView android:id="@+id/txtHeaderTag" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Friends" android:textColor="#000000" android:textSize="14sp" />
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="🌍 Country" android:textColor="#AAAAAA" android:textSize="14sp" />
+            <TextView android:id="@+id/txtHeaderCountry" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="India" android:textColor="#FFFFFF" android:textSize="14sp" android:textStyle="bold" />
+        </LinearLayout>
+
+        <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#22FFFFFF" />
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:paddingTop="6dp" android:paddingBottom="6dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="🏷️ Tag" android:textColor="#AAAAAA" android:textSize="14sp" />
+            <TextView android:id="@+id/txtHeaderTag" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Friends" android:textColor="#FFFFFF" android:textSize="14sp" android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
 
-    <!-- Reward Event Banner -->
+    <!-- Reward Event Banner - Premium Gold -->
     <LinearLayout
         android:id="@+id/layoutRewardBanner"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:background="#FF9800"
+        android:background="#FFD700"
         android:padding="12dp"
         android:layout_marginTop="14dp">
 
@@ -203,7 +234,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="🏆  Reward Event"
-            android:textColor="#FFFFFF"
+            android:textColor="#000000"
             android:textSize="16sp"
             android:textStyle="bold" />
 
@@ -212,24 +243,26 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="498 >"
-            android:textColor="#FFFFFF"
+            android:textColor="#000000"
             android:textSize="14sp"
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- Members / Admin Section -->
+    <!-- Members / Admin Section - Premium -->
     <LinearLayout
         android:id="@+id/layoutMembersSection"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingTop="14dp">
+        android:paddingTop="16dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center_vertical">
+            android:gravity="center_vertical"
+            android:background="#2A1B4E"
+            android:padding="6dp">
 
             <TextView
                 android:id="@+id/txtMembersTab"
@@ -237,9 +270,11 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Members"
-                android:textSize="15sp"
+                android:textSize="14sp"
                 android:textStyle="bold"
                 android:textColor="#000000"
+                android:background="#FFD700"
+                android:paddingVertical="7dp"
                 android:gravity="center" />
 
             <TextView
@@ -248,8 +283,9 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="Admin"
-                android:textSize="15sp"
-                android:textColor="#666666"
+                android:textSize="14sp"
+                android:textColor="#FFFFFF"
+                android:paddingVertical="7dp"
                 android:gravity="center" />
         </LinearLayout>
 
@@ -258,10 +294,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Members: 1/1000    Admin: 1/20"
-            android:textColor="#666666"
+            android:textColor="#AAAAAA"
             android:textSize="12sp"
             android:gravity="center"
-            android:paddingTop="6dp" />
+            android:paddingTop="8dp" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvHeaderMembersList"
@@ -270,15 +306,15 @@
             android:layout_marginTop="8dp" />
     </LinearLayout>
 
-    <!-- Follow Button Only - Header e Java diye GONE thakbe -->
+    <!-- Follow - Java diye GONE thakbe -->
     <Button
         android:id="@+id/btnFollow"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:text="➕ Follow"
-        android:textColor="#FFFFFF"
+        android:textColor="#000000"
         android:textStyle="bold"
-        android:backgroundTint="#00C853"
+        android:backgroundTint="#FFD700"
         android:layout_marginTop="12dp"
         android:visibility="gone" />
 
