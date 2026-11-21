@@ -66,7 +66,7 @@ public class PublicProfileActivity extends AppCompatActivity {
 
     private long getLongVal(DataSnapshot s, String k){ try{ Object v=s.child(k).getValue(); if(v==null) return 0; if(v instanceof Number) return ((Number)v).longValue(); return Long.parseLong(String.valueOf(v).replace(",","").trim()); }catch(Exception e){ return 0; } }
 
-    // ===== GLOBAL FLAG - Jekono Country - Shudhu Flag + Code - Country naam lekha nai =====
+    // ===== GLOBAL FLAG - Jekono Country - Shudhu Flag + Code =====
     private String getCountryShort(String c){
         if(c==null||c.isEmpty()) return "";
         String cl=c.trim().toLowerCase();
@@ -157,7 +157,6 @@ public class PublicProfileActivity extends AppCompatActivity {
         if(cl.contains("south africa")) return "🇿🇦 ZA";
         if(cl.contains("angola")) return "🇦🇴 AO";
         if(cl.contains("zimbabwe")) return "🇿🇼 ZW";
-        // Notun / onno jekono country - Flag na thakleo Globe + naam - kintu Bangladesh lekha na
         return "🌍 " + c.trim();
     }
     // ===== GENDER PREMIUM ICON - Male = Blue, Female = Pink =====
@@ -510,13 +509,30 @@ public class PublicProfileActivity extends AppCompatActivity {
         }
     }
 
+    // FIXED - Cached eo Flag + Gender sathe sathe dekhabe
     private void showCachedInstantly() {
         if (txtName != null) {
             String cached = getCachedName();
             if (user != null && user.name != null && !user.name.isEmpty() && !user.name.equals("User")) {
                 cached = user.name;
             }
-            txtName.setText(cached);
+            String cachedCountry = "";
+            String cachedGender = "";
+            if (targetId.equals(myId)) {
+                cachedCountry = prefs.getString("USER_COUNTRY", "");
+                cachedGender = prefs.getString("USER_GENDER", "");
+            } else {
+                cachedCountry = prefs.getString("CACHED_COUNTRY_" + targetId, "");
+                cachedGender = prefs.getString("CACHED_GENDER_" + targetId, "");
+            }
+            if (user != null && user.country != null && !user.country.isEmpty()) cachedCountry = user.country;
+            if (user != null && user.gender != null && !user.gender.isEmpty()) cachedGender = user.gender;
+            String flag = getCountryShort(cachedCountry);
+            String genderIcon = getGenderIconPremium(cachedGender);
+            if (genderIcon.isEmpty() && user != null) genderIcon = user.getGenderIcon();
+            String suffix = (flag + "  " + genderIcon).trim();
+            txtName.setText(suffix.isEmpty() ? cached : cached + "  " + suffix);
+            if (txtId != null) txtId.setText(suffix.isEmpty() ? "ID: " + targetId + "  📋 Tap to Copy" : "ID: " + targetId + "  •  " + suffix + "  📋");
             user.name = cached;
         }
         String cachedPhoto = "";
@@ -924,12 +940,10 @@ public class PublicProfileActivity extends AppCompatActivity {
                     break;
                 }
                 if (user.name == null || user.name.isEmpty()) user.name = getCachedName();
-                // NAME + FLAG + GENDER PREMIUM - Country naam lekha nai
                 String flag = getCountryShort(user.country);
                 String genderIcon = getGenderIconPremium(user.gender);
                 if(genderIcon.isEmpty()) genderIcon = user.getGenderIcon();
                 txtName.setText(user.name + "  " + flag + "  " + genderIcon);
-                // ID - Shudhu ID + Flag + Gender - Wealth/Charm lomba lekha nai
                 txtId.setText("ID: " + targetId + "  •  " + flag + "  " + genderIcon + "  📋");
                 updateLevelBadge();
                 txtFollow.setText(user.followCount);
@@ -943,8 +957,15 @@ public class PublicProfileActivity extends AppCompatActivity {
                     else prefs.edit().putString("CACHED_PHOTO_" + targetId, finalPhoto).apply();
                 }
                 SharedPreferences.Editor ed = prefs.edit();
-                if (targetId.equals(myId)) ed.putString("USER_NAME", user.name);
-                else ed.putString("CACHED_NAME_" + targetId, user.name);
+                if (targetId.equals(myId)) {
+                    ed.putString("USER_NAME", user.name);
+                    ed.putString("USER_GENDER", user.gender != null ? user.gender : "");
+                    ed.putString("USER_COUNTRY", user.country != null ? user.country : "");
+                } else {
+                    ed.putString("CACHED_NAME_" + targetId, user.name);
+                    ed.putString("CACHED_GENDER_" + targetId, user.gender != null ? user.gender : "");
+                    ed.putString("CACHED_COUNTRY_" + targetId, user.country != null ? user.country : "");
+                }
                 ed.putString("CACHED_LEVEL_" + targetId, String.valueOf(myWealthLevel));
                 ed.putString("CACHED_CHARM_" + targetId, String.valueOf(myCharmLevel));
                 ed.putLong("CACHED_SENDING_" + targetId, myTotalSending);
