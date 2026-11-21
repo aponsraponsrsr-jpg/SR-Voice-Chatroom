@@ -1,53 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/layoutMiniRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="#1B1035"
-    android:paddingStart="24dp"
-    android:paddingEnd="24dp"
-    android:paddingTop="24dp"
-    android:paddingBottom="28dp"
+    android:paddingStart="20dp"
+    android:paddingEnd="20dp"
+    android:paddingTop="12dp"
+    android:paddingBottom="22dp"
     android:gravity="center">
+
+    <!-- Premium Handle -->
+    <View
+        android:layout_width="48dp"
+        android:layout_height="5dp"
+        android:background="#55FFFFFF" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Tap to View Full Profile →"
-        android:textColor="#AAAAAA"
+        android:textColor="#FFD700"
         android:textSize="11sp"
-        android:paddingBottom="10dp" />
+        android:textStyle="bold"
+        android:paddingTop="10dp"
+        android:paddingBottom="6dp" />
 
-    <!-- Avatar + VIP Frame -->
+    <!-- Avatar + Premium Gold Ring + Glow -->
     <FrameLayout
-        android:layout_width="130dp"
-        android:layout_height="130dp"
-        android:layout_marginBottom="12dp">
-        <androidx.cardview.widget.CardView
-            xmlns:app="http://schemas.android.com/apk/res-auto"
-            android:layout_width="110dp"
-            android:layout_height="110dp"
+        android:layout_width="148dp"
+        android:layout_height="148dp"
+        android:layout_marginBottom="10dp">
+        <View
+            android:layout_width="140dp"
+            android:layout_height="140dp"
             android:layout_gravity="center"
-            app:cardCornerRadius="55dp"
-            app:cardElevation="0dp">
-            <ImageView
-                android:id="@+id/imgMiniPhoto"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:background="#FFE0B2" />
+            android:background="#33FFD700" />
+        <androidx.cardview.widget.CardView
+            android:layout_width="128dp"
+            android:layout_height="128dp"
+            android:layout_gravity="center"
+            app:cardCornerRadius="64dp"
+            app:cardElevation="10dp"
+            app:cardBackgroundColor="#FFD700">
+            <androidx.cardview.widget.CardView
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:layout_gravity="center"
+                app:cardCornerRadius="60dp"
+                app:cardElevation="0dp">
+                <ImageView
+                    android:id="@+id/imgMiniPhoto"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:background="#FFE0B2" />
+            </androidx.cardview.widget.CardView>
         </androidx.cardview.widget.CardView>
         <ImageView
             android:id="@+id/imgMiniFrame"
-            android:layout_width="130dp"
-            android:layout_height="130dp"
+            android:layout_width="148dp"
+            android:layout_height="148dp"
             android:layout_gravity="center"
             android:visibility="gone"
             android:scaleType="fitXY" />
     </FrameLayout>
 
-    <!-- 1st Row: Name + Gender + Flag -->
+    <!-- 1st Row: Name + Gender + Flag - Premium -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -59,39 +80,43 @@
             android:layout_height="wrap_content"
             android:text="User Name"
             android:textColor="#FFFFFF"
-            android:textSize="21sp"
-            android:textStyle="bold" />
+            android:textSize="23sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end" />
         <TextView
             android:id="@+id/txtMiniGenderIcon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="♂"
+            android:text="♂️"
             android:textColor="#00B0FF"
-            android:textSize="19sp"
+            android:textSize="20sp"
             android:textStyle="bold"
-            android:layout_marginStart="6dp" />
+            android:layout_marginStart="7dp" />
         <TextView
             android:id="@+id/txtMiniFlag"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🇧🇩"
-            android:textSize="19sp"
-            android:layout_marginStart="6dp" />
+            android:text="🇧🇩 BD"
+            android:textColor="#FFFFFF"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:layout_marginStart="7dp" />
     </LinearLayout>
 
-    <!-- VIP Badge - Namer thik niche -->
+    <!-- VIP Badge - Premium Gold Pill -->
     <TextView
         android:id="@+id/txtMiniVipBadge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text=""
-        android:textColor="#FFD700"
-        android:textSize="15sp"
+        android:textColor="#000000"
+        android:textSize="14sp"
         android:textStyle="bold"
-        android:background="#33FFD700"
-        android:paddingHorizontal="14dp"
-        android:paddingVertical="6dp"
-        android:layout_marginTop="8dp"
+        android:background="#FFD700"
+        android:paddingHorizontal="18dp"
+        android:paddingVertical="7dp"
+        android:layout_marginTop="10dp"
         android:visibility="gone" />
 
     <TextView
@@ -100,38 +125,39 @@
         android:layout_height="wrap_content"
         android:visibility="gone" />
 
-    <!-- 2nd Row: Level + ID -->
+    <!-- 2nd Row: Level + ID - Premium Pill Cards -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginTop="10dp">
+        android:layout_marginTop="12dp">
         <TextView
             android:id="@+id/txtMiniLevel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="⭐ Lv.0"
+            android:text="💎 Wealth Lv.1  •  💖 Charm Lv.1"
             android:textColor="#FFD700"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textStyle="bold"
-            android:background="#22000000"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="6dp"
+            android:background="#33FFD700"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="8dp"
             android:layout_marginEnd="8dp" />
         <TextView
             android:id="@+id/txtMiniId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="ID: 123456789  📋"
-            android:textColor="#FFD700"
-            android:textSize="14sp"
+            android:textColor="#FFFFFF"
+            android:textSize="13sp"
             android:textStyle="bold"
-            android:background="#22000000"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="6dp" />
+            android:background="#44FFFFFF"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="8dp" />
     </LinearLayout>
 
+    <!-- Wallet Removed - No Sending / Receiving -->
     <TextView
         android:id="@+id/txtMiniSending"
         android:layout_width="wrap_content"
@@ -143,7 +169,7 @@
         android:layout_height="wrap_content"
         android:visibility="gone" />
 
-    <!-- FIXED - Agency Banner - Choto, Premium Green, Icon NAI, Name NAI, Sudhu AGENCY -->
+    <!-- Agency - Premium Green -->
     <LinearLayout
         android:id="@+id/layoutMiniAgency"
         android:layout_width="wrap_content"
@@ -151,15 +177,15 @@
         android:orientation="horizontal"
         android:gravity="center"
         android:background="#1E8E3E"
-        android:paddingHorizontal="12dp"
-        android:paddingVertical="5dp"
-        android:layout_marginTop="8dp"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="6dp"
+        android:layout_marginTop="10dp"
         android:visibility="gone">
         <TextView
             android:id="@+id/txtMiniAgency"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="AGENCY"
+            android:text="★ AGENCY ★"
             android:textColor="#FFFFFF"
             android:textSize="11sp"
             android:textStyle="bold"
@@ -172,8 +198,8 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:background="#22000000"
-        android:padding="10dp"
-        android:layout_marginTop="8dp"
+        android:padding="12dp"
+        android:layout_marginTop="10dp"
         android:visibility="gone">
         <TextView
             android:layout_width="0dp"
@@ -192,20 +218,20 @@
             android:textStyle="bold" />
     </LinearLayout>
 
-    <!-- Buttons -->
+    <!-- Buttons - Premium -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        android:layout_marginTop="18dp">
+        android:layout_marginTop="20dp">
         <Button
             android:id="@+id/btnMiniAddLeft"
             android:layout_width="0dp"
             android:layout_height="52dp"
             android:layout_weight="1"
             android:text="Add Friend"
-            android:textSize="12sp"
+            android:textSize="13sp"
             android:maxLines="1"
             android:textColor="#FFFFFF"
             android:textStyle="bold"
@@ -218,7 +244,7 @@
             android:layout_height="52dp"
             android:layout_weight="1"
             android:text="🎁 Gift"
-            android:textSize="12sp"
+            android:textSize="13sp"
             android:maxLines="1"
             android:textColor="#FFFFFF"
             android:textStyle="bold"
@@ -231,11 +257,11 @@
             android:layout_height="52dp"
             android:layout_weight="1"
             android:text="➕ Follow"
-            android:textSize="12sp"
+            android:textSize="13sp"
             android:maxLines="1"
             android:textColor="#000000"
             android:textStyle="bold"
-            android:backgroundTint="#00E676"
+            android:backgroundTint="#FFD700"
             android:paddingHorizontal="2dp" />
     </LinearLayout>
 </LinearLayout>
