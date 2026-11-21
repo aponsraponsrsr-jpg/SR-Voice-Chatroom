@@ -5,8 +5,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Base64;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -16,15 +20,20 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import com.bumptech.glide.Glide;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,6 +51,26 @@ public class HomeActivity extends AppCompatActivity {
     private ValueEventListener activeRoomsListener = null;
     private boolean roomsListenerStarted = false;
     private boolean isRefreshingManual = false;
+
+    // ===== NEW DEMAND - Create Room Header Photo =====
+    private ImageView dialogCreatePhoto = null;
+    private String pickedCreatePhotoBase64 = null;
+    private ActivityResultLauncher<String> pickCreatePhoto = registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
+        if (uri != null) {
+            try {
+                InputStream is = getContentResolver().openInputStream(uri);
+                Bitmap bmp = BitmapFactory.decodeStream(is);
+                if (is != null) is.close();
+                if (bmp != null) {
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    Bitmap scaled = Bitmap.createScaledBitmap(bmp, 400, 400, true);
+                    scaled.compress(Bitmap.CompressFormat.JPEG, 70, baos);
+                    pickedCreatePhotoBase64 = Base64.encodeToString(baos.toByteArray(), Base64.DEFAULT);
+                }
+            } catch (Exception e) { pickedCreatePhotoBase64 = null; }
+            if (dialogCreatePhoto != null) Glide.with(this).load(uri).circleCrop().into(dialogCreatePhoto);
+        }
+    });
 
     private BroadcastReceiver profileReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
@@ -169,11 +198,39 @@ public class HomeActivity extends AppCompatActivity {
         });
     }
     private void showCreateRoomDialog() {
+        pickedCreatePhotoBase64 = null;
+        dialogCreatePhoto = null;
         AlertDialog.Builder builder = new AlertDialog.Builder(HomeActivity.this);
         builder.setTitle("🎙️ Create Your Voice Room");
-        LinearLayout layout = new LinearLayout(HomeActivity.this); layout.setOrientation(LinearLayout.VERTICAL); layout.setPadding(50,20,50,20);
-        final EditText inputRoomName = new EditText(HomeActivity.this); inputRoomName.setHint("Enter Room Name (e.g. My Chat Room)..."); layout.addView(inputRoomName);
-        final EditText inputRoomBio = new EditText(HomeActivity.this); inputRoomBio.setHint("Enter Room Notice / Bio..."); layout.addView(inputRoomBio);
+        LinearLayout layout = new LinearLayout(HomeActivity.this); layout.setOrientation(LinearLayout.VERTICAL); layout.setPadding(50,20,50,20); layout.setGravity(android.view.Gravity.CENTER_HORIZONTAL);
+        // ===== NEW 1 - Header Photo - Tap to Select =====
+        dialogCreatePhoto = new ImageView(HomeActivity.this);
+        LinearLayout.LayoutParams imgLp = new LinearLayout.LayoutParams(220, 220);
+        imgLp.gravity = android.view.Gravity.CENTER_HORIZONTAL;
+        imgLp.bottomMargin = 20;
+        dialogCreatePhoto.setLayoutParams(imgLp);
+        String myPhotoForCreate = prefs.getString("USER_PHOTO", "");
+        if (myPhotoForCreate.isEmpty()) myPhotoForCreate = prefs.getString("PROFILE_PHOTO", "");
+        if (myPhotoForCreate.isEmpty()) myPhotoForCreate = prefs.getString("USER_IMAGE", "");
+        if (myPhotoForCreate != null && !myPhotoForCreate.isEmpty() && !myPhotoForCreate.equals("null")) {
+            try {
+                if (myPhotoForCreate.startsWith("http")) Glide.with(this).load(myPhotoForCreate).circleCrop().into(dialogCreatePhoto);
+                else { byte[] b = Base64.decode(myPhotoForCreate, Base64.DEFAULT); Glide.with(this).load(b).circleCrop().into(dialogCreatePhoto); }
+            } catch (Exception e) { dialogCreatePhoto.setImageResource(R.mipmap.ic_launcher); }
+        } else dialogCreatePhoto.setImageResource(R.mipmap.ic_launcher);
+        dialogCreatePhoto.setOnClickListener(v -> pickCreatePhoto.launch("image/*"));
+        layout.addView(dialogCreatePhoto);
+        TextView tvTapPhoto = new TextView(HomeActivity.this);
+        tvTapPhoto.setText("👆 Tap Photo to Change Header Photo");
+        tvTapPhoto.setGravity(android.view.Gravity.CENTER);
+        tvTapPhoto.setTextSize(13);
+        tvTapPhoto.setPadding(0, 0, 0, 20);
+        tvTapPhoto.setOnClickListener(v -> pickCreatePhoto.launch("image/*"));
+        layout.addView(tvTapPhoto);
+        // ===== NEW 2 - Room Header Name =====
+        final EditText inputRoomName = new EditText(HomeActivity.this); inputRoomName.setHint("Enter Room Name (e.g. My Chat Room)..."); inputRoomName.setText(prefs.getString("USER_NAME", "User") + "'s Room"); layout.addView(inputRoomName);
+        // ===== NEW 3 - Bio / Notice =====
+        final EditText inputRoomBio = new EditText(HomeActivity.this); inputRoomBio.setHint("Enter Room Notice / Bio..."); inputRoomBio.setText("Welcome to my voice chat room!"); layout.addView(inputRoomBio);
         builder.setView(layout);
         builder.setPositiveButton("CONFIRM", (dialog, which) -> {
             String roomName = inputRoomName.getText().toString().trim();
@@ -186,11 +243,14 @@ public class HomeActivity extends AppCompatActivity {
             if (userImage.isEmpty()) userImage = prefs.getString("PROFILE_PHOTO", "");
             if (userImage.isEmpty()) userImage = prefs.getString("USER_IMAGE", "");
             if (userImage.isEmpty()) userImage = prefs.getString("USER_PROFILE_IMAGE", "");
+            // NEW - Header Photo select korle oitai Room Photo - na korle Profile Photo
+            String finalPhoto = userImage;
+            if (pickedCreatePhotoBase64 != null && !pickedCreatePhotoBase64.isEmpty()) finalPhoto = pickedCreatePhotoBase64;
             // PERMANENT - Create sudhu 1 bar - pore kokhono ei Code cholbe na
             // Jodi Meta age theke thake - tahole likhbe na
             String finalRoomName = roomName;
             String finalRoomBio = roomBio;
-            String finalUserImage = userImage;
+            String finalUserImage = finalPhoto;
             roomsRef.child("room_" + myId).child("meta").addListenerForSingleValueEvent(new ValueEventListener(){
                 @Override public void onDataChange(@NonNull DataSnapshot snap){
                     if(snap.exists()){
@@ -220,6 +280,12 @@ public class HomeActivity extends AppCompatActivity {
                     active.put("theme", "Default");
                     active.put("roomLabel", "Friends");
                     activeRoomsRef.child(myId).setValue(active);
+                    // NEW - Header Cache - Room khullei sathe sathe Name + Photo dekhabe
+                    prefs.edit().putString("HEADER_"+myId+"_NAME", finalRoomName)
+                        .putString("HEADER_"+myId+"_PHOTO", finalUserImage)
+                        .putString("HEADER_"+myId+"_ANN", finalRoomBio)
+                        .putString("HEADER_"+myId+"_THEME", "Default")
+                        .putString("HEADER_"+myId+"_LABEL", "Friends").apply();
                     Toast.makeText(HomeActivity.this, "Room Created Successfully!", Toast.LENGTH_SHORT).show();
                     openVoiceRoomPermanent(myId);
                 }
