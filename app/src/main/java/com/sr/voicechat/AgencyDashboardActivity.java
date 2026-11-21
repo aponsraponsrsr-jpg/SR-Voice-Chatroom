@@ -87,7 +87,7 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         usersRef.child(agencyOwnerId).child("monthly").child(monthKey).child("receivedCoins").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 long myCoins = 0; if (snap.exists() && snap.getValue() != null) try { myCoins = Long.parseLong(String.valueOf(snap.getValue())); } catch (Exception ignored) {}
-                double myEarnings = SalaryPolicy.getHostSalary(myCoins); // Agency nijer Host hisabeo Salary pabe - SalaryPolicy theke
+                double myEarnings = SalaryPolicy.getHostSalary(myCoins);
                 double total = myEarnings + totalCommission;
                 txtTotalEarnings.setText("💰 Total Agency Earnings (" + monthKey + "): " + SalaryPolicy.money(total) + " (Own " + SalaryPolicy.money(myEarnings) + " + Commission " + SalaryPolicy.money(totalCommission) + ")");
                 addHostCard("👑 " + agencyName + " (You - Agency Owner)", agencyOwnerId, myCoins, myEarnings, 100, true);
@@ -95,26 +95,49 @@ public class AgencyDashboardActivity extends AppCompatActivity {
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
     }
-    private void fetchHostDetailsAndDisplay(String hostUserId) {
-        usersRef.child(hostUserId).child("monthly").child(monthKey).child("receivedCoins").addListenerForSingleValueEvent(new ValueEventListener() {
+
+    // ===== STRONG FIX - FINAL COPY - আজীবনের জন্য Error আসবে না =====
+    private void fetchHostDetailsAndDisplay(final String hostUserId) {
+        // hostUserId কে final করলাম - ভিতরের Listener এ ব্যবহার করা যাবে
+        final String fHostId = hostUserId;
+        usersRef.child(fHostId).child("monthly").child(monthKey).child("receivedCoins").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
-                long hostCoins = 0; if (snap.exists() && snap.getValue() != null) try { hostCoins = Long.parseLong(String.valueOf(snap.getValue())); } catch (Exception ignored) {}
-                // Host er naam er jonno users/{id}/name
-                usersRef.child(hostUserId).child("name").addListenerForSingleValueEvent(new ValueEventListener() {
+                long tmpCoins = 0; if (snap.exists() && snap.getValue() != null) try { tmpCoins = Long.parseLong(String.valueOf(snap.getValue())); } catch (Exception ignored) {}
+                // ===== KEY FIX =====
+                // hostCoins কে সরাসরি ভিতরে ব্যবহার করলে Error আসে।
+                // তাই final copy বানালাম - প্রতিটা Host এর নিজের Copy থাকবে, ভুল Host এর Coin অন্য Host এ যাবে না।
+                final long fHostCoins = tmpCoins;
+                final String fHostId2 = fHostId;
+
+                usersRef.child(fHostId2).child("name").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override public void onDataChange(@NonNull DataSnapshot nSnap) {
-                        String hostName = nSnap.getValue(String.class); if (hostName == null || hostName.isEmpty()) hostName = "Host ID: " + hostUserId;
-                        double hostGets = SalaryPolicy.getHostSalary(hostCoins);
-                        double agencyCommission = SalaryPolicy.getAgencyCommission(hostCoins); // SalaryPolicy - 20% - STRICT LEVEL
-                        totalCommission += agencyCommission; loadedHostCount++;
-                        addHostCard("👤 " + hostName, hostUserId, hostCoins, hostGets, agencyCommission, false);
+                        String tmpName = nSnap.getValue(String.class); if (tmpName == null || tmpName.isEmpty()) tmpName = "Host ID: " + fHostId2;
+                        final String fHostName = tmpName;
+                        // Calculation ভিতরে করলাম - বাইরে না - তাই Final Error আর আসবে না
+                        final double fHostGets = SalaryPolicy.getHostSalary(fHostCoins);
+                        final double fAgencyCommission = SalaryPolicy.getAgencyCommission(fHostCoins); // 20% STRICT
+                        synchronized (AgencyDashboardActivity.this) {
+                            totalCommission += fAgencyCommission; loadedHostCount++;
+                        }
+                        addHostCard("👤 " + fHostName, fHostId2, fHostCoins, fHostGets, fAgencyCommission, false);
                         if (loadedHostCount >= expectedHostCount) fetchOwnTargetCard();
                     }
-                    @Override public void onCancelled(@NonNull DatabaseError e) {}
+                    @Override public void onCancelled(@NonNull DatabaseError e) {
+                        // Name না পাইলেও Card দেখাবে - Dashboard ফাঁকা থাকবে না
+                        final double fHostGets2 = SalaryPolicy.getHostSalary(fHostCoins);
+                        final double fAgencyCommission2 = SalaryPolicy.getAgencyCommission(fHostCoins);
+                        synchronized (AgencyDashboardActivity.this) {
+                            totalCommission += fAgencyCommission2; loadedHostCount++;
+                        }
+                        addHostCard("👤 Host ID: " + fHostId2, fHostId2, fHostCoins, fHostGets2, fAgencyCommission2, false);
+                        if (loadedHostCount >= expectedHostCount) fetchOwnTargetCard();
+                    }
                 });
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
     }
+
     private void addHostCard(String title, String id, long coins, double hostEarnings, double agencyCommissionOrOwn, boolean isOwn) {
         LinearLayout card = new LinearLayout(this); card.setOrientation(LinearLayout.VERTICAL); card.setPadding(25, 20, 25, 20);
         android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable(); bg.setColor(android.graphics.Color.parseColor(isOwn ? "#3D2A00" : "#2A1B4E")); bg.setCornerRadius(15); card.setBackground(bg);
