@@ -20,8 +20,9 @@ import java.util.Locale;
 
 public class HostWorkDataActivity extends AppCompatActivity {
     private TextView tvReceived, tvLevel, tvSalary, tvNext, tvMonth;
+    private TextView tvBeforeMonth, tvBeforeReceived, tvBeforeLevel, tvBeforeSalary;
     private LinearLayout root, lockBox;
-    private String myId = "", monthKey = "";
+    private String myId = "", monthKey = "", beforeMonthKey = "";
     private String firebaseUid = "";
     private SharedPreferences prefs;
     private boolean isHost = false;
@@ -33,11 +34,22 @@ public class HostWorkDataActivity extends AppCompatActivity {
         return c.get(Calendar.YEAR) + "-" + (m < 10 ? "0" + m : "" + m);
     }
 
+    // BEFORE MONTH: Running শেষ হইলে Before এ চলে যাবে - এইভাবে Continue
+    // Example: Running = 2026-11, Before = 2026-10
+    // Running = 2026-12 হইলে, Before = 2026-11 - Automatic Shift
+    public static String getBeforeMonthKey() {
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.MONTH, -1);
+        int m = c.get(Calendar.MONTH) + 1;
+        return c.get(Calendar.YEAR) + "-" + (m < 10 ? "0" + m : "" + m);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
         monthKey = getMonthKey();
+        beforeMonthKey = getBeforeMonthKey();
 
         // ===== GLOBAL + PERMANENT - ID RESOLVE - একটাই ID =====
         FirebaseUser fu = FirebaseAuth.getInstance().getCurrentUser();
@@ -82,15 +94,25 @@ public class HostWorkDataActivity extends AppCompatActivity {
         String savedMonth = prefs.getString("CACHED_MONTH_" + myId, "");
         long cachedCoins = 0;
         if (savedMonth.equals(monthKey)) cachedCoins = prefs.getLong("CACHED_COINS_" + myId + "_" + monthKey, 0);
+        long cachedBefore = prefs.getLong("CACHED_COINS_" + myId + "_" + beforeMonthKey, 0);
 
-        tvMonth = makeBig(root, "📅 Month: " + monthKey + " • Monthly Target • মাস শেষে Data ZERO হবে", isHost);
+        // ===== RUNNING MONTH - Current - ZERO থেকে শুরু =====
+        tvMonth = makeBig(root, "📅 Running Month: " + monthKey + " • Monthly Target • মাস শেষে Data ZERO হবে", isHost);
         tvReceived = makeBig(root, "", isHost);
         tvLevel = makeBig(root, "", isHost);
         tvSalary = makeBig(root, "", isHost);
         tvNext = makeBig(root, "", isHost);
         updateUI(cachedCoins);
 
-        TextView note = new TextView(this); note.setText("\n• Ekhane sudhu tomar nijer Target dekhba\n• Agency Commission ekhane dekhba na\n• Onno Host er kichu ekhane dekhba na\n• মাস Change হইলেই এই পেজ 0 থেকে শুরু হবে");
+        // ===== BEFORE MONTH - History - আলাদা - কখনো মিলবে না =====
+        // Running শেষ হইলে Before এ চলে যাবে - Before টা সরে যাবে - Continue চলবে
+        tvBeforeMonth = makeBig(root, "🕒 Before Month: " + beforeMonthKey + " • History • আগের মাস - আলাদা থাকবে", isHost);
+        tvBeforeReceived = makeBig(root, "", isHost);
+        tvBeforeLevel = makeBig(root, "", isHost);
+        tvBeforeSalary = makeBig(root, "", isHost);
+        updateBeforeUI(cachedBefore);
+
+        TextView note = new TextView(this); note.setText("\n• Ekhane sudhu tomar nijer Target dekhba\n• Agency Commission ekhane dekhba na - Commission বাদ\n• Onno Host er kichu ekhane dekhba na\n• মাস Change হইলেই Running 0 থেকে শুরু হবে - Before এ আগের মাস চলে যাবে\n• 2টা Dollar কখনো একসাথে মিলবে না - আলাদা থাকবে");
         note.setTextColor(Color.parseColor("#B0BEC5")); note.setTextSize(12); note.setGravity(Gravity.CENTER); note.setVisibility(isHost ? View.VISIBLE : View.GONE); note.setTag("work_note"); root.addView(note);
         setContentView(scroll);
         checkHostFromFirebase();
@@ -99,7 +121,7 @@ public class HostWorkDataActivity extends AppCompatActivity {
 
     private void updateUI(long received) {
         int lvl = SalaryPolicy.getAchievedLevel(received);
-        double sal = SalaryPolicy.getHostSalary(received);
+        double sal = SalaryPolicy.getHostOnlySalary(received); // Host Only - Commission বাদ
         String fmt = NumberFormat.getNumberInstance(Locale.US).format(received);
         if (tvReceived != null) tvReceived.setText("My Received (" + monthKey + "): " + fmt + " Coins");
         if (tvLevel != null) tvLevel.setText("My Level: " + (lvl == 0 ? "No Level Yet" : "Level " + lvl));
@@ -109,6 +131,15 @@ public class HostWorkDataActivity extends AppCompatActivity {
             if (next == -1) tvNext.setText("Next Target: Max Level Done! 🎉");
             else tvNext.setText("Next Target: Level " + (lvl + 1) + " - " + NumberFormat.getNumberInstance(Locale.US).format(next) + " Coins\nBaki: " + NumberFormat.getNumberInstance(Locale.US).format(SalaryPolicy.getRemainingToNext(received)) + " Coins");
         }
+    }
+
+    private void updateBeforeUI(long received) {
+        int lvl = SalaryPolicy.getAchievedLevel(received);
+        double sal = SalaryPolicy.getHostOnlySalary(received); // Before Month - ও Host Only - Commission বাদ
+        String fmt = NumberFormat.getNumberInstance(Locale.US).format(received);
+        if (tvBeforeReceived != null) tvBeforeReceived.setText("Before Received (" + beforeMonthKey + "): " + fmt + " Coins");
+        if (tvBeforeLevel != null) tvBeforeLevel.setText("Before Level: " + (lvl == 0 ? "No Level" : "Level " + lvl));
+        if (tvBeforeSalary != null) tvBeforeSalary.setText("Before Salary: " + SalaryPolicy.money(sal) + "  (History - আলাদা)");
     }
 
     private void showUnlocked() {
@@ -144,9 +175,11 @@ public class HostWorkDataActivity extends AppCompatActivity {
     }
 
     // --- MONTHLY LOAD: users/{id}/monthly/{2026-11}/receivedCoins ---
+    // --- BEFORE LOAD: users/{id}/monthly/{2026-10}/receivedCoins - আলাদা ---
     private void loadData() {
         if (myId.isEmpty() && firebaseUid.isEmpty()) return;
         String key = myId.isEmpty() ? firebaseUid : myId;
+        // Running Month
         FirebaseDatabase.getInstance().getReference("users").child(key).child("monthly").child(monthKey).child("receivedCoins").addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 long received = 0;
@@ -156,12 +189,29 @@ public class HostWorkDataActivity extends AppCompatActivity {
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
+        // Before Month - History - Running এর সাথে মিলবে না
+        FirebaseDatabase.getInstance().getReference("users").child(key).child("monthly").child(beforeMonthKey).child("receivedCoins").addValueEventListener(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                long received = 0;
+                if (snap.exists() && snap.getValue() != null) { try { received = Long.parseLong(String.valueOf(snap.getValue())); } catch (Exception ignored) {} }
+                prefs.edit().putLong("CACHED_COINS_" + myId + "_" + beforeMonthKey, received).apply();
+                updateBeforeUI(received);
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
         // Fallback: Firebase UID দিয়ে ও - UID আলাদা হলেও Coin মিস হবে না
         if (!firebaseUid.isEmpty() && !firebaseUid.equals(key)) {
             FirebaseDatabase.getInstance().getReference("users").child(firebaseUid).child("monthly").child(monthKey).child("receivedCoins").addValueEventListener(new ValueEventListener() {
                 @Override public void onDataChange(@NonNull DataSnapshot snap) {
                     if (!snap.exists() || snap.getValue() == null) return;
                     try { long c = Long.parseLong(String.valueOf(snap.getValue())); if (c > 0) { prefs.edit().putLong("CACHED_COINS_" + myId + "_" + monthKey, c).putString("CACHED_MONTH_" + myId, monthKey).apply(); updateUI(c); } } catch (Exception ignored) {}
+                }
+                @Override public void onCancelled(@NonNull DatabaseError e) {}
+            });
+            FirebaseDatabase.getInstance().getReference("users").child(firebaseUid).child("monthly").child(beforeMonthKey).child("receivedCoins").addValueEventListener(new ValueEventListener() {
+                @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                    if (!snap.exists() || snap.getValue() == null) return;
+                    try { long c = Long.parseLong(String.valueOf(snap.getValue())); if (c > 0) { prefs.edit().putLong("CACHED_COINS_" + myId + "_" + beforeMonthKey, c).apply(); updateBeforeUI(c); } } catch (Exception ignored) {}
                 }
                 @Override public void onCancelled(@NonNull DatabaseError e) {}
             });
