@@ -26,6 +26,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HomeActivity extends AppCompatActivity {
     private TextView btnPlus;
@@ -47,6 +49,16 @@ public class HomeActivity extends AppCompatActivity {
         }
     };
 
+    // ===== PERMANENT FIX - Room kokhono Overwrite korbe na - sudhu Open korbe =====
+    private void openVoiceRoomPermanent(String ownerId){
+        if(ownerId==null||ownerId.isEmpty()) return;
+        // Kichu likhbe na - sudhu Open - Meta ja ache tai thakbe
+        Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
+        intent.putExtra("ROOM_ID", ownerId);
+        intent.putExtra("ROOM_OWNER_ID", ownerId);
+        startActivity(intent);
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,7 +76,6 @@ public class HomeActivity extends AppCompatActivity {
         roomGridView = findViewById(R.id.roomGridView);
         roomModelList = new ArrayList<>();
         roomGridAdapter = new RoomGridAdapter(this, roomModelList);
-        // ===== FIX - Hero Fixed - GridView te Adapter bosbe =====
         if (roomGridView != null) roomGridView.setAdapter(roomGridAdapter);
         setupPullToRefresh();
         try {
@@ -84,10 +95,7 @@ public class HomeActivity extends AppCompatActivity {
             roomGridView.setOnItemClickListener((parent, view, position, id) -> {
                 if (position < roomModelList.size()) {
                     RoomModel selectedRoom = roomModelList.get(position);
-                    Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
-                    intent.putExtra("ROOM_ID", selectedRoom.getRoomOwnerId());
-                    intent.putExtra("ROOM_OWNER_ID", selectedRoom.getRoomOwnerId());
-                    startActivity(intent);
+                    openVoiceRoomPermanent(selectedRoom.getRoomOwnerId());
                 }
             });
         }
@@ -140,14 +148,24 @@ public class HomeActivity extends AppCompatActivity {
             Toast.makeText(this, "Profile পাওয়া যায় নাই, আবার Login করো", Toast.LENGTH_LONG).show();
             Intent i = new Intent(this, EditProfileActivity.class); startActivity(i); return;
         }
-        activeRoomsRef.child(myId).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
-                    intent.putExtra("ROOM_ID", myId); intent.putExtra("ROOM_OWNER_ID", myId); startActivity(intent);
-                } else showCreateRoomDialog();
+        // PERMANENT - age Meta ache kina check koro - thakle kokhono Create Dialog khulbe na
+        roomsRef.child("room_" + myId).child("meta").addListenerForSingleValueEvent(new ValueEventListener(){
+            @Override public void onDataChange(@NonNull DataSnapshot metaSnap){
+                if(metaSnap.exists()){
+                    // Room age theke ache - Direct Open - Overwrite NOY
+                    openVoiceRoomPermanent(myId);
+                } else {
+                    activeRoomsRef.child(myId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override public void onDataChange(@NonNull DataSnapshot snapshot) {
+                            if (snapshot.exists()) {
+                                openVoiceRoomPermanent(myId);
+                            } else showCreateRoomDialog();
+                        }
+                        @Override public void onCancelled(@NonNull DatabaseError error) { showCreateRoomDialog(); }
+                    });
+                }
             }
-            @Override public void onCancelled(@NonNull DatabaseError error) { showCreateRoomDialog(); }
+            @Override public void onCancelled(@NonNull DatabaseError e){ showCreateRoomDialog(); }
         });
     }
     private void showCreateRoomDialog() {
@@ -168,25 +186,45 @@ public class HomeActivity extends AppCompatActivity {
             if (userImage.isEmpty()) userImage = prefs.getString("PROFILE_PHOTO", "");
             if (userImage.isEmpty()) userImage = prefs.getString("USER_IMAGE", "");
             if (userImage.isEmpty()) userImage = prefs.getString("USER_PROFILE_IMAGE", "");
-            DatabaseReference roomMetaRef = roomsRef.child("room_" + myId).child("meta");
-            roomMetaRef.child("roomName").setValue(roomName);
-            roomMetaRef.child("roomBio").setValue(roomBio);
-            roomMetaRef.child("roomOwnerImage").setValue(userImage);
-            roomMetaRef.child("roomOwnerId").setValue(myId);
-            roomMetaRef.child("roomId").setValue(myId);
-            roomMetaRef.child("announcement").setValue(roomBio);
-            roomMetaRef.child("theme").setValue("Default");
-            roomMetaRef.child("roomLabel").setValue("Friends");
-            roomMetaRef.child("roomPhoto").setValue(userImage);
-            DatabaseReference singleActiveRoomRef = activeRoomsRef.child(myId);
-            singleActiveRoomRef.child("roomOwnerId").setValue(myId);
-            singleActiveRoomRef.child("roomId").setValue(myId);
-            singleActiveRoomRef.child("roomName").setValue(roomName);
-            singleActiveRoomRef.child("roomBio").setValue(roomBio);
-            singleActiveRoomRef.child("roomOwnerImage").setValue(userImage);
-            Toast.makeText(this, "Room Created Successfully!", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
-            intent.putExtra("ROOM_ID", myId); intent.putExtra("ROOM_OWNER_ID", myId); startActivity(intent);
+            // PERMANENT - Create sudhu 1 bar - pore kokhono ei Code cholbe na
+            // Jodi Meta age theke thake - tahole likhbe na
+            String finalRoomName = roomName;
+            String finalRoomBio = roomBio;
+            String finalUserImage = userImage;
+            roomsRef.child("room_" + myId).child("meta").addListenerForSingleValueEvent(new ValueEventListener(){
+                @Override public void onDataChange(@NonNull DataSnapshot snap){
+                    if(snap.exists()){
+                        openVoiceRoomPermanent(myId);
+                        return;
+                    }
+                    Map<String,Object> meta = new HashMap<>();
+                    meta.put("roomName", finalRoomName);
+                    meta.put("roomBio", finalRoomBio);
+                    meta.put("announcement", finalRoomBio);
+                    meta.put("roomOwnerImage", finalUserImage);
+                    meta.put("roomPhoto", finalUserImage);
+                    meta.put("roomOwnerId", myId);
+                    meta.put("roomId", myId);
+                    meta.put("ownerId", myId);
+                    meta.put("theme", "Default");
+                    meta.put("roomLabel", "Friends");
+                    roomsRef.child("room_" + myId).child("meta").setValue(meta);
+                    Map<String,Object> active = new HashMap<>();
+                    active.put("roomOwnerId", myId);
+                    active.put("roomId", myId);
+                    active.put("roomName", finalRoomName);
+                    active.put("roomBio", finalRoomBio);
+                    active.put("announcement", finalRoomBio);
+                    active.put("roomOwnerImage", finalUserImage);
+                    active.put("roomPhoto", finalUserImage);
+                    active.put("theme", "Default");
+                    active.put("roomLabel", "Friends");
+                    activeRoomsRef.child(myId).setValue(active);
+                    Toast.makeText(HomeActivity.this, "Room Created Successfully!", Toast.LENGTH_SHORT).show();
+                    openVoiceRoomPermanent(myId);
+                }
+                @Override public void onCancelled(@NonNull DatabaseError e){}
+            });
         });
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
         builder.show();
@@ -207,17 +245,58 @@ public class HomeActivity extends AppCompatActivity {
             if (ownerId == null) ownerId = child.getKey();
             String roomName = child.child("roomName").getValue(String.class);
             String roomBio = child.child("roomBio").getValue(String.class);
-            String roomImage = child.child("roomOwnerImage").getValue(String.class);
+            if(roomBio==null||roomBio.isEmpty()) roomBio = child.child("announcement").getValue(String.class);
+            String roomImage = child.child("roomPhoto").getValue(String.class);
+            if(roomImage==null||roomImage.isEmpty()) roomImage = child.child("roomOwnerImage").getValue(String.class);
             if (roomName==null||roomName.isEmpty()) roomName = "Voice Room";
             if (ownerId != null) {
                 RoomModel rm = new RoomModel(ownerId, roomName, roomBio, roomImage);
                 roomModelList.add(rm);
-                refreshRoomImage(rm);
+                // PERMANENT - Meta theke sotti Data ano - Active er Default diye overwrite korbe na
+                syncMetaToList(rm);
             }
         }
         if(roomGridAdapter!=null) roomGridAdapter.notifyDataSetChanged();
     }
+    // ===== PERMANENT - Meta = Source of Truth - Meta thakle Meta tai dekhabe =====
+    private void syncMetaToList(RoomModel rm){
+        String ownerId = rm.getRoomOwnerId();
+        if(ownerId==null) return;
+        roomsRef.child("room_"+ownerId).child("meta").addListenerForSingleValueEvent(new ValueEventListener(){
+            @Override public void onDataChange(@NonNull DataSnapshot snap){
+                if(!snap.exists()) return;
+                String mName = snap.child("roomName").getValue(String.class);
+                String mBio = snap.child("roomBio").getValue(String.class);
+                if(mBio==null||mBio.isEmpty()) mBio = snap.child("announcement").getValue(String.class);
+                String mPhoto = snap.child("roomPhoto").getValue(String.class);
+                if(mPhoto==null||mPhoto.isEmpty()) mPhoto = snap.child("roomOwnerImage").getValue(String.class);
+                boolean changed=false;
+                if(mName!=null && !mName.isEmpty() && !mName.equals(rm.getRoomName())){ rm.setRoomName(mName); changed=true; }
+                if(mBio!=null && !mBio.isEmpty()){ rm.setRoomBio(mBio); changed=true; }
+                // PERMANENT - Room Photo thakle User Profile Photo diye muchbe na
+                if(mPhoto!=null && !mPhoto.isEmpty() && !mPhoto.equals("null") && !mPhoto.equals(rm.getRoomImage())){ rm.setRoomImage(mPhoto); changed=true; }
+                if(changed && roomGridAdapter!=null) roomGridAdapter.notifyDataSetChanged();
+                // Meta -> Active sync - Active ke Meta er moto koro - ulta ta noy
+                Map<String,Object> sync = new HashMap<>();
+                if(mName!=null) sync.put("roomName", mName);
+                if(mBio!=null) sync.put("roomBio", mBio);
+                if(mBio!=null) sync.put("announcement", mBio);
+                if(mPhoto!=null) sync.put("roomPhoto", mPhoto);
+                if(mPhoto!=null) sync.put("roomOwnerImage", mPhoto);
+                String mTheme = snap.child("theme").getValue(String.class);
+                String mLabel = snap.child("roomLabel").getValue(String.class);
+                if(mTheme!=null) sync.put("theme", mTheme);
+                if(mLabel!=null) sync.put("roomLabel", mLabel);
+                if(!sync.isEmpty()) activeRoomsRef.child(ownerId).updateChildren(sync);
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e){}
+        });
+    }
     private void refreshRoomImage(RoomModel rm) {
+        // PERMANENT FIX - Age ei Function Room Photo muche dito - ekhon ar muche na
+        // Room Photo age theke thakle - User Profile Photo diye replace korbe na
+        if(rm.getRoomImage()!=null && !rm.getRoomImage().isEmpty() && !rm.getRoomImage().equals("null")) return;
+        // Room Photo khali hole sudhu tokhon User Photo nibe - 1 bar
         try {
             FirebaseDatabase.getInstance().getReference("users")
                 .orderByChild("my9DigitId").equalTo(rm.getRoomOwnerId())
@@ -227,7 +306,7 @@ public class HomeActivity extends AppCompatActivity {
                             String fresh = null;
                             if (ds.child("photoUrl").getValue() != null) fresh = String.valueOf(ds.child("photoUrl").getValue());
                             if ((fresh == null || fresh.isEmpty()) && ds.child("photo").getValue() != null) fresh = String.valueOf(ds.child("photo").getValue());
-                            if (fresh != null && !fresh.isEmpty() && !fresh.equals("null") && !fresh.equals(rm.getRoomImage())) {
+                            if (fresh != null && !fresh.isEmpty() && !fresh.equals("null") && (rm.getRoomImage()==null || rm.getRoomImage().isEmpty())) {
                                 rm.setRoomImage(fresh);
                                 if (roomGridAdapter != null) roomGridAdapter.notifyDataSetChanged();
                             }
@@ -254,8 +333,7 @@ public class HomeActivity extends AppCompatActivity {
                             roomPopup.setTitle("🌟 Room Found!");
                             roomPopup.setMessage("Room Name: " + rName + "\nBio: " + rBio + "\nOwner ID: " + searchId);
                             roomPopup.setPositiveButton("Enter Room", (d, w) -> {
-                                Intent intent = new Intent(HomeActivity.this, VoiceRoomActivity.class);
-                                intent.putExtra("ROOM_ID", searchId); intent.putExtra("ROOM_OWNER_ID", searchId); startActivity(intent);
+                                openVoiceRoomPermanent(searchId);
                             });
                             roomPopup.setNegativeButton("Cancel", (d, w) -> d.dismiss()); roomPopup.show();
                         } else Toast.makeText(HomeActivity.this, "Room not found or offline!", Toast.LENGTH_SHORT).show();
