@@ -9,7 +9,7 @@ public class SalaryPolicy {
         288000L, 588000L, 1190000L, 1780000L, 3280000L, 5780000L, 7880000L,
         9980000L, 13850000L, 18850000L, 26500000L, 34500000L, 43500000L,
         56500000L, 76500000L, 88500000L, 115500000L, 155000000L, 210000000L,
-        288000000L, 350000000L, 460000000L
+        288000000L, 350000000L, 490000000L
     };
 
     // Host pabe - 80% - Host sudhu eitai dekhbe
@@ -86,6 +86,21 @@ public class SalaryPolicy {
         int lvl = getAchievedLevel(receivedCoins);
         if (lvl == 0) return 0;
         return AGENCY_COMMISSION[lvl - 1];
+    }
+
+    // ===== 1 POLICY - 2 KAAJ =====
+    // Host er jonno - Commission BAD - Sudhu Host Salary
+    // HostPolicy / HostWorkData / HostCenter - eikhane eita use hobe
+    public static double getHostOnlySalary(long receivedCoins) {
+        return getHostSalary(receivedCoins);
+    }
+
+    // Agency er jonno - Full - Host + Agency + Total
+    // AgencyDashboard / AgencyPolicy - eikhane eita use hobe
+    public static double getTotalSalary(long receivedCoins) {
+        int lvl = getAchievedLevel(receivedCoins);
+        if (lvl == 0) return 0;
+        return TOTAL_SALARY[lvl - 1];
     }
 
     public static long getNextTarget(long receivedCoins) {
