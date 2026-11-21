@@ -4,36 +4,122 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#1B1035">
+
     <ImageView
         android:id="@+id/imgRoomBackground"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:scaleType="centerCrop"
         android:background="#1B1035" />
+
     <View
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#55000000" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:background="#33000000" android:paddingStart="10dp" android:paddingEnd="10dp" android:paddingTop="8dp" android:paddingBottom="8dp">
-            <FrameLayout android:layout_width="48dp" android:layout_height="48dp">
-                <androidx.cardview.widget.CardView android:layout_width="48dp" android:layout_height="48dp" app:cardCornerRadius="24dp" app:cardElevation="6dp" app:cardBackgroundColor="#FFD700">
-                    <androidx.cardview.widget.CardView android:layout_width="44dp" android:layout_height="44dp" android:layout_gravity="center" app:cardCornerRadius="22dp" app:cardElevation="0dp">
-                        <ImageView android:id="@+id/roomHeaderProfileImg" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:background="#FFD9A0" android:src="@mipmap/ic_launcher" />
+
+        <!-- Header -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="#33000000"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <FrameLayout
+                android:layout_width="48dp"
+                android:layout_height="48dp">
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="6dp"
+                    app:cardBackgroundColor="#FFD700">
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_gravity="center"
+                        app:cardCornerRadius="22dp"
+                        app:cardElevation="0dp">
+
+                        <ImageView
+                            android:id="@+id/roomHeaderProfileImg"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:background="#FFD9A0"
+                            android:src="@mipmap/ic_launcher" />
                     </androidx.cardview.widget.CardView>
                 </androidx.cardview.widget.CardView>
-                <ImageView android:id="@+id/roomHeaderHeadwearImg" android:layout_width="26dp" android:layout_height="26dp" android:layout_gravity="top|end" android:scaleType="centerCrop" android:visibility="gone" />
+
+                <ImageView
+                    android:id="@+id/roomHeaderHeadwearImg"
+                    android:layout_width="26dp"
+                    android:layout_height="26dp"
+                    android:layout_gravity="top|end"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
             </FrameLayout>
-            <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:paddingStart="10dp">
-                <TextView android:id="@+id/roomTitleText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sr Official's Room" android:textColor="#FFFFFF" android:textSize="17sp" android:textStyle="bold" android:maxLines="1" android:ellipsize="end" android:shadowColor="#80000000" android:shadowDx="1" android:shadowDy="1" android:shadowRadius="3" />
-                <TextView android:id="@+id/roomInfoText" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ID: " android:textColor="#FFD700" android:textSize="12sp" android:textStyle="bold" />
-                <TextView android:id="@+id/tvRoomName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Voice Room" android:visibility="gone" />
-                <TextView android:id="@+id/tvRoomId" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Room ID: " android:visibility="gone" />
-                <TextView android:id="@+id/tvMyIdInRoom" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="ID: " android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:paddingStart="10dp">
+
+                <TextView
+                    android:id="@+id/roomTitleText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sr Official's Room"
+                    android:textColor="#FFFFFF"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
+
+                <TextView
+                    android:id="@+id/roomInfoText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ID: "
+                    android:textColor="#FFD700"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvRoomName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Voice Room"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvRoomId"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Room ID: "
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tvMyIdInRoom"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="ID: "
+                    android:visibility="gone" />
             </LinearLayout>
+
             <LinearLayout
                 android:id="@+id/layoutRankingBanner"
                 android:layout_width="wrap_content"
@@ -45,11 +131,44 @@
                 android:paddingEnd="10dp"
                 android:clickable="true"
                 android:focusable="true">
-                <TextView android:id="@+id/btnInRoomRanking" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🏆" android:textSize="14sp" android:paddingEnd="4dp" />
-                <TextView android:id="@+id/textRankingTotalCoins" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0 &gt;" android:textColor="#000000" android:textSize="13sp" android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/btnInRoomRanking"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🏆"
+                    android:textSize="14sp"
+                    android:paddingEnd="4dp" />
+
+                <TextView
+                    android:id="@+id/textRankingTotalCoins"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0 &gt;"
+                    android:textColor="#000000"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
             </LinearLayout>
-            <TextView android:id="@+id/textRoomCoins" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🪙 0" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold" android:paddingStart="2dp" android:paddingEnd="6dp" android:visibility="gone" />
-            <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:paddingStart="6dp">
+
+            <TextView
+                android:id="@+id/textRoomCoins"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🪙 0"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:paddingStart="2dp"
+                android:paddingEnd="6dp"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:paddingStart="6dp">
+
                 <ImageButton
                     android:id="@+id/btnPower"
                     android:layout_width="42dp"
@@ -58,47 +177,606 @@
                     android:src="@drawable/ic_power_white"
                     android:scaleType="centerInside"
                     android:padding="9dp" />
-                <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:background="#40000000" android:paddingHorizontal="6dp" android:paddingVertical="2dp">
-                    <TextView android:id="@+id/textOnlineCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1" android:textColor="#FFD700" android:textSize="12sp" android:textStyle="bold" />
-                    <TextView android:id="@+id/btnOnlineList" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=" 👤" android:textSize="14sp" android:padding="2dp" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:background="#40000000"
+                    android:paddingHorizontal="6dp"
+                    android:paddingVertical="2dp">
+
+                    <TextView
+                        android:id="@+id/textOnlineCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1"
+                        android:textColor="#FFD700"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnOnlineList"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=" 👤"
+                        android:textSize="14sp"
+                        android:padding="2dp" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
-        <LinearLayout android:id="@+id/layoutOwnerTools" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:visibility="gone">
-            <Button android:id="@+id/btnRoomSet" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Room Set" />
-            <Button android:id="@+id/btnRoomEdit" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="Edit Room" />
+
+        <LinearLayout
+            android:id="@+id/layoutOwnerTools"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/btnRoomSet"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Room Set" />
+
+            <Button
+                android:id="@+id/btnRoomEdit"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Edit Room" />
         </LinearLayout>
-        <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvOnline" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone" />
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:weightSum="5" android:paddingTop="12dp" android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingBottom="2dp">
-            <LinearLayout android:id="@+id/seat_0" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp"><FrameLayout android:layout_width="64dp" android:layout_height="58dp" android:background="@drawable/bg_sofa_seat"><ImageView android:id="@+id/seatImg_0" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:visibility="gone" /><TextView android:id="@+id/seatLetter_0" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="🛋️" android:textSize="24sp" android:textColor="#FFFFFF" /></FrameLayout><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Host" android:textSize="11sp" android:textColor="#FFD700" android:textStyle="bold" android:shadowColor="#80000000" android:shadowDx="1" android:shadowDy="1" android:shadowRadius="3" /></LinearLayout>
-            <LinearLayout android:id="@+id/seat_1" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp"><FrameLayout android:layout_width="64dp" android:layout_height="58dp" android:background="@drawable/bg_sofa_seat"><ImageView android:id="@+id/seatImg_1" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:visibility="gone" /><TextView android:id="@+id/seatLetter_1" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="🛋️" android:textSize="24sp" android:textColor="#FFFFFF" /></FrameLayout><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="11sp" android:textColor="#FFFFFF" android:textStyle="bold" /></LinearLayout>
-            <LinearLayout android:id="@+id/seat_2" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp"><FrameLayout android:layout_width="64dp" android:layout_height="58dp" android:background="@drawable/bg_sofa_seat"><ImageView android:id="@+id/seatImg_2" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:visibility="gone" /><TextView android:id="@+id/seatLetter_2" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="🛋️" android:textSize="24sp" android:textColor="#FFFFFF" /></FrameLayout><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="11sp" android:textColor="#FFFFFF" android:textStyle="bold" /></LinearLayout>
-            <LinearLayout android:id="@+id/seat_3" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp"><FrameLayout android:layout_width="64dp" android:layout_height="58dp" android:background="@drawable/bg_sofa_seat"><ImageView android:id="@+id/seatImg_3" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:visibility="gone" /><TextView android:id="@+id/seatLetter_3" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="🛋️" android:textSize="24sp" android:textColor="#FFFFFF" /></FrameLayout><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="11sp" android:textColor="#FFFFFF" android:textStyle="bold" /></LinearLayout>
-            <LinearLayout android:id="@+id/seat_4" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp"><FrameLayout android:layout_width="64dp" android:layout_height="58dp" android:```xml
-android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:visibility="gone" /><TextView android:id="@+id/seatLetter_4" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="🛋️" android:textSize="24sp" android:textColor="#FFFFFF" /></FrameLayout><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="11sp" android:textColor="#FFFFFF" android:textStyle="bold" /></LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvOnline"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+
+        <!-- Seats Row 1 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="5"
+            android:paddingTop="12dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingBottom="2dp">
+
+            <LinearLayout
+                android:id="@+id/seat_0"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="4dp">
+
+                <FrameLayout
+                    android:layout_width="64dp"
+                    android:layout_height="58dp"
+                    android:background="@drawable/bg_sofa_seat">
+
+                    <ImageView
+                        android:id="@+id/seatImg_0"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/seatLetter_0"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="🛋️"
+                        android:textSize="24sp"
+                        android:textColor="#FFFFFF" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Host"
+                    android:textSize="11sp"
+                    android:textColor="#FFD700"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/seat_1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="4dp">
+
+                <FrameLayout
+                    android:layout_width="64dp"
+                    android:layout_height="58dp"
+                    android:background="@drawable/bg_sofa_seat">
+
+                    <ImageView
+                        android:id="@+id/seatImg_1"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/seatLetter_1"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="🛋️"
+                        android:textSize="24sp"
+                        android:textColor="#FFFFFF" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="11sp"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/seat_2"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="4dp">
+
+                <FrameLayout
+                    android:layout_width="64dp"
+                    android:layout_height="58dp"
+                    android:background="@drawable/bg_sofa_seat">
+
+                    <ImageView
+                        android:id="@+id/seatImg_2"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/seatLetter_2"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="🛋️"
+                        android:textSize="24sp"
+                        android:textColor="#FFFFFF" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="11sp"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/seat_3"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="4dp">
+
+                <FrameLayout
+                    android:layout_width="64dp"
+                    android:layout_height="58dp"
+                    android:background="@drawable/bg_sofa_seat">
+
+                    <ImageView
+                        android:id="@+id/seatImg_3"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/seatLetter_3"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="🛋️"
+                        android:textSize="24sp"
+                        android:textColor="#FFFFFF" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="11sp"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/seat_4"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="4dp">
+
+                <FrameLayout
+                    android:layout_width="64dp"
+                    android:layout_height="58dp"
+                    android:background="@drawable/bg_sofa_seat">
+
+                    <ImageView
+                        android:id="@+id/seatImg_4"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/seatLetter_4"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="🛋️"
+                        android:textSize="24sp"
+                        android:textColor="#FFFFFF" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="11sp"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold" />
+            </LinearLayout>
         </LinearLayout>
+
         <!-- Seats Row 2 -->
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:weightSum="5" android:padding="8dp">
-            <LinearLayout android:id="@+id/seat_5" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp"><FrameLayout android:layout_width="64dp" android:layout_height="58dp" android:background="@drawable/bg_sofa_seat"><ImageView android:id="@+id/seatImg_5" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:visibility="gone" /><TextView android:id="@+id/seatLetter_5" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="🛋️" android:textSize="24sp" android:textColor="#FFFFFF" /></FrameLayout><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="11sp" android:textColor="#FFFFFF" android:textStyle="bold" /></LinearLayout>
-            <LinearLayout android:id="@+id/seat_6" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp"><FrameLayout android:layout_width="64dp" android:layout_height="58dp" android:background="@drawable/bg_sofa_seat"><ImageView android:id="@+id/seatImg_6" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:visibility="gone" /><TextView android:id="@+id/seatLetter_6" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="🛋️" android:textSize="24sp" android:textColor="#FFFFFF" /></FrameLayout><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="11sp" android:textColor="#FFFFFF" android:textStyle="bold" /></LinearLayout>
-            <LinearLayout android:id="@+id/seat_7" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp"><FrameLayout android:layout_width="64dp" android:layout_height="58dp" android:background="@drawable/bg_sofa_seat"><ImageView android:id="@+id/seatImg_7" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:visibility="gone" /><TextView android:id="@+id/seatLetter_7" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="🛋️" android:textSize="24sp" android:textColor="#FFFFFF" /></FrameLayout><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="11sp" android:textColor="#FFFFFF" android:textStyle="bold" /></LinearLayout>
-            <LinearLayout android:id="@+id/seat_8" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp"><FrameLayout android:layout_width="64dp" android:layout_height="58dp" android:background="@drawable/bg_sofa_seat"><ImageView android:id="@+id/seatImg_8" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:visibility="gone" /><TextView android:id="@+id/seatLetter_8" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="🛋️" android:textSize="24sp" android:textColor="#FFFFFF" /></FrameLayout><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="11sp" android:textColor="#FFFFFF" android:textStyle="bold" /></LinearLayout>
-            <LinearLayout android:id="@+id/seat_9" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:padding="4dp"><FrameLayout android:layout_width="64dp" android:layout_height="58dp" android:background="@drawable/bg_sofa_seat"><ImageView android:id="@+id/seatImg_9" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:visibility="gone" /><TextView android:id="@+id/seatLetter_9" android:layout_width="match_parent" android:layout_height="match_parent" android:gravity="center" android:text="🛋️" android:textSize="24sp" android:textColor="#FFFFFF" /></FrameLayout><TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="" android:textSize="11sp" android:textColor="#FFFFFF" android:textStyle="bold" /></LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="5"
+            android:padding="8dp">
+
+            <LinearLayout
+                android:id="@+id/seat_5"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="4dp">
+
+                <FrameLayout
+                    android:layout_width="64dp"
+                    android:layout_height="58dp"
+                    android:background="@drawable/bg_sofa_seat">
+
+                    <ImageView
+                        android:id="@+id/seatImg_5"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/seatLetter_5"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="🛋️"
+                        android:textSize="24sp"
+                        android:textColor="#FFFFFF" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="11sp"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/seat_6"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="4dp">
+
+                <FrameLayout
+                    android:layout_width="64dp"
+                    android:layout_height="58dp"
+                    android:background="@drawable/bg_sofa_seat">
+
+                    <ImageView
+                        android:id="@+id/seatImg_6"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/seatLetter_6"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="🛋️"
+                        android:textSize="24sp"
+                        android:textColor="#FFFFFF" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="11sp"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/seat_7"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="4dp">
+
+                <FrameLayout
+                    android:layout_width="64dp"
+                    android:layout_height="58dp"
+                    android:background="@drawable/bg_sofa_seat">
+
+                    <ImageView
+                        android:id="@+id/seatImg_7"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/seatLetter_7"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="🛋️"
+                        android:textSize="24sp"
+                        android:textColor="#FFFFFF" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="11sp"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/seat_8"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="4dp">
+
+                <FrameLayout
+                    android:layout_width="64dp"
+                    android:layout_height="58dp"
+                    android:background="@drawable/bg_sofa_seat">
+
+                    <ImageView
+                        android:id="@+id/seatImg_8"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/seatLetter_8"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="🛋️"
+                        android:textSize="24sp"
+                        android:textColor="#FFFFFF" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="11sp"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/seat_9"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="4dp">
+
+                <FrameLayout
+                    android:layout_width="64dp"
+                    android:layout_height="58dp"
+                    android:background="@drawable/bg_sofa_seat">
+
+                    <ImageView
+                        android:id="@+id/seatImg_9"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+
+                    <TextView
+                        android:id="@+id/seatLetter_9"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="🛋️"
+                        android:textSize="24sp"
+                        android:textColor="#FFFFFF" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="11sp"
+                    android:textColor="#FFFFFF"
+                    android:textStyle="bold" />
+            </LinearLayout>
         </LinearLayout>
-        <!-- ✅ Announcement - No Black Banner - Only Text + Shadow -->
-        <TextView android:id="@+id/roomNoticeBarText" android:layout_width="match_parent" android:layout_height="wrap_content" android:visibility="gone" android:background="@android:color/transparent" android:textColor="#FFD700" android:textSize="13sp" android:textStyle="bold" android:paddingStart="12dp" android:paddingEnd="12dp" android:paddingTop="8dp" android:paddingBottom="8dp" android:layout_marginStart="10dp" android:layout_marginEnd="10dp" android:maxLines="2" android:ellipsize="end" android:shadowColor="#FF000000" android:shadowDx="1" android:shadowDy="1" android:shadowRadius="4" />
-        <ScrollView android:id="@+id/chatScrollView" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"><LinearLayout android:id="@+id/chatListContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="8dp" android:background="@android:color/transparent" /></ScrollView>
-        <!-- ✅ Bottom Bar - Transparent -->
-        <LinearLayout android:id="@+id/bottomBarContainer" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:background="@android:color/transparent" android:padding="10dp">
-            <TextView android:id="@+id/btnOpenChat" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="💬  Say something..." android:textColor="#FFFFFF" android:textSize="14sp" android:background="#33000000" android:padding="13dp" android:shadowColor="#FF000000" android:shadowDx="1" android:shadowDy="1" android:shadowRadius="3" />
-            <TextView android:id="@+id/btnGiftBox" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎁" android:textSize="24sp" android:padding="8dp" android:shadowColor="#FF000000" android:shadowDx="1" android:shadowDy="1" android:shadowRadius="3" />
-            <TextView android:id="@+id/btnGame" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎮" android:textSize="24sp" android:padding="8dp" android:shadowColor="#FF000000" android:shadowDx="1" android:shadowDy="1" android:shadowRadius="3" />
-            <TextView android:id="@+id/btnRoomTools" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="⊞" android:textSize="26sp" android:textColor="#FFD700" android:textStyle="bold" android:padding="8dp" android:shadowColor="#FF000000" android:shadowDx="1" android:shadowDy="1" android:shadowRadius="3" />
-            <TextView android:id="@+id/btnMicToggle" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎤" android:textSize="24sp" android:padding="8dp" android:shadowColor="#FF000000" android:shadowDx="1" android:shadowDy="1" android:shadowRadius="3" />
+
+        <!-- Announcement -->
+        <TextView
+            android:id="@+id/roomNoticeBarText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:background="@android:color/transparent"
+            android:textColor="#FFD700"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
+            android:maxLines="2"
+            android:ellipsize="end" />
+
+        <ScrollView
+            android:id="@+id/chatScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <LinearLayout
+                android:id="@+id/chatListContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="8dp"
+                android:background="@android:color/transparent" />
+        </ScrollView>
+
+        <!-- Bottom Bar -->
+        <LinearLayout
+            android:id="@+id/bottomBarContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@android:color/transparent"
+            android:padding="10dp">
+
+            <TextView
+                android:id="@+id/btnOpenChat"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="💬  Say something..."
+                android:textColor="#FFFFFF"
+                android:textSize="14sp"
+                android:background="#33000000"
+                android:padding="13dp" />
+
+            <TextView
+                android:id="@+id/btnGiftBox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🎁"
+                android:textSize="24sp"
+                android:padding="8dp" />
+
+            <TextView
+                android:id="@+id/btnGame"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🎮"
+                android:textSize="24sp"
+                android:padding="8dp" />
+
+            <TextView
+                android:id="@+id/btnRoomTools"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⊞"
+                android:textSize="26sp"
+                android:textColor="#FFD700"
+                android:textStyle="bold"
+                android:padding="8dp" />
+
+            <TextView
+                android:id="@+id/btnMicToggle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🎤"
+                android:textSize="24sp"
+                android:padding="8dp" />
         </LinearLayout>
-        <LinearLayout android:id="@+id/chatPopupBar" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical" android:visibility="gone" android:background="@android:color/transparent" android:padding="8dp">
-            <EditText android:id="@+id/inputChatMessage" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:hint="Type message..." android:textColor="#FFFFFF" android:textColorHint="#AAAAAA" android:textSize="14sp" android:background="#33000000" android:padding="12dp" />
-            <TextView android:id="@+id/btnChatOption" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Send" android:textColor="#000000" android:textStyle="bold" android:background="#FFD700" android:padding="12dp" />
+
+        <LinearLayout
+            android:id="@+id/chatPopupBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:visibility="gone"
+            android:background="@android:color/transparent"
+            android:padding="8dp">
+
+            <EditText
+                android:id="@+id/inputChatMessage"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:hint="Type message..."
+                android:textColor="#FFFFFF"
+                android:textColorHint="#AAAAAA"
+                android:textSize="14sp"
+                android:background="#33000000"
+                android:padding="12dp" />
+
+            <TextView
+                android:id="@+id/btnChatOption"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Send"
+                android:textColor="#000000"
+                android:textStyle="bold"
+                android:background="#FFD700"
+                android:padding="12dp" />
         </LinearLayout>
     </LinearLayout>
 </FrameLayout>
