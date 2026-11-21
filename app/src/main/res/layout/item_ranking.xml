@@ -1,44 +1,63 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:padding="8dp"
-    android:background="#FFFFFF">
-    <TextView android:id="@+id/txtRankNumber"
-        android:layout_width="30dp"
+    android:paddingStart="10dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp"
+    android:background="#2A1B4E">
+
+    <!-- Auto Number - 4,5,6... -->
+    <TextView
+        android:id="@+id/txtRankNumber"
+        android:layout_width="34dp"
         android:layout_height="wrap_content"
         android:text="4"
         android:textStyle="bold"
-        android:textSize="16sp"
-        android:textColor="#FF9800"
+        android:textSize="17sp"
+        android:textColor="#FFD700"
         android:gravity="center" />
+
+    <!-- Marble গোল Photo -->
     <androidx.cardview.widget.CardView
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        app:cardCornerRadius="20dp"
-        xmlns:app="http://schemas.android.com/apk/res-auto">
-        <ImageView android:id="@+id/imgRankPhoto"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        app:cardCornerRadius="21dp"
+        app:cardElevation="3dp"
+        app:cardBackgroundColor="#FFD700"
+        android:layout_marginStart="4dp">
+        <ImageView
+            android:id="@+id/imgRankPhoto"
+            android:layout_width="38dp"
+            android:layout_height="38dp"
+            android:layout_gravity="center"
             android:scaleType="centerCrop"
             android:background="#FFD9A0" />
     </androidx.cardview.widget.CardView>
-    <TextView android:id="@+id/txtRankName"
+
+    <TextView
+        android:id="@+id/txtRankName"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="User"
         android:textSize="14sp"
         android:textStyle="bold"
-        android:textColor="#222222"
-        android:paddingStart="10dp" />
-    <TextView android:id="@+id/txtRankCoins"
+        android:textColor="#FFFFFF"
+        android:paddingStart="10dp"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <TextView
+        android:id="@+id/txtRankCoins"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="0 🪙"
         android:textSize="13sp"
         android:textStyle="bold"
-        android:textColor="#FF9800" />
+        android:textColor="#FFD700" />
 </LinearLayout>
