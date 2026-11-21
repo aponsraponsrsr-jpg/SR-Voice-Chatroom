@@ -10,14 +10,23 @@ import com.google.firebase.database.*;
 import java.util.*;
 
 public class AgencyDashboardActivity extends AppCompatActivity {
-    private TextView txtAgencyTitle, txtTotalHosts, txtTotalEarnings, txtHostListHeader, txtMonth;
+    private TextView txtAgencyTitle, txtTotalHosts, txtTotalEarnings, txtMonth;
     private Button btnOpenInviteDialog, btnAgencyPolicy;
     private LinearLayout hostListContainer;
-    private String agencyOwnerId = "", agencyName = "SR Agency", monthKey = "";
+    private String agencyOwnerId = ""; // ALWAYS UID after resolve - never Profile ID
+    private String agencyOwnerProfileId = ""; // Any Digit - 1, 2, 9, any - only for display
+    private String agencyName = "SR Agency", monthKey = "";
     private DatabaseReference agencyRef, invitationRef, usersRef;
     private double totalCommission = 0;
-    private int loadedHostCount = 0, expectedHostCount = 0;
     private SharedPreferences prefs;
+
+    // KEY RULE: All maps are keyed by UID ONLY. Profile ID is only for display.
+    // So one user's target can NEVER leak into another user's card.
+    private final Map<String, Long> hostCoinsMap = new HashMap<>(); // uid -> coins
+    private final Map<String, String> hostNamesMap = new HashMap<>(); // uid -> name
+    private final Map<String, String> hostProfileIdMap = new HashMap<>(); // uid -> Any Digit Profile ID
+    private final Map<String, ValueEventListener> hostListeners = new HashMap<>();
+    private boolean dashboardStarted = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,120 +43,248 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         txtTotalEarnings = new TextView(this); txtTotalEarnings.setText("💰 Total Agency Earnings: $0"); txtTotalEarnings.setTextColor(android.graphics.Color.parseColor("#00E676")); txtTotalEarnings.setTextSize(16); txtTotalEarnings.setPadding(0, 0, 0, 30); rootLayout.addView(txtTotalEarnings);
         btnAgencyPolicy = new Button(this); btnAgencyPolicy.setText("📜 Agency Policy - Full Table"); btnAgencyPolicy.setBackgroundColor(android.graphics.Color.parseColor("#FFD700")); btnAgencyPolicy.setTextColor(android.graphics.Color.BLACK); btnAgencyPolicy.setTypeface(null, android.graphics.Typeface.BOLD); rootLayout.addView(btnAgencyPolicy);
         btnOpenInviteDialog = new Button(this); btnOpenInviteDialog.setText("➕ Invite New Host (Any Digit ID)"); btnOpenInviteDialog.setBackgroundColor(android.graphics.Color.parseColor("#FF4081")); btnOpenInviteDialog.setTextColor(android.graphics.Color.WHITE); btnOpenInviteDialog.setTypeface(null, android.graphics.Typeface.BOLD); rootLayout.addView(btnOpenInviteDialog);
-        txtHostListHeader = new TextView(this); txtHostListHeader.setText("\n📋 Agency Host Performance & Targets (" + monthKey + "):"); txtHostListHeader.setTextColor(android.graphics.Color.parseColor("#00B0FF")); txtHostListHeader.setTextSize(18); txtHostListHeader.setTypeface(null, android.graphics.Typeface.BOLD); rootLayout.addView(txtHostListHeader);
+        TextView txtHostListHeader = new TextView(this); txtHostListHeader.setText("\n📋 Agency Host Performance & Targets (" + monthKey + "):"); txtHostListHeader.setTextColor(android.graphics.Color.parseColor("#00B0FF")); txtHostListHeader.setTextSize(18); txtHostListHeader.setTypeface(null, android.graphics.Typeface.BOLD); rootLayout.addView(txtHostListHeader);
         hostListContainer = new LinearLayout(this); hostListContainer.setOrientation(LinearLayout.VERTICAL); rootLayout.addView(hostListContainer);
         scrollView.addView(rootLayout); setContentView(scrollView);
 
-        agencyOwnerId = getIntent().getStringExtra("AGENCY_OWNER_ID");
-        if (agencyOwnerId == null || agencyOwnerId.isEmpty()) agencyOwnerId = getIntent().getStringExtra("MY_ID");
-        if (agencyOwnerId == null || agencyOwnerId.isEmpty()) agencyOwnerId = prefs.getString("MY_9_DIGIT_ID", "");
-        if (agencyOwnerId == null) agencyOwnerId = "";
-        if (!agencyOwnerId.isEmpty()) prefs.edit().putString("AGENCY_OWNER_ID", agencyOwnerId).putBoolean("IS_AGENCY", true).putBoolean("IS_AGENCY_PERMANENT", true).apply();
+        // Input can be Profile ID (Any Digit) OR UID - we must resolve to UID FIRST.
+        String rawOwner = getIntent().getStringExtra("AGENCY_OWNER_ID");
+        if (rawOwner == null || rawOwner.isEmpty()) rawOwner = getIntent().getStringExtra("MY_ID");
+        if (rawOwner == null || rawOwner.isEmpty()) rawOwner = prefs.getString("MY_9_DIGIT_ID", "");
+        if (rawOwner == null) rawOwner = "";
+        agencyOwnerProfileId = rawOwner;
 
-        agencyRef = FirebaseDatabase.getInstance().getReference("agencies").child(agencyOwnerId);
-        invitationRef = FirebaseDatabase.getInstance().getReference("agency_invitations");
         usersRef = FirebaseDatabase.getInstance().getReference("users");
+        invitationRef = FirebaseDatabase.getInstance().getReference("agency_invitations");
+
+        btnAgencyPolicy.setOnClickListener(v -> {
+            try {
+                Intent i = new Intent(this, AgencyPolicyActivity.class);
+                i.putExtra("AGENCY_OWNER_ID", agencyOwnerId); i.putExtra("MY_ID", agencyOwnerId); i.putExtra("FROM_AGENCY_DASHBOARD", true);
+                startActivity(i);
+            } catch (Exception e) { showPolicyFallbackDialog(); }
+        });
+        btnOpenInviteDialog.setOnClickListener(v -> showHostInviteInputDialog());
+
+        // Resolve Owner Profile ID -> UID, then start dashboard with UID only.
+        resolveAnyIdToUid(rawOwner, new UidCallback() {
+            @Override public void onResolved(String uid, String profileId) {
+                agencyOwnerId = uid;
+                if (profileId != null && !profileId.isEmpty()) agencyOwnerProfileId = profileId;
+                startDashboard();
+            }
+        });
+    }
+
+    private interface UidCallback { void onResolved(String uid, String profileId); }
+
+    private void startDashboard() {
+        if (dashboardStarted) return; dashboardStarted = true;
+        if (!agencyOwnerId.isEmpty()) prefs.edit().putString("AGENCY_OWNER_ID", agencyOwnerId).putBoolean("IS_AGENCY", true).putBoolean("IS_AGENCY_PERMANENT", true).apply();
+        agencyRef = FirebaseDatabase.getInstance().getReference("agencies").child(agencyOwnerId);
         agencyRef.addValueEventListener(new ValueEventListener() {
-            @Override public void onDataChange(@NonNull DataSnapshot snap) { if (!snap.exists()) return; prefs.edit().putBoolean("IS_AGENCY", true).putBoolean("IS_AGENCY_PERMANENT", true).apply(); String n = snap.child("agencyName").getValue(String.class); if (n == null) n = snap.child("name").getValue(String.class); if (n != null && !n.isEmpty()) { agencyName = n; prefs.edit().putString("CACHED_AGENCY_NAME", n).apply(); txtAgencyTitle.setText("🏛️ " + agencyName + " - Dashboard"); } }
+            @Override public void onDataChange(@NonNull DataSnapshot snap) { if (!snap.exists()) return; String n = snap.child("agencyName").getValue(String.class); if (n == null) n = snap.child("name").getValue(String.class); if (n != null && !n.isEmpty()) { agencyName = n; prefs.edit().putString("CACHED_AGENCY_NAME", n).apply(); txtAgencyTitle.setText("🏛️ " + agencyName + " - Dashboard"); } }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
         loadAgencyDataAndHosts();
-        btnAgencyPolicy.setOnClickListener(v -> { try { Intent i = new Intent(this, AgencyPolicyActivity.class); i.putExtra("AGENCY_OWNER_ID", agencyOwnerId); i.putExtra("MY_ID", agencyOwnerId); i.putExtra("FROM_AGENCY_DASHBOARD", true); startActivity(i); } catch (Exception ignored) {} });
-        btnOpenInviteDialog.setOnClickListener(v -> showHostInviteInputDialog());
+    }
+
+    private void showPolicyFallbackDialog() {
+        String policy = "🏛️ SR AGENCY POLICY - " + monthKey + "\n\n"
+            + "1. Receiving = Counting. Room Seat এ Gift Receive হলেই Count হবে - Self / Other / Agency, যেখান থেকে আসুক।\n\n"
+            + "2. Profile ID Any Digit হতে পারে - 1, 2, 9, Any Digit। Gift যেই Profile ID তে পড়বে, ওই Profile ID + Firebase UID মিলিয়ে Counting হবে।\n\n"
+            + "3. Monthly Target. Month শেষে ZERO হবে।\n\n"
+            + "4. Level Salary: যে Level পুরা Fill হবে, শুধু সেই Level এর Salary পাবে। 5 Fill + 6 এ 1 Coin বাকি = শুধু 5 এর Salary, 6 এর পাবে না।\n\n"
+            + "5. Dollar মিস হবে না, বেশিও পাবে না - Policy Target অনুযায়ী ঠিক ততটুকুই।\n\n"
+            + "6. সবার জন্য সমান নিয়ম - Permanent।";
+        new androidx.appcompat.app.AlertDialog.Builder(this).setTitle("📜 Agency Policy - Full Table").setMessage(policy).setPositiveButton("OK", (d, w) -> d.dismiss()).show();
     }
 
     private void showHostInviteInputDialog() {
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this); builder.setTitle("📨 Send Host Invitation");
         LinearLayout layout = new LinearLayout(this); layout.setOrientation(LinearLayout.VERTICAL); layout.setPadding(40, 30, 40, 30);
-        final EditText inputTargetId = new EditText(this); inputTargetId.setHint("Enter Host ID (Any Digit ID)..."); inputTargetId.setTextColor(android.graphics.Color.WHITE); layout.addView(inputTargetId); builder.setView(layout);
-        builder.setPositiveButton("Send Invite", (d, w) -> { String t = inputTargetId.getText().toString().trim(); if (!t.isEmpty()) sendRealtimeHostInvitation(t); else Toast.makeText(this, "Please enter a valid User ID!", Toast.LENGTH_SHORT).show(); });
+        final EditText inputTargetId = new EditText(this); inputTargetId.setHint("Enter Host Profile ID (Any Digit) / UID..."); inputTargetId.setTextColor(android.graphics.Color.WHITE); layout.addView(inputTargetId); builder.setView(layout);
+        builder.setPositiveButton("Send Invite", (d, w) -> { String t = inputTargetId.getText().toString().trim(); if (!t.isEmpty()) resolveAnyIdToUid(t, (uid, profileId) -> sendRealtimeHostInvitation(uid, t)); else Toast.makeText(this, "Please enter a valid User ID!", Toast.LENGTH_SHORT).show(); });
         builder.setNegativeButton("Cancel", (d, w) -> d.dismiss()); builder.show();
     }
-    private void sendRealtimeHostInvitation(String targetUserId) {
-        if (targetUserId.equals(agencyOwnerId)) { Toast.makeText(this, "You cannot invite yourself!", Toast.LENGTH_SHORT).show(); return; }
-        String inviteKey = invitationRef.child(targetUserId).push().getKey(); if (inviteKey == null) return;
-        Map<String, Object> m = new HashMap<>(); m.put("agencyId", agencyOwnerId); m.put("agencyName", agencyName); m.put("inviterId", agencyOwnerId); m.put("targetId", targetUserId); m.put("type", "AGENCY_INVITE"); m.put("status", "Pending"); m.put("timestamp", System.currentTimeMillis());
-        invitationRef.child(targetUserId).child(inviteKey).setValue(m);
-        usersRef.child(targetUserId).child("inbox").child(inviteKey).setValue(m).addOnCompleteListener(t -> { if (t.isSuccessful()) Toast.makeText(this, "Host invitation sent to ID: " + targetUserId, Toast.LENGTH_LONG).show(); else Toast.makeText(this, "Failed to send invitation!", Toast.LENGTH_SHORT).show(); });
+
+    // ===== CORE FIX: Any Digit Profile ID -> UID =====
+    // Input can be: Profile ID (1 digit, 2 digit, any digit) OR UID.
+    // We return UID always. Profile ID is only for display, never as Firebase key.
+    private void resolveAnyIdToUid(final String inputId, final UidCallback cb) {
+        if (inputId == null || inputId.isEmpty()) { cb.onResolved("", ""); return; }
+        // Case 1: Input is already UID - users/{inputId} exists.
+        usersRef.child(inputId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                if (snap.exists()) {
+                    String pid = getProfileIdFromSnapshot(snap, inputId);
+                    cb.onResolved(inputId, pid); return;
+                }
+                // Case 2: Input is Profile ID (Any Digit) - search all users by profileId fields.
+                usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override public void onDataChange(@NonNull DataSnapshot all) {
+                        for (DataSnapshot u : all.getChildren()) {
+                            if (u.getKey() == null) continue;
+                            if (matchesAnyProfileId(u, inputId)) { cb.onResolved(u.getKey(), inputId); return; }
+                        }
+                        // Not found: fall back to input as UID so dashboard does not crash.
+                        // But invite will show "No user found" in caller if needed.
+                        if (cb != null) {
+                            // For invite flow, distinguish not-found by checking caller: if this is invite, caller checks uid existence via send method.
+                            // Here we still return input, send method will verify via invitation write.
+                            cb.onResolved(inputId, inputId);
+                            // Show hint only if it was an invite lookup (host list is empty case handled by dashboard).
+                            // Do not toast for dashboard owner fallback to avoid spam.
+                        }
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError e) { cb.onResolved(inputId, inputId); }
+                });
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) { cb.onResolved(inputId, inputId); }
+        });
+    }
+
+    // Profile ID can be stored under many field names - check ALL. Any Digit = String compare, not length check.
+    private boolean matchesAnyProfileId(DataSnapshot u, String inputId) {
+        String[] fields = {"profileId", "profileID", "profile_id", "userProfileId", "displayId", "displayID", "shortId", "shortID", "MY_9_DIGIT_ID", "nineDigitId", "userShortId", "short_id", "id", "userId", "profileNumber", "publicId"};
+        for (String f : fields) {
+            Object v = u.child(f).getValue();
+            if (v != null && String.valueOf(v).trim().equals(inputId.trim())) return true;
+        }
+        // Also check nested profile / userInfo nodes.
+        for (DataSnapshot sub : u.getChildren()) {
+            if (sub.hasChild("profileId") && inputId.trim().equals(String.valueOf(sub.child("profileId").getValue()))) return true;
+            if (sub.hasChild("shortId") && inputId.trim().equals(String.valueOf(sub.child("shortId").getValue()))) return true;
+        }
+        return false;
+    }
+
+    private String getProfileIdFromSnapshot(DataSnapshot u, String fallback) {
+        String[] fields = {"profileId", "profileID", "displayId", "shortId", "MY_9_DIGIT_ID"};
+        for (String f : fields) {
+            Object v = u.child(f).getValue();
+            if (v != null && !String.valueOf(v).trim().isEmpty()) return String.valueOf(v).trim();
+        }
+        return fallback;
+    }
+
+    private void sendRealtimeHostInvitation(String targetUid, String typedId) {
+        if (targetUid.equals(agencyOwnerId)) { Toast.makeText(this, "You cannot invite yourself!", Toast.LENGTH_SHORT).show(); return; }
+        // Verify target actually exists before sending - prevents invite to wrong / ghost ID.
+        usersRef.child(targetUid).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                if (!snap.exists()) { Toast.makeText(AgencyDashboardActivity.this, "No user found for ID: " + typedId, Toast.LENGTH_LONG).show(); return; }
+                String inviteKey = invitationRef.child(targetUid).push().getKey(); if (inviteKey == null) return;
+                Map<String, Object> m = new HashMap<>(); m.put("agencyId", agencyOwnerId); m.put("agencyName", agencyName); m.put("inviterId", agencyOwnerId); m.put("targetId", targetUid); m.put("targetProfileId", typedId); m.put("typedId", typedId); m.put("type", "AGENCY_INVITE"); m.put("status", "Pending"); m.put("timestamp", System.currentTimeMillis());
+                invitationRef.child(targetUid).child(inviteKey).setValue(m);
+                usersRef.child(targetUid).child("inbox").child(inviteKey).setValue(m).addOnCompleteListener(t -> { if (t.isSuccessful()) Toast.makeText(AgencyDashboardActivity.this, "Host invitation sent to ID: " + typedId, Toast.LENGTH_LONG).show(); else Toast.makeText(AgencyDashboardActivity.this, "Failed to send invitation!", Toast.LENGTH_SHORT).show(); });
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
     }
 
     private void loadAgencyDataAndHosts() {
         agencyRef.child("hosts").addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snapshot) {
-                long hostCount = snapshot.getChildrenCount(); txtTotalHosts.setText("👥 Active Hosts: " + hostCount); hostListContainer.removeAllViews(); totalCommission = 0; loadedHostCount = 0; expectedHostCount = (int) hostCount;
-                if (hostCount == 0) { fetchOwnTargetCard(); return; }
-                for (DataSnapshot h : snapshot.getChildren()) if (h.getKey() != null) fetchHostDetailsAndDisplay(h.getKey());
+                Set<String> current = new HashSet<>();
+                for (DataSnapshot h : snapshot.getChildren()) if (h.getKey() != null) current.add(h.getKey());
+                // Hosts are stored by UID in agencies/{ownerUid}/hosts/{hostUid} = true
+                // If old data stored Profile ID as key, resolve it to UID before attaching.
+                for (String key : current) {
+                    if (hostListeners.containsKey(key) || hostListeners.containsKey("UID_" + key)) continue;
+                    resolveAnyIdToUid(key, (uid, pid) -> { hostProfileIdMap.put(uid, pid); attachHostRealtimeListener(uid); });
+                }
+                attachOwnRealtimeListener();
+                renderHostList();
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
     }
 
-    // MONTHLY: users/{id}/monthly/{monthKey}/receivedCoins - মাস Change = 0
-    private void fetchOwnTargetCard() {
-        usersRef.child(agencyOwnerId).child("monthly").child(monthKey).child("receivedCoins").addListenerForSingleValueEvent(new ValueEventListener() {
+    // Real-time: users/{UID}/monthly/{month}/receivedCoins - UID key only, so no cross-user leak.
+    private void attachHostRealtimeListener(final String hostUid) {
+        if (hostListeners.containsKey(hostUid)) return;
+        ValueEventListener coinsListener = new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
-                long myCoins = 0; if (snap.exists() && snap.getValue() != null) try { myCoins = Long.parseLong(String.valueOf(snap.getValue())); } catch (Exception ignored) {}
-                double myEarnings = SalaryPolicy.getHostSalary(myCoins);
-                double total = myEarnings + totalCommission;
-                txtTotalEarnings.setText("💰 Total Agency Earnings (" + monthKey + "): " + SalaryPolicy.money(total) + " (Own " + SalaryPolicy.money(myEarnings) + " + Commission " + SalaryPolicy.money(totalCommission) + ")");
-                addHostCard("👑 " + agencyName + " (You - Agency Owner)", agencyOwnerId, myCoins, myEarnings, 100, true);
+                long coins = 0; if (snap.exists() && snap.getValue() != null) try { coins = Long.parseLong(String.valueOf(snap.getValue())); } catch (Exception ignored) {}
+                hostCoinsMap.put(hostUid, coins);
+                renderHostList();
             }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        };
+        hostListeners.put(hostUid, coinsListener);
+        usersRef.child(hostUid).child("monthly").child(monthKey).child("receivedCoins").addValueEventListener(coinsListener);
+        usersRef.child(hostUid).child("name").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot nSnap) { String n = nSnap.getValue(String.class); if (n != null && !n.isEmpty()) hostNamesMap.put(hostUid, n); renderHostList(); }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
+        usersRef.child(hostUid).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot s) { String pid = getProfileIdFromSnapshot(s, hostUid); hostProfileIdMap.put(hostUid, pid); renderHostList(); }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
     }
 
-    // ===== STRONG FIX - FINAL COPY - আজীবনের জন্য Error আসবে না =====
-    private void fetchHostDetailsAndDisplay(final String hostUserId) {
-        // hostUserId কে final করলাম - ভিতরের Listener এ ব্যবহার করা যাবে
-        final String fHostId = hostUserId;
-        usersRef.child(fHostId).child("monthly").child(monthKey).child("receivedCoins").addListenerForSingleValueEvent(new ValueEventListener() {
+    private void attachOwnRealtimeListener() {
+        if (hostListeners.containsKey("OWN_" + agencyOwnerId)) return;
+        ValueEventListener ownListener = new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
-                long tmpCoins = 0; if (snap.exists() && snap.getValue() != null) try { tmpCoins = Long.parseLong(String.valueOf(snap.getValue())); } catch (Exception ignored) {}
-                // ===== KEY FIX =====
-                // hostCoins কে সরাসরি ভিতরে ব্যবহার করলে Error আসে।
-                // তাই final copy বানালাম - প্রতিটা Host এর নিজের Copy থাকবে, ভুল Host এর Coin অন্য Host এ যাবে না।
-                final long fHostCoins = tmpCoins;
-                final String fHostId2 = fHostId;
-
-                usersRef.child(fHostId2).child("name").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override public void onDataChange(@NonNull DataSnapshot nSnap) {
-                        String tmpName = nSnap.getValue(String.class); if (tmpName == null || tmpName.isEmpty()) tmpName = "Host ID: " + fHostId2;
-                        final String fHostName = tmpName;
-                        // Calculation ভিতরে করলাম - বাইরে না - তাই Final Error আর আসবে না
-                        final double fHostGets = SalaryPolicy.getHostSalary(fHostCoins);
-                        final double fAgencyCommission = SalaryPolicy.getAgencyCommission(fHostCoins); // 20% STRICT
-                        synchronized (AgencyDashboardActivity.this) {
-                            totalCommission += fAgencyCommission; loadedHostCount++;
-                        }
-                        addHostCard("👤 " + fHostName, fHostId2, fHostCoins, fHostGets, fAgencyCommission, false);
-                        if (loadedHostCount >= expectedHostCount) fetchOwnTargetCard();
-                    }
-                    @Override public void onCancelled(@NonNull DatabaseError e) {
-                        // Name না পাইলেও Card দেখাবে - Dashboard ফাঁকা থাকবে না
-                        final double fHostGets2 = SalaryPolicy.getHostSalary(fHostCoins);
-                        final double fAgencyCommission2 = SalaryPolicy.getAgencyCommission(fHostCoins);
-                        synchronized (AgencyDashboardActivity.this) {
-                            totalCommission += fAgencyCommission2; loadedHostCount++;
-                        }
-                        addHostCard("👤 Host ID: " + fHostId2, fHostId2, fHostCoins, fHostGets2, fAgencyCommission2, false);
-                        if (loadedHostCount >= expectedHostCount) fetchOwnTargetCard();
-                    }
-                });
+                long coins = 0; if (snap.exists() && snap.getValue() != null) try { coins = Long.parseLong(String.valueOf(snap.getValue())); } catch (Exception ignored) {}
+                hostCoinsMap.put("OWN_" + agencyOwnerId, coins);
+                renderHostList();
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
-        });
+        };
+        hostListeners.put("OWN_" + agencyOwnerId, ownListener);
+        usersRef.child(agencyOwnerId).child("monthly").child(monthKey).child("receivedCoins").addValueEventListener(ownListener);
     }
 
-    private void addHostCard(String title, String id, long coins, double hostEarnings, double agencyCommissionOrOwn, boolean isOwn) {
+    private void renderHostList() {
+        hostListContainer.removeAllViews();
+        totalCommission = 0;
+        double ownEarnings = 0;
+        int hostCount = 0;
+        for (Map.Entry<String, Long> e : hostCoinsMap.entrySet()) {
+            if (e.getKey().startsWith("OWN_")) { ownEarnings = SalaryPolicy.getHostSalary(e.getValue()); continue; }
+            hostCount++;
+            totalCommission += SalaryPolicy.getAgencyCommission(e.getValue());
+        }
+        txtTotalHosts.setText("👥 Active Hosts: " + hostCount);
+        double total = ownEarnings + totalCommission;
+        txtTotalEarnings.setText("💰 Total Agency Earnings (" + monthKey + "): " + SalaryPolicy.money(total) + " (Own " + SalaryPolicy.money(ownEarnings) + " + Commission " + SalaryPolicy.money(totalCommission) + ")");
+        Long ownCoins = hostCoinsMap.get("OWN_" + agencyOwnerId);
+        if (ownCoins != null) {
+            String ownPid = hostProfileIdMap.get(agencyOwnerId); if (ownPid == null) ownPid = agencyOwnerProfileId;
+            addHostCard("👑 " + agencyName + " (You - Agency Owner)", "Profile ID: " + ownPid, ownCoins, ownEarnings, 100, true);
+        }
+        for (Map.Entry<String, Long> e : hostCoinsMap.entrySet()) {
+            if (e.getKey().startsWith("OWN_")) continue;
+            String hostUid = e.getKey();
+            String name = hostNamesMap.get(hostUid); if (name == null || name.isEmpty()) name = "Host";
+            String pid = hostProfileIdMap.get(hostUid); if (pid == null || pid.isEmpty()) pid = hostUid;
+            double hostGets = SalaryPolicy.getHostSalary(e.getValue());
+            double commission = SalaryPolicy.getAgencyCommission(e.getValue());
+            addHostCard("👤 " + name, "Profile ID: " + pid, e.getValue(), hostGets, commission, false);
+        }
+    }
+
+    private void addHostCard(String title, String idLine, long coins, double hostEarnings, double agencyCommissionOrOwn, boolean isOwn) {
         LinearLayout card = new LinearLayout(this); card.setOrientation(LinearLayout.VERTICAL); card.setPadding(25, 20, 25, 20);
         android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable(); bg.setColor(android.graphics.Color.parseColor(isOwn ? "#3D2A00" : "#2A1B4E")); bg.setCornerRadius(15); card.setBackground(bg);
         LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT); p.setMargins(0, 0, 0, 15); card.setLayoutParams(p);
-        TextView tvName = new TextView(this); tvName.setText(title + " (ID: " + id + ")"); tvName.setTextColor(android.graphics.Color.WHITE); tvName.setTextSize(15); tvName.setTypeface(null, android.graphics.Typeface.BOLD); card.addView(tvName);
+        TextView tvName = new TextView(this); tvName.setText(title + " (" + idLine + ")"); tvName.setTextColor(android.graphics.Color.WHITE); tvName.setTextSize(15); tvName.setTypeface(null, android.graphics.Typeface.BOLD); card.addView(tvName);
         TextView tvTarget = new TextView(this); int lvl = SalaryPolicy.getAchievedLevel(coins); tvTarget.setText("🎯 Target (" + monthKey + "): " + String.format("%,d", coins) + " Coins • Level: " + (lvl == 0 ? "No Level Yet" : "Level " + lvl)); tvTarget.setTextColor(android.graphics.Color.parseColor("#00E676")); tvTarget.setTextSize(13); card.addView(tvTarget);
         TextView tvDollar = new TextView(this);
         if (isOwn) tvDollar.setText("💵 My Earnings: " + SalaryPolicy.money(hostEarnings));
         else tvDollar.setText("💵 Host Gets: " + SalaryPolicy.money(hostEarnings) + "  •  Agency Commission: " + SalaryPolicy.money(agencyCommissionOrOwn));
         tvDollar.setTextColor(android.graphics.Color.parseColor("#FFD700")); tvDollar.setTextSize(13); card.addView(tvDollar);
         hostListContainer.addView(card);
+    }
+
+    @Override protected void onDestroy() {
+        super.onDestroy();
+        for (Map.Entry<String, ValueEventListener> e : hostListeners.entrySet()) {
+            if (e.getKey().startsWith("OWN_")) usersRef.child(agencyOwnerId).child("monthly").child(monthKey).child("receivedCoins").removeEventListener(e.getValue());
+            else usersRef.child(e.getKey()).child("monthly").child(monthKey).child("receivedCoins").removeEventListener(e.getValue());
+        }
     }
 }
