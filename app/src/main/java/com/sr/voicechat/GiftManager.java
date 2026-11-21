@@ -7,16 +7,19 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.MutableData;
 import com.google.firebase.database.Transaction;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
 
 // GIFT MANAGER - Company Controlled - No User Can Fake Dollar / Coins
 // RULE:
 // 1. Sender: 100% Real Coins deduct from Wallet - Real Time from Database
-// 2. Receiver: Target Counting += Full Gift Amount
+// 2. Receiver: MONTHLY Target Counting += Full Gift Amount - Running Month Only
+//    users/{receiverId}/monthly/{2026-11}/receivedCoins += giftAmount
 // 3. Receiver: Wallet += 30% Exchange - Automatic
-// 4. Self Gift also works - Same rule for own ID
-// 5. Dollar Counting: Only when Target Level completes - Calculated from Database, never written by user
+// 4. Self Gift also works - Same rule for own ID - Sender = Receiver হলেও Count হবে
+// 5. Dollar Counting: Only from Monthly Total - Calculated from Database, never written by user
+// 6. Month Change হইলেই New Month ZERO - Before Month আলাদা History - কখনো মিলবে না
 public class GiftManager {
 
     public interface GiftCallback {
@@ -27,6 +30,21 @@ public class GiftManager {
     // NEW PREMIUM GIFT AMOUNTS ONLY - 4 GIFTS
     // Rose 1000, Angel 5000, Rocket 10000, Porsche Car 20000
     public static final long[] GIFT_AMOUNTS = {1000, 5000, 10000, 20000};
+
+    // MONTHLY KEY - Running Month: 2026-11 -> 2026-12 হইলেই Automatic ZERO
+    public static String getMonthKey() {
+        Calendar c = Calendar.getInstance();
+        int m = c.get(Calendar.MONTH) + 1;
+        return c.get(Calendar.YEAR) + "-" + (m < 10 ? "0" + m : "" + m);
+    }
+
+    // BEFORE MONTH - History - Running শেষ হইলে Before এ চলে যাবে
+    public static String getBeforeMonthKey() {
+        Calendar c = Calendar.getInstance();
+        c.add(Calendar.MONTH, -1);
+        int m = c.get(Calendar.MONTH) + 1;
+        return c.get(Calendar.YEAR) + "-" + (m < 10 ? "0" + m : "" + m);
+    }
 
     // Gift Amount -> SVGA URL - Animation এর জন্য
     public static String getSvgaUrlForAmount(long amount) {
@@ -91,21 +109,54 @@ public class GiftManager {
     }
 
     private static void applyToReceiver(String senderUid, String receiverUid, long giftAmount, GiftCallback cb) {
+        String monthKey = getMonthKey();
         DatabaseReference receiverRef = FirebaseDatabase.getInstance().getReference("users").child(receiverUid);
         long exchange = (long) (giftAmount * 0.30);
+
+        // STEP 1: MONTHLY COUNTING - Running Month Only - সরাসরি Firebase থেকে
+        // users/{receiverId}/monthly/{2026-11}/receivedCoins += giftAmount
+        // মাস Change হইলেই New Key - ZERO থেকে শুরু - Before আলাদা
+        receiverRef.child("monthly").child(monthKey).child("receivedCoins").runTransaction(new Transaction.Handler() {
+            @NonNull @Override public Transaction.Result doTransaction(@NonNull MutableData current) {
+                Long cur = current.getValue(Long.class);
+                if (cur == null) cur = 0L;
+                current.setValue(cur + giftAmount);
+                return Transaction.success(current);
+            }
+            @Override public void onComplete(DatabaseError err, boolean committed, DataSnapshot monthlySnap) {
+                if (err != null || !committed) {
+                    if (cb != null) cb.onFailed("Monthly counting failed");
+                    return;
+                }
+                long monthlyTotal = 0;
+                if (monthlySnap != null && monthlySnap.getValue() != null) {
+                    monthlyTotal = toLong(monthlySnap.getValue());
+                }
+                // STEP 2: Wallet + Level + Salary - Monthly Total দিয়ে হিসাব - Lifetime দিয়ে না
+                updateWalletAndSalary(receiverUid, giftAmount, exchange, monthlyTotal, monthKey, senderUid, cb);
+            }
+        });
+    }
+
+    private static void updateWalletAndSalary(String receiverUid, long giftAmount, long exchange, long monthlyTotal, String monthKey, String senderUid, GiftCallback cb) {
+        DatabaseReference receiverRef = FirebaseDatabase.getInstance().getReference("users").child(receiverUid);
         receiverRef.runTransaction(new Transaction.Handler() {
             @NonNull @Override public Transaction.Result doTransaction(@NonNull MutableData current) {
                 Object coinsObj = current.child("coins").getValue();
                 long wallet = coinsObj == null ? 0L : toLong(coinsObj);
-                Object targetObj = current.child("totalReceivedCoins").getValue();
-                long target = targetObj == null ? 0L : toLong(targetObj);
                 current.child("coins").setValue(wallet + exchange);
-                current.child("totalReceivedCoins").setValue(target + giftAmount);
+
+                // Monthly Total - Running Month এর Total - এইটা দিয়েই Level / Salary
+                current.child("monthly").child(monthKey).child("receivedCoins").setValue(monthlyTotal);
+                // Old totalReceivedCoins - Backwards Compatibility এর জন্য রাখা - কিন্তু Salary Monthly দিয়ে
+                Object oldTotalObj = current.child("totalReceivedCoins").getValue();
+                long oldTotal = oldTotalObj == null ? 0L : toLong(oldTotalObj);
+                current.child("totalReceivedCoins").setValue(oldTotal + giftAmount);
+
                 int level = 0;
                 double hostSalary = 0, agencySalary = 0;
-                long newTotal = target + giftAmount;
                 for (int i = 0; i < TARGETS.length; i++) {
-                    if (newTotal >= TARGETS[i]) {
+                    if (monthlyTotal >= TARGETS[i]) {
                         level = i + 1;
                         hostSalary = HOST_SALARY[i];
                         agencySalary = AGENCY_SALARY[i];
@@ -115,6 +166,10 @@ public class GiftManager {
                 current.child("hostSalaryUSD").setValue(hostSalary);
                 current.child("agencyCommissionUSD").setValue(agencySalary);
                 current.child("totalSalaryUSD").setValue(hostSalary + agencySalary);
+                // Monthly Salary আলাদা করে রাখা - HostWorkData / Agency এইটা দেখবে
+                current.child("monthly").child(monthKey).child("hostSalaryUSD").setValue(hostSalary);
+                current.child("monthly").child(monthKey).child("agencyCommissionUSD").setValue(agencySalary);
+                current.child("monthly").child(monthKey).child("level").setValue(level);
                 return Transaction.success(current);
             }
             @Override public void onComplete(DatabaseError err, boolean committed, DataSnapshot snap) {
@@ -122,17 +177,13 @@ public class GiftManager {
                     if (cb != null) cb.onFailed("Receiver update failed");
                     return;
                 }
-                saveGiftHistory(senderUid, receiverUid, giftAmount, exchange);
-                long newTarget = 0;
-                if (snap != null && snap.hasChild("totalReceivedCoins") && snap.child("totalReceivedCoins").getValue() != null) {
-                    newTarget = toLong(snap.child("totalReceivedCoins").getValue());
-                }
-                if (cb != null) cb.onSuccess(giftAmount, exchange, newTarget);
+                saveGiftHistory(senderUid, receiverUid, giftAmount, exchange, monthKey, monthlyTotal);
+                if (cb != null) cb.onSuccess(giftAmount, exchange, monthlyTotal);
             }
         });
     }
 
-    private static void saveGiftHistory(String senderUid, String receiverUid, long amount, long exchange) {
+    private static void saveGiftHistory(String senderUid, String receiverUid, long amount, long exchange, String monthKey, long monthlyTotal) {
         try {
             DatabaseReference hist = FirebaseDatabase.getInstance().getReference("giftHistory").push();
             Map<String, Object> m = new HashMap<>();
@@ -142,6 +193,8 @@ public class GiftManager {
             m.put("giftAmount", amount);
             m.put("exchange30", exchange);
             m.put("isSelfGift", senderUid.equals(receiverUid));
+            m.put("monthKey", monthKey);
+            m.put("monthlyTotalAfterGift", monthlyTotal);
             m.put("timestamp", System.currentTimeMillis());
             hist.setValue(m);
         } catch (Exception ignored) {}
