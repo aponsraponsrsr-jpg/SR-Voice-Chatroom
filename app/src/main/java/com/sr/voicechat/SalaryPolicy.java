@@ -32,6 +32,36 @@ public class SalaryPolicy {
         return "$" + d;
     }
 
+    // =====================================================
+    // ★ NEW - MONTHLY RESET - মাস শেষ = Data ZERO ★
+    // তুমি যেই Line টা বলছো - এইটাই সেইটা
+    // Firebase Path: users/{hostId}/monthly/{2026-11}/receivedCoins
+    // মাস Change হইলেই Key Change হবে: 2026-11 -> 2026-12
+    // নতুন Key তে কোনো Data নাই = Realtime থেকে Automatic 0 দেখাবে
+    // পুরান মাসের Data Delete হবে না - History হিসেবে থেকে যাবে
+    // =====================================================
+    public static String getCurrentMonthKey() {
+        java.util.Calendar c = java.util.Calendar.getInstance();
+        int y = c.get(java.util.Calendar.YEAR);
+        int m = c.get(java.util.Calendar.MONTH) + 1;
+        return y + "-" + (m < 10 ? "0" + m : "" + m);
+    }
+
+    // Firebase e ei path e save / load hobe
+    // Example: users/123456789/monthly/2026-11/receivedCoins
+    public static String getMonthlyPath(String hostId) {
+        return "users/" + hostId + "/monthly/" + getCurrentMonthKey() + "/receivedCoins";
+    }
+
+    // Cache er jonno - Eki maser cache kina check korbe
+    // Onno maser cache hoile 0 dhorbe
+    public static boolean isSameMonth(String savedMonth) {
+        if (savedMonth == null) return false;
+        return savedMonth.equals(getCurrentMonthKey());
+    }
+    // ★ NEW END ★
+    // =====================================================
+
     // --- STRICT RULE: Pura target fill na hole 0$ ---
     // Example: 287,999 = 0$, 288,000 = 1$
     public static int getAchievedLevel(long receivedCoins) {
