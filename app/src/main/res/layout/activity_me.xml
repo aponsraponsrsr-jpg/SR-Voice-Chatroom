@@ -52,7 +52,6 @@
                     android:text="ID: 000000000"
                     android:textColor="#00E676"
                     android:textSize="13sp" />
-                <!-- FIX 1 - Default ar Male / BD na - Neutral - Java theke Global Flag + Gender asbe -->
                 <TextView
                     android:id="@+id/txtGenderCountry"
                     android:layout_width="wrap_content"
@@ -61,14 +60,12 @@
                     android:text="🌍"
                     android:textColor="#B0BEC5"
                     android:textSize="12sp" />
-                <!-- SMALL ICONS ROW - VIP + WEALTH + CHARM - NO BANNER -->
                 <LinearLayout
                     android:id="@+id/levelIconsRow"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:paddingTop="6dp">
-                    <!-- VIP SMALL ICON - Java theke LevelUtils color asbe, XML e Fixed na -->
                     <TextView
                         android:id="@+id/txtVipBadge"
                         android:layout_width="wrap_content"
@@ -82,7 +79,6 @@
                         android:textSize="10sp"
                         android:textStyle="bold"
                         android:visibility="gone" />
-                    <!-- WEALTH SMALL ICON - SENDING -->
                     <TextView
                         android:id="@+id/txtWealthBadge"
                         android:layout_width="wrap_content"
@@ -96,7 +92,6 @@
                         android:textColor="#FFFFFF"
                         android:textSize="10sp"
                         android:textStyle="bold" />
-                    <!-- CHARM SMALL ICON - RECEIVING -->
                     <TextView
                         android:id="@+id/txtCharmBadge"
                         android:layout_width="wrap_content"
@@ -121,7 +116,6 @@
                 android:textStyle="bold"
                 android:padding="10dp" />
         </LinearLayout>
-        <!-- Copy ID Row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -136,7 +130,6 @@
                 android:textSize="14sp"
                 android:textStyle="bold" />
         </LinearLayout>
-        <!-- Stats Bar -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -172,6 +165,46 @@
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="👑 SVIP Center" android:textColor="#FFD700" android:textSize="15sp" android:textStyle="bold" />
                 <TextView android:id="@+id/txtSvipStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Get SVIP and enjoy privileges >" android:textColor="#B0BEC5" android:textSize="12sp" android:paddingTop="3dp" />
             </LinearLayout>
+
+            <!-- NEW - HOST CENTER - Host Policy + Work Data -->
+            <LinearLayout
+                android:id="@+id/btnHostCenter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#2A1B4E"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="15dp"
+                android:layout_marginBottom="10dp"
+                android:clickable="true"
+                android:focusable="true">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🎙️ Host Center" android:textColor="#FFFFFF" android:textSize="15sp" android:textStyle="bold" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Host Policy  •  Work Data" android:textColor="#B0BEC5" android:textSize="12sp" android:paddingTop="3dp" />
+                </LinearLayout>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=">" android:textColor="#FFD700" android:textSize="18sp" android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- NEW - AGENCY CENTER - Agency Policy + Work Data + Team Bill + Team Members -->
+            <LinearLayout
+                android:id="@+id/btnAgencyCenter"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#2A1B4E"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="15dp"
+                android:layout_marginBottom="10dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="gone">
+                <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="🏢 Agency Center" android:textColor="#FFFFFF" android:textSize="15sp" android:textStyle="bold" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Agency Policy  •  Work Data  •  Team Bill" android:textColor="#B0BEC5" android:textSize="12sp" android:paddingTop="3dp" />
+                </LinearLayout>
+                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text=">" android:textColor="#FFD700" android:textSize="18sp" android:textStyle="bold" />
+            </LinearLayout>
+
             <!-- My Wallet - PERMANENT -->
             <LinearLayout
                 android:id="@+id/walletBox"
@@ -188,7 +221,6 @@
                 </LinearLayout>
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="View Bill  >" android:textColor="#FFD700" android:textSize="13sp" android:textStyle="bold" />
             </LinearLayout>
-            <!-- SELLER BUSINESS WALLET - ONLY SELLER SEES -->
             <LinearLayout
                 android:id="@+id/sellerWalletBox"
                 android:layout_width="match_parent"
@@ -205,7 +237,6 @@
                 </LinearLayout>
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Sell Coins  >" android:textColor="#FFFFFF" android:textSize="13sp" android:textStyle="bold" />
             </LinearLayout>
-            <!-- VIP & Recharge Row - PERMANENT -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
