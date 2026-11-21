@@ -64,7 +64,6 @@ public class MeActivity extends AppCompatActivity {
     private TextView txtSvipStatus;
     private TextView txtVipStatus;
     private int myVipLevel = 0;
-    // SMALL ICONS - NO BIG BANNER - Wealth + Charm small pill
     private TextView txtWealthBadge = null;
     private TextView txtCharmBadge = null;
     private LinearLayout levelIconsRow = null;
@@ -86,10 +85,8 @@ public class MeActivity extends AppCompatActivity {
         }
     };
 
-    // ===== SMALL LEVEL ICONS - Banner na, chotto Pill Icon =====
     private void updateLevelBadge(){
         if(txtWealthBadge==null || txtCharmBadge==null) return;
-        // Wealth - chotto pill, Mixing Glossy Color from LevelUtils
         txtWealthBadge.setText("💎 " + myWealthLevel);
         GradientDrawable bgW = new GradientDrawable();
         try { bgW.setColors(LevelUtils.getLevelColors(myWealthLevel)); } catch(Exception e){ bgW.setColors(new int[]{Color.parseColor("#2196F3"), Color.parseColor("#00BCD4")}); }
@@ -99,7 +96,6 @@ public class MeActivity extends AppCompatActivity {
         txtWealthBadge.setTextColor(Color.WHITE);
         txtWealthBadge.setVisibility(View.VISIBLE);
         txtWealthBadge.setOnClickListener(v->showLevelDialog());
-        // Charm - chotto pill
         txtCharmBadge.setText("💖 " + myCharmLevel);
         GradientDrawable bgC = new GradientDrawable();
         try { bgC.setColors(LevelUtils.getLevelColors(myCharmLevel)); } catch(Exception e){ bgC.setColors(new int[]{Color.parseColor("#E91E63"), Color.parseColor("#FF4081")}); }
@@ -111,7 +107,6 @@ public class MeActivity extends AppCompatActivity {
         txtCharmBadge.setOnClickListener(v->showLevelDialog());
         if(levelIconsRow!=null) levelIconsRow.setVisibility(View.VISIBLE);
     }
-
     private void showLevelDialog(){
         try{
             AlertDialog.Builder b=new AlertDialog.Builder(this);
@@ -129,7 +124,6 @@ public class MeActivity extends AppCompatActivity {
                 LinearLayout row=new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL); row.setGravity(Gravity.CENTER_VERTICAL); row.setPadding(20,14,20,14);
                 GradientDrawable bg=new GradientDrawable(); bg.setColors(LevelUtils.getLevelColors(lvlForColor)); bg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT); bg.setCornerRadius(20); row.setBackground(bg);
                 LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.WRAP_CONTENT); lp.setMargins(0,0,0,10); row.setLayoutParams(lp);
-                // SMALL ICON LEFT - Demo er moto chotto
                 TextView icon=new TextView(this); icon.setText("💎 "+s); icon.setTextColor(Color.WHITE); icon.setTextSize(12); icon.setTypeface(null,Typeface.BOLD); icon.setPadding(12,6,12,6);
                 GradientDrawable iconBg=new GradientDrawable(); iconBg.setColors(LevelUtils.getLevelColors(lvlForColor)); iconBg.setOrientation(GradientDrawable.Orientation.TL_BR); iconBg.setCornerRadius(16); icon.setBackground(iconBg);
                 LinearLayout.LayoutParams iconLp=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT); iconLp.setMargins(0,0,12,0); icon.setLayoutParams(iconLp); row.addView(icon);
@@ -204,7 +198,6 @@ public class MeActivity extends AppCompatActivity {
         cachedPhoto=photo;
         prefs.edit().putString("USER_PHOTO",photo).putString("PROFILE_PHOTO",photo).putString("USER_PHOTO_URL",photo).apply();
     }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -294,7 +287,6 @@ public class MeActivity extends AppCompatActivity {
         txtGenderCountry.setTextColor(Color.parseColor("#B0BEC5"));
         txtGenderCountry.setTextSize(12);
         nameBox.addView(txtGenderCountry);
-        // ===== SMALL ICONS ROW - VIP + WEALTH + CHARM - NO BANNER =====
         levelIconsRow = new LinearLayout(this);
         levelIconsRow.setOrientation(LinearLayout.HORIZONTAL);
         levelIconsRow.setGravity(Gravity.CENTER_VERTICAL);
@@ -740,7 +732,6 @@ public class MeActivity extends AppCompatActivity {
             } else updateVipUI();
         } catch (Exception ignored) {}
     }
-    // ===== VIP SMALL ICON ONLY - Boro Banner na =====
     private void updateVipUI() {
         if (txtVipBadge == null) return;
         if (myVipLevel >= 1 && myVipLevel <= 8) {
@@ -910,23 +901,113 @@ public class MeActivity extends AppCompatActivity {
         catch (Exception e) { Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show(); }
     }
     private void showCountDialog(String type, String count) { new AlertDialog.Builder(this).setTitle(type + " - " + count).setMessage("Your " + type + " list will appear here.\n\nOnly you can see this.").setPositiveButton("OK", null).show(); }
-    // ===== BANGLADESH LEKHA NAI - SHUDHU FLAG + BD =====
+    // ===== GLOBAL FLAG + PREMIUM GENDER - FIXED - NO DEFAULT BD =====
+    private String getCountryShortGlobal(String c){
+        if(c==null||c.isEmpty()) return "";
+        String cl=c.trim().toLowerCase();
+        if(cl.contains("bangladesh")||cl.equals("bd")||cl.contains("🇧🇩")) return "🇧🇩 BD";
+        if(cl.contains("india")||cl.equals("in")) return "🇮🇳 IN";
+        if(cl.contains("pakistan")||cl.equals("pk")) return "🇵🇰 PK";
+        if(cl.contains("nepal")||cl.equals("np")) return "🇳🇵 NP";
+        if(cl.contains("sri lanka")||cl.contains("srilanka")) return "🇱🇰 LK";
+        if(cl.contains("bhutan")) return "🇧🇹 BT";
+        if(cl.contains("afghanistan")) return "🇦🇫 AF";
+        if(cl.contains("myanmar")||cl.contains("burma")) return "🇲🇲 MM";
+        if(cl.contains("thailand")) return "🇹🇭 TH";
+        if(cl.contains("malaysia")) return "🇲🇾 MY";
+        if(cl.contains("indonesia")) return "🇮🇩 ID";
+        if(cl.contains("singapore")) return "🇸🇬 SG";
+        if(cl.contains("philippines")) return "🇵🇭 PH";
+        if(cl.contains("vietnam")) return "🇻🇳 VN";
+        if(cl.contains("cambodia")) return "🇰🇭 KH";
+        if(cl.contains("laos")) return "🇱🇦 LA";
+        if(cl.contains("china")) return "🇨🇳 CN";
+        if(cl.contains("hong kong")) return "🇭🇰 HK";
+        if(cl.contains("taiwan")) return "🇹🇼 TW";
+        if(cl.contains("japan")) return "🇯🇵 JP";
+        if(cl.contains("korea")) return "🇰🇷 KR";
+        if(cl.contains("mongolia")) return "🇲🇳 MN";
+        if(cl.contains("united arab")||cl.contains("uae")||cl.contains("dubai")||cl.contains("abu dhabi")) return "🇦🇪 AE";
+        if(cl.contains("saudi")) return "🇸🇦 SA";
+        if(cl.contains("qatar")) return "🇶🇦 QA";
+        if(cl.contains("kuwait")) return "🇰🇼 KW";
+        if(cl.contains("oman")) return "🇴🇲 OM";
+        if(cl.contains("bahrain")) return "🇧🇭 BH";
+        if(cl.contains("yemen")) return "🇾🇪 YE";
+        if(cl.contains("jordan")) return "🇯🇴 JO";
+        if(cl.contains("lebanon")) return "🇱🇧 LB";
+        if(cl.contains("iraq")) return "🇮🇶 IQ";
+        if(cl.contains("iran")) return "🇮🇷 IR";
+        if(cl.contains("israel")) return "🇮🇱 IL";
+        if(cl.contains("palestine")) return "🇵🇸 PS";
+        if(cl.contains("turkey")||cl.contains("turkiye")) return "🇹🇷 TR";
+        if(cl.contains("united states")||cl.contains("america")||cl.equals("us")||cl.equals("usa")) return "🇺🇸 US";
+        if(cl.contains("canada")) return "🇨🇦 CA";
+        if(cl.contains("mexico")) return "🇲🇽 MX";
+        if(cl.contains("brazil")) return "🇧🇷 BR";
+        if(cl.contains("argentina")) return "🇦🇷 AR";
+        if(cl.contains("chile")) return "🇨🇱 CL";
+        if(cl.contains("colombia")) return "🇨🇴 CO";
+        if(cl.contains("peru")) return "🇵🇪 PE";
+        if(cl.contains("venezuela")) return "🇻🇪 VE";
+        if(cl.contains("united kingdom")||cl.contains("uk")||cl.contains("england")||cl.contains("london")||cl.contains("britain")) return "🇬🇧 UK";
+        if(cl.contains("ireland")) return "🇮🇪 IE";
+        if(cl.contains("germany")) return "🇩🇪 DE";
+        if(cl.contains("france")) return "🇫🇷 FR";
+        if(cl.contains("italy")) return "🇮🇹 IT";
+        if(cl.contains("spain")) return "🇪🇸 ES";
+        if(cl.contains("portugal")) return "🇵🇹 PT";
+        if(cl.contains("netherlands")||cl.contains("holland")) return "🇳🇱 NL";
+        if(cl.contains("belgium")) return "🇧🇪 BE";
+        if(cl.contains("switzerland")) return "🇨🇭 CH";
+        if(cl.contains("austria")) return "🇦🇹 AT";
+        if(cl.contains("sweden")) return "🇸🇪 SE";
+        if(cl.contains("norway")) return "🇳🇴 NO";
+        if(cl.contains("denmark")) return "🇩🇰 DK";
+        if(cl.contains("finland")) return "🇫🇮 FI";
+        if(cl.contains("poland")) return "🇵🇱 PL";
+        if(cl.contains("greece")) return "🇬🇷 GR";
+        if(cl.contains("ukraine")) return "🇺🇦 UA";
+        if(cl.contains("russia")) return "🇷🇺 RU";
+        if(cl.contains("uzbekistan")) return "🇺🇿 UZ";
+        if(cl.contains("kazakhstan")) return "🇰🇿 KZ";
+        if(cl.contains("kyrgyzstan")) return "🇰🇬 KG";
+        if(cl.contains("tajikistan")) return "🇹🇯 TJ";
+        if(cl.contains("turkmenistan")) return "🇹🇲 TM";
+        if(cl.contains("australia")) return "🇦🇺 AU";
+        if(cl.contains("new zealand")) return "🇳🇿 NZ";
+        if(cl.contains("fiji")) return "🇫🇯 FJ";
+        if(cl.contains("egypt")) return "🇪🇬 EG";
+        if(cl.contains("morocco")) return "🇲🇦 MA";
+        if(cl.contains("algeria")) return "🇩🇿 DZ";
+        if(cl.contains("tunisia")) return "🇹🇳 TN";
+        if(cl.contains("libya")) return "🇱🇾 LY";
+        if(cl.contains("sudan")) return "🇸🇩 SD";
+        if(cl.contains("ethiopia")) return "🇪🇹 ET";
+        if(cl.contains("kenya")) return "🇰🇪 KE";
+        if(cl.contains("nigeria")) return "🇳🇬 NG";
+        if(cl.contains("ghana")) return "🇬🇭 GH";
+        if(cl.contains("south africa")) return "🇿🇦 ZA";
+        if(cl.contains("angola")) return "🇦🇴 AO";
+        if(cl.contains("zimbabwe")) return "🇿🇼 ZW";
+        return "🌍 " + c.trim();
+    }
+    private String getGenderIconPremium(String g){
+        if(g==null) return "";
+        String gl=g.trim().toLowerCase();
+        if(gl.contains("female")||gl.contains("girl")||gl.contains("woman")||gl.equals("f")||gl.equals("lady")) return "♀️";
+        if(gl.contains("male")||gl.contains("boy")||gl.contains("man")||gl.equals("m")) return "♂️";
+        return "";
+    }
     private String getGenderCountryText() {
         String g = prefs.getString("USER_GENDER", "");
         String c = prefs.getString("USER_COUNTRY", "");
-        // Bangladesh -> shudhu Flag + BD, onno desh holeo shudhu Flag code
-        String countryShort = "";
-        if (c != null && !c.isEmpty()) {
-            String cl = c.trim().toLowerCase();
-            if (cl.contains("bangladesh") || cl.equals("bd") || cl.equals("🇧🇩")) countryShort = "🇧🇩 BD";
-            else if (cl.contains("india")) countryShort = "🇮🇳 IN";
-            else if (cl.contains("pakistan")) countryShort = "🇵🇰 PK";
-            else if (cl.contains("nepal")) countryShort = "🇳🇵 NP";
-            else countryShort = "🇧🇩 BD"; // default - Bangladesh user beshi
-        }
+        String countryShort = getCountryShortGlobal(c);
+        String genderIcon = getGenderIconPremium(g);
         String base = "";
-        if (!g.isEmpty() && !countryShort.isEmpty()) base = g + " | " + countryShort;
+        if (!genderIcon.isEmpty() && !countryShort.isEmpty()) base = genderIcon + " | " + countryShort;
         else if (!countryShort.isEmpty()) base = countryShort;
+        else if (!genderIcon.isEmpty()) base = genderIcon;
         else if (!g.isEmpty()) base = g;
         else base = "Complete Your Profile";
         boolean showAgency = prefs.getBoolean("IS_AGENCY", false) && prefs.getBoolean("AGENCY_ACTIVE", false);
