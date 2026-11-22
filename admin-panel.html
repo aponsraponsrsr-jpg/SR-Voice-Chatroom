@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SR Voice Chat - Admin Panel</title>
+<title>SR Voice Chat - Admin Panel - NEW VIP SYSTEM</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial}
 body{background:#0A0518;color:#fff}
@@ -44,7 +44,6 @@ button.back{background:#2a2145;color:#fff;margin:16px 16px 0;width:calc(100% - 3
 </head>
 <body>
 <div class="top"><b>SR ADMIN PANEL</b><span id="adminEmail"></span></div>
-
 <div id="loginBox" class="card">
 <h2>CEO / Admin Login</h2>
 <p class="small">Sudhu onumodito Gmail diye login hobe.</p>
@@ -53,7 +52,6 @@ button.back{background:#2a2145;color:#fff;margin:16px 16px 0;width:calc(100% - 3
 <button onclick="login()">Login</button>
 <p id="loginMsg" class="small"></p>
 </div>
-
 <div id="dashBox" class="hidden">
 <div id="homeView">
 <div class="stat">
@@ -71,13 +69,12 @@ button.back{background:#2a2145;color:#fff;margin:16px 16px 0;width:calc(100% - 3
 <div style="padding:0 16px"><h3>🏠 Super Panel - Room Select Koro</h3><p class="small">Je Room e kaj - oi Room e Click koro.</p></div>
 <div class="homeGrid">
 <div class="homeCard" onclick="openRoom('agency')"><span class="emoji">🏢</span><b>Agency Board</b><span>Agency + Host Invite</span></div>
-<div class="homeCard vip" onclick="openRoom('vip')"><span class="emoji">👑</span><b>VIP Board</b><span>VIP Give / Remove</span></div>
+<div class="homeCard vip" onclick="openRoom('vip')"><span class="emoji">👑</span><b>VIP Board</b><span>VIP Give / Remove - NEW SYSTEM</span></div>
 <div class="homeCard coin" onclick="openRoom('coins')"><span class="emoji">🪙</span><b>Coins / Seller</b><span>Seller + Coins Give - LIVE</span></div>
 <div class="homeCard" onclick="alert('ID Ban / Unban porer dhape add hobe')"><span class="emoji">🚫</span><b>ID Ban / Unban</b><span>Coming Soon - Next Step</span></div>
 </div>
 <button class="secondary" style="margin:0 16px;width:calc(100% - 32px)" onclick="logout()">Logout</button>
 </div>
-
 <div id="agencyView" class="hidden">
 <button class="back" onclick="goHome()">← Back to Home</button>
 <div class="card">
@@ -101,13 +98,12 @@ button.back{background:#2a2145;color:#fff;margin:16px 16px 0;width:calc(100% - 3
 <div class="card"><h3>Host List - Live</h3><div id="hostList" class="list">Loading...</div></div>
 <div class="card"><h3>Pending Host Invites</h3><div id="inviteList" class="list">Loading...</div></div>
 </div>
-
 <div id="vipView" class="hidden">
 <button class="back" onclick="goHome()">← Back to Home</button>
 <div class="card">
-<h3>👑 VIP Give - Real Time</h3>
-<p class="small">Profile ID bosao -> VIP Select koro -> Date Select koro -> Confirm koro. Sathe sathe oi ID te VIP chole jabe + Inbox e Notification jabe.</p>
-<input id="vipUid" placeholder="Profile ID - ex: 477984629">
+<h3>👑 VIP Give - Real Time - NEW SYSTEM</h3>
+<p class="small">Profile ID bosao -> VIP Select koro -> Date Select koro -> Confirm koro. 9 Digit / 3 Digit Fancy - Jekono ID dilei - Oi UID te VIP jabe. Puraton ID + UID alada hobe NA.</p>
+<input id="vipUid" placeholder="Profile ID - ex: 477984629 OR 123">
 <select id="vipLevel" onchange="previewVip()">
 <option value="1">🐅 VIP 1 • Black Tiger</option>
 <option value="2">🐯 VIP 2 • White Tiger</option>
@@ -130,39 +126,33 @@ button.back{background:#2a2145;color:#fff;margin:16px 16px 0;width:calc(100% - 3
 </div>
 <div class="card"><h3>VIP List - Live - Real Time</h3><div id="vipList" class="list">Loading...</div></div>
 </div>
-
-<!-- ===== COINS / SELLER ROOM - PROFILE ID ONLY + UNLIMITED AMOUNT ===== -->
 <div id="coinsView" class="hidden">
 <button class="back" onclick="goHome()">← Back to Home</button>
-
 <div class="card">
 <h3>🪙 Seller Create - Permanent - ONLY SELLER WALLET</h3>
-<p class="small">Seller ke age Create koro. JAKE Seller banaba - SUDHU TAR Me te Business Wallet auto asbe. Baki sob User er kache Wallet asbe na. PROFILE ID ONLY - UID likhba na.</p>
+<p class="small">Seller ke age Create koro. JAKE Seller banaba - SUDHU TAR Me te Business Wallet auto asbe. PROFILE ID ONLY - UID likhba na.</p>
 <input id="sellerUid" placeholder="Seller Profile ID - ex: 477984629">
 <input id="sellerName" placeholder="Seller Name - ex: SR Seller">
 <input id="sellerPhone" placeholder="Seller Phone / WhatsApp - ex: 01700000000">
 <button onclick="createSeller()">Confirm - Create Seller</button>
 <p id="sellerMsg" class="small"></p>
 </div>
-
 <div class="card">
 <h3>💰 Admin → Seller - Coins Load</h3>
-<p class="small">PROFILE ID ONLY + UNLIMITED AMOUNT - Dropdown nai - Joto khushi likho - ex: 5620000 - 1 barei jabe. Seller Balance barbe + History te joma hobe. Seller nije Coins banaite parbe na.</p>
+<p class="small">PROFILE ID ONLY + UNLIMITED AMOUNT - Joto khushi likho - ex: 5620000</p>
 <input id="loadSellerId" placeholder="Seller Profile ID - ex: 477984629">
 <input id="loadSellerAmountInput" type="number" placeholder="Amount - Joto Khushi Likho - ex: 5620000">
 <button class="green" onclick="loadSellerCoins()">Confirm - Load Coins to Seller</button>
 <p id="loadSellerMsg" class="small"></p>
 </div>
-
 <div class="card">
 <h3>🎁 Admin → User - Direct Coins Give</h3>
-<p class="small">PROFILE ID ONLY + UNLIMITED AMOUNT - Dropdown nai - Joto khushi likho - ex: 5620000 - 1 barei jabe. Direct User ke Coins dao.</p>
+<p class="small">PROFILE ID ONLY + UNLIMITED AMOUNT - Joto khushi likho - ex: 5620000</p>
 <input id="coinUserId" placeholder="User Profile ID - ex: 845083699">
 <input id="coinAmountInput" type="number" placeholder="Amount - Joto Khushi Likho - ex: 5620000">
 <button onclick="giveCoinsToUser()">Confirm - Give Coins to User</button>
 <p id="coinMsg" class="small"></p>
 </div>
-
 <div class="card">
 <h3>🔍 User Coins Check</h3>
 <p class="small">Jekono User er Profile ID bosao - tar ekhon koto Coins ache dekhbe.</p>
@@ -170,14 +160,11 @@ button.back{background:#2a2145;color:#fff;margin:16px 16px 0;width:calc(100% - 3
 <button class="secondary" onclick="checkUserCoins()">Check Coins</button>
 <p id="checkCoinMsg" class="small"></p>
 </div>
-
 <div class="card"><h3>Seller List - Live - Balance Soho</h3><div id="sellerList" class="list">Loading...</div></div>
-<div class="card"><h3>🛒 Seller Sales History - Live - Seller Kake Koto Sell Korlo</h3><div id="sellerSalesList" class="list">Loading...</div></div>
+<div class="card"><h3>🛒 Seller Sales History - Live</h3><div id="sellerSalesList" class="list">Loading...</div></div>
 <div class="card"><h3>Coins History - Live - Sob Hisab</h3><div id="coinHistoryList" class="list">Loading...</div></div>
 </div>
-
 </div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
@@ -188,37 +175,54 @@ const auth = getAuth(app);
 const rtdb = getDatabase(app);
 const VIP_DATA={1:{name:"VIP 1 • Black Tiger",emoji:"🐅",desc:"Black Tiger Entry • Black Tiger Frame • Black Tiger Bubble"},2:{name:"VIP 2 • White Tiger",emoji:"🐯",desc:"White Tiger Entry • White Tiger Frame • White Tiger Bubble"},3:{name:"VIP 3 • Eagle Fire",emoji:"🦅",desc:"Eagle Fire Entry • Eagle Fire Frame • Eagle Fire Bubble"},4:{name:"VIP 4 • Phoenix Fire Bird",emoji:"🔥",desc:"Phoenix Fire Bird Entry • Phoenix Frame • Phoenix Bubble"},5:{name:"VIP 5 • Dragon",emoji:"🐉",desc:"Dragon Entry • Dragon Frame • Dragon Bubble"},6:{name:"VIP 6 • Golden Dragon King",emoji:"👑",desc:"Golden Dragon King Entry • Golden Dragon Frame • Golden Bubble"},7:{name:"VIP 7 • Emperor Dragon",emoji:"🐲",desc:"Emperor Dragon Entry • Emperor Dragon Frame • Emperor Dragon Bubble"},8:{name:"VIP 8 • Purple Dragon",emoji:"💜",desc:"Purple Dragon Entry • Purple Dragon Frame • Purple Dragon Bubble"}};
 async function isAdmin(uid){ const snap = await get(ref(rtdb, "admins/" + uid)); return snap.exists(); }
-// ===== PROFILE ID ONLY SYSTEM - UID TUMI LIKHBA NA - VITOR THEKE AUTO MILBE =====
-function getAnyIdFromUser(u){
-  if(!u) return "";
-  return String(u.profileId || u.anyId || u.userAnyId || u.displayId || u.myId || u.idNumber || u.srId || u.userId || u.numericId || u.shortId || u.id || "");
+function getAnyIdFromUser(u){ if(!u) return ""; return String(u.profileId || u.anyId || u.userAnyId || u.displayId || u.myId || u.idNumber || u.srId || u.userId || u.numericId || u.shortId || u.id || ""); }
+// ===== NEW: PROFILE ID <-> UID - PERMANENT LINK - Puraton + Notun 2 tai =====
+async function syncProfileIdMapping(uid, currentId, originalId){
+  if(!uid || !currentId) return;
+  const map = {};
+  map["profileIdToUid/" + currentId] = uid;
+  if(originalId && originalId !== currentId) map["profileIdToUid/" + originalId] = uid;
+  // users/{uid} e original ta save - Jodi na thake
+  try{ await update(ref(rtdb, "users/" + uid), { profileId: currentId, originalProfileId: originalId || currentId }); await update(ref(rtdb), map); }catch(e){}
 }
-// PROFILE ID DILEI - AUTOMATIC UID MILABE - TUMI UID DEKHBA NA
 async function resolveUser(input){
-  input = String(input).trim();
-  if(!input) return null;
+  input = String(input).trim(); if(!input) return null;
   const clean = input.replace(/\s+/g, "");
-  // 1. Direct users/{Profile ID} - jodi key Profile ID hoy
+  // 1. NEW: profileIdToUid mapping - Sobcheye Fast - Puraton / Fancy 2 tai pabe
+  try{
+    const mapSnap = await get(ref(rtdb, "profileIdToUid/" + clean));
+    if(mapSnap.exists()){
+      const uid = String(mapSnap.val());
+      const uSnap = await get(ref(rtdb, "users/" + uid));
+      const d = uSnap.exists() ? (uSnap.val()||{}) : {};
+      const cur = getAnyIdFromUser(d) || clean;
+      const orig = String(d.originalProfileId || d.previousProfileId || cur);
+      await syncProfileIdMapping(uid, cur, orig);
+      return { uid, profileId: cur, data: d, anyId: cur, originalProfileId: orig };
+    }
+  }catch(e){}
+  // 2. Direct users/{Profile ID}
   const direct = await get(ref(rtdb, "users/" + clean));
   if(direct.exists()){
     const d = direct.val() || {};
-    return { uid: clean, profileId: getAnyIdFromUser(d) || clean, data: d, anyId: getAnyIdFromUser(d) || clean };
+    const cur = getAnyIdFromUser(d) || clean;
+    const orig = String(d.originalProfileId || cur);
+    await syncProfileIdMapping(clean, cur, orig);
+    return { uid: clean, profileId: cur, data: d, anyId: cur, originalProfileId: orig };
   }
-  // 2. Sob user scan - Profile ID field er sathe milao - UID auto ber hobe - key = UID
+  // 3. Scan - profileId + originalProfileId + previousProfileId
   const allSnap = await get(ref(rtdb, "users"));
   if(!allSnap.exists()) return null;
   const all = allSnap.val() || {};
   const target = clean.toLowerCase();
   for(const key in all){
     const u = all[key] || {};
-    const candidates = [
-      String(u.profileId||""), String(u.anyId||""), String(u.userAnyId||""), String(u.displayId||""),
-      String(u.myId||""), String(u.idNumber||""), String(u.srId||""), String(u.userId||""),
-      String(u.numericId||""), String(u.shortId||""), String(u.id||""), String(u.my9DigitId||""),
-      String(u.phone||""), String(u.phoneNumber||"")
-    ].map(s=>s.trim().toLowerCase()).filter(s=>s!=="");
+    const candidates = [String(u.profileId||""), String(u.anyId||""), String(u.userAnyId||""), String(u.displayId||""), String(u.myId||""), String(u.idNumber||""), String(u.srId||""), String(u.userId||""), String(u.numericId||""), String(u.shortId||""), String(u.id||""), String(u.my9DigitId||""), String(u.originalProfileId||""), String(u.previousProfileId||""), String(u.phone||""), String(u.phoneNumber||"")].map(s=>s.trim().toLowerCase()).filter(s=>s!=="");
     if(candidates.includes(target) || String(key).toLowerCase() === target){
-      return { uid: key, profileId: getAnyIdFromUser(u) || clean, data: u, anyId: getAnyIdFromUser(u) || clean };
+      const cur = getAnyIdFromUser(u) || clean;
+      const orig = String(u.originalProfileId || u.previousProfileId || cur);
+      await syncProfileIdMapping(key, cur, orig);
+      return { uid: key, profileId: cur, data: u, anyId: cur, originalProfileId: orig };
     }
   }
   return null;
@@ -226,144 +230,38 @@ async function resolveUser(input){
 function toNum(v){ const n = Number(v); return isNaN(n) ? 0 : n; }
 async function addCoinHistory(entry){ const hRef = push(ref(rtdb, "coin_transactions")); await set(hRef, { id: hRef.key, ...entry, createdAt: Date.now() }); }
 async function sendInbox(uid, title, message, extra={}){ const inboxRef = push(ref(rtdb, "users/" + uid + "/inbox")); await set(inboxRef, { id: inboxRef.key, toUid: uid, type: extra.type || "COIN_SYSTEM", title, message, status: "unread", timestamp: Date.now(), createdAt: Date.now(), fromId: "SR_OFFICIAL", fromName: "SR Voice Chatroom Official", ...extra }); }
-// ===== SELLER WRITE - 4 KEYS - PROFILE ID + UID - APP JE VABE KHUJE PABE =====
-function buildSellerObject(uid, anyId, name, phone, bal, recv, sold, createdAt, now){
-  return { ownerUid: uid, profileId: anyId, anyId: anyId, idNumber: anyId, myId: anyId, displayId: anyId, name: name, phone: phone, isSeller: true, showSellerWallet: true, businessCoins: bal, businessBalance: bal, coinBalance: bal, totalReceived: recv, totalSold: sold, status: "active", sellerStatus: "active", createdAt: createdAt, updatedAt: now };
-}
-async function writeSellerBothKeys(uid, anyId, obj){
-  await set(ref(rtdb, "sellers/" + uid), obj);
-  if(anyId && anyId !== uid) await set(ref(rtdb, "sellers/" + anyId), obj);
-}
-async function updateSellerBothKeys(uid, anyId, patch){
-  await update(ref(rtdb, "sellers/" + uid), patch);
-  if(anyId && anyId !== uid) await update(ref(rtdb, "sellers/" + anyId), patch);
-}
-
+function buildSellerObject(uid, anyId, name, phone, bal, recv, sold, createdAt, now){ return { ownerUid: uid, profileId: anyId, anyId: anyId, idNumber: anyId, myId: anyId, displayId: anyId, name: name, phone: phone, isSeller: true, showSellerWallet: true, businessCoins: bal, businessBalance: bal, coinBalance: bal, totalReceived: recv, totalSold: sold, status: "active", sellerStatus: "active", createdAt: createdAt, updatedAt: now }; }
+async function writeSellerBothKeys(uid, anyId, obj){ await set(ref(rtdb, "sellers/" + uid), obj); if(anyId && anyId !== uid) await set(ref(rtdb, "sellers/" + anyId), obj); }
+async function updateSellerBothKeys(uid, anyId, patch){ await update(ref(rtdb, "sellers/" + uid), patch); if(anyId && anyId !== uid) await update(ref(rtdb, "sellers/" + anyId), patch); }
 window.login = async () => { const email = document.getElementById('email').value.trim(); const pass = document.getElementById('pass').value; document.getElementById('loginMsg').innerText = "Login hocche..."; try { const cred = await signInWithEmailAndPassword(auth, email, pass); if (!(await isAdmin(cred.user.uid))) { document.getElementById('loginMsg').innerText = "Tumi Admin na. Access denied."; await signOut(auth); return; } loadDashboard(); } catch(e){ document.getElementById('loginMsg').innerText = e.message; } }
 window.logout = async () => { await signOut(auth); location.reload(); }
 window.goHome = () => { document.getElementById('agencyView').classList.add('hidden'); document.getElementById('vipView').classList.add('hidden'); document.getElementById('coinsView').classList.add('hidden'); document.getElementById('homeView').classList.remove('hidden'); }
 window.openRoom = (room) => { document.getElementById('homeView').classList.add('hidden'); document.getElementById('agencyView').classList.add('hidden'); document.getElementById('vipView').classList.add('hidden'); document.getElementById('coinsView').classList.add('hidden'); if(room==='agency') document.getElementById('agencyView').classList.remove('hidden'); else if(room==='coins') document.getElementById('coinsView').classList.remove('hidden'); else { document.getElementById('vipView').classList.remove('hidden'); previewVip(); } }
 window.previewVip = () => { const v = VIP_DATA[document.getElementById('vipLevel').value]; document.getElementById('vipPreviewEmoji').innerText = v.emoji; document.getElementById('vipPreviewName').innerText = v.name; document.getElementById('vipPreviewDesc').innerText = v.desc; }
-
 function loadDashboard(){ document.getElementById('loginBox').classList.add('hidden'); document.getElementById('dashBox').classList.remove('hidden'); document.getElementById('adminEmail').innerText = auth.currentUser.email; goHome();
 onValue(ref(rtdb, "users"), (snap)=>{ const data = snap.val() || {}; document.getElementById('totalUsers').innerText = Object.keys(data).length; let totalUserCoins = 0; Object.values(data).forEach(u=>{ totalUserCoins += Math.max(toNum(u.coins), toNum(u.coinBalance), toNum(u.walletCoins)); }); document.getElementById('totalUserCoins').innerText = totalUserCoins.toLocaleString(); });
 onValue(ref(rtdb, "agencies"), (snap)=>{ const data = snap.val() || {}; document.getElementById('totalAgency').innerText = Object.keys(data).length; let html = ""; Object.keys(data).forEach(k=>{ const a = data[k]; html += `<div class="item"><span><b>${a.name||k}</b><br><small>Profile ID: ${a.anyId||a.idNumber||k} | UID: ${a.ownerUid||k} - ${a.commission||0}%</small></span><span class="badge">Active</span></div>`; }); document.getElementById('agencyList').innerHTML = html || "Kono Agency nai"; });
 onValue(ref(rtdb, "hosts"), (snap)=>{ const data = snap.val() || {}; document.getElementById('totalHosts').innerText = Object.keys(data).length; let html = ""; Object.keys(data).forEach(k=>{ const h = data[k]; html += `<div class="item"><span><b>${h.name||h.displayName||k}</b><br><small>Host Profile ID: ${h.anyId||h.idNumber||k} | Agency: ${h.agencyName||h.agencyId||'-'} | Target: ${h.target||0} | Dollar: $${h.totalDollar||0}</small></span><span class="badge">${h.status||'Active'}</span></div>`; }); document.getElementById('hostList').innerHTML = html || "Kono Host nai"; });
 onValue(ref(rtdb, "hostInvites"), (snap)=>{ const data = snap.val() || {}; let html = ""; Object.keys(data).forEach(k=>{ const inv = data[k]; if(inv.status !== "pending") return; html += `<div class="item"><span><b>Host: ${inv.hostIdNumber||inv.hostUid}</b><br><small>Agency: ${inv.agencyName||inv.agencyId} - Pending</small></span><div class="flexRow"><button class="green" onclick="forceConfirmHost('${k}','${inv.hostUid}','${inv.agencyId}')">Force Confirm</button></div></div>`; }); document.getElementById('inviteList').innerHTML = html || "Kono pending invite nai"; });
-onValue(ref(rtdb, "vip_assignments"), (snap)=>{ const data = snap.val() || {}; document.getElementById('totalVip').innerText = Object.keys(data).length; let html = ""; Object.keys(data).forEach(k=>{ const v = data[k]; const active = Date.now() < (v.expireTs || v.expireAt || 0); html += `<div class="item"><span><b>${v.vipEmoji||'👑'} ${v.vipName||('VIP '+v.vipLevel)}</b><br><small>Profile ID: ${v.anyId||v.idNumber||k} | UID: ${v.uid||k}<br>${v.vipDays} Din | Start: ${v.startDate} | Expire: ${v.expireDate}</small></span><div class="flexRow"><span class="badge ${active?'':'red'}">${active?'ACTIVE':'EXPIRED'}</span><button class="red" style="width:auto;padding:8px 12px" onclick="removeVip('${v.uid||k}')">Remove</button></div></div>`; }); document.getElementById('vipList').innerHTML = html || "Kono VIP deya hoyni"; });
+onValue(ref(rtdb, "vip_assignments"), (snap)=>{ const data = snap.val() || {}; document.getElementById('totalVip').innerText = Object.keys(data).length; let html = ""; Object.keys(data).forEach(k=>{ const v = data[k]; const active = Date.now() < (v.expireTs || v.expireAt || 0); html += `<div class="item"><span><b>${v.vipEmoji||'👑'} ${v.vipName||('VIP '+v.vipLevel)}</b><br><small>Profile ID: ${v.anyId||v.idNumber||k} | Original: ${v.originalProfileId||'-'} | UID: ${v.uid||k}<br>${v.vipDays} Din | Start: ${v.startDate} | Expire: ${v.expireDate}</small></span><div class="flexRow"><span class="badge ${active?'':'red'}">${active?'ACTIVE':'EXPIRED'}</span><button class="red" style="width:auto;padding:8px 12px" onclick="removeVip('${v.uid||k}')">Remove</button></div></div>`; }); document.getElementById('vipList').innerHTML = html || "Kono VIP deya hoyni"; });
 onValue(ref(rtdb, "sellers"), (snap)=>{ const data = snap.val() || {}; const seen = new Set(); let totalBal = 0; let html = ""; let count = 0; Object.keys(data).forEach(k=>{ const s = data[k] || {}; const key = s.ownerUid || k; if(seen.has(key)) return; seen.add(key); count++; const bal = Math.max(toNum(s.businessCoins), toNum(s.coinBalance), toNum(s.businessBalance)); totalBal += bal; html += `<div class="item"><span><b>🪙 ${s.name||k}</b><br><small>Profile ID: ${s.anyId||s.idNumber||k} | UID: ${s.ownerUid||k}<br>Phone: ${s.phone||'-'} | Sold: ${toNum(s.totalSold).toLocaleString()} | Received: ${toNum(s.totalReceived).toLocaleString()} | Status: ${s.status||'active'}</small></span><span class="badge gold">Balance: ${bal.toLocaleString()}</span></div>`; }); document.getElementById('totalSellers').innerText = count; document.getElementById('totalSellerBalance').innerText = totalBal.toLocaleString(); document.getElementById('sellerList').innerHTML = html || "Kono Seller nai"; });
 onValue(ref(rtdb, "coin_transactions"), (snap)=>{ const data = snap.val() || {}; const arr = Object.values(data).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)); let totalGiven = 0; let html = ""; arr.slice(0,50).forEach(t=>{ totalGiven += toNum(t.amount); const d = new Date(t.createdAt||Date.now()).toLocaleString('en-GB'); html += `<div class="item"><span><b>${t.typeLabel||t.type||'Coins'} - ${toNum(t.amount).toLocaleString()} Coins</b><br><small>${t.fromLabel||''} → ${t.toLabel||''}<br>${d}</small></span><span class="badge">${t.status||'Done'}</span></div>`; }); document.getElementById('totalCoinsGiven').innerText = totalGiven.toLocaleString(); document.getElementById('coinHistoryList').innerHTML = html || "Kono Coins History nai"; });
 onValue(ref(rtdb, "seller_sales"), (snap)=>{ const data = snap.val() || {}; const arr = Object.values(data).sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)); let html = ""; arr.slice(0,50).forEach(t=>{ const d = new Date(t.createdAt||Date.now()).toLocaleString('en-GB'); html += `<div class="item"><span><b>🛒 Seller ${t.sellerId||''} → Buyer ${t.buyerId||''}</b><br><small>${toNum(t.amount).toLocaleString()} Coins | ${d}</small></span><span class="badge">SOLD</span></div>`; }); document.getElementById('sellerSalesList').innerHTML = html || "Kono Seller Sale hoyni"; });
 }
-window.createAgency = async () => { const input = document.getElementById('agencyUid').value.trim(); const name = document.getElementById('agencyName').value.trim(); const percent = Number(document.getElementById('agencyPercent').value || 20); const msgEl = document.getElementById('agencyMsg'); if(!input || !name){ msgEl.innerText = "Profile ID ar Name dao"; return; } msgEl.innerText = "Khujtesi..."; try{ const user = await resolveUser(input); if(!user){ msgEl.innerText = "Ei Profile ID diye kono user pawa jay nai."; return; } const uid = user.uid; const now = Date.now(); await set(ref(rtdb, "agencies/" + uid), { ownerUid: uid, profileId: user.anyId, anyId: user.anyId, idNumber: user.anyId, name: name, commission: percent, agencyCommission: percent, agencyPercent: percent, createdAt: now, status: "active", agencyStatus: "active", totalHosts: 0, totalDollar: 0, totalCoin: 0 }); await update(ref(rtdb, "users/" + uid), { agencyId: uid, agencyIdNumber: user.anyId, agencyName: name, isAgency: true, agencyStatus: "active", role: "agency", agencyCommission: percent, agencyPercent: percent }); msgEl.innerText = "✅ Agency Create hoye geche! " + name + " (Profile ID: " + user.anyId + ")"; }catch(e){ msgEl.innerText = e.message; } }
+window.createAgency = async () => { const input = document.getElementById('agencyUid').value.trim(); const name = document.getElementById('agencyName').value.trim(); const percent = Number(document.getElementById('agencyPercent').value || 20); const msgEl = document.getElementById('agencyMsg'); if(!input || !name){ msgEl.innerText = "Profile ID ar Name dao"; return; } msgEl.innerText = "Khujtesi..."; try{ const user = await resolveUser(input); if(!user){ msgEl.innerText = "Ei Profile ID diye kono user pawa jay nai."; return; } const uid = user.uid; const now = Date.now(); await set(ref(rtdb, "agencies/" + uid), { ownerUid: uid, profileId: user.anyId, anyId: user.anyId, idNumber: user.anyId, originalProfileId: user.originalProfileId, name: name, commission: percent, agencyCommission: percent, agencyPercent: percent, createdAt: now, status: "active", agencyStatus: "active", totalHosts: 0, totalDollar: 0, totalCoin: 0 }); await update(ref(rtdb, "users/" + uid), { agencyId: uid, agencyIdNumber: user.anyId, agencyName: name, isAgency: true, agencyStatus: "active", role: "agency", agencyCommission: percent, agencyPercent: percent }); msgEl.innerText = "✅ Agency Create hoye geche! " + name + " (Profile ID: " + user.anyId + ")"; }catch(e){ msgEl.innerText = e.message; } }
 window.inviteHost = async () => { const agencyInput = document.getElementById('inviteAgencyId').value.trim(); const hostInput = document.getElementById('inviteHostId').value.trim(); const msgEl = document.getElementById('inviteMsg'); if(!agencyInput || !hostInput){ msgEl.innerText = "Agency Profile ID ar Host Profile ID dao"; return; } msgEl.innerText = "Invite pathacchi..."; try{ const agency = await resolveUser(agencyInput); const host = await resolveUser(hostInput); if(!agency){ msgEl.innerText = "Agency Profile ID pawa jay nai"; return; } if(!host){ msgEl.innerText = "Host Profile ID pawa jay nai"; return; } const agencySnap = await get(ref(rtdb, "agencies/" + agency.uid)); const agencyName = agencySnap.exists() ? (agencySnap.val().name || "Agency") : (agency.data.agencyName || "Agency"); const now = Date.now(); const inviteRef = push(ref(rtdb, "hostInvites")); await set(inviteRef, { id: inviteRef.key, agencyId: agency.uid, agencyName: agencyName, agencyIdNumber: agency.anyId, hostUid: host.uid, hostIdNumber: host.anyId, hostName: host.data.displayName || host.data.name || host.anyId, status: "pending", createdAt: now }); const notiRef = push(ref(rtdb, "notifications/" + host.uid)); await set(notiRef, { id: notiRef.key, toUid: host.uid, type: "host_invite", title: "Host Invite", message: agencyName + " tomake Host hisabe invite koreche. Confirm koro.", agencyId: agency.uid, agencyName: agencyName, status: "unread", createdAt: now }); await update(ref(rtdb, "users/" + host.uid), { pendingHostInvite: true, pendingAgencyId: agency.uid, pendingAgencyName: agencyName, pendingAgencyIdNumber: agency.anyId }); msgEl.innerText = "✅ Invite chole geche Host er kache!"; }catch(e){ msgEl.innerText = e.message; } }
 window.forceConfirmHost = async (inviteId, hostUid, agencyId) => { try{ await update(ref(rtdb, "hostInvites/" + inviteId), { status: "accepted" }); const agencySnap = await get(ref(rtdb, "agencies/" + agencyId)); const agencyName = agencySnap.exists() ? (agencySnap.val().name || "") : ""; const hostSnap = await get(ref(rtdb, "users/" + hostUid)); const hostData = hostSnap.exists() ? hostSnap.val() : {}; const now = Date.now(); await set(ref(rtdb, "hosts/" + hostUid), { ownerUid: hostUid, profileId: getAnyIdFromUser(hostData) || hostUid, anyId: getAnyIdFromUser(hostData) || hostUid, idNumber: getAnyIdFromUser(hostData) || hostUid, name: hostData.displayName || hostData.name || hostUid, agencyId: agencyId, agencyName: agencyName, target: 0, targetCoin: 0, totalCoin: 0, totalDollar: 0, totalEarning: 0, workData: 0, policy: "Standard Host Policy", status: "active", hostStatus: "active", createdAt: now }); await update(ref(rtdb, "users/" + hostUid), { isHost: true, hostStatus: "active", role: "host", hostAgencyId: agencyId, hostAgencyName: agencyName, pendingHostInvite: false }); alert("Host Confirm hoye geche!"); }catch(e){ alert(e.message); } }
-window.giveVip = async () => { const input = document.getElementById('vipUid').value.trim(); const level = Number(document.getElementById('vipLevel').value); const days = Number(document.getElementById('vipDays').value); const msgEl = document.getElementById('vipMsg'); if(!input){ msgEl.innerText = "Profile ID dao"; return; } msgEl.innerText = "Khujtesi..."; try{ const user = await resolveUser(input); if(!user){ msgEl.innerText = "Ei Profile ID diye kono user pawa jay nai."; return; } const uid = user.uid; const now = Date.now(); const expireTs = now + days*24*60*60*1000; const v = VIP_DATA[level]; const startDate = new Date(now).toLocaleDateString('en-GB'); const expireDate = new Date(expireTs).toLocaleDateString('en-GB'); await set(ref(rtdb, "vip_assignments/" + uid), { uid: uid, profileId: user.anyId, anyId: user.anyId, idNumber: user.anyId, vipLevel: level, vipName: v.name, vipEmoji: v.emoji, vipDesc: v.desc, vipDays: days, startTs: now, expireTs: expireTs, expireAt: expireTs, startDate: startDate, expireDate: expireDate, status: "active", vipStatus: "active", givenBy: "admin", createdAt: now }); await update(ref(rtdb, "users/" + uid), { isVip: true, vipStatus: "active", vipLevel: level, vipName: v.name, vipEmoji: v.emoji, vipDesc: v.desc, vipDays: days, vipExpireTs: expireTs, vipExpireAt: expireTs, vipStartTs: now }); await sendInbox(uid, "💜 VIP Gift Received!", "Congratulations! Tumi " + v.name + " peyecho - " + days + " Din er jonno. Store > Mine e giye Frame / Entry / Bubble USE koro. VIP Badge auto Profile e lege geche.", { type: "VIP_SYSTEM", vipLevel: level, vipName: v.name, vipEmoji: v.emoji, vipDays: days, expireTs }); const notiRef2 = push(ref(rtdb, "notifications/" + uid)); await set(notiRef2, { id: notiRef2.key, toUid: uid, type: "vip_gift", title: "👑 VIP Gift Received!", message: "Congratulations! Tumi " + v.name + " peyecho - " + days + " Din er jonno. Store > Mine e giye Frame / Entry / Bubble Use koro.", vipLevel: level, vipName: v.name, vipDays: days, expireTs: expireTs, status: "unread", createdAt: now }); msgEl.innerText = "✅ VIP Deya Holo! " + v.name + " - Profile ID: " + user.anyId + " - " + days + " Din - Expire: " + expireDate + " + Inbox e Notification geche!"; document.getElementById('vipUid').value = ""; }catch(e){ msgEl.innerText = e.message; } }
-window.removeVip = async (uid) => { if(!confirm("VIP Remove korbo? UID: " + uid)) return; try{ await remove(ref(rtdb, "vip_assignments/" + uid)); await update(ref(rtdb, "users/" + uid), { isVip: false, vipStatus: "removed", vipLevel: 0, vipName: "", vipEmoji: "", vipExpireTs: 0, vipExpireAt: 0 }); await sendInbox(uid, "VIP Removed", "Tomar VIP Remove kora hoyeche.", { type: "VIP_SYSTEM" }); alert("VIP Remove hoye geche!"); }catch(e){ alert(e.message); } }
-
-// ===== COINS / SELLER - PROFILE ID ONLY + UNLIMITED AMOUNT =====
-window.createSeller = async () => {
-  const input = document.getElementById('sellerUid').value.trim();
-  const name = document.getElementById('sellerName').value.trim();
-  const phone = document.getElementById('sellerPhone').value.trim();
-  const msgEl = document.getElementById('sellerMsg');
-  if(!input || !name){ msgEl.innerText = "Profile ID ar Seller Name dao"; return; }
-  msgEl.innerText = "Khujtesi...";
-  try{
-    const user = await resolveUser(input);
-    if(!user){ msgEl.innerText = "Ei Profile ID diye kono user pawa jay nai."; return; }
-    const uid = user.uid; const anyId = user.anyId; const now = Date.now();
-    const oldSnap = await get(ref(rtdb, "sellers/" + uid));
-    const oldSnap2 = await get(ref(rtdb, "sellers/" + anyId));
-    const oldBal = Math.max(oldSnap.exists() ? toNum(oldSnap.val().businessCoins || oldSnap.val().coinBalance) : 0, oldSnap2.exists() ? toNum(oldSnap2.val().businessCoins || oldSnap2.val().coinBalance) : 0);
-    const oldRecv = oldSnap.exists() ? toNum(oldSnap.val().totalReceived) : 0;
-    const oldSold = oldSnap.exists() ? toNum(oldSnap.val().totalSold) : 0;
-    const createdAt = oldSnap.exists() ? oldSnap.val().createdAt : now;
-    const obj = buildSellerObject(uid, anyId, name, phone, oldBal, oldRecv, oldSold, createdAt, now);
-    await writeSellerBothKeys(uid, anyId, obj);
-    await update(ref(rtdb, "users/" + uid), { profileId: anyId, isSeller: true, showSellerWallet: true, sellerStatus: "active", role: "seller", sellerName: name, sellerPhone: phone, sellerIdNumber: anyId, anyId: anyId, sellerCoinBalance: oldBal, sellerBalance: oldBal, businessCoins: oldBal });
-    if(anyId && anyId !== uid) await update(ref(rtdb, "users/" + anyId), { profileId: anyId, isSeller: true, showSellerWallet: true, sellerCoinBalance: oldBal, sellerBalance: oldBal, businessCoins: oldBal });
-    msgEl.innerText = "✅ Seller Create hoye geche! " + name + " (Profile ID: " + anyId + ") - Balance: " + oldBal.toLocaleString() + " - Ekhon sudhu tar Me te Wallet asbe";
-    document.getElementById('sellerUid').value=""; document.getElementById('sellerName').value=""; document.getElementById('sellerPhone').value="";
-  }catch(e){ msgEl.innerText = e.message; }
-};
-
-window.loadSellerCoins = async () => {
-  const input = document.getElementById('loadSellerId').value.trim();
-  let amount = document.getElementById('loadSellerAmountInput').value.trim();
-  amount = toNum(amount);
-  const msgEl = document.getElementById('loadSellerMsg');
-  if(!input){ msgEl.innerText = "Seller Profile ID dao - ex: 477984629"; return; }
-  if(amount<=0){ msgEl.innerText = "Amount dao - Joto Khushi - 0 er beshi hote hobe - ex: 5620000"; return; }
-  msgEl.innerText = "Load hocche...";
-  try{
-    const seller = await resolveUser(input);
-    if(!seller){ msgEl.innerText = "Ei Profile ID diye kono user pawa jay nai."; return; }
-    const uid = seller.uid; const anyId = seller.anyId;
-    const sSnap = await get(ref(rtdb, "sellers/" + uid));
-    const sSnap2 = await get(ref(rtdb, "sellers/" + anyId));
-    if(!sSnap.exists() && !sSnap2.exists()){ msgEl.innerText = "Age Seller Create koro - ei Profile ID Seller na."; return; }
-    // MAX Balance - 4 jayga theke - jekhane beshi - oitai real
-    const uSnap = await get(ref(rtdb, "users/" + uid));
-    const uSnap2 = await get(ref(rtdb, "users/" + anyId));
-    const oldBal = Math.max(
-      sSnap.exists() ? Math.max(toNum(sSnap.val().businessCoins), toNum(sSnap.val().coinBalance), toNum(sSnap.val().businessBalance)) : 0,
-      sSnap2.exists() ? Math.max(toNum(sSnap2.val().businessCoins), toNum(sSnap2.val().coinBalance), toNum(sSnap2.val().businessBalance)) : 0,
-      uSnap.exists() ? Math.max(toNum(uSnap.val().businessCoins), toNum(uSnap.val().sellerCoinBalance)) : 0,
-      uSnap2.exists() ? Math.max(toNum(uSnap2.val().businessCoins), toNum(uSnap2.val().sellerCoinBalance)) : 0
-    );
-    const oldRecv = Math.max(sSnap.exists() ? toNum(sSnap.val().totalReceived) : 0, sSnap2.exists() ? toNum(sSnap2.val().totalReceived) : 0);
-    const newBal = oldBal + amount;
-    const now = Date.now();
-    // 4 JAYGAY LIKHBO - sellers/{UID} + sellers/{Profile ID} + users/{UID} + users/{Profile ID}
-    await updateSellerBothKeys(uid, anyId, { profileId: anyId, businessCoins: newBal, businessBalance: newBal, coinBalance: newBal, totalReceived: oldRecv + amount, updatedAt: now, isSeller: true, showSellerWallet: true, status: "active" });
-    await update(ref(rtdb, "users/" + uid), { profileId: anyId, sellerCoinBalance: newBal, sellerBalance: newBal, businessCoins: newBal, isSeller: true, showSellerWallet: true });
-    if(anyId && anyId !== uid) await update(ref(rtdb, "users/" + anyId), { profileId: anyId, sellerCoinBalance: newBal, sellerBalance: newBal, businessCoins: newBal, isSeller: true, showSellerWallet: true });
-    await addCoinHistory({ type: "ADMIN_TO_SELLER", typeLabel: "Admin → Seller Load", amount, fromUid: auth.currentUser.uid, fromLabel: "Admin (" + auth.currentUser.email + ")", toUid: uid, toLabel: "Seller " + ((sSnap.exists() ? sSnap.val().name : "")||"") + " (Profile ID: " + anyId + ")", sellerUid: uid, status: "Done" });
-    await sendInbox(uid, "🪙 Coins Received - " + amount.toLocaleString(), "Admin tomake " + amount.toLocaleString() + " Coins Load kore diyeche. Tomar Seller Balance ekhon: " + newBal.toLocaleString() + " Coins. Ekhon tumi User ke Coins dite parba.", { type: "COIN_SYSTEM", amount, newBalance: newBal });
-    msgEl.innerText = "✅ " + amount.toLocaleString() + " Coins Load Hoye Geche! Seller Balance ekhon: " + newBal.toLocaleString();
-    document.getElementById('loadSellerId').value=""; document.getElementById('loadSellerAmountInput').value="";
-  }catch(e){ msgEl.innerText = e.message; }
-};
-
-window.giveCoinsToUser = async () => {
-  const input = document.getElementById('coinUserId').value.trim();
-  let amount = document.getElementById('coinAmountInput').value.trim();
-  amount = toNum(amount);
-  const msgEl = document.getElementById('coinMsg');
-  if(!input){ msgEl.innerText = "User Profile ID dao - ex: 845083699"; return; }
-  if(amount<=0){ msgEl.innerText = "Amount dao - Joto Khushi - 0 er beshi hote hobe - ex: 5620000"; return; }
-  msgEl.innerText = "Khujtesi + Coins dicchi...";
-  try{
-    const user = await resolveUser(input);
-    if(!user){ msgEl.innerText = "Ei Profile ID diye kono user pawa jay nai."; return; }
-    const uid = user.uid;
-    const oldCoins = Math.max(toNum(user.data.coins), toNum(user.data.coinBalance), toNum(user.data.walletCoins));
-    const newCoins = oldCoins + amount;
-    await update(ref(rtdb, "users/" + uid), { profileId: user.anyId, coins: newCoins, coinBalance: newCoins, walletCoins: newCoins, totalCoinsReceived: toNum(user.data.totalCoinsReceived) + amount, lastCoinGiftAt: Date.now() });
-    await addCoinHistory({ type: "ADMIN_TO_USER", typeLabel: "Admin → User Direct", amount, fromUid: auth.currentUser.uid, fromLabel: "Admin (" + auth.currentUser.email + ")", toUid: uid, toLabel: "User (Profile ID: " + user.anyId + ")", status: "Done" });
-    await sendInbox(uid, "🪙 " + amount.toLocaleString() + " Coins Peyecho!", "Congratulations! Admin tomake " + amount.toLocaleString() + " Coins Gift diyeche. Tomar Total Coins ekhon: " + newCoins.toLocaleString() + ". Ekhon Gift kinte parba.", { type: "COIN_SYSTEM", amount, newBalance: newCoins });
-    msgEl.innerText = "✅ " + amount.toLocaleString() + " Coins Deya Holo! User Profile ID: " + user.anyId + " - Total ekhon: " + newCoins.toLocaleString();
-    document.getElementById('coinUserId').value=""; document.getElementById('coinAmountInput').value="";
-  }catch(e){ msgEl.innerText = e.message; }
-};
-
-window.checkUserCoins = async () => {
-  const input = document.getElementById('checkCoinId').value.trim();
-  const msgEl = document.getElementById('checkCoinMsg');
-  if(!input){ msgEl.innerText = "Profile ID dao"; return; }
-  msgEl.innerText = "Khujtesi...";
-  try{
-    const user = await resolveUser(input);
-    if(!user){ msgEl.innerText = "Ei Profile ID diye kono user pawa jay nai."; return; }
-    const real = Math.max(toNum(user.data.coins), toNum(user.data.coinBalance), toNum(user.data.walletCoins));
-    const sSnap = await get(ref(rtdb, "sellers/" + user.uid));
-    const sSnap2 = await get(ref(rtdb, "sellers/" + user.anyId));
-    const sellerBal = Math.max(sSnap.exists() ? toNum(sSnap.val().businessCoins || sSnap.val().coinBalance) : 0, sSnap2.exists() ? toNum(sSnap2.val().businessCoins || sSnap2.val().coinBalance) : 0);
-    msgEl.innerText = "✅ Profile ID: " + user.anyId + " | Coins: " + real.toLocaleString() + ((sSnap.exists() || sSnap2.exists()) ? " | Seller Balance: " + sellerBal.toLocaleString() : "") + " | Name: " + (user.data.displayName || user.data.name || "-");
-  }catch(e){ msgEl.innerText = e.message; }
-};
-
+// ===== NEW VIP GIVE - PURATON CONNECTION TULE - NOTUN SYSTEM =====
+window.giveVip = async () => { const input = document.getElementById('vipUid').value.trim(); const level = Number(document.getElementById('vipLevel').value); const days = Number(document.getElementById('vipDays').value); const msgEl = document.getElementById('vipMsg'); if(!input){ msgEl.innerText = "Profile ID dao"; return; } msgEl.innerText = "Khujtesi..."; try{ const user = await resolveUser(input); if(!user){ msgEl.innerText = "Ei Profile ID diye kono user pawa jay nai."; return; } const uid = user.uid; const now = Date.now(); const expireTs = now + days*24*60*60*1000; const v = VIP_DATA[level]; const startDate = new Date(now).toLocaleDateString('en-GB'); const expireDate = new Date(expireTs).toLocaleDateString('en-GB'); // OLD: sudhu vip_assignments - NEW: 3 jaygay + mapping + App er VipPrivilegeManager er sathe milano
+await set(ref(rtdb, "vip_assignments/" + uid), { uid: uid, profileId: user.anyId, anyId: user.anyId, idNumber: user.anyId, originalProfileId: user.originalProfileId, vipLevel: level, vipName: v.name, vipEmoji: v.emoji, vipDesc: v.desc, vipDays: days, startTs: now, expireTs: expireTs, expireAt: expireTs, startDate: startDate, expireDate: expireDate, status: "active", vipStatus: "active", vipByAdmin: true, vipUnlockedBy: "ADMIN_PANEL_PROFILE_ID", vipGivenBy: auth.currentUser.uid, givenBy: "admin", createdAt: now });
+await update(ref(rtdb, "users/" + uid), { isVip: true, vipStatus: "active", vipLevel: level, vipName: v.name, vipEmoji: v.emoji, vipDesc: v.desc, vipDays: days, vipExpireTs: expireTs, vipExpireAt: expireTs, vipStartTs: now, vipByAdmin: true, vipUnlockedBy: "ADMIN_PANEL_PROFILE_ID", vipGivenBy: auth.currentUser.uid, originalProfileId: user.originalProfileId, profileId: user.anyId });
+await syncProfileIdMapping(uid, user.anyId, user.originalProfileId);
+await sendInbox(uid, "💜 VIP Gift Received!", "Congratulations! Tumi " + v.name + " peyecho - " + days + " Din er jonno. Store > Mine e giye Frame / Entry / Bubble USE koro. VIP Badge auto Profile e lege geche.", { type: "VIP_SYSTEM", vipLevel: level, vipName: v.name, vipEmoji: v.emoji, vipDays: days, expireTs }); const notiRef2 = push(ref(rtdb, "notifications/" + uid)); await set(notiRef2, { id: notiRef2.key, toUid: uid, type: "vip_gift", title: "👑 VIP Gift Received!", message: "Congratulations! Tumi " + v.name + " peyecho - " + days + " Din er jonno. Store > Mine e giye Frame / Entry / Bubble Use koro.", vipLevel: level, vipName: v.name, vipDays: days, expireTs: expireTs, status: "unread", createdAt: now }); msgEl.innerText = "✅ VIP Deya Holo! " + v.name + " - Profile ID: " + user.anyId + " (Original: " + user.originalProfileId + ") - " + days + " Din - Expire: " + expireDate + " + Inbox e Notification geche!"; document.getElementById('vipUid').value = ""; }catch(e){ msgEl.innerText = e.message; } }
+window.removeVip = async (uid) => { if(!confirm("VIP Remove korbo? UID: " + uid)) return; try{ await remove(ref(rtdb, "vip_assignments/" + uid)); await update(ref(rtdb, "users/" + uid), { isVip: false, vipStatus: "removed", vipLevel: 0, vipName: "", vipEmoji: "", vipExpireTs: 0, vipExpireAt: 0, vipByAdmin: false, vipUnlockedBy: "REMOVED_BY_ADMIN" }); await sendInbox(uid, "VIP Removed", "Tomar VIP Remove kora hoyeche.", { type: "VIP_SYSTEM" }); alert("VIP Remove hoye geche!"); }catch(e){ alert(e.message); } }
+window.createSeller = async () => { const input = document.getElementById('sellerUid').value.trim(); const name = document.getElementById('sellerName').value.trim(); const phone = document.getElementById('sellerPhone').value.trim(); const msgEl = document.getElementById('sellerMsg'); if(!input || !name){ msgEl.innerText = "Profile ID ar Seller Name dao"; return; } msgEl.innerText = "Khujtesi..."; try{ const user = await resolveUser(input); if(!user){ msgEl.innerText = "Ei Profile ID diye kono user pawa jay nai."; return; } const uid = user.uid; const anyId = user.anyId; const now = Date.now(); const oldSnap = await get(ref(rtdb, "sellers/" + uid)); const oldSnap2 = await get(ref(rtdb, "sellers/" + anyId)); const oldBal = Math.max(oldSnap.exists() ? toNum(oldSnap.val().businessCoins || oldSnap.val().coinBalance) : 0, oldSnap2.exists() ? toNum(oldSnap2.val().businessCoins || oldSnap2.val().coinBalance) : 0); const oldRecv = oldSnap.exists() ? toNum(oldSnap.val().totalReceived) : 0; const oldSold = oldSnap.exists() ? toNum(oldSnap.val().totalSold) : 0; const createdAt = oldSnap.exists() ? oldSnap.val().createdAt : now; const obj = buildSellerObject(uid, anyId, name, phone, oldBal, oldRecv, oldSold, createdAt, now); await writeSellerBothKeys(uid, anyId, obj); await update(ref(rtdb, "users/" + uid), { profileId: anyId, isSeller: true, showSellerWallet: true, sellerStatus: "active", role: "seller", sellerName: name, sellerPhone: phone, sellerIdNumber: anyId, anyId: anyId, sellerCoinBalance: oldBal, sellerBalance: oldBal, businessCoins: oldBal }); if(anyId && anyId !== uid) await update(ref(rtdb, "users/" + anyId), { profileId: anyId, isSeller: true, showSellerWallet: true, sellerCoinBalance: oldBal, sellerBalance: oldBal, businessCoins: oldBal }); msgEl.innerText = "✅ Seller Create hoye geche! " + name + " (Profile ID: " + anyId + ") - Balance: " + oldBal.toLocaleString(); document.getElementById('sellerUid').value=""; document.getElementById('sellerName').value=""; document.getElementById('sellerPhone').value=""; }catch(e){ msgEl.innerText = e.message; } };
+window.loadSellerCoins = async () => { const input = document.getElementById('loadSellerId').value.trim(); let amount = document.getElementById('loadSellerAmountInput').value.trim(); amount = toNum(amount); const msgEl = document.getElementById('loadSellerMsg'); if(!input){ msgEl.innerText = "Seller Profile ID dao"; return; } if(amount<=0){ msgEl.innerText = "Amount dao - 0 er beshi hote hobe"; return; } msgEl.innerText = "Load hocche..."; try{ const seller = await resolveUser(input); if(!seller){ msgEl.innerText = "Ei Profile ID diye kono user pawa jay nai."; return; } const uid = seller.uid; const anyId = seller.anyId; const sSnap = await get(ref(rtdb, "sellers/" + uid)); const sSnap2 = await get(ref(rtdb, "sellers/" + anyId)); if(!sSnap.exists() && !sSnap2.exists()){ msgEl.innerText = "Age Seller Create koro"; return; } const uSnap = await get(ref(rtdb, "users/" + uid)); const uSnap2 = await get(ref(rtdb, "users/" + anyId)); const oldBal = Math.max(sSnap.exists() ? Math.max(toNum(sSnap.val().businessCoins), toNum(sSnap.val().coinBalance), toNum(sSnap.val().businessBalance)) : 0, sSnap2.exists() ? Math.max(toNum(sSnap2.val().businessCoins), toNum(sSnap2.val().coinBalance), toNum(sSnap2.val().businessBalance)) : 0, uSnap.exists() ? Math.max(toNum(uSnap.val().businessCoins), toNum(uSnap.val().sellerCoinBalance)) : 0, uSnap2.exists() ? Math.max(toNum(uSnap2.val().businessCoins), toNum(uSnap2.val().sellerCoinBalance)) : 0); const oldRecv = Math.max(sSnap.exists() ? toNum(sSnap.val().totalReceived) : 0, sSnap2.exists() ? toNum(sSnap2.val().totalReceived) : 0); const newBal = oldBal + amount; const now = Date.now(); await updateSellerBothKeys(uid, anyId, { profileId: anyId, businessCoins: newBal, businessBalance: newBal, coinBalance: newBal, totalReceived: oldRecv + amount, updatedAt: now, isSeller: true, showSellerWallet: true, status: "active" }); await update(ref(rtdb, "users/" + uid), { profileId: anyId, sellerCoinBalance: newBal, sellerBalance: newBal, businessCoins: newBal, isSeller: true, showSellerWallet: true }); if(anyId && anyId !== uid) await update(ref(rtdb, "users/" + anyId), { profileId: anyId, sellerCoinBalance: newBal, sellerBalance: newBal, businessCoins: newBal, isSeller: true, showSellerWallet: true }); await addCoinHistory({ type: "ADMIN_TO_SELLER", typeLabel: "Admin → Seller Load", amount, fromUid: auth.currentUser.uid, fromLabel: "Admin (" + auth.currentUser.email + ")", toUid: uid, toLabel: "Seller " + ((sSnap.exists() ? sSnap.val().name : "")||"") + " (Profile ID: " + anyId + ")", sellerUid: uid, status: "Done" }); await sendInbox(uid, "🪙 Coins Received - " + amount.toLocaleString(), "Admin tomake " + amount.toLocaleString() + " Coins Load kore diyeche. Tomar Seller Balance ekhon: " + newBal.toLocaleString() + " Coins.", { type: "COIN_SYSTEM", amount, newBalance: newBal }); msgEl.innerText = "✅ " + amount.toLocaleString() + " Coins Load Hoye Geche! Seller Balance ekhon: " + newBal.toLocaleString(); document.getElementById('loadSellerId').value=""; document.getElementById('loadSellerAmountInput').value=""; }catch(e){ msgEl.innerText = e.message; } };
+window.giveCoinsToUser = async () => { const input = document.getElementById('coinUserId').value.trim(); let amount = document.getElementById('coinAmountInput').value.trim(); amount = toNum(amount); const msgEl = document.getElementById('coinMsg'); if(!input){ msgEl.innerText = "User Profile ID dao"; return; } if(amount<=0){ msgEl.innerText = "Amount dao"; return; } msgEl.innerText = "Khujtesi + Coins dicchi..."; try{ const user = await resolveUser(input); if(!user){ msgEl.innerText = "Ei Profile ID diye kono user pawa jay nai."; return; } const uid = user.uid; const oldCoins = Math.max(toNum(user.data.coins), toNum(user.data.coinBalance), toNum(user.data.walletCoins)); const newCoins = oldCoins + amount; await update(ref(rtdb, "users/" + uid), { profileId: user.anyId, coins: newCoins, coinBalance: newCoins, walletCoins: newCoins, totalCoinsReceived: toNum(user.data.totalCoinsReceived) + amount, lastCoinGiftAt: Date.now() }); await addCoinHistory({ type: "ADMIN_TO_USER", typeLabel: "Admin → User Direct", amount, fromUid: auth.currentUser.uid, fromLabel: "Admin (" + auth.currentUser.email + ")", toUid: uid, toLabel: "User (Profile ID: " + user.anyId + ")", status: "Done" }); await sendInbox(uid, "🪙 " + amount.toLocaleString() + " Coins Peyecho!", "Congratulations! Admin tomake " + amount.toLocaleString() + " Coins Gift diyeche. Tomar Total Coins ekhon: " + newCoins.toLocaleString() + ".", { type: "COIN_SYSTEM", amount, newBalance: newCoins }); msgEl.innerText = "✅ " + amount.toLocaleString() + " Coins Deya Holo! User Profile ID: " + user.anyId + " - Total ekhon: " + newCoins.toLocaleString(); document.getElementById('coinUserId').value=""; document.getElementById('coinAmountInput').value=""; }catch(e){ msgEl.innerText = e.message; } };
+window.checkUserCoins = async () => { const input = document.getElementById('checkCoinId').value.trim(); const msgEl = document.getElementById('checkCoinMsg'); if(!input){ msgEl.innerText = "Profile ID dao"; return; } msgEl.innerText = "Khujtesi..."; try{ const user = await resolveUser(input); if(!user){ msgEl.innerText = "Ei Profile ID diye kono user pawa jay nai."; return; } const real = Math.max(toNum(user.data.coins), toNum(user.data.coinBalance), toNum(user.data.walletCoins)); const sSnap = await get(ref(rtdb, "sellers/" + user.uid)); const sSnap2 = await get(ref(rtdb, "sellers/" + user.anyId)); const sellerBal = Math.max(sSnap.exists() ? toNum(sSnap.val().businessCoins || sSnap.val().coinBalance) : 0, sSnap2.exists() ? toNum(sSnap2.val().businessCoins || sSnap2.val().coinBalance) : 0); msgEl.innerText = "✅ Profile ID: " + user.anyId + " | Original: " + (user.originalProfileId||'-') + " | Coins: " + real.toLocaleString() + ((sSnap.exists() || sSnap2.exists()) ? " | Seller Balance: " + sellerBal.toLocaleString() : "") + " | Name: " + (user.data.displayName || user.data.name || "-"); }catch(e){ msgEl.innerText = e.message; } };
 onAuthStateChanged(auth, async (user)=>{ if(!user) return; if(await isAdmin(user.uid)) loadDashboard(); });
 </script>
 </body>
