@@ -56,6 +56,9 @@
         <activity android:name=".InboxActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
         <activity android:name=".MeActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
 
+        <!-- VIP ACTIVITY - NEW - MeActivity VIP Button Theke Khulbe - EITA NA THAKLE CRASH KORTO -->
+        <activity android:name=".VipActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
+
         <!-- STORE - FIXED: AGE CHILO NA, TAI INBOX THEKE STORE KHULTO NA - EKHON ADD KORA HOLO -->
         <activity android:name=".StoreActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
 
