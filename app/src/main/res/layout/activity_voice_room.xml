@@ -889,4 +889,49 @@
                 android:padding="12dp" />
         </LinearLayout>
     </LinearLayout>
+
+    <!-- ===== VIP ENTRY EFFECT - FULL SCREEN ===== -->
+    <LinearLayout
+        android:id="@+id/layoutEntryEffect"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone"
+        android:background="#AA000000">
+
+        <ImageView
+            android:id="@+id/imgEntryVip"
+            android:layout_width="280dp"
+            android:layout_height="280dp"
+            android:scaleType="fitCenter" />
+
+        <TextView
+            android:id="@+id/txtEntryName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#FFFFFF"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:paddingTop="12dp" />
+
+        <TextView
+            android:id="@+id/txtEntryVipName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#FFD700"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="✨ Welcome to the Room ✨"
+            android:textColor="#FFD700"
+            android:textSize="14sp"
+            android:paddingTop="8dp" />
+
+    </LinearLayout>
 </FrameLayout>
