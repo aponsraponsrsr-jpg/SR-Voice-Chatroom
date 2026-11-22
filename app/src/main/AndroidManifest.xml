@@ -90,5 +90,8 @@
         <!-- HOST POLICY - ADDED - Host Center Backup - EITA NA THAKLE CRASH KORTO -->
         <activity android:name=".HostPolicyActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
 
+        <!-- AGENCY POLICY - ADDED - Dashboard Policy Button - EITA NA THAKLE CLICK KORLE CRASH KORTO -->
+        <activity android:name=".AgencyPolicyActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
+
     </application>
 </manifest>
