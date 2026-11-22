@@ -25,6 +25,7 @@ public class HostPolicyActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private String myId = "";
     private String firebaseUid = "";
+    private String myUid = ""; // Profile ID -> UID resolve kora
     private String monthKey = "";
     private SharedPreferences prefs;
     private boolean isHost = false;
@@ -41,7 +42,6 @@ public class HostPolicyActivity extends AppCompatActivity {
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
         monthKey = getMonthKey();
 
-        // ===== GLOBAL + PERMANENT - ID RESOLVE =====
         FirebaseUser fu = FirebaseAuth.getInstance().getCurrentUser();
         if (fu != null) firebaseUid = fu.getUid();
         if (firebaseUid.isEmpty()) firebaseUid = prefs.getString("FIREBASE_UID", "");
@@ -64,7 +64,7 @@ public class HostPolicyActivity extends AppCompatActivity {
 
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
-        scroll.setBackgroundColor(Color.parseColor("#0A0518"));
+        scroll.setBackgroundColor(Color.parseColor("#FFFDE7"));
         root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
         root.setPadding(24, 28, 24, 28);
@@ -72,7 +72,7 @@ public class HostPolicyActivity extends AppCompatActivity {
 
         TextView btnBack = new TextView(this);
         btnBack.setText("← Back to Host Center");
-        btnBack.setTextColor(Color.WHITE); btnBack.setTypeface(null, Typeface.BOLD); btnBack.setTextSize(14);
+        btnBack.setTextColor(Color.parseColor("#1B5E20")); btnBack.setTypeface(null, Typeface.BOLD); btnBack.setTextSize(14);
         btnBack.setOnClickListener(v -> finish());
         root.addView(btnBack);
 
@@ -92,10 +92,10 @@ public class HostPolicyActivity extends AppCompatActivity {
 
         // TITLE
         TextView title = new TextView(this); title.setText("🎯 HOST SALARY POLICY - " + monthKey);
-        title.setTextColor(Color.parseColor("#FFD700")); title.setTextSize(20); title.setTypeface(null, Typeface.BOLD); title.setGravity(Gravity.CENTER);
+        title.setTextColor(Color.parseColor("#1B5E20")); title.setTextSize(20); title.setTypeface(null, Typeface.BOLD); title.setGravity(Gravity.CENTER);
         title.setVisibility(isHost ? View.VISIBLE : View.GONE); title.setTag("policy_title"); root.addView(title);
-        TextView sub = new TextView(this); sub.setText("Official Policy 1-22 • Monthly Settlement\nCompany Database থেকে হিসাব হবে • কেউ বদলাতে পারবে না");
-        sub.setTextColor(Color.parseColor("#B0BEC5")); sub.setTextSize(12); sub.setGravity(Gravity.CENTER); sub.setPadding(0, 8, 0, 18);
+        TextView sub = new TextView(this); sub.setText("Official Policy • Monthly Settlement\nCompany Database থেকে হিসাব হবে • কেউ বদলাতে পারবে না");
+        sub.setTextColor(Color.parseColor("#555555")); sub.setTextSize(12); sub.setGravity(Gravity.CENTER); sub.setPadding(0, 8, 0, 18);
         sub.setVisibility(isHost ? View.VISIBLE : View.GONE); sub.setTag("policy_sub"); root.addView(sub);
 
         // MY PROGRESS - PREMIUM CARD
@@ -110,20 +110,21 @@ public class HostPolicyActivity extends AppCompatActivity {
         tvNext = new TextView(this); tvNext.setTextColor(Color.WHITE); tvNext.setTextSize(13); tvNext.setPadding(0, 10, 0, 0); myBox.addView(tvNext);
         progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal); progressBar.setMax(100); progressBar.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 18)); myBox.addView(progressBar);
 
-        // LIST - PREMIUM BANNER CARDS
+        // LIST - PREMIUM BANNER CARDS - Demo er moto
         listBox = new LinearLayout(this); listBox.setOrientation(LinearLayout.VERTICAL);
         listBox.setVisibility(isHost ? View.VISIBLE : View.GONE); listBox.setTag("policy_list"); root.addView(listBox);
         if (isHost) buildCards(0);
 
         TextView note = new TextView(this);
-        note.setText("• Target পুরা Fill হইলেই Salary Counting হবে - 1 Coin কম থাকলেও 0$\n• আপনি শুধু নিজের Coin + নিজের Dollar দেখছেন\n• এই পলিসি Company থেকে আসে, Host বদলাতে পারবে না");
-        note.setTextColor(Color.parseColor("#B0BEC5")); note.setTextSize(12); note.setPadding(0, 18, 0, 0);
+        note.setText("• Target পুরা Fill হইলেই Salary Counting হবে - 1 Coin কম থাকলেও 0$\n• আপনি শুধু নিজের Coin + নিজের Dollar দেখছেন - Agency Commission দেখছেন না\n• ID te Gift Receive holei Count - Self / Other - Any Amount\n• Room Target (Weekly) alada - Policy er sathe milbe na\n• এই পলিসি Company থেকে আসে, Host বদলাতে পারবে না");
+        note.setTextColor(Color.parseColor("#555555")); note.setTextSize(12); note.setPadding(0, 18, 0, 0);
         note.setVisibility(isHost ? View.VISIBLE : View.GONE); note.setTag("policy_note"); root.addView(note);
         setContentView(scroll);
         checkHostFromFirebase();
-        if (isHost) { updateCached(); loadMyProgress(); }
+        if (isHost) { resolveUidAndLoad(); }
     }
 
+    // PREMIUM BOX - Demo er moto - Target | Anchor | Agent | Total - Level alada alada
     private void buildCards(int myLevel) {
         if (listBox == null) return;
         listBox.removeAllViews();
@@ -132,26 +133,29 @@ public class HostPolicyActivity extends AppCompatActivity {
             boolean current = myLevel + 1 == SalaryPolicy.LEVELS[i];
             LinearLayout card = new LinearLayout(this); card.setOrientation(LinearLayout.VERTICAL); card.setPadding(22, 18, 22, 18);
             GradientDrawable bg = new GradientDrawable();
-            if (done) bg.setColors(new int[]{Color.parseColor("#00C853"), Color.parseColor("#0F5132")});
-            else if (current) bg.setColors(new int[]{Color.parseColor("#FF6A00"), Color.parseColor("#7B2FF7")});
-            else bg.setColors(new int[]{Color.parseColor("#2A1B4A"), Color.parseColor("#140B26")});
-            bg.setOrientation(GradientDrawable.Orientation.TL_BR); bg.setCornerRadius(20); bg.setStroke(2, done ? Color.parseColor("#00E676") : current ? Color.parseColor("#FFD700") : Color.parseColor("#3A2A5A"));
+            if (done) { bg.setColor(Color.parseColor("#E8F5E9")); bg.setStroke(2, Color.parseColor("#00C853")); }
+            else if (current) { bg.setColors(new int[]{Color.parseColor("#FFF3E0"), Color.parseColor("#FFE0B2")}); bg.setOrientation(GradientDrawable.Orientation.TL_BR); bg.setStroke(2, Color.parseColor("#FF6A00")); }
+            else { bg.setColor(Color.parseColor("#FFFFFF")); bg.setStroke(2, Color.parseColor("#4CAF50")); }
+            bg.setCornerRadius(20);
             card.setBackground(bg);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT); lp.setMargins(0, 0, 0, 12); card.setLayoutParams(lp);
-            TextView t1 = new TextView(this); t1.setText((done ? "✅ " : current ? "🎯 " : "🔒 ") + "LEVEL " + SalaryPolicy.LEVELS[i]); t1.setTextColor(Color.WHITE); t1.setTypeface(null, Typeface.BOLD); t1.setTextSize(16); card.addView(t1);
-            TextView t2 = new TextView(this); t2.setText("Target: " + String.format("%,d", SalaryPolicy.TARGET_COINS[i]) + " Coins"); t2.setTextColor(Color.parseColor("#FFD700")); t2.setTypeface(null, Typeface.BOLD); t2.setTextSize(14); card.addView(t2);
-            TextView t3 = new TextView(this); t3.setText("My Salary: " + SalaryPolicy.money(SalaryPolicy.ANCHOR_SALARY[i])); t3.setTextColor(Color.parseColor("#00E676")); t3.setTypeface(null, Typeface.BOLD); t3.setTextSize(16); card.addView(t3);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT); lp.setMargins(0, 0, 0, 14); card.setLayoutParams(lp);
+            TextView t1 = new TextView(this); t1.setText((done ? "✅ " : current ? "🎯 " : "🔒 ") + "Level." + SalaryPolicy.LEVELS[i]); t1.setTextColor(Color.parseColor("#1B5E20")); t1.setTypeface(null, Typeface.BOLD); t1.setTextSize(18); card.addView(t1);
+            // Header
+            LinearLayout h = new LinearLayout(this); h.setOrientation(LinearLayout.HORIZONTAL);
+            h.addView(policyCell("Target", true)); h.addView(policyCell("Anchor Salary", true)); h.addView(policyCell("Agent Salary", true)); card.addView(h);
+            LinearLayout v = new LinearLayout(this); v.setOrientation(LinearLayout.HORIZONTAL);
+            v.addView(policyCell(String.format("%,d", SalaryPolicy.TARGET_COINS[i]), false));
+            v.addView(policyCell(SalaryPolicy.money(SalaryPolicy.ANCHOR_SALARY[i]), false));
+            v.addView(policyCell(SalaryPolicy.money(SalaryPolicy.AGENCY_COMMISSION[i]), false)); card.addView(v);
+            TextView t3 = new TextView(this); t3.setText("Total Salary: " + SalaryPolicy.money(SalaryPolicy.TOTAL_SALARY[i]) + (done ? "  •  ✅ Achieved" : current ? "  •  🎯 Current" : "")); t3.setTextColor(Color.parseColor("#1B5E20")); t3.setTypeface(null, Typeface.BOLD); t3.setTextSize(14); t3.setPadding(0,10,0,0); card.addView(t3);
             listBox.addView(card);
         }
     }
-
-    private void updateCached() {
-        // MONTHLY CACHE - Eki maser ta sudhu
-        String savedMonth = prefs.getString("CACHED_MONTH_" + myId, "");
-        long c = 0;
-        if (savedMonth.equals(monthKey)) c = prefs.getLong("CACHED_COINS_" + myId + "_" + monthKey, 0);
-        if (c == 0) c = prefs.getLong("CACHED_COINS_" + myId, 0);
-        updateUI(c);
+    private TextView policyCell(String txt, boolean header) {
+        TextView tv = new TextView(this); tv.setText(txt); tv.setGravity(Gravity.CENTER); tv.setPadding(8,12,8,12);
+        tv.setBackgroundColor(header ? Color.parseColor("#4CAF50") : Color.WHITE);
+        tv.setTextColor(header ? Color.WHITE : Color.BLACK); tv.setTypeface(null, Typeface.BOLD);
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0,-2,1f); p.setMargins(2,2,2,2); tv.setLayoutParams(p); return tv;
     }
 
     private void updateUI(long received) {
@@ -159,7 +163,7 @@ public class HostPolicyActivity extends AppCompatActivity {
         double sal = SalaryPolicy.getHostSalary(received);
         if (tvMyProgress != null) tvMyProgress.setText("My Received (" + monthKey + "): " + String.format("%,d", received) + " Coins");
         if (tvMyLevel != null) tvMyLevel.setText("My Level: " + (lvl == 0 ? "No Level Yet" : "Level " + lvl));
-        if (tvMySalary != null) tvMySalary.setText("My Host Salary: " + SalaryPolicy.money(sal) + "  (Only Yours)");
+        if (tvMySalary != null) tvMySalary.setText("My Host Salary: " + SalaryPolicy.money(sal) + "  (Only Yours - Agency Commission dekhben na)");
         long next = SalaryPolicy.getNextTarget(received);
         if (tvNext != null) tvNext.setText(next == -1 ? "🎉 All Levels Complete!" : "Next: Level " + (lvl + 1) + " - Need " + String.format("%,d", SalaryPolicy.getRemainingToNext(received)) + " more coins");
         if (progressBar != null) {
@@ -174,7 +178,7 @@ public class HostPolicyActivity extends AppCompatActivity {
         prefs.edit().putBoolean("IS_HOST_" + myId, true).putBoolean("HOST_ACCEPTED_" + myId, true).putBoolean("IS_HOST", true).putBoolean("HOST_ACTIVE", true).apply();
         if (lockBox != null) lockBox.setVisibility(View.GONE);
         for (int i = 0; i < root.getChildCount(); i++) { View v = root.getChildAt(i); if (v.getTag() != null && String.valueOf(v.getTag()).startsWith("policy_")) v.setVisibility(View.VISIBLE); }
-        loadMyProgress();
+        resolveUidAndLoad();
     }
 
     private void checkHostFromFirebase() {
@@ -208,34 +212,46 @@ public class HostPolicyActivity extends AppCompatActivity {
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
     }
-    private void loadMyProgress() {
-        if (myId.isEmpty() && firebaseUid.isEmpty()) return;
+
+    // CORE - Profile ID -> UID resolve - tarpor 1 tai Listener - Monthly Only
+    private void resolveUidAndLoad() {
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
         String key = myId.isEmpty() ? firebaseUid : myId;
-        // ===== MONTHLY - users/{id}/monthly/{monthKey}/receivedCoins - মাস Change = ZERO =====
-        FirebaseDatabase.getInstance().getReference("users").child(key).child("monthly").child(monthKey).child("receivedCoins").addValueEventListener(new ValueEventListener() {
+        usersRef.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                if (snap.exists()) { myUid = key; loadMyProgress(myUid); return; }
+                usersRef.orderByChild("my9DigitId").equalTo(myId).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override public void onDataChange(@NonNull DataSnapshot s2) {
+                        for (DataSnapshot ds : s2.getChildren()) { myUid = ds.getKey(); loadMyProgress(myUid); return; }
+                        // Profile ID field diyeo
+                        usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override public void onDataChange(@NonNull DataSnapshot all) {
+                                for (DataSnapshot u : all.getChildren()) {
+                                    Object pid = u.child("profileId").getValue(); if (pid != null && String.valueOf(pid).equals(myId)) { myUid = u.getKey(); loadMyProgress(myUid); return; }
+                                }
+                                myUid = !firebaseUid.isEmpty() ? firebaseUid : key; loadMyProgress(myUid);
+                            }
+                            @Override public void onCancelled(@NonNull DatabaseError e) {}
+                        });
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError e) {}
+                });
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
+    }
+
+    private void loadMyProgress(String uid) {
+        if (uid == null || uid.isEmpty()) return;
+        // Monthly Only - users/UID/monthly/monthKey/receivedCoins - Room Target porbe na - Self Gift o Count
+        FirebaseDatabase.getInstance().getReference("users").child(uid).child("monthly").child(monthKey).child("receivedCoins").addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 long received = 0;
                 if (snap.exists() && snap.getValue() != null) { try { received = Long.parseLong(String.valueOf(snap.getValue())); } catch (Exception ignored) {} }
-                prefs.edit().putLong("CACHED_COINS_" + myId + "_" + monthKey, received).putString("CACHED_MONTH_" + myId, monthKey).putLong("CACHED_COINS_" + myId, received).apply();
+                prefs.edit().putLong("CACHED_COINS_" + myId + "_" + monthKey, received).putString("CACHED_MONTH_" + myId, monthKey).apply();
                 updateUI(received);
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
-        // Fallback UID
-        if (!firebaseUid.isEmpty() && !firebaseUid.equals(key)) {
-            FirebaseDatabase.getInstance().getReference("users").child(firebaseUid).child("monthly").child(monthKey).child("receivedCoins").addValueEventListener(new ValueEventListener() {
-                @Override public void onDataChange(@NonNull DataSnapshot snap) {
-                    if (!snap.exists() || snap.getValue() == null) return;
-                    try { long c = Long.parseLong(String.valueOf(snap.getValue())); if (c > 0) { prefs.edit().putLong("CACHED_COINS_" + myId + "_" + monthKey, c).putString("CACHED_MONTH_" + myId, monthKey).apply(); updateUI(c); } } catch (Exception ignored) {}
-                }
-                @Override public void onCancelled(@NonNull DatabaseError e) {}
-            });
-        }
-    }
-    private void applySnapshot(DataSnapshot snap) {
-        long received = 0; String[] keys = {"totalReceivedCoins", "receivedCoins", "totalCoins", "coins"};
-        for (String k : keys) if (snap.hasChild(k) && snap.child(k).getValue() != null) { try { received = Long.parseLong(String.valueOf(snap.child(k).getValue())); break; } catch (Exception ignored) {} }
-        prefs.edit().putLong("CACHED_COINS_" + myId, received).apply();
-        updateUI(received);
     }
 }
