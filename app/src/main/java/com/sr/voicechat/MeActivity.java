@@ -18,7 +18,6 @@ import android.util.Base64;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -29,8 +28,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -40,7 +37,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
-import java.util.List;
 
 public class MeActivity extends AppCompatActivity {
     private ImageView imgAvatar;
@@ -61,8 +57,7 @@ public class MeActivity extends AppCompatActivity {
     private boolean rtdbListenerStarted = false;
     private boolean vipAssignmentListenerStarted = false;
     private TextView txtVipBadge;
-    private TextView txtSvipStatus;
-    private TextView txtVipStatus;
+    private TextView txtVipCenterStatus; // NEW PREMIUM VIP
     private int myVipLevel = 0;
     private TextView txtWealthBadge = null;
     private TextView txtCharmBadge = null;
@@ -360,30 +355,33 @@ public class MeActivity extends AppCompatActivity {
         menuContainer.setOrientation(LinearLayout.VERTICAL);
         menuContainer.setPadding(20, 20, 20, 30);
         root.addView(menuContainer);
-        LinearLayout svipBox = new LinearLayout(this);
-        svipBox.setOrientation(LinearLayout.VERTICAL);
-        svipBox.setPadding(30, 28, 30, 28);
-        GradientDrawable svipBg = new GradientDrawable();
-        svipBg.setColors(new int[]{Color.parseColor("#FFD700"), Color.parseColor("#FF9800")});
-        svipBg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT);
-        svipBg.setCornerRadius(24);
-        svipBox.setBackground(svipBg);
-        LinearLayout.LayoutParams svipLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        svipLp.setMargins(0, 0, 0, 14);
-        svipBox.setLayoutParams(svipLp);
-        svipBox.setOnClickListener(v -> showVipListDialog());
-        menuContainer.addView(svipBox);
-        TextView svipT1 = new TextView(this);
-        svipT1.setText("SVIP CENTER");
-        svipT1.setTextColor(Color.parseColor("#0A0518"));
-        svipT1.setTextSize(19);
-        svipT1.setTypeface(null, Typeface.BOLD);
-        svipBox.addView(svipT1);
-        txtSvipStatus = new TextView(this);
-        txtSvipStatus.setText("SVIP 1-7  •  Tap to View  >");
-        txtSvipStatus.setTextColor(Color.parseColor("#3A2A00"));
-        txtSvipStatus.setTextSize(13);
-        svipBox.addView(txtSvipStatus);
+
+        // ===== NEW PREMIUM VIP CENTER - OLD SVIP + OLD VIP DELETED =====
+        LinearLayout vipCenterBox = new LinearLayout(this);
+        vipCenterBox.setOrientation(LinearLayout.VERTICAL);
+        vipCenterBox.setPadding(30, 28, 30, 28);
+        GradientDrawable vipCenterBg = new GradientDrawable();
+        vipCenterBg.setColors(new int[]{Color.parseColor("#FFD700"), Color.parseColor("#FF6D00"), Color.parseColor("#E91E63")});
+        vipCenterBg.setOrientation(GradientDrawable.Orientation.LEFT_RIGHT);
+        vipCenterBg.setCornerRadius(24);
+        vipCenterBox.setBackground(vipCenterBg);
+        LinearLayout.LayoutParams vipCenterLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        vipCenterLp.setMargins(0, 0, 0, 14);
+        vipCenterBox.setLayoutParams(vipCenterLp);
+        vipCenterBox.setOnClickListener(v -> openVipCenter());
+        menuContainer.addView(vipCenterBox);
+        TextView vipCenterT1 = new TextView(this);
+        vipCenterT1.setText("👑 PREMIUM VIP CENTER");
+        vipCenterT1.setTextColor(Color.WHITE);
+        vipCenterT1.setTextSize(19);
+        vipCenterT1.setTypeface(null, Typeface.BOLD);
+        vipCenterBox.addView(vipCenterT1);
+        txtVipCenterStatus = new TextView(this);
+        txtVipCenterStatus.setText("VIP 1 - VIP 8  •  Tap to View  >");
+        txtVipCenterStatus.setTextColor(Color.WHITE);
+        txtVipCenterStatus.setTextSize(13);
+        vipCenterBox.addView(txtVipCenterStatus);
+
         LinearLayout walletBox = new LinearLayout(this);
         walletBox.setOrientation(LinearLayout.HORIZONTAL);
         walletBox.setGravity(Gravity.CENTER_VERTICAL);
@@ -470,37 +468,9 @@ public class MeActivity extends AppCompatActivity {
         vipRowLp.setMargins(0, 0, 0, 14);
         vipRow.setLayoutParams(vipRowLp);
         menuContainer.addView(vipRow);
-        LinearLayout vipBox = new LinearLayout(this);
-        vipBox.setOrientation(LinearLayout.VERTICAL);
-        vipBox.setGravity(Gravity.CENTER);
-        vipBox.setPadding(25, 20, 25, 20);
-        GradientDrawable vipBg = new GradientDrawable();
-        vipBg.setColors(new int[]{Color.parseColor("#3A0A4A"), Color.parseColor("#1A0B2E")});
-        vipBg.setOrientation(GradientDrawable.Orientation.TOP_BOTTOM);
-        vipBg.setCornerRadius(24);
-        vipBox.setBackground(vipBg);
-        vipBox.setOnClickListener(v -> showVipListDialog());
-        LinearLayout.LayoutParams vipLp = new LinearLayout.LayoutParams(0, 180, 1);
-        vipLp.setMargins(0, 0, 10, 0);
-        vipBox.setLayoutParams(vipLp);
-        vipRow.addView(vipBox);
-        TextView vipT1 = new TextView(this);
-        vipT1.setText("🐅 VIP CENTER");
-        vipT1.setTextColor(Color.parseColor("#FFD700"));
-        vipT1.setTextSize(17);
-        vipT1.setTypeface(null, Typeface.BOLD);
-        vipT1.setGravity(Gravity.CENTER);
-        vipBox.addView(vipT1);
-        txtVipStatus = new TextView(this);
-        txtVipStatus.setText("Tap to View >");
-        txtVipStatus.setTextColor(Color.WHITE);
-        txtVipStatus.setTextSize(12);
-        txtVipStatus.setGravity(Gravity.CENTER);
-        vipBox.addView(txtVipStatus);
         LinearLayout rechargeBox = makeBigCard("🎁 Recharge", "Top up >", "#FF6D00", Color.WHITE);
         rechargeBox.setOnClickListener(v -> showRechargeLocked());
-        LinearLayout.LayoutParams recLp = new LinearLayout.LayoutParams(0, 180, 1);
-        recLp.setMargins(10, 0, 0, 0);
+        LinearLayout.LayoutParams recLp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 180);
         rechargeBox.setLayoutParams(recLp);
         vipRow.addView(rechargeBox);
         TextView toolsTitle = new TextView(this);
@@ -671,20 +641,16 @@ public class MeActivity extends AppCompatActivity {
         if (sellerWalletBox != null) sellerWalletBox.setVisibility(show ? View.VISIBLE : View.GONE);
         if (txtSellerBalance != null) txtSellerBalance.setText("Business Coins: " + sellerBusinessCoins);
     }
-    private void showVipListDialog() {
+
+    // ===== NEW PREMIUM VIP - PROFILE ID ONLY - NO UID =====
+    private void openVipCenter() {
         try {
-            List<VipModel> list = VipModel.createPremiumList();
-            android.app.Dialog dialog = new android.app.Dialog(this);
-            dialog.setContentView(R.layout.dialog_vip_list);
-            RecyclerView rv = dialog.findViewById(R.id.recyclerVipList);
-            if (rv != null) {
-                rv.setLayoutManager(new LinearLayoutManager(this));
-                VipAdapter adapter = new VipAdapter(this, list);
-                rv.setAdapter(adapter);
-            }
-            Button btnClose = dialog.findViewById(R.id.btnCloseVipDialog);
-            if (btnClose != null) btnClose.setOnClickListener(v -> dialog.dismiss());
-            dialog.show();
+            Intent i = new Intent(MeActivity.this, VipActivity.class);
+            i.putExtra("PROFILE_ID", myProfileId);
+            i.putExtra("MY_PROFILE_ID", myProfileId);
+            i.putExtra("MY_ANY_ID", myProfileId);
+            i.putExtra("CURRENT_VIP", myVipLevel);
+            startActivity(i);
         } catch (Exception e) {
             Toast.makeText(this, "VIP - Coming Soon", Toast.LENGTH_SHORT).show();
         }
@@ -692,25 +658,29 @@ public class MeActivity extends AppCompatActivity {
     private void listenVipAssignments() {
         if (vipAssignmentListenerStarted) return;
         vipAssignmentListenerStarted = true;
-        if (!myAnyId.isEmpty()) {
-            FirebaseDatabase.getInstance().getReference("vip_assignments").child(myAnyId)
-                .addValueEventListener(new ValueEventListener() {
-                    @Override public void onDataChange(@NonNull DataSnapshot snap) {
-                        if (snap.exists()) { applyVipSnap(snap); return; }
-                        listenVipByFirebaseUid();
-                    }
-                    @Override public void onCancelled(@NonNull DatabaseError e) { listenVipByFirebaseUid(); }
-                });
-        } else {
-            listenVipByFirebaseUid();
-        }
-    }
-    private void listenVipByFirebaseUid() {
-        if (firebaseUid.isEmpty() || firebaseUid.equals(myAnyId)) return;
-        FirebaseDatabase.getInstance().getReference("vip_assignments").child(firebaseUid)
+        // ONLY Profile ID - never UID
+        if (myProfileId.isEmpty()) return;
+        FirebaseDatabase.getInstance().getReference("vip_assignments").child(myProfileId)
             .addValueEventListener(new ValueEventListener() {
                 @Override public void onDataChange(@NonNull DataSnapshot snap) {
                     if (snap.exists()) applyVipSnap(snap);
+                }
+                @Override public void onCancelled(@NonNull DatabaseError e) {}
+            });
+        // Backup: users / ProfileID / vipLevel
+        FirebaseDatabase.getInstance().getReference("users").child(myProfileId)
+            .addValueEventListener(new ValueEventListener() {
+                @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                    if (!snap.exists()) return;
+                    int v = (int) getLongVal(snap, "vipLevel");
+                    long expire = getLongVal(snap, "vipExpireAt");
+                    if (expire == 0) expire = getLongVal(snap, "vipExpireTs");
+                    if (expire > 0 && System.currentTimeMillis() > expire) v = 0;
+                    if (v != myVipLevel) {
+                        myVipLevel = v;
+                        prefs.edit().putInt("VIP_LEVEL", v).apply();
+                    }
+                    updateVipUI();
                 }
                 @Override public void onCancelled(@NonNull DatabaseError e) {}
             });
@@ -744,12 +714,10 @@ public class MeActivity extends AppCompatActivity {
             txtVipBadge.setBackground(bg);
             txtVipBadge.setTextColor(Color.parseColor("#0A0518"));
             txtVipBadge.setVisibility(View.VISIBLE);
-            if (txtVipStatus != null) txtVipStatus.setText("✅ VIP " + myVipLevel + " Active\nTap to View >");
-            if (txtSvipStatus != null) txtSvipStatus.setText("✅ VIP " + myVipLevel + "  •  Tap to View  >");
+            if (txtVipCenterStatus != null) txtVipCenterStatus.setText("✅ VIP " + myVipLevel + " Active  •  Tap to View  >");
         } else {
             txtVipBadge.setVisibility(View.GONE);
-            if (txtVipStatus != null) txtVipStatus.setText("Tap to View >");
-            if (txtSvipStatus != null) txtSvipStatus.setText("SVIP 1-7  •  Tap to View  >");
+            if (txtVipCenterStatus != null) txtVipCenterStatus.setText("VIP 1 - VIP 8  •  Tap to View  >");
         }
     }
     private void copyId() {
@@ -766,7 +734,6 @@ public class MeActivity extends AppCompatActivity {
             Toast.makeText(this, "Store khulte parchi na", Toast.LENGTH_SHORT).show();
         }
     }
-    // ===== NEW - GLOBAL - Profile ID = Counting ID =====
     private void openAgency() {
         if (!isAgencyActive) { Toast.makeText(this, "You are not an Agency yet", Toast.LENGTH_SHORT).show(); return; }
         String uid = firebaseUid;
