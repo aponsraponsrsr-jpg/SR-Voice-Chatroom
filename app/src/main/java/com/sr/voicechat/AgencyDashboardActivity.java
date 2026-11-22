@@ -30,8 +30,10 @@ public class AgencyDashboardActivity extends AppCompatActivity {
     private final Map<String, String> hostProfileIdMap = new HashMap<>();
     private final Map<String, ValueEventListener> hostListeners = new HashMap<>();
     private boolean dashboardStarted = false;
-    // FIX - Own counting er jonno sob path er max rakhar map
     private final Map<String, Long> ownPathCoins = new HashMap<>();
+    // GLOBAL FIX - Own er Salary + Commission alada rakhar jonno - Policy onujayi
+    private double ownSalary = 0;
+    private double ownCommission = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -103,7 +105,6 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         });
         loadAgencyDataAndHosts();
         discoverHostsByAgencyId();
-        // FIX - Host na thakleo Own Counting cholbe - Dashboard khullei Own Listener
         attachOwnRealtimeListener();
     }
 
@@ -259,16 +260,13 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         });
     }
 
-    // ===== FIX - AGENCY OWNER = AUTO HOST - Nijer ID te Gift aslei Count hobe - Sob Path + UID + ProfileID =====
     private void attachOwnRealtimeListener() {
         if (agencyOwnerId == null || agencyOwnerId.isEmpty()) return;
         if (hostListeners.containsKey("OWN_" + agencyOwnerId)) return;
-        // Dummy marker - asol listener gulo niche alada key te
         hostListeners.put("OWN_" + agencyOwnerId, new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot s) {}
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
-        // UID + ProfileID - 2 ta key tei shunbo - jekhanei Gift likhuk - miss hobe na
         Set<String> keys = new HashSet<>();
         keys.add(agencyOwnerId);
         if (agencyOwnerProfileId != null && !agencyOwnerProfileId.isEmpty() && !agencyOwnerProfileId.equals(agencyOwnerId)) keys.add(agencyOwnerProfileId);
@@ -277,7 +275,6 @@ public class AgencyDashboardActivity extends AppCompatActivity {
             attachOwnPath(key, "monthly/" + monthKey + "/totalReceived");
             attachOwnPath(key, "hostWorkData/" + monthKey + "/receivedCoins");
         }
-        // Jodi UID diye resolve na hoy - Firebase UID diyeo
         String fu = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
         if (!fu.isEmpty() && !keys.contains(fu)) {
             attachOwnPath(fu, "monthly/" + monthKey + "/receivedCoins");
@@ -307,23 +304,32 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         hostListContainer.removeAllViews();
         totalCommission = 0;
         double ownEarnings = 0;
+        ownSalary = 0;
+        ownCommission = 0;
         int hostCount = 0;
         for (Map.Entry<String, Long> e : hostCoinsMap.entrySet()) {
-            if (e.getKey().startsWith("OWN_")) { ownEarnings = SalaryPolicy.getHostSalary(e.getValue()); continue; }
+            if (e.getKey().startsWith("OWN_")) {
+                // GLOBAL FIX - Policy onujayi - Agency Owner nijer ID te target korleo Salary + Commission 2 tai pabe - sobar jonno soman
+                ownSalary = SalaryPolicy.getHostSalary(e.getValue());
+                ownCommission = SalaryPolicy.getAgencyCommission(e.getValue());
+                ownEarnings = ownSalary + ownCommission;
+                continue;
+            }
             hostCount++;
             totalCommission += SalaryPolicy.getAgencyCommission(e.getValue());
         }
         txtTotalHosts.setText("👥 Active Hosts: " + hostCount);
         double total = ownEarnings + totalCommission;
+        // Total e Own er Commission o jog - Commission er jaygay Commission
         txtTotalEarnings.setText("💰 Total Agency Earnings (" + monthKey + "): " + SalaryPolicy.money(total) + " (Own " + SalaryPolicy.money(ownEarnings) + " + Commission " + SalaryPolicy.money(totalCommission) + ")");
         Long ownCoins = hostCoinsMap.get("OWN_" + agencyOwnerId);
         if (ownCoins != null) {
             String ownPid = hostProfileIdMap.get(agencyOwnerId); if (ownPid == null) ownPid = agencyOwnerProfileId;
-            addHostCard("👑 " + agencyName + " (You - Agency Owner)", "Profile ID: " + ownPid, ownCoins, ownEarnings, 100, true);
+            // Own Card e Commission alada pathai - jate Card e Salary + Commission 2 tai dekha jay
+            addHostCard("👑 " + agencyName + " (You - Agency Owner)", "Profile ID: " + ownPid, ownCoins, ownEarnings, ownCommission, true);
         } else {
-            // Own 0 holeo Card dekhabe - 0 Coins - jate bujha jay Counting choltese
             String ownPid = hostProfileIdMap.get(agencyOwnerId); if (ownPid == null) ownPid = agencyOwnerProfileId;
-            addHostCard("👑 " + agencyName + " (You - Agency Owner)", "Profile ID: " + ownPid, 0, 0, 100, true);
+            addHostCard("👑 " + agencyName + " (You - Agency Owner)", "Profile ID: " + ownPid, 0, 0, 0, true);
         }
         for (Map.Entry<String, Long> e : hostCoinsMap.entrySet()) {
             if (e.getKey().startsWith("OWN_")) continue;
@@ -343,7 +349,8 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         TextView tvName = new TextView(this); tvName.setText(title + " (" + idLine + ")"); tvName.setTextColor(Color.WHITE); tvName.setTextSize(15); tvName.setTypeface(null, Typeface.BOLD); card.addView(tvName);
         TextView tvTarget = new TextView(this); int lvl = SalaryPolicy.getAchievedLevel(coins); tvTarget.setText("🎯 Target (" + monthKey + "): " + String.format("%,d", coins) + " Coins • Level: " + (lvl == 0 ? "No Level Yet" : "Level " + lvl)); tvTarget.setTextColor(Color.parseColor("#00E676")); tvTarget.setTextSize(13); card.addView(tvTarget);
         TextView tvDollar = new TextView(this);
-        if (isOwn) tvDollar.setText("💵 My Earnings: " + SalaryPolicy.money(hostEarnings));
+        // FIX - Own Card e Salary + Commission alada alada dekhabe - Commission er jaygay Commission
+        if (isOwn) tvDollar.setText("💵 My Earnings: " + SalaryPolicy.money(hostEarnings) + " (Salary " + SalaryPolicy.money(hostEarnings - agencyCommissionOrOwn) + " + Commission " + SalaryPolicy.money(agencyCommissionOrOwn) + ")");
         else tvDollar.setText("💵 Host Gets: " + SalaryPolicy.money(hostEarnings) + "  •  Agency Commission: " + SalaryPolicy.money(agencyCommissionOrOwn));
         tvDollar.setTextColor(Color.parseColor("#FFD700")); tvDollar.setTextSize(13); card.addView(tvDollar);
         hostListContainer.addView(card);
@@ -352,7 +359,7 @@ public class AgencyDashboardActivity extends AppCompatActivity {
     @Override protected void onDestroy() {
         super.onDestroy();
         for (Map.Entry<String, ValueEventListener> e : hostListeners.entrySet()) {
-            if (e.getKey().startsWith("OWNPATH_")) continue; // Own path listener - activity sesh hole auto close
+            if (e.getKey().startsWith("OWNPATH_")) continue;
             if (e.getKey().startsWith("OWN_")) continue;
             else usersRef.child(e.getKey()).child("monthly").child(monthKey).child("receivedCoins").removeEventListener(e.getValue());
         }
