@@ -25,7 +25,7 @@ public class HostPolicyActivity extends AppCompatActivity {
     private ProgressBar progressBar;
     private String myId = "";
     private String firebaseUid = "";
-    private String myUid = ""; // Profile ID -> UID resolve kora
+    private String myUid = "";
     private String monthKey = "";
     private SharedPreferences prefs;
     private boolean isHost = false;
@@ -62,6 +62,11 @@ public class HostPolicyActivity extends AppCompatActivity {
         if (!isHost) isHost = prefs.getBoolean("HOST_ACCEPTED_" + myId, false);
         if (getIntent().getBooleanExtra("FROM_HOST_ACCEPT", false)) isHost = true;
 
+        // ===== FIX - AGENCY MANEI AUTO HOST - ALADA HOST NITE HOBE NA =====
+        boolean isAgencyOwner = prefs.getBoolean("IS_AGENCY_PERMANENT", false) || prefs.getBoolean("IS_AGENCY", false);
+        if (isAgencyOwner) isHost = true;
+        if (getIntent().getBooleanExtra("FROM_AGENCY_DASHBOARD", false)) isHost = true;
+
         ScrollView scroll = new ScrollView(this);
         scroll.setFillViewport(true);
         scroll.setBackgroundColor(Color.parseColor("#FFFDE7"));
@@ -76,7 +81,6 @@ public class HostPolicyActivity extends AppCompatActivity {
         btnBack.setOnClickListener(v -> finish());
         root.addView(btnBack);
 
-        // LOCK BOX
         lockBox = new LinearLayout(this);
         lockBox.setOrientation(LinearLayout.VERTICAL); lockBox.setGravity(Gravity.CENTER);
         lockBox.setPadding(30, 60, 30, 60);
@@ -90,7 +94,6 @@ public class HostPolicyActivity extends AppCompatActivity {
         TextView lockTitle = new TextView(this); lockTitle.setText("Host Policy Locked"); lockTitle.setTextColor(Color.WHITE); lockTitle.setTextSize(20); lockTitle.setTypeface(null, Typeface.BOLD); lockTitle.setGravity(Gravity.CENTER); lockBox.addView(lockTitle);
         TextView lockMsg = new TextView(this); lockMsg.setText("Hosting নিলে Policy দেখতে পাবেন\n\nAgency থেকে Host Invite Accept করলে\nএই Policy Automatic খুলে যাবে।"); lockMsg.setTextColor(Color.parseColor("#B0BEC5")); lockMsg.setTextSize(14); lockMsg.setGravity(Gravity.CENTER); lockBox.addView(lockMsg);
 
-        // TITLE
         TextView title = new TextView(this); title.setText("🎯 HOST SALARY POLICY - " + monthKey);
         title.setTextColor(Color.parseColor("#1B5E20")); title.setTextSize(20); title.setTypeface(null, Typeface.BOLD); title.setGravity(Gravity.CENTER);
         title.setVisibility(isHost ? View.VISIBLE : View.GONE); title.setTag("policy_title"); root.addView(title);
@@ -98,7 +101,6 @@ public class HostPolicyActivity extends AppCompatActivity {
         sub.setTextColor(Color.parseColor("#555555")); sub.setTextSize(12); sub.setGravity(Gravity.CENTER); sub.setPadding(0, 8, 0, 18);
         sub.setVisibility(isHost ? View.VISIBLE : View.GONE); sub.setTag("policy_sub"); root.addView(sub);
 
-        // MY PROGRESS - PREMIUM CARD
         LinearLayout myBox = new LinearLayout(this); myBox.setOrientation(LinearLayout.VERTICAL); myBox.setPadding(26, 22, 26, 22);
         GradientDrawable myBg = new GradientDrawable(); myBg.setColors(new int[]{Color.parseColor("#FF6A00"), Color.parseColor("#7B2FF7"), Color.parseColor("#1B1035")}); myBg.setOrientation(GradientDrawable.Orientation.TL_BR); myBg.setCornerRadius(22); myBg.setStroke(2, Color.parseColor("#FFD700"));
         myBox.setBackground(myBg);
@@ -110,13 +112,12 @@ public class HostPolicyActivity extends AppCompatActivity {
         tvNext = new TextView(this); tvNext.setTextColor(Color.WHITE); tvNext.setTextSize(13); tvNext.setPadding(0, 10, 0, 0); myBox.addView(tvNext);
         progressBar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal); progressBar.setMax(100); progressBar.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 18)); myBox.addView(progressBar);
 
-        // LIST - PREMIUM BANNER CARDS - Demo er moto
         listBox = new LinearLayout(this); listBox.setOrientation(LinearLayout.VERTICAL);
         listBox.setVisibility(isHost ? View.VISIBLE : View.GONE); listBox.setTag("policy_list"); root.addView(listBox);
         if (isHost) buildCards(0);
 
         TextView note = new TextView(this);
-        note.setText("• Target পুরা Fill হইলেই Salary Counting হবে - 1 Coin কম থাকলেও 0$\n• আপনি শুধু নিজের Coin + নিজের Dollar দেখছেন - Agency Commission দেখছেন না\n• ID te Gift Receive holei Count - Self / Other - Any Amount\n• Room Target (Weekly) alada - Policy er sathe milbe na\n• এই পলিসি Company থেকে আসে, Host বদলাতে পারবে না");
+        note.setText("• Target পুরা Fill হইলেই Salary Counting হবে - 1 Coin কম থাকলেও 0$\n• আপনি শুধু নিজের Coin + নিজের Dollar দেখছেন\n• ID te Gift Receive holei Count - Self / Other - Any Amount\n• Room Target (Weekly) alada - Policy er sathe milbe na\n• এই পলিসি Company থেকে আসে, Host বদলাতে পারবে না");
         note.setTextColor(Color.parseColor("#555555")); note.setTextSize(12); note.setPadding(0, 18, 0, 0);
         note.setVisibility(isHost ? View.VISIBLE : View.GONE); note.setTag("policy_note"); root.addView(note);
         setContentView(scroll);
@@ -124,7 +125,6 @@ public class HostPolicyActivity extends AppCompatActivity {
         if (isHost) { resolveUidAndLoad(); }
     }
 
-    // PREMIUM BOX - Demo er moto - Target | Anchor | Agent | Total - Level alada alada
     private void buildCards(int myLevel) {
         if (listBox == null) return;
         listBox.removeAllViews();
@@ -140,7 +140,6 @@ public class HostPolicyActivity extends AppCompatActivity {
             card.setBackground(bg);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT); lp.setMargins(0, 0, 0, 14); card.setLayoutParams(lp);
             TextView t1 = new TextView(this); t1.setText((done ? "✅ " : current ? "🎯 " : "🔒 ") + "Level." + SalaryPolicy.LEVELS[i]); t1.setTextColor(Color.parseColor("#1B5E20")); t1.setTypeface(null, Typeface.BOLD); t1.setTextSize(18); card.addView(t1);
-            // Header
             LinearLayout h = new LinearLayout(this); h.setOrientation(LinearLayout.HORIZONTAL);
             h.addView(policyCell("Target", true)); h.addView(policyCell("Anchor Salary", true)); h.addView(policyCell("Agent Salary", true)); card.addView(h);
             LinearLayout v = new LinearLayout(this); v.setOrientation(LinearLayout.HORIZONTAL);
@@ -163,7 +162,7 @@ public class HostPolicyActivity extends AppCompatActivity {
         double sal = SalaryPolicy.getHostSalary(received);
         if (tvMyProgress != null) tvMyProgress.setText("My Received (" + monthKey + "): " + String.format("%,d", received) + " Coins");
         if (tvMyLevel != null) tvMyLevel.setText("My Level: " + (lvl == 0 ? "No Level Yet" : "Level " + lvl));
-        if (tvMySalary != null) tvMySalary.setText("My Host Salary: " + SalaryPolicy.money(sal) + "  (Only Yours - Agency Commission dekhben na)");
+        if (tvMySalary != null) tvMySalary.setText("My Host Salary: " + SalaryPolicy.money(sal) + "  (Only Yours)");
         long next = SalaryPolicy.getNextTarget(received);
         if (tvNext != null) tvNext.setText(next == -1 ? "🎉 All Levels Complete!" : "Next: Level " + (lvl + 1) + " - Need " + String.format("%,d", SalaryPolicy.getRemainingToNext(received)) + " more coins");
         if (progressBar != null) {
@@ -181,8 +180,27 @@ public class HostPolicyActivity extends AppCompatActivity {
         resolveUidAndLoad();
     }
 
+    // ===== FIX - AGENCY CHECK - agencies/ID thaklei Host Unlock =====
     private void checkHostFromFirebase() {
         if (myId.isEmpty() && firebaseUid.isEmpty()) return;
+        String key = myId.isEmpty() ? firebaseUid : myId;
+        FirebaseDatabase.getInstance().getReference("agencies").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot agSnap) {
+                if (agSnap.exists()) { showPolicyUnlocked(); return; }
+                if (!firebaseUid.isEmpty() && !firebaseUid.equals(key)) {
+                    FirebaseDatabase.getInstance().getReference("agencies").child(firebaseUid).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override public void onDataChange(@NonNull DataSnapshot ag2) { if (ag2.exists()) { showPolicyUnlocked(); return; } checkHostNormal(); }
+                        @Override public void onCancelled(@NonNull DatabaseError e) { checkHostNormal(); }
+                    });
+                    return;
+                }
+                checkHostNormal();
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) { checkHostNormal(); }
+        });
+    }
+
+    private void checkHostNormal() {
         DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
         String key = myId.isEmpty() ? firebaseUid : myId;
         usersRef.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -196,6 +214,7 @@ public class HostPolicyActivity extends AppCompatActivity {
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
     }
+
     private boolean isHostFromSnapshot(DataSnapshot snap) {
         if (snap == null || !snap.exists()) return false;
         if (isTrue(snap, "isHost") || isTrue(snap, "isHostAccepted") || isTrue(snap, "hostAccepted") || isTrue(snap, "isAnchor")) return true;
@@ -213,7 +232,6 @@ public class HostPolicyActivity extends AppCompatActivity {
         });
     }
 
-    // CORE - Profile ID -> UID resolve - tarpor 1 tai Listener - Monthly Only
     private void resolveUidAndLoad() {
         DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users");
         String key = myId.isEmpty() ? firebaseUid : myId;
@@ -223,7 +241,6 @@ public class HostPolicyActivity extends AppCompatActivity {
                 usersRef.orderByChild("my9DigitId").equalTo(myId).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override public void onDataChange(@NonNull DataSnapshot s2) {
                         for (DataSnapshot ds : s2.getChildren()) { myUid = ds.getKey(); loadMyProgress(myUid); return; }
-                        // Profile ID field diyeo
                         usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override public void onDataChange(@NonNull DataSnapshot all) {
                                 for (DataSnapshot u : all.getChildren()) {
@@ -243,7 +260,7 @@ public class HostPolicyActivity extends AppCompatActivity {
 
     private void loadMyProgress(String uid) {
         if (uid == null || uid.isEmpty()) return;
-        // Monthly Only - users/UID/monthly/monthKey/receivedCoins - Room Target porbe na - Self Gift o Count
+        // Monthly Only - Agency ID te Receiving holeo - Host ID te Receiving holeo - eki UID er Monthly tei Count hobe
         FirebaseDatabase.getInstance().getReference("users").child(uid).child("monthly").child(monthKey).child("receivedCoins").addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 long received = 0;
