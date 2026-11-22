@@ -21,6 +21,8 @@ public class HostCenterActivity extends AppCompatActivity {
     private boolean isHost = false;
     private LinearLayout policyRow, workRow;
     private TextView tvPolicySub, tvWorkSub, tvBal, tvLockMsg, tvId;
+    private ValueEventListener agencyNameListener;
+    private DatabaseReference agencyNameRef;
     // GOLDEN RULE - Profile ID Only - Any Digit Number - First Saved ID
     // UID never used for Counting / Target / Salary - UID only stays in Database
 
@@ -98,6 +100,12 @@ public class HostCenterActivity extends AppCompatActivity {
         if (isHost) { listenMonthlyCoins(); loadAgencyName(); }
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (agencyNameRef != null && agencyNameListener != null) agencyNameRef.removeEventListener(agencyNameListener);
+    }
+
     // Live: users/{ProfileID}/monthly/{monthKey}/receivedCoins - Month Change = 0
     private void listenMonthlyCoins() {
         if (myId.isEmpty()) return;
@@ -112,7 +120,13 @@ public class HostCenterActivity extends AppCompatActivity {
         // FIX - UID Fallback BAD - UID diye Coin anbo na - sudhu Profile ID
     }
 
-    // FIX - Agency Name - users/{ProfileID} -> agencyId -> users/{agencyId}/name
+    // =====================================================
+    // FIX - AGENCY NAME - GLOBAL + AUTO UPDATE
+    // Source: ONLY agencies/{agencyId}/name
+    // Example: agencies/3U59.../name = "অতিথি এজেন্সি"
+    // users/{agencyId}/name kokhono nibo na - oita Owner er nam - Akash Khan
+    // Live Listener - Agency nam Change korle Host er ekhaneo auto Change hobe
+    // =====================================================
     private void loadAgencyName() {
         if (myId.isEmpty()) return;
         FirebaseDatabase.getInstance().getReference("users").child(myId).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -123,29 +137,48 @@ public class HostCenterActivity extends AppCompatActivity {
                     if (agencyId.isEmpty() && snap.child("agencyOwnerId").getValue() != null) agencyId = String.valueOf(snap.child("agencyOwnerId").getValue());
                     if (agencyId.isEmpty() && snap.child("hostAgencyId").getValue() != null) agencyId = String.valueOf(snap.child("hostAgencyId").getValue());
                 }
-                if (agencyId.isEmpty()) return;
-                String finalAgencyId = agencyId;
-                FirebaseDatabase.getInstance().getReference("users").child(finalAgencyId).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override public void onDataChange(@NonNull DataSnapshot ag) {
-                        String name = "";
-                        if (ag.exists() && ag.child("name").getValue() != null) name = String.valueOf(ag.child("name").getValue());
-                        if (name.isEmpty()) {
-                            FirebaseDatabase.getInstance().getReference("agencies").child(finalAgencyId).child("name").addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override public void onDataChange(@NonNull DataSnapshot n) {
-                                    if (n.exists() && n.getValue() != null) { agency = String.valueOf(n.getValue()); updateAgencyBanner(); }
-                                }
-                                @Override public void onCancelled(@NonNull DatabaseError e) {}
-                            });
-                            return;
-                        }
-                        agency = name; updateAgencyBanner();
-                    }
-                    @Override public void onCancelled(@NonNull DatabaseError e) {}
-                });
+                if (agencyId.isEmpty()) { findAgencyIdFromAgencies(); return; }
+                attachAgencyNameListener(agencyId);
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
     }
+
+    // Jodi Host er users node e agencyId na thake - agencies/{id}/hosts/{myId} theke khujbo
+    private void findAgencyIdFromAgencies() {
+        FirebaseDatabase.getInstance().getReference("agencies").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot snap) {
+                for (DataSnapshot ag : snap.getChildren()) {
+                    if (ag.child("hosts").hasChild(myId)) {
+                        String agencyId = ag.getKey();
+                        prefs.edit().putString("HOST_AGENCY_ID", agencyId).apply();
+                        attachAgencyNameListener(agencyId);
+                        return;
+                    }
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
+    }
+
+    private void attachAgencyNameListener(String agencyId) {
+        if (agencyId == null || agencyId.isEmpty()) return;
+        if (agencyNameRef != null && agencyNameListener != null) agencyNameRef.removeEventListener(agencyNameListener);
+        prefs.edit().putString("HOST_AGENCY_ID", agencyId).apply();
+        // ONLY agencies node - Live
+        agencyNameRef = FirebaseDatabase.getInstance().getReference("agencies").child(agencyId).child("name");
+        agencyNameListener = new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot n) {
+                if (n.exists() && n.getValue() != null) {
+                    String v = String.valueOf(n.getValue()).trim();
+                    if (!v.isEmpty()) { agency = v; updateAgencyBanner(); }
+                }
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        };
+        agencyNameRef.addValueEventListener(agencyNameListener);
+    }
+
     private void updateAgencyBanner() {
         prefs.edit().putString("HOST_AGENCY_NAME", agency).apply();
         if (tvId != null) tvId.setText("ID: " + myId + "  |  Agency: " + (isHost ? agency : "No Agency Yet"));
