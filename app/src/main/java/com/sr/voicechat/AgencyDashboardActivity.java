@@ -30,6 +30,8 @@ public class AgencyDashboardActivity extends AppCompatActivity {
     private final Map<String, String> hostProfileIdMap = new HashMap<>();
     private final Map<String, ValueEventListener> hostListeners = new HashMap<>();
     private boolean dashboardStarted = false;
+    // FIX - Own counting er jonno sob path er max rakhar map
+    private final Map<String, Long> ownPathCoins = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +70,6 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         usersRef = FirebaseDatabase.getInstance().getReference("users");
         invitationRef = FirebaseDatabase.getInstance().getReference("agency_invitations");
 
-        // Policy Touch -> Premium Full Popup Activity - Demo er moto
         btnAgencyPolicy.setOnClickListener(v -> {
             Intent i = new Intent(this, AgencyPolicyActivity.class);
             i.putExtra("AGENCY_OWNER_ID", agencyOwnerId);
@@ -102,6 +103,8 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         });
         loadAgencyDataAndHosts();
         discoverHostsByAgencyId();
+        // FIX - Host na thakleo Own Counting cholbe - Dashboard khullei Own Listener
+        attachOwnRealtimeListener();
     }
 
     private void showHostInviteInputDialog() {
@@ -197,7 +200,6 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         });
     }
 
-    // 2 Party Fix - users table e agencyId millei Host
     private void discoverHostsByAgencyId() {
         usersRef.addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot all) {
@@ -221,8 +223,6 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         });
     }
 
-    // CORE - Monthly Only - Room Target porbe na ekhane - Sudhu users/UID/monthly/monthKey
-    // Any Amount - Self Gift o Count - karon GiftManager receiver UID tei likhe
     private void attachHostRealtimeListener(final String hostUid) {
         if (hostListeners.containsKey(hostUid)) return;
         ValueEventListener coinsListener = new ValueEventListener() {
@@ -259,26 +259,48 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         });
     }
 
+    // ===== FIX - AGENCY OWNER = AUTO HOST - Nijer ID te Gift aslei Count hobe - Sob Path + UID + ProfileID =====
     private void attachOwnRealtimeListener() {
+        if (agencyOwnerId == null || agencyOwnerId.isEmpty()) return;
         if (hostListeners.containsKey("OWN_" + agencyOwnerId)) return;
-        ValueEventListener ownListener = new ValueEventListener() {
+        // Dummy marker - asol listener gulo niche alada key te
+        hostListeners.put("OWN_" + agencyOwnerId, new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot s) {}
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
+        // UID + ProfileID - 2 ta key tei shunbo - jekhanei Gift likhuk - miss hobe na
+        Set<String> keys = new HashSet<>();
+        keys.add(agencyOwnerId);
+        if (agencyOwnerProfileId != null && !agencyOwnerProfileId.isEmpty() && !agencyOwnerProfileId.equals(agencyOwnerId)) keys.add(agencyOwnerProfileId);
+        for (String key : keys) {
+            attachOwnPath(key, "monthly/" + monthKey + "/receivedCoins");
+            attachOwnPath(key, "monthly/" + monthKey + "/totalReceived");
+            attachOwnPath(key, "hostWorkData/" + monthKey + "/receivedCoins");
+        }
+        // Jodi UID diye resolve na hoy - Firebase UID diyeo
+        String fu = FirebaseAuth.getInstance().getCurrentUser() != null ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
+        if (!fu.isEmpty() && !keys.contains(fu)) {
+            attachOwnPath(fu, "monthly/" + monthKey + "/receivedCoins");
+            attachOwnPath(fu, "monthly/" + monthKey + "/totalReceived");
+            attachOwnPath(fu, "hostWorkData/" + monthKey + "/receivedCoins");
+        }
+    }
+
+    private void attachOwnPath(String uidKey, String path) {
+        String mapKey = uidKey + "|" + path;
+        if (hostListeners.containsKey("OWNPATH_" + mapKey)) return;
+        ValueEventListener l = new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
-                long coins = 0; if (snap.exists() && snap.getValue() != null) try { coins = Long.parseLong(String.valueOf(snap.getValue())); } catch (Exception ignored) {}
-                final long c1 = coins;
-                // Own er o 3 ta path - Self Gift miss hobe na
-                usersRef.child(agencyOwnerId).child("monthly").child(monthKey).child("totalReceived").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override public void onDataChange(@NonNull DataSnapshot s2) {
-                        long c2 = 0; if (s2.exists() && s2.getValue() != null) try { c2 = Long.parseLong(String.valueOf(s2.getValue())); } catch (Exception ignored) {}
-                        hostCoinsMap.put("OWN_" + agencyOwnerId, Math.max(c1, c2));
-                        renderHostList();
-                    }
-                    @Override public void onCancelled(@NonNull DatabaseError e) { hostCoinsMap.put("OWN_" + agencyOwnerId, c1); renderHostList(); }
-                });
+                long v = 0; if (snap.exists() && snap.getValue() != null) try { v = Long.parseLong(String.valueOf(snap.getValue())); } catch (Exception ignored) {}
+                ownPathCoins.put(mapKey, v);
+                long best = 0; for (long x : ownPathCoins.values()) best = Math.max(best, x);
+                hostCoinsMap.put("OWN_" + agencyOwnerId, best);
+                renderHostList();
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         };
-        hostListeners.put("OWN_" + agencyOwnerId, ownListener);
-        usersRef.child(agencyOwnerId).child("monthly").child(monthKey).child("receivedCoins").addValueEventListener(ownListener);
+        hostListeners.put("OWNPATH_" + mapKey, l);
+        usersRef.child(uidKey).child(path).addValueEventListener(l);
     }
 
     private void renderHostList() {
@@ -298,6 +320,10 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         if (ownCoins != null) {
             String ownPid = hostProfileIdMap.get(agencyOwnerId); if (ownPid == null) ownPid = agencyOwnerProfileId;
             addHostCard("👑 " + agencyName + " (You - Agency Owner)", "Profile ID: " + ownPid, ownCoins, ownEarnings, 100, true);
+        } else {
+            // Own 0 holeo Card dekhabe - 0 Coins - jate bujha jay Counting choltese
+            String ownPid = hostProfileIdMap.get(agencyOwnerId); if (ownPid == null) ownPid = agencyOwnerProfileId;
+            addHostCard("👑 " + agencyName + " (You - Agency Owner)", "Profile ID: " + ownPid, 0, 0, 100, true);
         }
         for (Map.Entry<String, Long> e : hostCoinsMap.entrySet()) {
             if (e.getKey().startsWith("OWN_")) continue;
@@ -326,7 +352,8 @@ public class AgencyDashboardActivity extends AppCompatActivity {
     @Override protected void onDestroy() {
         super.onDestroy();
         for (Map.Entry<String, ValueEventListener> e : hostListeners.entrySet()) {
-            if (e.getKey().startsWith("OWN_")) usersRef.child(agencyOwnerId).child("monthly").child(monthKey).child("receivedCoins").removeEventListener(e.getValue());
+            if (e.getKey().startsWith("OWNPATH_")) continue; // Own path listener - activity sesh hole auto close
+            if (e.getKey().startsWith("OWN_")) continue;
             else usersRef.child(e.getKey()).child("monthly").child(monthKey).child("receivedCoins").removeEventListener(e.getValue());
         }
     }
