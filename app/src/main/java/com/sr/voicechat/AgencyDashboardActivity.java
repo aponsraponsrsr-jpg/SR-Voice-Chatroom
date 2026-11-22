@@ -2,6 +2,8 @@ package com.sr.voicechat;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.widget.*;
 import androidx.annotation.NonNull;
@@ -34,21 +36,20 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
         monthKey = SalaryPolicy.getCurrentMonthKey();
 
-        ScrollView scrollView = new ScrollView(this); scrollView.setFillViewport(true); scrollView.setBackgroundColor(android.graphics.Color.parseColor("#120A2A"));
+        ScrollView scrollView = new ScrollView(this); scrollView.setFillViewport(true); scrollView.setBackgroundColor(Color.parseColor("#120A2A"));
         LinearLayout rootLayout = new LinearLayout(this); rootLayout.setOrientation(LinearLayout.VERTICAL); rootLayout.setPadding(40, 40, 40, 40);
         txtAgencyTitle = new TextView(this); agencyName = prefs.getString("CACHED_AGENCY_NAME", "SR Agency");
         if (agencyName == null || agencyName.isEmpty()) agencyName = prefs.getString("AGENCY_NAME", "SR Agency");
-        txtAgencyTitle.setText("🏛️ " + agencyName + " - Dashboard"); txtAgencyTitle.setTextColor(android.graphics.Color.parseColor("#FFD700")); txtAgencyTitle.setTextSize(22); txtAgencyTitle.setTypeface(null, android.graphics.Typeface.BOLD); rootLayout.addView(txtAgencyTitle);
-        txtMonth = new TextView(this); txtMonth.setText("📅 Month: " + monthKey + " • Monthly - মাস শেষে ZERO হবে"); txtMonth.setTextColor(android.graphics.Color.WHITE); txtMonth.setTextSize(13); rootLayout.addView(txtMonth);
-        txtTotalHosts = new TextView(this); txtTotalHosts.setText("👥 Active Hosts: 0"); txtTotalHosts.setTextColor(android.graphics.Color.WHITE); txtTotalHosts.setTextSize(16); txtTotalHosts.setPadding(0, 20, 0, 5); rootLayout.addView(txtTotalHosts);
-        txtTotalEarnings = new TextView(this); txtTotalEarnings.setText("💰 Total Agency Earnings: $0"); txtTotalEarnings.setTextColor(android.graphics.Color.parseColor("#00E676")); txtTotalEarnings.setTextSize(16); txtTotalEarnings.setPadding(0, 0, 0, 30); rootLayout.addView(txtTotalEarnings);
-        btnAgencyPolicy = new Button(this); btnAgencyPolicy.setText("📜 Agency Policy - Full Table"); btnAgencyPolicy.setBackgroundColor(android.graphics.Color.parseColor("#FFD700")); btnAgencyPolicy.setTextColor(android.graphics.Color.BLACK); btnAgencyPolicy.setTypeface(null, android.graphics.Typeface.BOLD); rootLayout.addView(btnAgencyPolicy);
-        btnOpenInviteDialog = new Button(this); btnOpenInviteDialog.setText("➕ Invite New Host (Any Digit ID)"); btnOpenInviteDialog.setBackgroundColor(android.graphics.Color.parseColor("#FF4081")); btnOpenInviteDialog.setTextColor(android.graphics.Color.WHITE); btnOpenInviteDialog.setTypeface(null, android.graphics.Typeface.BOLD); rootLayout.addView(btnOpenInviteDialog);
-        TextView txtHostListHeader = new TextView(this); txtHostListHeader.setText("\n📋 Agency Host Performance & Targets (" + monthKey + "):"); txtHostListHeader.setTextColor(android.graphics.Color.parseColor("#00B0FF")); txtHostListHeader.setTextSize(18); txtHostListHeader.setTypeface(null, android.graphics.Typeface.BOLD); rootLayout.addView(txtHostListHeader);
+        txtAgencyTitle.setText("🏛️ " + agencyName + " - Dashboard"); txtAgencyTitle.setTextColor(Color.parseColor("#FFD700")); txtAgencyTitle.setTextSize(22); txtAgencyTitle.setTypeface(null, Typeface.BOLD); rootLayout.addView(txtAgencyTitle);
+        txtMonth = new TextView(this); txtMonth.setText("📅 Month: " + monthKey + " • Monthly - মাস শেষে ZERO হবে"); txtMonth.setTextColor(Color.WHITE); txtMonth.setTextSize(13); rootLayout.addView(txtMonth);
+        txtTotalHosts = new TextView(this); txtTotalHosts.setText("👥 Active Hosts: 0"); txtTotalHosts.setTextColor(Color.WHITE); txtTotalHosts.setTextSize(16); txtTotalHosts.setPadding(0, 20, 0, 5); rootLayout.addView(txtTotalHosts);
+        txtTotalEarnings = new TextView(this); txtTotalEarnings.setText("💰 Total Agency Earnings: $0"); txtTotalEarnings.setTextColor(Color.parseColor("#00E676")); txtTotalEarnings.setTextSize(16); txtTotalEarnings.setPadding(0, 0, 0, 30); rootLayout.addView(txtTotalEarnings);
+        btnAgencyPolicy = new Button(this); btnAgencyPolicy.setText("📜 Agency Policy - Full Table"); btnAgencyPolicy.setBackgroundColor(Color.parseColor("#FFD700")); btnAgencyPolicy.setTextColor(Color.BLACK); btnAgencyPolicy.setTypeface(null, Typeface.BOLD); rootLayout.addView(btnAgencyPolicy);
+        btnOpenInviteDialog = new Button(this); btnOpenInviteDialog.setText("➕ Invite New Host (Any Digit ID)"); btnOpenInviteDialog.setBackgroundColor(Color.parseColor("#FF4081")); btnOpenInviteDialog.setTextColor(Color.WHITE); btnOpenInviteDialog.setTypeface(null, Typeface.BOLD); rootLayout.addView(btnOpenInviteDialog);
+        TextView txtHostListHeader = new TextView(this); txtHostListHeader.setText("\n📋 Agency Host Performance & Targets (" + monthKey + "):"); txtHostListHeader.setTextColor(Color.parseColor("#00B0FF")); txtHostListHeader.setTextSize(18); txtHostListHeader.setTypeface(null, Typeface.BOLD); rootLayout.addView(txtHostListHeader);
         hostListContainer = new LinearLayout(this); hostListContainer.setOrientation(LinearLayout.VERTICAL); rootLayout.addView(hostListContainer);
         scrollView.addView(rootLayout); setContentView(scrollView);
 
-        // ===== GLOBAL - Owner ID Resolve - Me থেকে আসা সব Key Support =====
         String rawOwner = getIntent().getStringExtra("AGENCY_OWNER_ID");
         if (rawOwner == null || rawOwner.isEmpty()) rawOwner = getIntent().getStringExtra("AGENCY_UID");
         if (rawOwner == null || rawOwner.isEmpty()) rawOwner = getIntent().getStringExtra("AGENCY_PROFILE_ID");
@@ -71,7 +72,7 @@ public class AgencyDashboardActivity extends AppCompatActivity {
                 Intent i = new Intent(this, AgencyPolicyActivity.class);
                 i.putExtra("AGENCY_OWNER_ID", agencyOwnerId); i.putExtra("AGENCY_UID", agencyOwnerId); i.putExtra("AGENCY_PROFILE_ID", agencyOwnerProfileId); i.putExtra("PROFILE_ID", agencyOwnerProfileId); i.putExtra("MY_ID", agencyOwnerId); i.putExtra("FROM_AGENCY_DASHBOARD", true);
                 startActivity(i);
-            } catch (Exception e) { showPolicyFallbackDialog(); }
+            } catch (Exception e) { showPolicyPremiumDialog(); }
         });
         btnOpenInviteDialog.setOnClickListener(v -> showHostInviteInputDialog());
 
@@ -95,23 +96,45 @@ public class AgencyDashboardActivity extends AppCompatActivity {
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
         loadAgencyDataAndHosts();
+        // FIX 2 PARTY - agencies/hosts e na thakleo - agencyId millei auto add hobe
+        discoverHostsByAgencyId();
     }
 
-    private void showPolicyFallbackDialog() {
-        String policy = "🏛️ SR AGENCY POLICY - " + monthKey + "\n\n"
-            + "1. Receiving = Counting. Room Seat এ Gift Receive হলেই Count হবে - Self / Other / Agency, যেখান থেকে আসুক।\n\n"
-            + "2. Profile ID Any Digit হতে পারে - 1, 2, 9, Any Digit। Gift যেই Profile ID তে পড়বে, ওই Profile ID + Firebase UID মিলিয়ে Counting হবে।\n\n"
-            + "3. Monthly Target. Month শেষে ZERO হবে।\n\n"
-            + "4. Level Salary: যে Level পুরা Fill হবে, শুধু সেই Level এর Salary পাবে। 5 Fill + 6 এ 1 Coin বাকি = শুধু 5 এর Salary, 6 এর পাবে না।\n\n"
-            + "5. Dollar মিস হবে না, বেশিও পাবে না - Policy Target অনুযায়ী ঠিক ততটুকুই।\n\n"
-            + "6. সবার জন্য সমান নিয়ম - Permanent।";
-        new androidx.appcompat.app.AlertDialog.Builder(this).setTitle("📜 Agency Policy - Full Table").setMessage(policy).setPositiveButton("OK", (d, w) -> d.dismiss()).show();
+    // FIX - Premium Box Table - NiuChat er moto
+    private void showPolicyPremiumDialog() {
+        ScrollView sv = new ScrollView(this);
+        LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(32,32,32,32); root.setBackgroundColor(Color.parseColor("#FFFDE7"));
+        TextView t = new TextView(this); t.setText("🏛️ SR AGENCY POLICY - " + monthKey); t.setTextSize(18); t.setTypeface(null, Typeface.BOLD); t.setTextColor(Color.parseColor("#2E7D32")); t.setGravity(android.view.Gravity.CENTER); root.addView(t);
+        String[] TARGET = {"288000","588000","1190000","1780000","3280000","5780000","7880000","9960000"};
+        String[] ANCHOR = {"$1","$2","$4.5","$7","$14","$24","$32","$40"};
+        String[] AGENT = {"$0.5","$1","$1.5","$2","$3","$6","$8","$10"};
+        String[] TOTAL = {"$1.5","$3","$6","$9","$17","$30","$40","$50"};
+        for (int i=0;i<TARGET.length;i++) {
+            LinearLayout box = new LinearLayout(this); box.setOrientation(LinearLayout.VERTICAL); box.setPadding(16,16,16,16); box.setBackgroundColor(Color.parseColor("#E8F5E9"));
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1,-2); lp.setMargins(0,16,0,0); box.setLayoutParams(lp);
+            TextView lv = new TextView(this); lv.setText("Level."+(i+1)); lv.setTypeface(null, Typeface.BOLD); lv.setTextSize(16); box.addView(lv);
+            LinearLayout h = new LinearLayout(this); h.setOrientation(LinearLayout.HORIZONTAL);
+            h.addView(policyCell("Target", true)); h.addView(policyCell("Anchor", true)); h.addView(policyCell("Agent", true)); box.addView(h);
+            LinearLayout v = new LinearLayout(this); v.setOrientation(LinearLayout.HORIZONTAL);
+            v.addView(policyCell(TARGET[i], false)); v.addView(policyCell(ANCHOR[i], false)); v.addView(policyCell(AGENT[i], false)); box.addView(v);
+            TextView tot = new TextView(this); tot.setText("Total Salary: " + TOTAL[i]); tot.setTypeface(null, Typeface.BOLD); tot.setPadding(0,8,0,0); box.addView(tot);
+            root.addView(box);
+        }
+        TextView note = new TextView(this); note.setText("\n1. Room Seat e Gift Receive holei Count\n2. Monthly - Month seshe ZERO\n3. Level pura Fill holei Salary"); root.addView(note);
+        sv.addView(root);
+        new androidx.appcompat.app.AlertDialog.Builder(this).setView(sv).setPositiveButton("OK", (d,w)->d.dismiss()).show();
+    }
+    private TextView policyCell(String txt, boolean header) {
+        TextView tv = new TextView(this); tv.setText(txt); tv.setGravity(android.view.Gravity.CENTER); tv.setPadding(8,10,8,10);
+        tv.setBackgroundColor(header ? Color.parseColor("#4CAF50") : Color.WHITE);
+        tv.setTextColor(header ? Color.WHITE : Color.BLACK); tv.setTypeface(null, Typeface.BOLD);
+        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0,-2,1f); p.setMargins(2,2,2,2); tv.setLayoutParams(p); return tv;
     }
 
     private void showHostInviteInputDialog() {
         androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this); builder.setTitle("📨 Send Host Invitation");
         LinearLayout layout = new LinearLayout(this); layout.setOrientation(LinearLayout.VERTICAL); layout.setPadding(40, 30, 40, 30);
-        final EditText inputTargetId = new EditText(this); inputTargetId.setHint("Enter Host Profile ID (Any Digit) / UID..."); inputTargetId.setTextColor(android.graphics.Color.WHITE); layout.addView(inputTargetId); builder.setView(layout);
+        final EditText inputTargetId = new EditText(this); inputTargetId.setHint("Enter Host Profile ID (Any Digit) / UID..."); inputTargetId.setTextColor(Color.WHITE); layout.addView(inputTargetId); builder.setView(layout);
         builder.setPositiveButton("Send Invite", (d, w) -> { String t = inputTargetId.getText().toString().trim(); if (!t.isEmpty()) resolveAnyIdToUid(t, (uid, profileId) -> sendRealtimeHostInvitation(uid, t)); else Toast.makeText(this, "Please enter a valid User ID!", Toast.LENGTH_SHORT).show(); });
         builder.setNegativeButton("Cancel", (d, w) -> d.dismiss()); builder.show();
     }
@@ -169,20 +192,14 @@ public class AgencyDashboardActivity extends AppCompatActivity {
                 String inviteKey = invitationRef.child(targetUid).push().getKey(); if (inviteKey == null) return;
                 Map<String, Object> m = new HashMap<>(); m.put("agencyId", agencyOwnerId); m.put("agencyName", agencyName); m.put("inviterId", agencyOwnerId); m.put("targetId", targetUid); m.put("targetProfileId", typedId); m.put("typedId", typedId); m.put("type", "AGENCY_INVITE"); m.put("status", "Pending"); m.put("timestamp", System.currentTimeMillis());
                 invitationRef.child(targetUid).child(inviteKey).setValue(m);
-                // ===== FIX - Host এর Me Page এ Invite দেখানোর জন্য - MeActivity এইটা শুনে =====
-                // Host এর users/{targetUid} তে pendingHostInvite = true লিখতে হবে
-                // নইলে Host কোনোদিন Invite দেখবে না
-                String targetProfileKey = typedId;
-                // Target এর Profile ID Key - users/{typedId} তেও লিখি - MeActivity যেই Key দিয়ে শুনে
                 usersRef.child(targetUid).child("pendingHostInvite").setValue(true);
                 usersRef.child(targetUid).child("pendingAgencyId").setValue(agencyOwnerId);
                 usersRef.child(targetUid).child("pendingAgencyName").setValue(agencyName);
-                if (!targetProfileKey.equals(targetUid)) {
-                    usersRef.child(targetProfileKey).child("pendingHostInvite").setValue(true);
-                    usersRef.child(targetProfileKey).child("pendingAgencyId").setValue(agencyOwnerId);
-                    usersRef.child(targetProfileKey).child("pendingAgencyName").setValue(agencyName);
+                if (!typedId.equals(targetUid)) {
+                    usersRef.child(typedId).child("pendingHostInvite").setValue(true);
+                    usersRef.child(typedId).child("pendingAgencyId").setValue(agencyOwnerId);
+                    usersRef.child(typedId).child("pendingAgencyName").setValue(agencyName);
                 }
-                // hostInvites - MeActivity Accept করলে এইটা Accepted হবে
                 Map<String, Object> hi = new HashMap<>(); hi.put("hostUid", targetUid); hi.put("hostProfileId", typedId); hi.put("agencyId", agencyOwnerId); hi.put("agencyName", agencyName); hi.put("status", "pending"); hi.put("timestamp", System.currentTimeMillis());
                 FirebaseDatabase.getInstance().getReference("hostInvites").child(inviteKey).setValue(hi);
                 usersRef.child(targetUid).child("inbox").child(inviteKey).setValue(m).addOnCompleteListener(t -> { if (t.isSuccessful()) Toast.makeText(AgencyDashboardActivity.this, "Host invitation sent to ID: " + typedId, Toast.LENGTH_LONG).show(); else Toast.makeText(AgencyDashboardActivity.this, "Failed to send invitation!", Toast.LENGTH_SHORT).show(); });
@@ -207,13 +224,53 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         });
     }
 
+    // NEW - 2 Party Fix - users table e agencyId / agencyOwnerId millei Host hisebe dhorbe
+    private void discoverHostsByAgencyId() {
+        usersRef.addValueEventListener(new ValueEventListener() {
+            @Override public void onDataChange(@NonNull DataSnapshot all) {
+                for (DataSnapshot u : all.getChildren()) {
+                    if (u.getKey() == null) continue;
+                    if (u.getKey().equals(agencyOwnerId)) continue;
+                    String a1 = u.child("agencyId").getValue(String.class);
+                    String a2 = u.child("agencyOwnerId").getValue(String.class);
+                    String a3 = u.child("agency").getValue(String.class);
+                    boolean match = (a1 != null && (a1.equals(agencyOwnerId) || a1.equals(agencyOwnerProfileId)))
+                        || (a2 != null && (a2.equals(agencyOwnerId) || a2.equals(agencyOwnerProfileId)))
+                        || (a3 != null && (a3.equals(agencyOwnerId) || a3.equals(agencyOwnerProfileId)));
+                    if (match && !hostListeners.containsKey(u.getKey())) {
+                        hostProfileIdMap.put(u.getKey(), getProfileIdFromSnapshot(u, u.getKey()));
+                        attachHostRealtimeListener(u.getKey());
+                    }
+                }
+                renderHostList();
+            }
+            @Override public void onCancelled(@NonNull DatabaseError e) {}
+        });
+    }
+
     private void attachHostRealtimeListener(final String hostUid) {
         if (hostListeners.containsKey(hostUid)) return;
+        // FIX - 3 ta Path theke Coin porbe - jetai besi oitai nibe
         ValueEventListener coinsListener = new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 long coins = 0; if (snap.exists() && snap.getValue() != null) try { coins = Long.parseLong(String.valueOf(snap.getValue())); } catch (Exception ignored) {}
-                hostCoinsMap.put(hostUid, coins);
-                renderHostList();
+                // 2nd path - hostWorkData
+                usersRef.child(hostUid).child("hostWorkData").child(monthKey).child("receivedCoins").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override public void onDataChange(@NonNull DataSnapshot s2) {
+                        long c2 = 0; if (s2.exists() && s2.getValue() != null) try { c2 = Long.parseLong(String.valueOf(s2.getValue())); } catch (Exception ignored) {}
+                        long best = Math.max(coins, c2);
+                        // 3rd path - totalReceived
+                        usersRef.child(hostUid).child("monthly").child(monthKey).child("totalReceived").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override public void onDataChange(@NonNull DataSnapshot s3) {
+                                long c3 = 0; if (s3.exists() && s3.getValue() != null) try { c3 = Long.parseLong(String.valueOf(s3.getValue())); } catch (Exception ignored) {}
+                                hostCoinsMap.put(hostUid, Math.max(best, c3));
+                                renderHostList();
+                            }
+                            @Override public void onCancelled(@NonNull DatabaseError e) { hostCoinsMap.put(hostUid, best); renderHostList(); }
+                        });
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError e) { hostCoinsMap.put(hostUid, coins); renderHostList(); }
+                });
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         };
@@ -274,14 +331,14 @@ public class AgencyDashboardActivity extends AppCompatActivity {
 
     private void addHostCard(String title, String idLine, long coins, double hostEarnings, double agencyCommissionOrOwn, boolean isOwn) {
         LinearLayout card = new LinearLayout(this); card.setOrientation(LinearLayout.VERTICAL); card.setPadding(25, 20, 25, 20);
-        android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable(); bg.setColor(android.graphics.Color.parseColor(isOwn ? "#3D2A00" : "#2A1B4E")); bg.setCornerRadius(15); card.setBackground(bg);
+        android.graphics.drawable.GradientDrawable bg = new android.graphics.drawable.GradientDrawable(); bg.setColor(Color.parseColor(isOwn ? "#3D2A00" : "#2A1B4E")); bg.setCornerRadius(15); card.setBackground(bg);
         LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT); p.setMargins(0, 0, 0, 15); card.setLayoutParams(p);
-        TextView tvName = new TextView(this); tvName.setText(title + " (" + idLine + ")"); tvName.setTextColor(android.graphics.Color.WHITE); tvName.setTextSize(15); tvName.setTypeface(null, android.graphics.Typeface.BOLD); card.addView(tvName);
-        TextView tvTarget = new TextView(this); int lvl = SalaryPolicy.getAchievedLevel(coins); tvTarget.setText("🎯 Target (" + monthKey + "): " + String.format("%,d", coins) + " Coins • Level: " + (lvl == 0 ? "No Level Yet" : "Level " + lvl)); tvTarget.setTextColor(android.graphics.Color.parseColor("#00E676")); tvTarget.setTextSize(13); card.addView(tvTarget);
+        TextView tvName = new TextView(this); tvName.setText(title + " (" + idLine + ")"); tvName.setTextColor(Color.WHITE); tvName.setTextSize(15); tvName.setTypeface(null, Typeface.BOLD); card.addView(tvName);
+        TextView tvTarget = new TextView(this); int lvl = SalaryPolicy.getAchievedLevel(coins); tvTarget.setText("🎯 Target (" + monthKey + "): " + String.format("%,d", coins) + " Coins • Level: " + (lvl == 0 ? "No Level Yet" : "Level " + lvl)); tvTarget.setTextColor(Color.parseColor("#00E676")); tvTarget.setTextSize(13); card.addView(tvTarget);
         TextView tvDollar = new TextView(this);
         if (isOwn) tvDollar.setText("💵 My Earnings: " + SalaryPolicy.money(hostEarnings));
         else tvDollar.setText("💵 Host Gets: " + SalaryPolicy.money(hostEarnings) + "  •  Agency Commission: " + SalaryPolicy.money(agencyCommissionOrOwn));
-        tvDollar.setTextColor(android.graphics.Color.parseColor("#FFD700")); tvDollar.setTextSize(13); card.addView(tvDollar);
+        tvDollar.setTextColor(Color.parseColor("#FFD700")); tvDollar.setTextSize(13); card.addView(tvDollar);
         hostListContainer.addView(card);
     }
 
