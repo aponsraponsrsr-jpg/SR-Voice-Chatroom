@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.widget.*;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -67,12 +68,16 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         usersRef = FirebaseDatabase.getInstance().getReference("users");
         invitationRef = FirebaseDatabase.getInstance().getReference("agency_invitations");
 
+        // Policy Touch -> Premium Full Popup Activity - Demo er moto
         btnAgencyPolicy.setOnClickListener(v -> {
-            try {
-                Intent i = new Intent(this, AgencyPolicyActivity.class);
-                i.putExtra("AGENCY_OWNER_ID", agencyOwnerId); i.putExtra("AGENCY_UID", agencyOwnerId); i.putExtra("AGENCY_PROFILE_ID", agencyOwnerProfileId); i.putExtra("PROFILE_ID", agencyOwnerProfileId); i.putExtra("MY_ID", agencyOwnerId); i.putExtra("FROM_AGENCY_DASHBOARD", true);
-                startActivity(i);
-            } catch (Exception e) { showPolicyPremiumDialog(); }
+            Intent i = new Intent(this, AgencyPolicyActivity.class);
+            i.putExtra("AGENCY_OWNER_ID", agencyOwnerId);
+            i.putExtra("AGENCY_UID", agencyOwnerId);
+            i.putExtra("AGENCY_PROFILE_ID", agencyOwnerProfileId);
+            i.putExtra("PROFILE_ID", agencyOwnerProfileId);
+            i.putExtra("MY_ID", agencyOwnerId);
+            i.putExtra("FROM_AGENCY_DASHBOARD", true);
+            startActivity(i);
         });
         btnOpenInviteDialog.setOnClickListener(v -> showHostInviteInputDialog());
 
@@ -96,39 +101,7 @@ public class AgencyDashboardActivity extends AppCompatActivity {
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         });
         loadAgencyDataAndHosts();
-        // FIX 2 PARTY - agencies/hosts e na thakleo - agencyId millei auto add hobe
         discoverHostsByAgencyId();
-    }
-
-    // FIX - Premium Box Table - NiuChat er moto
-    private void showPolicyPremiumDialog() {
-        ScrollView sv = new ScrollView(this);
-        LinearLayout root = new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setPadding(32,32,32,32); root.setBackgroundColor(Color.parseColor("#FFFDE7"));
-        TextView t = new TextView(this); t.setText("🏛️ SR AGENCY POLICY - " + monthKey); t.setTextSize(18); t.setTypeface(null, Typeface.BOLD); t.setTextColor(Color.parseColor("#2E7D32")); t.setGravity(android.view.Gravity.CENTER); root.addView(t);
-        String[] TARGET = {"288000","588000","1190000","1780000","3280000","5780000","7880000","9960000"};
-        String[] ANCHOR = {"$1","$2","$4.5","$7","$14","$24","$32","$40"};
-        String[] AGENT = {"$0.5","$1","$1.5","$2","$3","$6","$8","$10"};
-        String[] TOTAL = {"$1.5","$3","$6","$9","$17","$30","$40","$50"};
-        for (int i=0;i<TARGET.length;i++) {
-            LinearLayout box = new LinearLayout(this); box.setOrientation(LinearLayout.VERTICAL); box.setPadding(16,16,16,16); box.setBackgroundColor(Color.parseColor("#E8F5E9"));
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1,-2); lp.setMargins(0,16,0,0); box.setLayoutParams(lp);
-            TextView lv = new TextView(this); lv.setText("Level."+(i+1)); lv.setTypeface(null, Typeface.BOLD); lv.setTextSize(16); box.addView(lv);
-            LinearLayout h = new LinearLayout(this); h.setOrientation(LinearLayout.HORIZONTAL);
-            h.addView(policyCell("Target", true)); h.addView(policyCell("Anchor", true)); h.addView(policyCell("Agent", true)); box.addView(h);
-            LinearLayout v = new LinearLayout(this); v.setOrientation(LinearLayout.HORIZONTAL);
-            v.addView(policyCell(TARGET[i], false)); v.addView(policyCell(ANCHOR[i], false)); v.addView(policyCell(AGENT[i], false)); box.addView(v);
-            TextView tot = new TextView(this); tot.setText("Total Salary: " + TOTAL[i]); tot.setTypeface(null, Typeface.BOLD); tot.setPadding(0,8,0,0); box.addView(tot);
-            root.addView(box);
-        }
-        TextView note = new TextView(this); note.setText("\n1. Room Seat e Gift Receive holei Count\n2. Monthly - Month seshe ZERO\n3. Level pura Fill holei Salary"); root.addView(note);
-        sv.addView(root);
-        new androidx.appcompat.app.AlertDialog.Builder(this).setView(sv).setPositiveButton("OK", (d,w)->d.dismiss()).show();
-    }
-    private TextView policyCell(String txt, boolean header) {
-        TextView tv = new TextView(this); tv.setText(txt); tv.setGravity(android.view.Gravity.CENTER); tv.setPadding(8,10,8,10);
-        tv.setBackgroundColor(header ? Color.parseColor("#4CAF50") : Color.WHITE);
-        tv.setTextColor(header ? Color.WHITE : Color.BLACK); tv.setTypeface(null, Typeface.BOLD);
-        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(0,-2,1f); p.setMargins(2,2,2,2); tv.setLayoutParams(p); return tv;
     }
 
     private void showHostInviteInputDialog() {
@@ -214,7 +187,7 @@ public class AgencyDashboardActivity extends AppCompatActivity {
                 Set<String> current = new HashSet<>();
                 for (DataSnapshot h : snapshot.getChildren()) if (h.getKey() != null) current.add(h.getKey());
                 for (String key : current) {
-                    if (hostListeners.containsKey(key) || hostListeners.containsKey("UID_" + key)) continue;
+                    if (hostListeners.containsKey(key)) continue;
                     resolveAnyIdToUid(key, (uid, pid) -> { hostProfileIdMap.put(uid, pid); attachHostRealtimeListener(uid); });
                 }
                 attachOwnRealtimeListener();
@@ -224,7 +197,7 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         });
     }
 
-    // NEW - 2 Party Fix - users table e agencyId / agencyOwnerId millei Host hisebe dhorbe
+    // 2 Party Fix - users table e agencyId millei Host
     private void discoverHostsByAgencyId() {
         usersRef.addValueEventListener(new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot all) {
@@ -248,18 +221,18 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         });
     }
 
+    // CORE - Monthly Only - Room Target porbe na ekhane - Sudhu users/UID/monthly/monthKey
+    // Any Amount - Self Gift o Count - karon GiftManager receiver UID tei likhe
     private void attachHostRealtimeListener(final String hostUid) {
         if (hostListeners.containsKey(hostUid)) return;
-        // FIX - 3 ta Path theke Coin porbe - jetai besi oitai nibe
         ValueEventListener coinsListener = new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 long coins = 0; if (snap.exists() && snap.getValue() != null) try { coins = Long.parseLong(String.valueOf(snap.getValue())); } catch (Exception ignored) {}
-                // 2nd path - hostWorkData
+                final long c1 = coins;
                 usersRef.child(hostUid).child("hostWorkData").child(monthKey).child("receivedCoins").addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override public void onDataChange(@NonNull DataSnapshot s2) {
                         long c2 = 0; if (s2.exists() && s2.getValue() != null) try { c2 = Long.parseLong(String.valueOf(s2.getValue())); } catch (Exception ignored) {}
-                        long best = Math.max(coins, c2);
-                        // 3rd path - totalReceived
+                        long best = Math.max(c1, c2);
                         usersRef.child(hostUid).child("monthly").child(monthKey).child("totalReceived").addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override public void onDataChange(@NonNull DataSnapshot s3) {
                                 long c3 = 0; if (s3.exists() && s3.getValue() != null) try { c3 = Long.parseLong(String.valueOf(s3.getValue())); } catch (Exception ignored) {}
@@ -269,7 +242,7 @@ public class AgencyDashboardActivity extends AppCompatActivity {
                             @Override public void onCancelled(@NonNull DatabaseError e) { hostCoinsMap.put(hostUid, best); renderHostList(); }
                         });
                     }
-                    @Override public void onCancelled(@NonNull DatabaseError e) { hostCoinsMap.put(hostUid, coins); renderHostList(); }
+                    @Override public void onCancelled(@NonNull DatabaseError e) { hostCoinsMap.put(hostUid, c1); renderHostList(); }
                 });
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
@@ -291,8 +264,16 @@ public class AgencyDashboardActivity extends AppCompatActivity {
         ValueEventListener ownListener = new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snap) {
                 long coins = 0; if (snap.exists() && snap.getValue() != null) try { coins = Long.parseLong(String.valueOf(snap.getValue())); } catch (Exception ignored) {}
-                hostCoinsMap.put("OWN_" + agencyOwnerId, coins);
-                renderHostList();
+                final long c1 = coins;
+                // Own er o 3 ta path - Self Gift miss hobe na
+                usersRef.child(agencyOwnerId).child("monthly").child(monthKey).child("totalReceived").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override public void onDataChange(@NonNull DataSnapshot s2) {
+                        long c2 = 0; if (s2.exists() && s2.getValue() != null) try { c2 = Long.parseLong(String.valueOf(s2.getValue())); } catch (Exception ignored) {}
+                        hostCoinsMap.put("OWN_" + agencyOwnerId, Math.max(c1, c2));
+                        renderHostList();
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError e) { hostCoinsMap.put("OWN_" + agencyOwnerId, c1); renderHostList(); }
+                });
             }
             @Override public void onCancelled(@NonNull DatabaseError e) {}
         };
