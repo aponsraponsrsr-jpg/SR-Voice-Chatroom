@@ -7,7 +7,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.GridLayout;
-import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -33,8 +32,6 @@ public class GreedyLionActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // FIX 5: POPUP 85% - Full Screen na
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         setContentView(createUI());
         if (getWindow() != null) {
@@ -48,10 +45,9 @@ public class GreedyLionActivity extends AppCompatActivity {
     LinearLayout createUI() {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(0xFF00C2E8); // Sky Blue
+        root.setBackgroundColor(0xFF00C2E8);
         root.setPadding(16,16,16,16);
 
-        // FIX 2: GOL BANNER - Circular Premium
         TextView banner = new TextView(this);
         banner.setText("🦁 GREEDY LION • LIVE");
         banner.setTextSize(20);
@@ -59,10 +55,8 @@ public class GreedyLionActivity extends AppCompatActivity {
         banner.setTextColor(0xFFFFD700);
         banner.setBackgroundColor(0xFF0A2A6B);
         banner.setPadding(10,24,10,24);
-        // Gol korar jonno - corner radius effect via padding + background
         root.addView(banner);
 
-        // FIX 3 + 5: TOP BAR - Ranking choto, serial thik
         LinearLayout top = new LinearLayout(this);
         top.setOrientation(LinearLayout.HORIZONTAL);
         top.setGravity(Gravity.CENTER);
@@ -84,7 +78,6 @@ public class GreedyLionActivity extends AppCompatActivity {
         help.setPadding(0,0,16,0);
         help.setTextColor(0xFFFFFFFF);
 
-        // FIX 3: Ranking - chotto cup, Bam konay, Bangla nai
         TextView rank = new TextView(this);
         rank.setText("🏆");
         rank.setTextSize(20);
@@ -108,7 +101,6 @@ public class GreedyLionActivity extends AppCompatActivity {
         statusTxt.setTextColor(0xFFFFFF00);
         root.addView(statusTxt);
 
-        // FIX 6: GRID - Choto Premium Icon, Ghorer moto boro na
         GridLayout grid = new GridLayout(this);
         grid.setColumnCount(3);
         grid.setRowCount(3);
@@ -133,7 +125,6 @@ public class GreedyLionActivity extends AppCompatActivity {
             grid.addView(cell);
         }
 
-        // CENTER LION - Gol
         TextView lion = new TextView(this);
         lion.setText("🦁\n" + timeLeft);
         lion.setGravity(Gravity.CENTER);
@@ -146,7 +137,6 @@ public class GreedyLionActivity extends AppCompatActivity {
         lp.rowSpec = GridLayout.spec(1);
         lp.setMargins(6,6,6,6);
         lion.setLayoutParams(lp);
-        lion.setTag("lion");
         grid.addView(lion);
 
         root.addView(grid);
@@ -161,16 +151,16 @@ public class GreedyLionActivity extends AppCompatActivity {
         myBetTxt.setTextColor(0xFFFFFFFF);
         root.addView(myBetTxt);
 
-        // CHIPS
         LinearLayout chips = new LinearLayout(this);
         chips.setOrientation(LinearLayout.HORIZONTAL);
         String[] chipLabels = {"1K","5K","10K","100K"};
         int[] chipVals = {1000,5000,10000,100000};
         for (int i=0;i<4;i++){
             final int v = chipVals[i];
+            final String label = chipLabels[i];
             Button b = new Button(this);
-            b.setText(chipLabels[i]);
-            b.setOnClickListener(vv -> { chip = v; myBetTxt.setText("My Total Bet: " + getTotalBet() + " • Chip: " + chipLabels[i]); });
+            b.setText(label);
+            b.setOnClickListener(vv -> { chip = v; myBetTxt.setText("My Total Bet: " + getTotalBet() + " • Chip: " + label); });
             chips.addView(b);
         }
         root.addView(chips);
@@ -212,13 +202,11 @@ public class GreedyLionActivity extends AppCompatActivity {
         myBetTxt.setText("My Total Bet: " + getTotalBet() + " • Chip: " + chip);
     }
 
-    // FIX 4: ROUND SOCHOL
     void startRound(){
         bettingOpen = true;
         timeLeft = 30;
         roundTxt.setText("Round " + round);
         statusTxt.setText("Tap a slot to place Bet");
-        // Hot Auto Ghurbe
         hotIndex = (hotIndex + 1) % 8;
         handler.postDelayed(new Runnable(){
             @Override public void run(){
@@ -242,7 +230,7 @@ public class GreedyLionActivity extends AppCompatActivity {
         todayTxt.setText("Today's Earnings: " + winAmount);
         for(int i=0;i<8;i++) bets[i]=0;
         updateUI();
-        round++; // Round barbe
+        round++;
         handler.postDelayed(() -> startRound(), 3000);
     }
 
