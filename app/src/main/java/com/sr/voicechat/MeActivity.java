@@ -25,6 +25,7 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -35,6 +36,8 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.MutableData;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -57,7 +60,7 @@ public class MeActivity extends AppCompatActivity {
     private boolean rtdbListenerStarted = false;
     private boolean vipAssignmentListenerStarted = false;
     private TextView txtVipBadge;
-    private TextView txtVipCenterStatus; // NEW PREMIUM VIP
+    private TextView txtVipCenterStatus;
     private int myVipLevel = 0;
     private TextView txtWealthBadge = null;
     private TextView txtCharmBadge = null;
@@ -73,12 +76,60 @@ public class MeActivity extends AppCompatActivity {
     private boolean sellerListenerStarted = false;
     private String cachedPhoto = "";
 
+    // ===== EKTAI WALLET - REALTIME + DATABASE =====
+    // Source of Truth: Firebase users/{ProfileID}/coins
+    // Local Mirror: main_wallet / wallet_coins - Game er sathe milanor jonno
+    // Seller Wallet alada - eita touch kora hobe na
+    private long walletCoins = 0;
+    private boolean walletSyncing = false;
+
     private BroadcastReceiver profileReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             showFromPrefs();
             loadMeData();
         }
     };
+
+    // ===== WALLET SYNC - Firebase -> Local (main_wallet) =====
+    private void syncWalletLocal(long coins){
+        if(coins < 0) coins = 0;
+        walletCoins = coins;
+        // 1. Me er SR_USER e
+        try{ prefs.edit().putLong("WALLET_COINS", coins).putString("COINS", String.valueOf(coins)).apply(); }catch(Exception ignored){}
+        // 2. Game er sathe EKI FILE - main_wallet - Eitai mil
+        try{ getSharedPreferences("main_wallet", MODE_PRIVATE).edit().putLong("wallet_coins", coins).putString("user_name", prefs.getString("USER_NAME","User")).putString("user_id", myProfileId).putString("user_pic", getCachedPhoto()).apply(); }catch(Exception ignored){}
+        if(txtWalletCoins!=null) txtWalletCoins.setText("Coins: " + coins);
+    }
+    // ===== WALLET PLUS / MINUS - SOB JAYGA THEKE EKHANEI ASBE =====
+    // Game theke call: MeActivity.addWalletCoins(this, profileId, +win) / -bet
+    // Transaction: 2 jon ek sathe Plus/Minus korleo coin harabe na
+    public static void addWalletCoins(Context ctx, String profileId, long delta){
+        if(profileId==null || profileId.isEmpty() || delta==0) return;
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(profileId).child("coins");
+        ref.runTransaction(new Transaction.Handler(){
+            @NonNull @Override public Transaction.Result doTransaction(@NonNull MutableData cur){
+                long oldVal = 0;
+                try{ Object v = cur.getValue(); if(v!=null) oldVal = Long.parseLong(String.valueOf(v).replace(",","").trim()); }catch(Exception ignored){}
+                long nw = oldVal + delta;
+                if(nw < 0) nw = 0;
+                cur.setValue(nw);
+                return Transaction.success(cur);
+            }
+            @Override public void onComplete(@Nullable DatabaseError e, boolean committed, @Nullable DataSnapshot snap){
+                if(committed && snap!=null && snap.getValue()!=null){
+                    try{ long nw = Long.parseLong(String.valueOf(snap.getValue())); ctx.getSharedPreferences("main_wallet", MODE_PRIVATE).edit().putLong("wallet_coins", nw).apply(); }catch(Exception ignored){}
+                }
+            }
+        });
+        // Local mirror o sathe sathe update - UI jeno na atke thake, Firebase listener abar confirm korbe
+        try{
+            SharedPreferences mw = ctx.getSharedPreferences("main_wallet", MODE_PRIVATE);
+            long local = mw.getLong("wallet_coins", 0) + delta; if(local < 0) local = 0;
+            mw.edit().putLong("wallet_coins", local).apply();
+        }catch(Exception ignored){}
+    }
+    // MeActivity er vitore theke use korar jonno
+    private void addMyWallet(long delta){ if(!myProfileId.isEmpty()) addWalletCoins(this, myProfileId, delta); }
 
     private void updateLevelBadge(){
         if(txtWealthBadge==null || txtCharmBadge==null) return;
@@ -355,8 +406,6 @@ public class MeActivity extends AppCompatActivity {
         menuContainer.setOrientation(LinearLayout.VERTICAL);
         menuContainer.setPadding(20, 20, 20, 30);
         root.addView(menuContainer);
-
-        // ===== NEW PREMIUM VIP CENTER - OLD SVIP + OLD VIP DELETED =====
         LinearLayout vipCenterBox = new LinearLayout(this);
         vipCenterBox.setOrientation(LinearLayout.VERTICAL);
         vipCenterBox.setPadding(30, 28, 30, 28);
@@ -381,7 +430,6 @@ public class MeActivity extends AppCompatActivity {
         txtVipCenterStatus.setTextColor(Color.WHITE);
         txtVipCenterStatus.setTextSize(13);
         vipCenterBox.addView(txtVipCenterStatus);
-
         LinearLayout walletBox = new LinearLayout(this);
         walletBox.setOrientation(LinearLayout.HORIZONTAL);
         walletBox.setGravity(Gravity.CENTER_VERTICAL);
@@ -406,7 +454,7 @@ public class MeActivity extends AppCompatActivity {
         walletTitle.setTypeface(null, Typeface.BOLD);
         walletLeft.addView(walletTitle);
         txtWalletCoins = new TextView(this);
-        txtWalletCoins.setText("Coins: 0");
+        txtWalletCoins.setText("Coins: " + walletCoins);
         txtWalletCoins.setTextColor(Color.parseColor("#FFD700"));
         txtWalletCoins.setTextSize(14);
         txtWalletCoins.setTypeface(null, Typeface.BOLD);
@@ -556,6 +604,9 @@ public class MeActivity extends AppCompatActivity {
                 registerReceiver(profileReceiver, filter);
             }
         } catch (Exception ignored) {}
+        // Wallet local mirror age theke load - Firebase asle overwrite hobe
+        walletCoins = getSharedPreferences("main_wallet", MODE_PRIVATE).getLong("wallet_coins", prefs.getLong("WALLET_COINS", 0));
+        if(txtWalletCoins!=null) txtWalletCoins.setText("Coins: " + walletCoins);
         showFromPrefs();
         applyRoleVisibility();
         applySellerVisibility();
@@ -641,8 +692,6 @@ public class MeActivity extends AppCompatActivity {
         if (sellerWalletBox != null) sellerWalletBox.setVisibility(show ? View.VISIBLE : View.GONE);
         if (txtSellerBalance != null) txtSellerBalance.setText("Business Coins: " + sellerBusinessCoins);
     }
-
-    // ===== NEW PREMIUM VIP - PROFILE ID ONLY - NO UID =====
     private void openVipCenter() {
         try {
             Intent i = new Intent(MeActivity.this, VipActivity.class);
@@ -658,7 +707,6 @@ public class MeActivity extends AppCompatActivity {
     private void listenVipAssignments() {
         if (vipAssignmentListenerStarted) return;
         vipAssignmentListenerStarted = true;
-        // ONLY Profile ID - never UID
         if (myProfileId.isEmpty()) return;
         FirebaseDatabase.getInstance().getReference("vip_assignments").child(myProfileId)
             .addValueEventListener(new ValueEventListener() {
@@ -667,7 +715,6 @@ public class MeActivity extends AppCompatActivity {
                 }
                 @Override public void onCancelled(@NonNull DatabaseError e) {}
             });
-        // Backup: users / ProfileID / vipLevel
         FirebaseDatabase.getInstance().getReference("users").child(myProfileId)
             .addValueEventListener(new ValueEventListener() {
                 @Override public void onDataChange(@NonNull DataSnapshot snap) {
@@ -1005,9 +1052,12 @@ public class MeActivity extends AppCompatActivity {
         if (myCharmLevel < 1) myCharmLevel = 1;
         myTotalSending = prefs.getLong("TOTAL_SENDING", 0);
         myTotalReceiving = prefs.getLong("TOTAL_RECEIVING", 0);
+        // Wallet - Local mirror theke - Firebase asle overwrite hobe
+        walletCoins = getSharedPreferences("main_wallet", MODE_PRIVATE).getLong("wallet_coins", prefs.getLong("WALLET_COINS", walletCoins));
         if (txtName != null) txtName.setText(name);
         if (txtId != null) txtId.setText("ID: " + myAnyId);
         if (txtGenderCountry != null) txtGenderCountry.setText(getGenderCountryText());
+        if (txtWalletCoins != null) txtWalletCoins.setText("Coins: " + walletCoins);
         updateVipUI(); updateLevelBadge();
         if(!photo.isEmpty()) showPhoto(photo, imgAvatar);
     }
@@ -1040,9 +1090,13 @@ public class MeActivity extends AppCompatActivity {
                     if (photo.isEmpty()) photo = getStr(snap, "photo", "");
                     if (photo.isEmpty()) photo = getStr(snap, "photoBase64", "");
                     followCount = getStr(snap, "followCount", "0"); fansCount = getStr(snap, "fansCount", "0"); visitorCount = getStr(snap, "visitorCount", "0");
-                    String coins = getStr(snap, "coins", "0");
-                    if (coins.equals("0")) coins = getStr(snap, "walletCoins", "0");
-                    if (coins.equals("0")) coins = getStr(snap, "sendingCoins", "0");
+                    // ===== WALLET - Firebase coins EITAI ASOL - walletCoins / sendingCoins na =====
+                    long coinsLong = getLongVal(snap, "coins");
+                    if (coinsLong == 0) coinsLong = getLongVal(snap, "walletCoins");
+                    // purono fallback - jodi coins khali thake
+                    if (coinsLong == 0) coinsLong = getLongVal(snap, "sendingCoins");
+                    syncWalletLocal(coinsLong);
+                    String coins = String.valueOf(coinsLong);
                     long sending = Math.max(getLongVal(snap,"sending"), getLongVal(snap,"totalSending"));
                     long receiving = Math.max(getLongVal(snap,"receiving"), getLongVal(snap,"totalReceiving"));
                     receiving = Math.max(receiving, Math.max(getLongVal(snap,"targetCoins"), getLongVal(snap,"totalTargetCoins")));
