@@ -1,0 +1,32 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": true,
+        "coins": {
+          ".write": false
+        },
+        "$other": {
+          ".write": true
+        }
+      }
+    },
+    "game_bets": {
+      ".read": true,
+      "$roundId": {
+        "$betId": {
+          ".write": true,
+          ".validate": "newData.hasChildren(['permanentId', 'betAmount'])"
+        }
+      }
+    },
+    "game_rounds": {
+      ".read": true,
+      ".write": false
+    },
+    "coin_ledger": {
+      ".read": true,
+      ".write": false
+    }
+  }
+}
