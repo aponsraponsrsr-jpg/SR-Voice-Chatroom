@@ -20,4 +20,4 @@ jobs:
       - name: Install Firebase Tools
         run: npm install -g firebase-tools
       - name: Deploy to Firebase
-        run: firebase deploy --only functions,database --project ${{ secrets.FIREBASE_PROJECT_ID }} --non-interactive
+        run: firebase deploy --only database --project ${{ secrets.FIREBASE_PROJECT_ID }} --non-interactive
