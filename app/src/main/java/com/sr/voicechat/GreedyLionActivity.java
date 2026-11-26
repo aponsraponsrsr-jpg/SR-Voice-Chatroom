@@ -32,22 +32,19 @@ public class GreedyLionActivity extends AppCompatActivity {
 
     TextView roundTxt, balanceTxt, walletNameTxt, statusTxt, resultTxt, todayTxt, lionTimerTxt;
     TextView userBetNameTxt, userBetCoinsTxt, userBetTotalTxt;
-    // NEW: Global Top ID + Global Wallet
-    TextView globalTopIdTxt, globalWalletTxt, globalTopLabelTxt;
     TextView[] betViews = new TextView[8];
     TextView[] chipViews = new TextView[4];
     LinearLayout[] boothViews = new LinearLayout[8];
     LinearLayout resultHistoryLayout;
-    LinearLayout myWalletBanner; // auto-growing banner
     long[] bets = new long[8];
 
-    int[] chipVals = {5000,10000,100000,500000};
-    String[] chipLabels = {"5K","10K","100K","500K"};
-    int chip = 5000; int selectedChipIndex = 0;
+    // DEMO - 1K Default Gold
+    int[] chipVals = {1000,5000,10000,100000};
+    String[] chipLabels = {"1K","5K","10K","100K"};
+    int chip = 1000; int selectedChipIndex = 0;
 
-    // ===== MINE WALLET = GAME WALLET - SR VOICE - EKTAI COMPANY =====
+    // GAME WALLET ALADA - Room er SR_USER e kokhono likhbe na
     long balance = 0; long myBetThisRound = 0; long rankingPoints = 0; long totalToday = 0;
-    long companyBank = 0; // Company SR Voice bank - harle ekhane joma, jitle ekhan theke dibe
     String userName = "Guest"; String userId = "";
     String userPhoto = "";
     ImageView userPicView, walletPicView;
@@ -60,9 +57,6 @@ public class GreedyLionActivity extends AppCompatActivity {
     ArrayList<HistoryItem> myHistory = new ArrayList<>();
     boolean autoBetOn = false;
     int lastBetSlot = -1;
-
-    // Global Top - Realtime e je Top e thakbe tar ID
-    String globalTopId = ""; String globalTopName = ""; long globalTopPoints = 0;
 
     static class RankEntry { String name; String id; long points; long reward; RankEntry(String n,String id,long p,long r){name=n;this.id=id;points=p;reward=r;} }
     ArrayList<RankEntry> rankList = new ArrayList<>();
@@ -81,9 +75,9 @@ public class GreedyLionActivity extends AppCompatActivity {
     String[] emojis = {"🍗","🐙","🦈","🥩","🍇","🥬","🌽","🍓"};
     String[] mults = {"x45","x25","x15","x10","x5","x5","x5","x5"};
     int hotIndex = 4;
-    // FIX 1: OFFWHITE BAD - DEEP GHIYA - 500 select korle jei color ase oitai
-    int OFFWHITE = 0xFFEAC16A; // Deep Ghiya / Premium
-    int BOOTH_BG = 0xFFEAC16A;
+    // DEMO COLOR - Halka Cream + Halka Ghiya - Deep na, Sadao na
+    int OFFWHITE = 0xFFFFF2C0;
+    int BOOTH_BG = 0xFFFFF2C0;
     int PINK = 0xFFFF69B4;
     int LIGHT_YELLOW = 0xFFFFF59D;
     int SHARK_BLUE = 0xFF2196F3;
@@ -94,7 +88,6 @@ public class GreedyLionActivity extends AppCompatActivity {
     GradientDrawable circleStroke(int c,int sc,int sw){ GradientDrawable d=new GradientDrawable(); d.setShape(GradientDrawable.OVAL); d.setColor(c); d.setStroke(sw,sc); return d; }
     String fmt(long v){ return String.format(Locale.US,"%,d",v); }
 
-    // ===== GLOBAL ROUND - SAUDI 7PM THEKE - SOBAR JONNO EKI =====
     int calcGlobalRound(){
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Riyadh"));
         int hour = cal.get(Calendar.HOUR_OF_DAY);
@@ -117,26 +110,20 @@ public class GreedyLionActivity extends AppCompatActivity {
         if(passed < 30) return 30 - passed;
         return 30;
     }
-    // FIX: DAILY RESET CHECK - Saudi 7PM - Round 1 hole ager diner data clean
     void checkDailyReset(){
-        SharedPreferences sp = getSharedPreferences("main_wallet", MODE_PRIVATE);
-        String lastDate = sp.getString("last_play_date","");
-        String today = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
-        // Saudi date
+        SharedPreferences sp = getSharedPreferences("greedy_lion_wallet", MODE_PRIVATE);
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Riyadh"));
         String saudiDate = cal.get(Calendar.YEAR)+"-"+(cal.get(Calendar.MONTH)+1)+"-"+cal.get(Calendar.DAY_OF_MONTH);
+        String lastDate = sp.getString("last_play_date","");
         if(!saudiDate.equals(lastDate) && !lastDate.isEmpty()){
-            // Reward diye tarpor clean - ekhane reward already claim system e jabe
             rankingPoints = 0; totalToday = 0; rankList.clear(); resultHistory.clear(); myHistory.clear();
             sp.edit().putString("last_play_date", saudiDate).putLong("ranking_points",0).putLong("total_today",0).apply();
         } else {
             sp.edit().putString("last_play_date", saudiDate).apply();
         }
     }
-    // FIX: GLOBAL RESULT - Sobar jonno eki - Round diye Seed - Random na
     int calcGlobalWinner(int roundNum, String[] outSpecial){
         long seed = (long)roundNum * 7919L + 12345L;
-        // Saudi date keo seed e dhukao jate protidin alada hoy kintu sobar eki hoy
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Riyadh"));
         seed += cal.get(Calendar.DAY_OF_YEAR) * 100000L;
         int rand = (int)((seed * 1103515245L + 12345L) % 100);
@@ -148,8 +135,8 @@ public class GreedyLionActivity extends AppCompatActivity {
     }
 
     void loadWallet(){
-        SharedPreferences main = getSharedPreferences("main_wallet", MODE_PRIVATE);
         SharedPreferences sr = getSharedPreferences("SR_USER", MODE_PRIVATE);
+        SharedPreferences game = getSharedPreferences("greedy_lion_wallet", MODE_PRIVATE);
         if(getIntent()!=null){
             if(getIntent().hasExtra("user_name")) userName = getIntent().getStringExtra("user_name");
             if(getIntent().hasExtra("user_id")) userId = getIntent().getStringExtra("user_id");
@@ -161,53 +148,36 @@ public class GreedyLionActivity extends AppCompatActivity {
             String n = sr.getString("USER_NAME", "");
             if(n==null||n.isEmpty()) n = sr.getString("PROFILE_NAME", "");
             if(n!=null && !n.isEmpty()) userName = n;
-            else userName = main.getString("user_name","Guest");
+            else userName = game.getString("user_name","Guest");
         }
         if(userId==null || userId.isEmpty()){
             String id = sr.getString("MY_9_DIGIT_ID", "");
             if(id==null||id.isEmpty()) id = sr.getString("PROFILE_ID", "");
-            if(id==null||id.isEmpty()) id = main.getString("user_id","");
+            if(id==null||id.isEmpty()) id = game.getString("user_id","");
             userId = id!=null?id:"";
         }
         if(userPhoto==null || userPhoto.isEmpty() || userPhoto.equals("👤")){
             String ph = sr.getString("USER_PHOTO", "");
             if(ph==null||ph.isEmpty()) ph = sr.getString("PROFILE_PHOTO", "");
             if(ph==null||ph.isEmpty()) ph = sr.getString("USER_IMAGE", "");
-            if(ph==null||ph.isEmpty()) ph = main.getString("user_pic","");
+            if(ph==null||ph.isEmpty()) ph = game.getString("user_pic","");
             if(ph!=null && (ph.equals("👤")||ph.length()<5)) ph = "";
             userPhoto = ph!=null?ph:"";
         }
         if(!getIntent().hasExtra("wallet_coins")){
-            if(sr.contains("wallet_coins")) balance = sr.getLong("wallet_coins",0);
-            else if(sr.contains("USER_COINS")) balance = sr.getLong("USER_COINS",0);
-            else balance = main.getLong("wallet_coins",0);
+            if(game.contains("wallet_coins")) balance = game.getLong("wallet_coins",0);
+            else if(sr.contains("wallet_coins")) balance = sr.getLong("wallet_coins",0);
+            else balance = 0;
         }
-        rankingPoints = main.getLong("ranking_points",0);
-        totalToday = main.getLong("total_today",0);
-        companyBank = main.getLong("company_bank",0);
-        globalTopId = main.getString("global_top_id", userId);
-        globalTopName = main.getString("global_top_name", userName);
-        globalTopPoints = main.getLong("global_top_points", rankingPoints);
+        rankingPoints = game.getLong("ranking_points",0);
+        totalToday = game.getLong("total_today",0);
         round = calcGlobalRound();
         rankList.clear();
         if(rankingPoints>0) rankList.add(new RankEntry(userName,userId, rankingPoints, 0));
         checkDailyReset();
-        // Ami jodi Top e thaki, amar ID Global e jabe - realtime e onno keu overtake korle tar ID asbe
-        updateGlobalTop();
-    }
-    // Global Top update - je Top e tar ID
-    void updateGlobalTop(){
-        if(rankingPoints >= globalTopPoints){
-            globalTopPoints = rankingPoints; globalTopName = userName; globalTopId = userId;
-        }
-        // TODO: Firebase Realtime Database e ekhane push korbe:
-        // FirebaseDatabase.getInstance().getReference("sr_voice/greedy_lion/global_top").setValue(...)
-        // Onno device theke sunle globalTopId auto change hobe
-        if(globalTopIdTxt!=null) globalTopIdTxt.setText("👑 TOP: " + globalTopName + " • ID: " + globalTopId);
     }
     void saveWallet(){
-        getSharedPreferences("main_wallet",MODE_PRIVATE).edit().putLong("wallet_coins",balance).putString("user_name",userName).putString("user_id",userId).putString("user_pic",userPhoto).putLong("ranking_points",rankingPoints).putLong("total_today",totalToday).putLong("company_bank",companyBank).putString("global_top_id",globalTopId).putString("global_top_name",globalTopName).putLong("global_top_points",globalTopPoints).putInt("last_round",round).apply();
-        getSharedPreferences("SR_USER",MODE_PRIVATE).edit().putLong("wallet_coins",balance).putLong("USER_COINS",balance).putString("USER_NAME",userName).apply();
+        getSharedPreferences("greedy_lion_wallet",MODE_PRIVATE).edit().putLong("wallet_coins",balance).putString("user_name",userName).putString("user_id",userId).putString("user_pic",userPhoto).putLong("ranking_points",rankingPoints).putLong("total_today",totalToday).putInt("last_round",round).apply();
         updateWalletUI();
     }
     void setProfileImage(ImageView iv){
@@ -227,18 +197,6 @@ public class GreedyLionActivity extends AppCompatActivity {
             }
         }catch(Exception e){ iv.setImageResource(R.mipmap.ic_launcher); }
     }
-    // FIX: Wallet Banner Auto Boro-Choto - Coin jotobesi banner toto boro
-    void updateWalletBanner(){
-        if(myWalletBanner==null) return;
-        int padH = 12; int textSize = 13;
-        if(balance >= 1000000){ padH = 28; textSize = 18; }
-        else if(balance >= 500000){ padH = 22; textSize = 16; }
-        else if(balance >= 100000){ padH = 18; textSize = 15; }
-        else if(balance >= 10000){ padH = 14; textSize = 14; }
-        myWalletBanner.setPadding(padH, 8, padH, 8);
-        if(userBetCoinsTxt!=null) userBetCoinsTxt.setTextSize(textSize);
-        if(balanceTxt!=null) balanceTxt.setTextSize(textSize);
-    }
     void updateWalletUI(){
         if(walletNameTxt!=null) walletNameTxt.setText(userName);
         if(balanceTxt!=null) balanceTxt.setText(fmt(balance));
@@ -246,11 +204,8 @@ public class GreedyLionActivity extends AppCompatActivity {
         if(userBetCoinsTxt!=null) userBetCoinsTxt.setText("🪙 "+fmt(balance));
         if(userBetTotalTxt!=null) userBetTotalTxt.setText("My Bet: "+fmt(myBetThisRound));
         if(todayTxt!=null) todayTxt.setText("🪙 "+fmt(totalToday));
-        if(globalTopIdTxt!=null) globalTopIdTxt.setText("👑 TOP: " + globalTopName + " • ID: " + globalTopId);
-        if(globalWalletTxt!=null) globalWalletTxt.setText("🪙 Global: " + fmt(companyBank));
         setProfileImage(userPicView);
         setProfileImage(walletPicView);
-        updateWalletBanner();
     }
     @Override protected void onResume(){ super.onResume(); loadWallet(); updateWalletUI(); }
 
@@ -361,7 +316,6 @@ public class GreedyLionActivity extends AppCompatActivity {
         LinearLayout bg=new LinearLayout(this); bg.setOrientation(LinearLayout.VERTICAL); bg.setGravity(Gravity.CENTER); bg.setBackgroundColor(0xAA000000); bg.setLayoutParams(popupParams());
         LinearLayout box=new LinearLayout(this); box.setOrientation(LinearLayout.VERTICAL);
         box.setBackground(roundBg(BOOTH_BG,30)); box.setPadding(16,16,16,16);
-        // FIX: History aro boro
         LinearLayout.LayoutParams bp=new LinearLayout.LayoutParams((int)(getResources().getDisplayMetrics().widthPixels*0.96), (int)(getResources().getDisplayMetrics().heightPixels*0.78));
         bp.bottomMargin=60; box.setLayoutParams(bp);
         TextView t=new TextView(this); t.setText("My History"); t.setGravity(Gravity.CENTER); t.setTextSize(22); t.setTextColor(0xFFD32F2F); box.addView(t);
@@ -456,7 +410,6 @@ public class GreedyLionActivity extends AppCompatActivity {
 
     LinearLayout createUI(){
         LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(0xFF00C2E8);
-        // TOP BAR
         LinearLayout top=new LinearLayout(this); top.setOrientation(LinearLayout.HORIZONTAL); top.setGravity(Gravity.CENTER_VERTICAL); top.setPadding(16,10,16,6);
         TextView back=new TextView(this); back.setText("⬅"); back.setTextSize(24); back.setTextColor(0xFFFFFFFF); back.setPadding(0,0,16,0); back.setOnClickListener(v->finish());
         roundTxt=new TextView(this); roundTxt.setText("Round: "+round); roundTxt.setTextSize(14); roundTxt.setTextColor(0xFF333333);
@@ -465,16 +418,8 @@ public class GreedyLionActivity extends AppCompatActivity {
         TextView help=new TextView(this); help.setText("❓"); help.setTextSize(22); help.setOnClickListener(v->showIntro());
         top.addView(back); top.addView(roundTxt); top.addView(music); top.addView(help); root.addView(top);
 
-        // FIX: GLOBAL TOP WALLET - UPORE - Original Wallet
-        LinearLayout globalRow=new LinearLayout(this); globalRow.setOrientation(LinearLayout.VERTICAL); globalRow.setPadding(16,0,16,6);
-        globalTopLabelTxt=new TextView(this); globalTopLabelTxt.setText("🌍 GLOBAL - SR VOICE"); globalTopLabelTxt.setTextSize(11); globalTopLabelTxt.setTextColor(0xFFFFFFFF); globalTopLabelTxt.setGravity(Gravity.CENTER);
-        globalTopIdTxt=new TextView(this); globalTopIdTxt.setText("👑 TOP: "+globalTopName+" • ID: "+globalTopId); globalTopIdTxt.setTextSize(14); globalTopIdTxt.setTextColor(0xFFFFD700); globalTopIdTxt.setGravity(Gravity.CENTER); globalTopIdTxt.setBackground(roundBg(0xFF8B0000,30)); globalTopIdTxt.setPadding(12,8,12,8);
-        globalWalletTxt=new TextView(this); globalWalletTxt.setText("🪙 Global: "+fmt(companyBank)); globalWalletTxt.setTextSize(12); globalWalletTxt.setTextColor(0xFFFFFFFF); globalWalletTxt.setGravity(Gravity.CENTER);
-        globalRow.addView(globalTopLabelTxt); globalRow.addView(globalTopIdTxt); globalRow.addView(globalWalletTxt); root.addView(globalRow);
-
-        // FIX: RANKING - BORO + PREMIUM + HD
         LinearLayout rankRow=new LinearLayout(this); rankRow.setOrientation(LinearLayout.HORIZONTAL); rankRow.setPadding(16,0,16,6);
-        TextView rank=new TextView(this); rank.setText("🏆\nRanking"); rank.setGravity(Gravity.CENTER); rank.setTextSize(18); rank.setTextColor(0xFFFFD700); rank.setBackground(roundBg(0xFF8B0000,30)); rank.setPadding(20,10,20,10); rank.setOnClickListener(v->showRanking()); rankRow.addView(rank); root.addView(rankRow);
+        TextView rank=new TextView(this); rank.setText("🏆\nRanking"); rank.setGravity(Gravity.CENTER); rank.setTextSize(13); rank.setTextColor(0xFFFFD700); rank.setOnClickListener(v->showRanking()); rankRow.addView(rank); root.addView(rankRow);
 
         FrameLayout wheel=new FrameLayout(this); wheel.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,920));
         TextView wheelRing=new TextView(this); FrameLayout.LayoutParams ringLp=new FrameLayout.LayoutParams(660,660); ringLp.leftMargin=210; ringLp.topMargin=140; wheelRing.setLayoutParams(ringLp); wheelRing.setBackground(circleStroke(0x00FFFFFF,0xFFFFD700,12)); wheel.addView(wheelRing);
@@ -485,7 +430,6 @@ public class GreedyLionActivity extends AppCompatActivity {
             LinearLayout booth=new LinearLayout(this); booth.setOrientation(LinearLayout.VERTICAL); booth.setGravity(Gravity.CENTER); booth.setBackground(roundBg(BOOTH_BG,60)); booth.setPadding(6,6,6,6);
             FrameLayout.LayoutParams ip=new FrameLayout.LayoutParams(200,210); ip.leftMargin=x; ip.topMargin=y; booth.setLayoutParams(ip);
             TextView e=new TextView(this);
-            // FIX: Shark Blue
             if(i==2){ e.setText(emojis[i]); e.setTextColor(SHARK_BLUE); } else e.setText(emojis[i]);
             e.setTextSize(32); e.setGravity(Gravity.CENTER);
             TextView m=new TextView(this); m.setText(mults[i]); m.setTextSize(18); m.setGravity(Gravity.CENTER); m.setTextColor(0xFFFF8C00);
@@ -501,19 +445,14 @@ public class GreedyLionActivity extends AppCompatActivity {
         lionTimerTxt=new TextView(this); lionTimerTxt.setText("30"); lionTimerTxt.setTextSize(22); lionTimerTxt.setGravity(Gravity.CENTER); lionTimerTxt.setTextColor(0xFF8B4513); lionTimerTxt.setBackground(circleStroke(BOOTH_BG,0xFFFFD700,6)); lionTimerTxt.setPadding(16,4,16,4);
         center.addView(lion); center.addView(lionTimerTxt); wheel.addView(center); root.addView(wheel);
 
-        // FIX: Salad = Grapes, Salad, Corn, Strawberry - Pizza choto banner
         LinearLayout extraRow=new LinearLayout(this); extraRow.setOrientation(LinearLayout.HORIZONTAL); extraRow.setGravity(Gravity.CENTER); extraRow.setPadding(16,0,16,0);
-        TextView salad=new TextView(this); salad.setText("🥗 salad - 🍇🥬🌽🍓"); salad.setGravity(Gravity.CENTER); salad.setTextSize(15); salad.setBackground(roundBg(BOOTH_BG,50)); salad.setPadding(20,14,20,14);
-        LinearLayout.LayoutParams saladP=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1.2f); saladP.setMargins(12,0,6,0); salad.setLayoutParams(saladP);
-        TextView pizza=new TextView(this); pizza.setText("🍕"); pizza.setGravity(Gravity.CENTER); pizza.setTextSize(13); pizza.setBackground(roundBg(BOOTH_BG,50)); pizza.setPadding(10,8,10,8);
-        LinearLayout.LayoutParams pizzaP=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,0.5f); pizzaP.setMargins(6,0,12,0); pizza.setLayoutParams(pizzaP);
-        extraRow.addView(salad); extraRow.addView(pizza); root.addView(extraRow);
+        String[] extra={"🥗 salad","🍕 pizza"};
+        for(String ex: extra){ TextView exv=new TextView(this); exv.setText(ex); exv.setGravity(Gravity.CENTER); exv.setTextSize(15); exv.setBackground(roundBg(BOOTH_BG,50)); exv.setPadding(20,14,20,14); LinearLayout.LayoutParams exp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); exp.setMargins(12,0,12,0); exv.setLayoutParams(exp); extraRow.addView(exv); }
+        root.addView(extraRow);
 
-        LinearLayout bottom=new LinearLayout(this); bottom.setOrientation(LinearLayout.VERTICAL); bottom.setBackground(roundBg(0xFFD32F2F,30)); bottom.setPadding(16,8,16,12);
-        // FIX: Niche dhaka pore gesilo - upore tulsi, padding komaisi
-        LinearLayout myRow=new LinearLayout(this); myRow.setOrientation(LinearLayout.HORIZONTAL); myRow.setPadding(0,4,0,6);
+        LinearLayout bottom=new LinearLayout(this); bottom.setOrientation(LinearLayout.VERTICAL); bottom.setBackground(roundBg(0xFFD32F2F,30)); bottom.setPadding(16,12,16,12);
+        LinearLayout myRow=new LinearLayout(this); myRow.setOrientation(LinearLayout.HORIZONTAL); myRow.setPadding(0,6,0,10);
         LinearLayout userBox=new LinearLayout(this); userBox.setOrientation(LinearLayout.HORIZONTAL); userBox.setGravity(Gravity.CENTER_VERTICAL); userBox.setBackground(roundBg(BOOTH_BG,30)); userBox.setPadding(12,8,12,8);
-        myWalletBanner = userBox; // Auto boro-choto hobe
         userPicView=new ImageView(this);
         LinearLayout.LayoutParams picLp=new LinearLayout.LayoutParams(72,72); picLp.setMargins(0,0,8,0); userPicView.setLayoutParams(picLp);
         userPicView.setBackground(circleBg(0xFFFFFFFF)); userPicView.setScaleType(ImageView.ScaleType.CENTER_CROP);
@@ -530,10 +469,10 @@ public class GreedyLionActivity extends AppCompatActivity {
         LinearLayout resRow=new LinearLayout(this); resRow.setOrientation(LinearLayout.HORIZONTAL); resRow.setGravity(Gravity.CENTER_VERTICAL);
         resultTxt=new TextView(this); resultTxt.setText("Result  "); resultTxt.setTextColor(0xFFFFFFFF); resultTxt.setTextSize(14); resRow.addView(resultTxt);
         HorizontalScrollView hs=new HorizontalScrollView(this); resultHistoryLayout=new LinearLayout(this); resultHistoryLayout.setOrientation(LinearLayout.HORIZONTAL); hs.addView(resultHistoryLayout); resRow.addView(hs); bottom.addView(resRow);
-        LinearLayout chips=new LinearLayout(this); chips.setOrientation(LinearLayout.HORIZONTAL); chips.setGravity(Gravity.CENTER); chips.setPadding(0,10,0,0);
+        LinearLayout chips=new LinearLayout(this); chips.setOrientation(LinearLayout.HORIZONTAL); chips.setGravity(Gravity.CENTER); chips.setPadding(0,14,0,0);
         for(int i=0;i<4;i++){ final int idx=i; final int v=chipVals[i]; final String label=chipLabels[i]; TextView b=new TextView(this); b.setText("🪙\n"+label); b.setGravity(Gravity.CENTER); b.setTextSize(16); b.setTextColor(0xFFFFFFFF); b.setBackground(roundBg(PINK,50)); b.setPadding(10,20,10,20); LinearLayout.LayoutParams clp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); clp.setMargins(8,0,8,0); b.setLayoutParams(clp); b.setOnClickListener(vv->{ chip=v; selectedChipIndex=idx; updateChipUI(); }); chipViews[i]=b; chips.addView(b); }
         bottom.addView(chips);
-        LinearLayout lastRow=new LinearLayout(this); lastRow.setOrientation(LinearLayout.HORIZONTAL); lastRow.setGravity(Gravity.CENTER_VERTICAL); lastRow.setPadding(0,8,0,0);
+        LinearLayout lastRow=new LinearLayout(this); lastRow.setOrientation(LinearLayout.HORIZONTAL); lastRow.setGravity(Gravity.CENTER_VERTICAL); lastRow.setPadding(0,12,0,0);
         LinearLayout wallet=new LinearLayout(this); wallet.setOrientation(LinearLayout.HORIZONTAL); wallet.setGravity(Gravity.CENTER_VERTICAL); wallet.setBackground(roundBg(BOOTH_BG,30)); wallet.setPadding(12,8,12,8);
         walletPicView=new ImageView(this);
         LinearLayout.LayoutParams wPicLp=new LinearLayout.LayoutParams(64,64); wPicLp.setMargins(0,0,6,0); walletPicView.setLayoutParams(wPicLp);
@@ -562,21 +501,16 @@ public class GreedyLionActivity extends AppCompatActivity {
         lastRow.addView(wallet); lastRow.addView(earnBox); lastRow.addView(auto); bottom.addView(lastRow);
         statusTxt=new TextView(this); statusTxt.setText("Tap a slot to place Bet - Max 6 slots"); statusTxt.setTextColor(0xFFFFFF00); statusTxt.setGravity(Gravity.CENTER); bottom.addView(statusTxt); root.addView(bottom); return root;
     }
-    // FIX: Max 6 Code - 8 ghorer moddhe 6 tar beshi na - Sobar jonno
-    int countDistinctBets(){
-        int c=0; for(long b: bets) if(b>0) c++; return c;
-    }
+    int countDistinctBets(){ int c=0; for(long b: bets) if(b>0) c++; return c; }
     void placeBet(int idx){
         if(!bettingOpen){ Toast.makeText(this,"Wait for next Round",Toast.LENGTH_SHORT).show(); return; }
         if(balance<chip){ Toast.makeText(this,"Not enough coins",Toast.LENGTH_SHORT).show(); return; }
-        // 6 Code check
         if(bets[idx]==0 && countDistinctBets() >= 6){
             Toast.makeText(this,"Max 6 slots only! 8 tar moddhe 6 tai parba",Toast.LENGTH_SHORT).show(); return;
         }
         bets[idx]+=chip; balance-=chip; myBetThisRound+=chip; lastBetSlot=idx;
-        companyBank += chip; // Harle / Bet company bank e joma - SR Voice
         rankingPoints+=chip/100;
-        saveWallet(); updateUI(); updateGlobalTop();
+        saveWallet(); updateUI();
         rankList.clear(); if(rankingPoints>0) rankList.add(new RankEntry(userName,userId,rankingPoints,0));
     }
     long getTotalBet(){ long t=0; for(long b:bets) t+=b; return t; }
@@ -590,7 +524,6 @@ public class GreedyLionActivity extends AppCompatActivity {
     }
     void finishRound(){
         bettingOpen=false; showDrawing();
-        // GLOBAL - Sobar eki result
         String[] specialArr = new String[1];
         int winner = calcGlobalWinner(round, specialArr);
         String special = specialArr[0];
@@ -606,14 +539,8 @@ public class GreedyLionActivity extends AppCompatActivity {
         handler.postDelayed(()->{
             hideDrawing();
             for(int i=0;i<8;i++){ if(boothViews[i]==null) continue; if(i==fw) boothViews[i].setBackground(roundStroke(0xFFFFD700,0xFFFF0000,10,60)); else boothViews[i].setBackground(roundBg(0xFFDDDDDD,60)); }
-            // WIN: Company Bank theke dibe - LOSE: Already company bank e gese
-            if(fwin>0){
-                balance+=fwin;
-                companyBank -= fwin; if(companyBank<0) companyBank=0;
-                totalToday+=fwin; rankingPoints+=fwin/100;
-            }
-            // else: harle balance e ar kisu jog hobe na - Bet er taka company tei thakbe
-            saveWallet(); updateGlobalTop(); addResult(emojis[fw]);
+            if(fwin>0){ balance+=fwin; totalToday+=fwin; rankingPoints+=fwin/100; }
+            saveWallet(); addResult(emojis[fw]);
             statusTxt.setText("WIN: "+emojis[fw]+" "+names[fw]+" "+fs);
             showResultPopup(fw,fwin,totalBet,fs); if(fwin>0) showWinBanner(fwin);
             for(int i=0;i<8;i++) bets[i]=0; updateUI();
