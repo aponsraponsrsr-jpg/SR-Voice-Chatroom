@@ -7,9 +7,10 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Base64;
 import android.view.View;
 import android.view.ViewGroup;
@@ -39,6 +40,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class HomeActivity extends AppCompatActivity {
     private TextView btnPlus;
@@ -52,9 +55,13 @@ public class HomeActivity extends AppCompatActivity {
     private SwipeRefreshLayout swipeRefresh = null;
     private ValueEventListener activeRoomsListener = null;
     private boolean isRefreshingManual = false;
-    // FIX: isSyncingActive tule dilam - eta kokhono false hoto na, tai sob Room atke jeto
-    // FIX: roomsListenerStarted tule dilam - onResume e abar load hobe
     private Set<String> syncingIds = new HashSet<>();
+
+    // ===== GLOBAL + MOJBUT - Retry + Cache =====
+    private Handler retryHandler = new Handler(Looper.getMainLooper());
+    private int retryCount = 0;
+    private boolean isRetrying = false;
+    private static final String CACHE_KEY = "CACHED_ROOMS_JSON";
 
     private ImageView dialogCreatePhoto = null;
     private String pickedCreatePhotoBase64 = null;
@@ -76,13 +83,9 @@ public class HomeActivity extends AppCompatActivity {
     });
 
     private BroadcastReceiver profileReceiver = new BroadcastReceiver() {
-        @Override public void onReceive(Context context, Intent intent) {
-            // FIX: Listener thakle abar lagabo na, kintu ekbar refresh korbo
-            doManualRefresh();
-        }
+        @Override public void onReceive(Context context, Intent intent) { doManualRefresh(); }
     };
 
-    // FIX: ID ek jaiga theke - MY_9_DIGIT_ID na thakle PROFILE_ID
     private String getMyId(){
         String id = prefs.getString("MY_9_DIGIT_ID", "");
         if(id == null || id.isEmpty()) id = prefs.getString("PROFILE_ID", "");
@@ -103,8 +106,11 @@ public class HomeActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
         prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
+        // FIX: Offline cache ON - Net na thakleo ager Room dekhabe
+        try{ FirebaseDatabase.getInstance().setPersistenceEnabled(true); }catch(Exception ignored){}
         activeRoomsRef = FirebaseDatabase.getInstance().getReference("active_rooms");
         roomsRef = FirebaseDatabase.getInstance().getReference("rooms");
+        try{ activeRoomsRef.keepSynced(true); roomsRef.keepSynced(true); }catch(Exception ignored){}
         btnPlus = findViewById(R.id.btnPlus);
         btnSearchRoom = findViewById(R.id.btnSearchRoom);
         btnCreateRoomTop = findViewById(R.id.btnCreateRoomTop);
@@ -126,6 +132,8 @@ public class HomeActivity extends AppCompatActivity {
                 registerReceiver(profileReceiver, filter);
             }
         } catch (Exception ignored) {}
+        // FIX: Age Cache theke dekhao - khali screen ar asbe na - tarpor Live load
+        loadRoomsCache();
         loadActiveRooms();
         View.OnClickListener createRoomListener = v -> checkAndCreateRoom();
         if (btnPlus != null) btnPlus.setOnClickListener(createRoomListener);
@@ -143,6 +151,53 @@ public class HomeActivity extends AppCompatActivity {
         if (btnInboxTab != null) btnInboxTab.setOnClickListener(v -> { Intent intent = new Intent(HomeActivity.this, InboxActivity.class); startActivity(intent); });
         if (btnMeTab != null) btnMeTab.setOnClickListener(v -> { Intent intent = new Intent(HomeActivity.this, MeActivity.class); startActivity(intent); });
         if (btnMomentTab != null) btnMomentTab.setOnClickListener(v -> Toast.makeText(this, "SR Moments Coming Soon!", Toast.LENGTH_SHORT).show());
+    }
+
+    // ===== CACHE - Fail holeo Room dekhabe =====
+    private void saveRoomsCache(){
+        try{
+            JSONArray arr = new JSONArray();
+            for(RoomModel r: roomModelList){
+                JSONObject o = new JSONObject();
+                o.put("ownerId", r.getRoomOwnerId());
+                o.put("name", r.getRoomName());
+                o.put("bio", r.getRoomBio()!=null?r.getRoomBio():"");
+                o.put("img", r.getRoomImage()!=null?r.getRoomImage():"");
+                arr.put(o);
+            }
+            prefs.edit().putString(CACHE_KEY, arr.toString()).putLong("CACHED_ROOMS_TIME", System.currentTimeMillis()).apply();
+        }catch(Exception ignored){}
+    }
+    private void loadRoomsCache(){
+        try{
+            String json = prefs.getString(CACHE_KEY, "");
+            if(json==null||json.isEmpty()) return;
+            JSONArray arr = new JSONArray(json);
+            if(arr.length()==0) return;
+            roomModelList.clear();
+            for(int i=0;i<arr.length();i++){
+                JSONObject o = arr.getJSONObject(i);
+                roomModelList.add(new RoomModel(o.optString("ownerId"), o.optString("name","Voice Room"), o.optString("bio",""), o.optString("img","")));
+            }
+            if(roomGridAdapter!=null) roomGridAdapter.notifyDataSetChanged();
+        }catch(Exception ignored){}
+    }
+
+    // ===== RETRY - 1 bar fail hole har manbe na =====
+    private void scheduleRetry(){
+        if(isRetrying) return;
+        isRetrying = true;
+        retryCount++;
+        long delay = 3000;
+        if(retryCount==2) delay = 6000;
+        else if(retryCount>=3) delay = 10000;
+        retryHandler.postDelayed(() -> {
+            isRetrying = false;
+            if(retryCount>5){ retryCount=0; return; }
+            // Listener more geche - abar lagao
+            activeRoomsListener = null;
+            loadActiveRooms();
+        }, delay);
     }
 
     private void setupPullToRefresh(){
@@ -163,9 +218,16 @@ public class HomeActivity extends AppCompatActivity {
     private void doManualRefresh(){
         if(swipeRefresh!=null && !swipeRefresh.isRefreshing()) swipeRefresh.setRefreshing(true);
         isRefreshingManual = true;
+        // FIX: Manual refresh e list clear korbo na - Fail hole ager Room thakbe
         activeRoomsRef.addListenerForSingleValueEvent(new ValueEventListener(){
-            @Override public void onDataChange(@NonNull DataSnapshot snapshot){ applyRoomsSnapshot(snapshot); stopRefresh(); }
-            @Override public void onCancelled(@NonNull DatabaseError error){ stopRefresh(); Toast.makeText(HomeActivity.this, "Load failed: "+error.getMessage(), Toast.LENGTH_SHORT).show(); }
+            @Override public void onDataChange(@NonNull DataSnapshot snapshot){ retryCount=0; applyRoomsSnapshot(snapshot); stopRefresh(); }
+            @Override public void onCancelled(@NonNull DatabaseError error){
+                stopRefresh();
+                // FIX: Age "Load failed: Permission denied" Toast dito - ekhon Cache + Retry
+                if(roomModelList.isEmpty()) loadRoomsCache();
+                Toast.makeText(HomeActivity.this, "Retrying... Check internet / Rules", Toast.LENGTH_SHORT).show();
+                scheduleRetry();
+            }
         });
         if(roomGridView!=null) roomGridView.postDelayed(this::stopRefresh, 3000);
     }
@@ -175,30 +237,25 @@ public class HomeActivity extends AppCompatActivity {
     }
     @Override protected void onDestroy() {
         super.onDestroy();
+        try { retryHandler.removeCallbacksAndMessages(null); } catch (Exception ignored) {}
         try { unregisterReceiver(profileReceiver); } catch (Exception ignored) {}
         try { if(activeRoomsRef!=null && activeRoomsListener!=null) activeRoomsRef.removeEventListener(activeRoomsListener); } catch(Exception ignored){}
     }
     @Override protected void onResume(){
         super.onResume();
-        // FIX: Age listener thakle abar lagabo na, kintu jodi listener na thake tahole lagabo
         if(activeRoomsListener == null) loadActiveRooms();
         else doManualRefresh();
     }
 
-    // ===== FIX 1 - Purono Room thakle Active e abar likhe Home e anbe, tarpor Open korbe =====
     private void checkAndCreateRoom() {
         String myId = getMyId();
         if (myId.isEmpty()) {
             Toast.makeText(this, "Profile পাওয়া যায় নাই, আবার Login করো", Toast.LENGTH_LONG).show();
             Intent i = new Intent(this, EditProfileActivity.class); startActivity(i); return;
         }
-        // FIX: Age Active e ache kina dekho - thakle sathe sathe khulo, Meta khujte time nosto koro na
         activeRoomsRef.child(myId).addListenerForSingleValueEvent(new ValueEventListener(){
             @Override public void onDataChange(@NonNull DataSnapshot activeSnap){
-                if(activeSnap.exists()){
-                    openVoiceRoomPermanent(myId);
-                    return;
-                }
+                if(activeSnap.exists()){ openVoiceRoomPermanent(myId); return; }
                 roomsRef.child("room_" + myId).child("meta").addListenerForSingleValueEvent(new ValueEventListener(){
                     @Override public void onDataChange(@NonNull DataSnapshot metaSnap){
                         if(metaSnap.exists()){
@@ -227,9 +284,7 @@ public class HomeActivity extends AppCompatActivity {
                                 }
                                 openVoiceRoomPermanent(myId);
                             });
-                        } else {
-                            showCreateRoomDialog();
-                        }
+                        } else { showCreateRoomDialog(); }
                     }
                     @Override public void onCancelled(@NonNull DatabaseError e){ showCreateRoomDialog(); }
                 });
@@ -286,13 +341,9 @@ public class HomeActivity extends AppCompatActivity {
             String finalRoomName = roomName;
             String finalRoomBio = roomBio;
             String finalUserImage = finalPhoto;
-            // FIX: Age Active check - jodi keu age baniye fele thake
             activeRoomsRef.child(myId).addListenerForSingleValueEvent(new ValueEventListener(){
                 @Override public void onDataChange(@NonNull DataSnapshot actSnap){
-                    if(actSnap.exists()){
-                        openVoiceRoomPermanent(myId);
-                        return;
-                    }
+                    if(actSnap.exists()){ openVoiceRoomPermanent(myId); return; }
                     Map<String,Object> meta = new HashMap<>();
                     meta.put("roomName", finalRoomName);
                     meta.put("roomBio", finalRoomBio);
@@ -319,7 +370,6 @@ public class HomeActivity extends AppCompatActivity {
                     active.put("lastActive", System.currentTimeMillis());
                     active.put("isOnline", true);
                     active.put("memberCount", 1);
-                    // FIX 2 - Age lekha sesh hobe, tarpor Room khulbe + Fail hole Toast
                     roomsRef.child("room_" + myId).child("meta").setValue(meta).addOnCompleteListener(t1 -> {
                         if(!t1.isSuccessful()){
                             Toast.makeText(HomeActivity.this, "Room save failed: "+(t1.getException()!=null?t1.getException().getMessage():"Permission denied"), Toast.LENGTH_LONG).show();
@@ -347,11 +397,16 @@ public class HomeActivity extends AppCompatActivity {
         builder.show();
     }
     private void loadActiveRooms() {
-        // FIX: Listener age thakle abar lagabo na
         if(activeRoomsListener != null) return;
         activeRoomsListener = new ValueEventListener() {
-            @Override public void onDataChange(@NonNull DataSnapshot snapshot) { applyRoomsSnapshot(snapshot); stopRefresh(); }
-            @Override public void onCancelled(@NonNull DatabaseError error) { stopRefresh(); Toast.makeText(HomeActivity.this, "Rooms load failed: "+error.getMessage(), Toast.LENGTH_SHORT).show(); }
+            @Override public void onDataChange(@NonNull DataSnapshot snapshot) { retryCount=0; applyRoomsSnapshot(snapshot); stopRefresh(); }
+            @Override public void onCancelled(@NonNull DatabaseError error) {
+                stopRefresh();
+                // FIX: Listener morleo list clear korbo na + Cache dekhabo + Retry korbo
+                activeRoomsListener = null;
+                if(roomModelList.isEmpty()) loadRoomsCache();
+                scheduleRetry();
+            }
         };
         activeRoomsRef.addValueEventListener(activeRoomsListener);
     }
@@ -376,13 +431,10 @@ public class HomeActivity extends AppCompatActivity {
             }
         }
         if(roomGridAdapter!=null) roomGridAdapter.notifyDataSetChanged();
-        // FIX: Room na thakle adapter ke janao - ager Room theke jabe na
-        if(roomModelList.isEmpty() && roomGridAdapter != null){
-            roomGridAdapter.notifyDataSetChanged();
-        }
+        if(!roomModelList.isEmpty()) saveRoomsCache();
+        if(roomModelList.isEmpty() && roomGridAdapter != null){ roomGridAdapter.notifyDataSetChanged(); }
     }
     private void syncMetaToList(RoomModel rm){
-        // FIX: Ek Room ekbar sync hobe - Set diye, ager isSyncingActive sob atke dito
         String ownerId = rm.getRoomOwnerId();
         if(ownerId==null || ownerId.isEmpty()) return;
         if(syncingIds.contains(ownerId)) return;
@@ -420,9 +472,7 @@ public class HomeActivity extends AppCompatActivity {
                             AlertDialog.Builder roomPopup = new AlertDialog.Builder(HomeActivity.this);
                             roomPopup.setTitle("🌟 Room Found!");
                             roomPopup.setMessage("Room Name: " + rName + "\nBio: " + rBio + "\nOwner ID: " + searchId);
-                            roomPopup.setPositiveButton("Enter Room", (d, w) -> {
-                                openVoiceRoomPermanent(searchId);
-                            });
+                            roomPopup.setPositiveButton("Enter Room", (d, w) -> { openVoiceRoomPermanent(searchId); });
                             roomPopup.setNegativeButton("Cancel", (d, w) -> d.dismiss()); roomPopup.show();
                         } else {
                             roomsRef.child("room_"+searchId).child("meta").addListenerForSingleValueEvent(new ValueEventListener(){
