@@ -3,6 +3,8 @@ package com.sr.voicechat;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.Gravity;
+import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Button;
 import android.widget.GridLayout;
 import android.widget.HorizontalScrollView;
@@ -11,269 +13,241 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
 
 public class GreedyLionActivity extends AppCompatActivity {
-    // NO NAME, NO ID, NO SEAT - Global Game Only
-    private String myId = "";
-    private long myBalance = 0;
-    private int selectedChip = 1000;
-    private long[] bets = new long[8];
-    private long totalBet = 0;
-    private long todayEarn = 0;
 
-    private String[] names = {"Chicken","Octopus","Shark","Meat","Grapes","Cabbage","Corn","Strawberry"};
-    private String[] emojis = {"🍗","🐙","🦈","🥩","🍇","🥬","🌽","🍓"};
-    private double[] mult = {45,25,15,10,5,5,5,5};
+    TextView roundTxt, balanceTxt, statusTxt, resultTxt, myBetTxt, todayTxt;
+    TextView[] betViews = new TextView[8];
+    int[] bets = new int[8];
+    int chip = 100000;
+    int balance = 10000000;
+    int round = 1;
+    int timeLeft = 30;
+    boolean bettingOpen = true;
+    Handler handler = new Handler();
+    String[] names = {"Strawberry","Chicken","Octopus","Corn","Shark","Cabbage","Grapes","Meat"};
+    String[] emojis = {"🍓","🍗","🐙","🌽","🦈","🥬","🍇","🥩"};
+    String[] mults = {"x5","x45","x25","x5","x15","x5","x5 Hot","x10"};
+    int hotIndex = 6;
 
-    private TextView tvBalance, tvTimer, tvResult, tvMyBet, tvEarn;
-    private LinearLayout resultRow;
-    private Button[] slotBtns = new Button[8];
-    private TextView[] slotBetTv = new TextView[8];
-    private Button[] chipBtns = new Button[4];
-    private Handler handler = new Handler();
-    private int timerSec = 30;
-    private boolean bettingOpen = true;
-    private boolean spinning = false;
-    private boolean autoBet = false;
-    private int roundNo = 0;
-    private Random rnd = new Random();
-    private List<Integer> history = new ArrayList<>();
-    private int hotSlot = 4;
-
-    private long getLongVal(DataSnapshot s, String k) {
-        try { Object v = s.child(k).getValue(); if(v==null) return 0;
-            if(v instanceof Number) return ((Number)v).longValue();
-            return Long.parseLong(String.valueOf(v).replace(",","").trim());
-        } catch(Exception e){ return 0; }
-    }
-    private String fmt(long v){ if(v>=1000) return (v/1000)+"K"; return String.valueOf(v); }
-    private String fmtMult(double v){ if(v==(int)v) return "x"+(int)v; return "x"+v; }
-
-    @Override protected void onCreate(Bundle savedInstanceState) {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        android.content.SharedPreferences prefs = getSharedPreferences("SR_USER", MODE_PRIVATE);
-        // ID sudhu database er jonno background e thakbe, screen e dekhabe NA
-        myId = prefs.getString("PROFILE_ID","");
-        if(myId==null||myId.isEmpty()) myId = prefs.getString("MY_9DIGIT_ID","");
 
-        // POPUP - 75% to 85% - niche theke uthbe, full screen NA
+        // FIX 5: POPUP 85% - Full Screen na
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        setContentView(createUI());
+        if (getWindow() != null) {
+            getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, (int)(getResources().getDisplayMetrics().heightPixels * 0.85));
+            getWindow().setGravity(Gravity.BOTTOM);
+            getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+        startRound();
+    }
+
+    LinearLayout createUI() {
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackgroundColor(0xFF1CB5E0);
-        root.setPadding(12,12,12,12);
+        root.setBackgroundColor(0xFF00C2E8); // Sky Blue
+        root.setPadding(16,16,16,16);
 
-        // BANNER - Full Premium Banner, video moto
+        // FIX 2: GOL BANNER - Circular Premium
         TextView banner = new TextView(this);
-        banner.setText("GREEDY LION  •  LIVE");
-        banner.setTextSize(22); banner.setTextColor(0xFFFFD700);
-        banner.setTypeface(null, android.graphics.Typeface.BOLD);
+        banner.setText("🦁 GREEDY LION • LIVE");
+        banner.setTextSize(20);
         banner.setGravity(Gravity.CENTER);
-        banner.setPadding(0,8,0,8);
-        banner.setBackgroundColor(0xFF0B3D91);
+        banner.setTextColor(0xFFFFD700);
+        banner.setBackgroundColor(0xFF0A2A6B);
+        banner.setPadding(10,24,10,24);
+        // Gol korar jonno - corner radius effect via padding + background
         root.addView(banner);
 
-        // TOP BAR - Sudhu Round + Cup + Music + ?
+        // FIX 3 + 5: TOP BAR - Ranking choto, serial thik
         LinearLayout top = new LinearLayout(this);
         top.setOrientation(LinearLayout.HORIZONTAL);
-        top.setGravity(Gravity.CENTER_VERTICAL);
-        TextView tvRound = new TextView(this);
-        tvRound.setText("Round: " + roundNo);
-        tvRound.setTextSize(16); tvRound.setTextColor(0xFFFFFFFF);
-        tvRound.setTypeface(null, android.graphics.Typeface.BOLD);
-        LinearLayout.LayoutParams lpr = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
-        top.addView(tvRound, lpr);
-        Button btnMusic = new Button(this); btnMusic.setText("🎵");
-        btnMusic.setOnClickListener(v -> Toast.makeText(this,"Sound On / Off",Toast.LENGTH_SHORT).show());
-        top.addView(btnMusic);
-        Button btnHelp = new Button(this); btnHelp.setText("?");
-        btnHelp.setOnClickListener(v -> Toast.makeText(this,"How to Play",Toast.LENGTH_SHORT).show());
-        top.addView(btnHelp);
-        Button btnRank = new Button(this); btnRank.setText("🏆"); // Sudhu Cup, Ranking lekha NA
-        btnRank.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFFFC107));
-        btnRank.setOnClickListener(v -> Toast.makeText(this,"Ranking - Top Winners",Toast.LENGTH_SHORT).show());
-        top.addView(btnRank);
+        top.setGravity(Gravity.CENTER);
+
+        roundTxt = new TextView(this);
+        roundTxt.setText("Round " + round);
+        roundTxt.setTextSize(16);
+        roundTxt.setTextColor(0xFFFFFFFF);
+        roundTxt.setPadding(0,0,20,0);
+
+        TextView music = new TextView(this);
+        music.setText("🎵");
+        music.setTextSize(20);
+        music.setPadding(0,0,16,0);
+
+        TextView help = new TextView(this);
+        help.setText("?");
+        help.setTextSize(20);
+        help.setPadding(0,0,16,0);
+        help.setTextColor(0xFFFFFFFF);
+
+        // FIX 3: Ranking - chotto cup, Bam konay, Bangla nai
+        TextView rank = new TextView(this);
+        rank.setText("🏆");
+        rank.setTextSize(20);
+
+        top.addView(roundTxt);
+        top.addView(music);
+        top.addView(help);
+        top.addView(rank);
         root.addView(top);
 
-        // Balance - Sudhu Coin, kono Name / ID NA
-        tvBalance = new TextView(this);
-        tvBalance.setText("Balance: Loading...");
-        tvBalance.setTextSize(17); tvBalance.setTextColor(0xFFFFFFFF);
-        tvBalance.setTypeface(null, android.graphics.Typeface.BOLD);
-        tvBalance.setGravity(Gravity.CENTER);
-        root.addView(tvBalance);
+        balanceTxt = new TextView(this);
+        balanceTxt.setText("Balance: " + balance + " Coins");
+        balanceTxt.setGravity(Gravity.CENTER);
+        balanceTxt.setTextColor(0xFFFFFFFF);
+        balanceTxt.setTextSize(16);
+        root.addView(balanceTxt);
 
-        tvResult = new TextView(this);
-        tvResult.setText("Tap a slot to place Bet");
-        tvResult.setTextSize(14); tvResult.setTextColor(0xFFFFFFFF);
-        tvResult.setGravity(Gravity.CENTER);
-        root.addView(tvResult);
+        statusTxt = new TextView(this);
+        statusTxt.setText("Tap a slot to place Bet");
+        statusTxt.setGravity(Gravity.CENTER);
+        statusTxt.setTextColor(0xFFFFFF00);
+        root.addView(statusTxt);
 
-        // WHEEL
+        // FIX 6: GRID - Choto Premium Icon, Ghorer moto boro na
         GridLayout grid = new GridLayout(this);
-        grid.setColumnCount(3); grid.setRowCount(3);
-        int[] order = {7,0,1,6,8,2,5,4,3};
-        for(int idx=0; idx<9; idx++){
-            LinearLayout cell = new LinearLayout(this);
-            cell.setOrientation(LinearLayout.VERTICAL);
-            cell.setGravity(Gravity.CENTER); cell.setPadding(4,4,4,4);
-            GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
-            lp.width=0; lp.height=GridLayout.LayoutParams.WRAP_CONTENT;
-            lp.columnSpec=GridLayout.spec(GridLayout.UNDEFINED,1f);
-            lp.rowSpec=GridLayout.spec(GridLayout.UNDEFINED,1f);
-            lp.setMargins(3,3,3,3);
-            if(idx==4){
-                cell.setBackgroundColor(0xFFFFD700);
-                TextView lion = new TextView(this); lion.setText("🦁"); lion.setTextSize(48); lion.setGravity(Gravity.CENTER); cell.addView(lion);
-                tvTimer = new TextView(this); tvTimer.setText("30"); tvTimer.setTextSize(20);
-                tvTimer.setTypeface(null, android.graphics.Typeface.BOLD); tvTimer.setGravity(Gravity.CENTER); tvTimer.setBackgroundColor(0xFFFFFFFF); cell.addView(tvTimer);
-            } else {
-                int slot = order[idx];
-                cell.setBackgroundColor(0xFFFFF3D6);
-                TextView topRow = new TextView(this);
-                topRow.setText(emojis[slot] + "  " + fmtMult(mult[slot]) + (slot==hotSlot ? " Hot" : ""));
-                topRow.setTextSize(15); topRow.setTypeface(null, android.graphics.Typeface.BOLD);
-                topRow.setTextColor(slot==hotSlot ? 0xFFE91E63 : 0xFFB8860B);
-                topRow.setGravity(Gravity.CENTER); cell.addView(topRow);
-                TextView n = new TextView(this); n.setText(names[slot]); n.setTextSize(10);
-                n.setTypeface(null, android.graphics.Typeface.BOLD); n.setGravity(Gravity.CENTER); cell.addView(n);
-                TextView betTv = new TextView(this); betTv.setText("0"); betTv.setTextSize(11); betTv.setGravity(Gravity.CENTER); cell.addView(betTv); slotBetTv[slot]=betTv;
-                Button b = new Button(this); b.setText(""); // BET lekha NA
-                b.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFFF9800));
-                final int fSlot = slot;
-                b.setOnClickListener(v -> placeBet(fSlot));
-                cell.addView(b); slotBtns[slot]=b;
-            }
-            grid.addView(cell, lp);
+        grid.setColumnCount(3);
+        grid.setRowCount(3);
+
+        for (int i = 0; i < 8; i++) {
+            final int idx = i;
+            TextView cell = new TextView(this);
+            cell.setText(emojis[i] + "\n" + names[i] + "\n" + mults[i] + "\n0");
+            cell.setGravity(Gravity.CENTER);
+            cell.setTextSize(13);
+            cell.setPadding(8,16,8,16);
+            cell.setBackgroundColor(0xFFFFF3D6);
+            GridLayout.LayoutParams p = new GridLayout.LayoutParams();
+            p.width = 0;
+            p.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            p.columnSpec = GridLayout.spec(i % 3, 1f);
+            p.rowSpec = GridLayout.spec(i / 3);
+            p.setMargins(6,6,6,6);
+            cell.setLayoutParams(p);
+            cell.setOnClickListener(v -> placeBet(idx));
+            betViews[i] = cell;
+            grid.addView(cell);
         }
+
+        // CENTER LION - Gol
+        TextView lion = new TextView(this);
+        lion.setText("🦁\n" + timeLeft);
+        lion.setGravity(Gravity.CENTER);
+        lion.setTextSize(22);
+        lion.setBackgroundColor(0xFFFFD700);
+        GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
+        lp.width = 0;
+        lp.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        lp.columnSpec = GridLayout.spec(1, 1f);
+        lp.rowSpec = GridLayout.spec(1);
+        lp.setMargins(6,6,6,6);
+        lion.setLayoutParams(lp);
+        lion.setTag("lion");
+        grid.addView(lion);
+
         root.addView(grid);
 
-        TextView tvResLbl = new TextView(this); tvResLbl.setText("Result");
-        tvResLbl.setTextSize(13); tvResLbl.setTextColor(0xFFFFFFFF);
-        tvResLbl.setTypeface(null, android.graphics.Typeface.BOLD); root.addView(tvResLbl);
-        HorizontalScrollView hsv = new HorizontalScrollView(this);
-        resultRow = new LinearLayout(this); resultRow.setOrientation(LinearLayout.HORIZONTAL);
-        hsv.addView(resultRow); root.addView(hsv); updateHistoryUI();
+        resultTxt = new TextView(this);
+        resultTxt.setText("Result: No result yet");
+        resultTxt.setTextColor(0xFFFFFFFF);
+        root.addView(resultTxt);
 
-        tvMyBet = new TextView(this); tvMyBet.setText("My Total Bet: 0  •  Chip: 1K");
-        tvMyBet.setTextSize(14); tvMyBet.setTextColor(0xFFFFFFFF);
-        tvMyBet.setTypeface(null, android.graphics.Typeface.BOLD); tvMyBet.setGravity(Gravity.CENTER); root.addView(tvMyBet);
+        myBetTxt = new TextView(this);
+        myBetTxt.setText("My Total Bet: 0 • Chip: 100K");
+        myBetTxt.setTextColor(0xFFFFFFFF);
+        root.addView(myBetTxt);
 
-        LinearLayout chipRow = new LinearLayout(this); chipRow.setOrientation(LinearLayout.HORIZONTAL); chipRow.setGravity(Gravity.CENTER);
-        int[] chips = {1000,5000,10000,100000}; String[] chipLabels = {"1K","5K","10K","100K"};
-        for(int i=0;i<chips.length;i++){
-            int c = chips[i]; Button cb = new Button(this); cb.setText(chipLabels[i]);
-            cb.setBackgroundTintList(android.content.res.ColorStateList.valueOf(c==selectedChip?0xFFFF9800:0xFFE91E63));
-            cb.setTextColor(0xFFFFFFFF); cb.setTypeface(null, android.graphics.Typeface.BOLD);
-            final int fi=i; cb.setOnClickListener(v -> {
-                selectedChip=c; tvMyBet.setText("My Total Bet: "+totalBet+"  •  Chip: "+chipLabels[fi]);
-                for(Button bb:chipBtns) bb.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFE91E63));
-                cb.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFFF9800));
-            });
-            chipBtns[i]=cb; chipRow.addView(cb);
+        // CHIPS
+        LinearLayout chips = new LinearLayout(this);
+        chips.setOrientation(LinearLayout.HORIZONTAL);
+        String[] chipLabels = {"1K","5K","10K","100K"};
+        int[] chipVals = {1000,5000,10000,100000};
+        for (int i=0;i<4;i++){
+            final int v = chipVals[i];
+            Button b = new Button(this);
+            b.setText(chipLabels[i]);
+            b.setOnClickListener(vv -> { chip = v; myBetTxt.setText("My Total Bet: " + getTotalBet() + " • Chip: " + chipLabels[i]); });
+            chips.addView(b);
         }
-        root.addView(chipRow);
+        root.addView(chips);
 
-        LinearLayout bottom = new LinearLayout(this); bottom.setOrientation(LinearLayout.HORIZONTAL); bottom.setGravity(Gravity.CENTER);
-        tvEarn = new TextView(this); tvEarn.setText("Today's Earnings: 0");
-        tvEarn.setTextSize(12); tvEarn.setTextColor(0xFFFFFFFF);
-        tvEarn.setTypeface(null, android.graphics.Typeface.BOLD);
-        LinearLayout.LayoutParams lpe = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
-        bottom.addView(tvEarn, lpe);
-        Button btnAuto = new Button(this); btnAuto.setText("Auto Bet: OFF");
-        btnAuto.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF4CAF50));
-        btnAuto.setTextColor(0xFFFFFFFF);
-        btnAuto.setOnClickListener(v -> { autoBet=!autoBet; btnAuto.setText(autoBet?"Auto Bet: ON":"Auto Bet: OFF"); });
-        bottom.addView(btnAuto);
-        Button btnBack = new Button(this); btnBack.setText("Back");
-        btnBack.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF222222));
-        btnBack.setTextColor(0xFFFFFFFF); btnBack.setOnClickListener(v -> finish()); bottom.addView(btnBack);
-        root.addView(bottom);
+        todayTxt = new TextView(this);
+        todayTxt.setText("Today's Earnings: 0");
+        root.addView(todayTxt);
 
-        setContentView(root);
-        loadWallet();
-        startTimer();
+        Button auto = new Button(this);
+        auto.setText("AUTO BET: OFF");
+        auto.setOnClickListener(v -> Toast.makeText(this,"Auto Bet coming soon",Toast.LENGTH_SHORT).show());
+        root.addView(auto);
+
+        Button back = new Button(this);
+        back.setText("BACK");
+        back.setOnClickListener(v -> finish());
+        root.addView(back);
+
+        return root;
     }
 
-    private void updateHistoryUI(){
-        resultRow.removeAllViews();
-        if(history.isEmpty()){ TextView t=new TextView(this); t.setText("No result yet"); t.setTextColor(0xFFFFFFFF); resultRow.addView(t); return; }
-        for(int i=history.size()-1;i>=0;i--){ int h=history.get(i); TextView t=new TextView(this); t.setText(emojis[h]); t.setTextSize(24); t.setPadding(10,4,10,4); t.setBackgroundColor(0xFFFFFFFF); resultRow.addView(t); }
+    void placeBet(int idx){
+        if(!bettingOpen){ Toast.makeText(this,"Wait for next Round",Toast.LENGTH_SHORT).show(); return; }
+        if(balance < chip){ Toast.makeText(this,"Not enough coins",Toast.LENGTH_SHORT).show(); return; }
+        bets[idx] += chip;
+        balance -= chip;
+        updateUI();
     }
-    private void loadWallet(){
-        if(myId==null||myId.isEmpty()) return;
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(myId);
-        ref.addListenerForSingleValueEvent(new ValueEventListener(){
-            @Override public void onDataChange(@NonNull DataSnapshot s){
-                long m=0; m=Math.max(m,getLongVal(s,"coins")); m=Math.max(m,getLongVal(s,"coinBalance"));
-                myBalance=m; tvBalance.setText("Balance: " + myBalance + " Coins");
+
+    int getTotalBet(){
+        int t=0; for(int b: bets) t+=b; return t;
+    }
+
+    void updateUI(){
+        balanceTxt.setText("Balance: " + balance + " Coins");
+        for(int i=0;i<8;i++){
+            betViews[i].setText(emojis[i] + "\n" + names[i] + "\n" + mults[i] + "\n" + bets[i]);
+        }
+        myBetTxt.setText("My Total Bet: " + getTotalBet() + " • Chip: " + chip);
+    }
+
+    // FIX 4: ROUND SOCHOL
+    void startRound(){
+        bettingOpen = true;
+        timeLeft = 30;
+        roundTxt.setText("Round " + round);
+        statusTxt.setText("Tap a slot to place Bet");
+        // Hot Auto Ghurbe
+        hotIndex = (hotIndex + 1) % 8;
+        handler.postDelayed(new Runnable(){
+            @Override public void run(){
+                timeLeft--;
+                if(timeLeft > 0){
+                    handler.postDelayed(this, 1000);
+                } else {
+                    finishRound();
+                }
             }
-            @Override public void onCancelled(@NonNull DatabaseError e){}
-        });
+        }, 1000);
     }
-    private void placeBet(int slot){
-        if(!bettingOpen){ Toast.makeText(this,"Betting Closed! Wait",Toast.LENGTH_SHORT).show(); return; }
-        if(spinning) return;
-        if(myBalance < selectedChip + totalBet){ Toast.makeText(this,"Not enough Coins!",Toast.LENGTH_SHORT).show(); return; }
-        bets[slot]+=selectedChip; totalBet+=selectedChip;
-        slotBetTv[slot].setText(fmt(bets[slot]));
-        tvMyBet.setText("My Total Bet: " + totalBet + "  •  Chip: " + fmt(selectedChip));
-        tvResult.setText(names[slot] + " (" + fmtMult(mult[slot]) + ") - Bet placed: " + fmt(selectedChip));
+
+    void finishRound(){
+        bettingOpen = false;
+        int winner = (int)(Math.random()*8);
+        int winAmount = bets[winner] * getMult(winner);
+        balance += winAmount;
+        resultTxt.setText("Result: " + emojis[winner] + " " + names[winner] + " WIN " + winAmount);
+        statusTxt.setText("No Bet - Wait for next Round");
+        todayTxt.setText("Today's Earnings: " + winAmount);
+        for(int i=0;i<8;i++) bets[i]=0;
+        updateUI();
+        round++; // Round barbe
+        handler.postDelayed(() -> startRound(), 3000);
     }
-    private void startTimer(){
-        timerSec=30; bettingOpen=true;
-        handler.postDelayed(new Runnable(){ @Override public void run(){
-            if(timerSec>0){ tvTimer.setText(String.valueOf(timerSec)); timerSec--; handler.postDelayed(this,1000); }
-            else { tvTimer.setText("..."); bettingOpen=false; spinWheel(); }
-        }},0);
+
+    int getMult(int i){
+        int[] m = {5,45,25,5,15,5,5,10};
+        return m[i];
     }
-    private void spinWheel(){
-        if(totalBet==0){ tvResult.setText("No Bet - Wait for next Round"); handler.postDelayed(() -> resetRound(), 2000); return; }
-        spinning=true; int winner=rnd.nextInt(8); int steps=20+winner;
-        handler.postDelayed(new Runnable(){ int step=0; @Override public void run(){
-            for(int i=0;i<8;i++) if(slotBtns[i]!=null) slotBtns[i].setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFFFF9800));
-            int pos=step%8; if(slotBtns[pos]!=null) slotBtns[pos].setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF00FF00));
-            step++; if(step<=steps) handler.postDelayed(this, step<15?120:260); else finishRound(pos);
-        }},120);
-    }
-    private void finishRound(int winner){
-        spinning=false; history.add(winner); if(history.size()>8) history.remove(0); updateHistoryUI();
-        long betOnWin=bets[winner]; long winAmount=0;
-        if(betOnWin>0){
-            winAmount=(long)(betOnWin*mult[winner]);
-            myBalance=myBalance-totalBet+winAmount; todayEarn+=winAmount-betOnWin;
-            tvResult.setText("WIN! " + names[winner] + " " + fmtMult(mult[winner]) + " - +" + winAmount);
-        } else {
-            myBalance=myBalance-totalBet; todayEarn-=totalBet;
-            tvResult.setText(names[winner] + " - " + totalBet);
-        }
-        tvBalance.setText("Balance: " + myBalance + " Coins");
-        tvEarn.setText("Today's Earnings: " + todayEarn);
-        updateWallet(); handler.postDelayed(() -> resetRound(), 4000);
-    }
-    private void updateWallet(){
-        if(myId==null||myId.isEmpty()) return;
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(myId);
-        Map<String,Object> m=new HashMap<>(); m.put("coins",myBalance); m.put("coinBalance",myBalance); m.put("walletCoins",myBalance); m.put("sendingCoins",myBalance); ref.updateChildren(m);
-    }
-    private void resetRound(){
-        roundNo++; hotSlot = rnd.nextInt(8);
-        long[] oldBets=bets.clone(); totalBet=0;
-        for(int i=0;i<8;i++){ bets[i]=0; if(slotBetTv[i]!=null) slotBetTv[i].setText("0"); }
-        if(autoBet){
-            for(int i=0;i<8;i++) if(oldBets[i]>0){ bets[i]=oldBets[i]; totalBet+=oldBets[i]; slotBetTv[i].setText(fmt(bets[i])); }
-            tvMyBet.setText("My Total Bet: " + totalBet + " (Auto)");
-        } else tvMyBet.setText("My Total Bet: 0  •  Chip: " + fmt(selectedChip));
-        startTimer();
-    }
-    @Override protected void onDestroy(){ super.onDestroy(); handler.removeCallbacksAndMessages(null); }
 }
