@@ -1,9 +1,12 @@
 package com.sr.voicechat;
 
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Base64;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,11 +14,13 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.bumptech.glide.Glide;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -33,14 +38,17 @@ public class GreedyLionActivity extends AppCompatActivity {
     LinearLayout resultHistoryLayout;
     long[] bets = new long[8];
 
-    // Bet suru 5K theke - 5K, 10K, 100K, 500K - 1K nai
+    // Bet - 5K, 10K, 100K, 500K - 1K nai - Default 5K
     int[] chipVals = {5000,10000,100000,500000};
     String[] chipLabels = {"5K","10K","100K","500K"};
     int chip = 5000; int selectedChipIndex = 0;
 
-    // ===== MINE WALLET = GAME WALLET - EKTAI - long - 50 Crore dhorbe =====
+    // ===== MINE WALLET = GAME WALLET - EKTAI =====
     long balance = 0; long myBetThisRound = 0; long rankingPoints = 0; long totalToday = 0;
-    String userName = "Guest"; String userId = ""; String userPic = "👤";
+    String userName = "Guest"; String userId = "";
+    // FIX: userPic ar TextView na - eta Photo URL / Base64 - ImageView e jabe
+    String userPhoto = "";
+    ImageView userPicView, walletPicView;
     int round = 1; int timeLeft = 30; boolean bettingOpen = true;
     int lightIndex = 0; boolean lightRunning = true; boolean isDrawing = false;
     Handler handler = new Handler(); Handler lightHandler = new Handler();
@@ -49,9 +57,8 @@ public class GreedyLionActivity extends AppCompatActivity {
     ArrayList<String> resultHistory = new ArrayList<>();
     ArrayList<HistoryItem> myHistory = new ArrayList<>();
     boolean autoBetOn = false;
-    int lastBetSlot = -1; // Auto Bet er jonno mone rakhbe
+    int lastBetSlot = -1;
 
-    // ===== RANKING - SUDHU ASOL PLAYER - DEMO NAM NAI =====
     static class RankEntry { String name; long points; long reward; RankEntry(String n,long p,long r){name=n;points=p;reward=r;} }
     ArrayList<RankEntry> rankList = new ArrayList<>();
     String rankMode = "Daily"; String rankSub = "Today";
@@ -65,7 +72,6 @@ public class GreedyLionActivity extends AppCompatActivity {
         HistoryItem(String d,int r,String w,long amt){ date=d; round=r; winEmoji=w; winAmount=amt; }
     }
 
-    // FIX: Cabbage na - Salad hobe - Demo photo moto
     String[] names = {"Chicken","Octopus","Shark","Meat","Grapes","Salad","Corn","Strawberry"};
     String[] emojis = {"🍗","🐙","🦈","🥩","🍇","🥬","🌽","🍓"};
     String[] mults = {"x45","x25","x15","x10","x5","x5","x5","x5"};
@@ -80,20 +86,14 @@ public class GreedyLionActivity extends AppCompatActivity {
     GradientDrawable circleStroke(int c,int sc,int sw){ GradientDrawable d=new GradientDrawable(); d.setShape(GradientDrawable.OVAL); d.setColor(c); d.setStroke(sw,sc); return d; }
     String fmt(long v){ return String.format(Locale.US,"%,d",v); }
 
-    // ===== GLOBAL ROUND - Saudi 19:00 = BD 22:00 te Round 1 =====
-    // Proti Round 35 sec: 30s Bet + 2s Drawing + 3s Result
     int calcGlobalRound(){
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Riyadh"));
         int hour = cal.get(Calendar.HOUR_OF_DAY);
         int minute = cal.get(Calendar.MINUTE);
         int sec = cal.get(Calendar.SECOND);
         int secondsSince7pm;
-        if(hour >= 19){
-            secondsSince7pm = (hour-19)*3600 + minute*60 + sec;
-        } else {
-            // Rat 12 tar por - ager din 19:00 theke hisab
-            secondsSince7pm = (hour+5)*3600 + minute*60 + sec;
-        }
+        if(hour >= 19){ secondsSince7pm = (hour-19)*3600 + minute*60 + sec; }
+        else { secondsSince7pm = (hour+5)*3600 + minute*60 + sec; }
         return (secondsSince7pm / 35) + 1;
     }
     int calcTimeLeftInRound(){
@@ -109,39 +109,88 @@ public class GreedyLionActivity extends AppCompatActivity {
         return 30;
     }
 
-    // ===== MINE WALLET LOAD - main_wallet =====
+    // ===== FIX: PROFILE = SR_USER (Main App) THEKE - NAME + ID + PHOTO =====
     void loadWallet(){
-        SharedPreferences p = getSharedPreferences("main_wallet", MODE_PRIVATE);
+        SharedPreferences main = getSharedPreferences("main_wallet", MODE_PRIVATE);
+        SharedPreferences sr = getSharedPreferences("SR_USER", MODE_PRIVATE);
+
+        // 1. Intent theke asle Intent ke priority dao
         if(getIntent()!=null){
             if(getIntent().hasExtra("user_name")) userName = getIntent().getStringExtra("user_name");
             if(getIntent().hasExtra("user_id")) userId = getIntent().getStringExtra("user_id");
-            if(getIntent().hasExtra("user_pic")) userPic = getIntent().getStringExtra("user_pic");
+            if(getIntent().hasExtra("user_pic")) userPhoto = getIntent().getStringExtra("user_pic");
+            if(getIntent().hasExtra("user_photo")) userPhoto = getIntent().getStringExtra("user_photo");
             if(getIntent().hasExtra("wallet_coins")) balance = getIntent().getLongExtra("wallet_coins",0);
         }
+        // 2. Intent e na thakle - SR_USER (Main App er Profile) theke nao - Eitai asol
         if(userName==null || userName.equals("Guest") || userName.isEmpty()){
-            userName = p.getString("user_name","Guest");
-            userId = p.getString("user_id","");
-            userPic = p.getString("user_pic","👤");
+            String n = sr.getString("USER_NAME", "");
+            if(n==null||n.isEmpty()) n = sr.getString("PROFILE_NAME", "");
+            if(n!=null && !n.isEmpty()) userName = n;
+            else userName = main.getString("user_name","Guest");
         }
-        if(!getIntent().hasExtra("wallet_coins")) balance = p.getLong("wallet_coins",0);
-        rankingPoints = p.getLong("ranking_points",0);
-        totalToday = p.getLong("total_today",0);
-        // FIX: last_round save kora lagbe na - Global Round hisab hobe
+        if(userId==null || userId.isEmpty()){
+            String id = sr.getString("MY_9_DIGIT_ID", "");
+            if(id==null||id.isEmpty()) id = sr.getString("PROFILE_ID", "");
+            if(id==null||id.isEmpty()) id = main.getString("user_id","");
+            userId = id!=null?id:"";
+        }
+        if(userPhoto==null || userPhoto.isEmpty() || userPhoto.equals("👤")){
+            String ph = sr.getString("USER_PHOTO", "");
+            if(ph==null||ph.isEmpty()) ph = sr.getString("PROFILE_PHOTO", "");
+            if(ph==null||ph.isEmpty()) ph = sr.getString("USER_IMAGE", "");
+            if(ph==null||ph.isEmpty()) ph = main.getString("user_pic","");
+            // FIX: Jodi purono code emoji save kore rakhe, oita photo na
+            if(ph!=null && (ph.equals("👤")||ph.length()<5)) ph = "";
+            userPhoto = ph!=null?ph:"";
+        }
+        // 3. Coins - SR_USER e thakle oita, na thakle main_wallet
+        if(!getIntent().hasExtra("wallet_coins")){
+            if(sr.contains("wallet_coins")) balance = sr.getLong("wallet_coins",0);
+            else if(sr.contains("USER_COINS")) balance = sr.getLong("USER_COINS",0);
+            else balance = main.getLong("wallet_coins",0);
+        }
+        rankingPoints = main.getLong("ranking_points",0);
+        totalToday = main.getLong("total_today",0);
         round = calcGlobalRound();
         rankList.clear();
         if(rankingPoints>0) rankList.add(new RankEntry(userName, rankingPoints, 0));
     }
     void saveWallet(){
-        getSharedPreferences("main_wallet",MODE_PRIVATE).edit().putLong("wallet_coins",balance).putString("user_name",userName).putString("user_id",userId).putString("user_pic",userPic).putLong("ranking_points",rankingPoints).putLong("total_today",totalToday).putInt("last_round",round).apply();
+        // FIX: Dui jaigatei save - Main App + Game - Wallet ek thakbe
+        getSharedPreferences("main_wallet",MODE_PRIVATE).edit().putLong("wallet_coins",balance).putString("user_name",userName).putString("user_id",userId).putString("user_pic",userPhoto).putLong("ranking_points",rankingPoints).putLong("total_today",totalToday).putInt("last_round",round).apply();
+        getSharedPreferences("SR_USER",MODE_PRIVATE).edit().putLong("wallet_coins",balance).putLong("USER_COINS",balance).putString("USER_NAME",userName).apply();
         updateWalletUI();
+    }
+    // FIX: Photo kokhono TextView e jabe na - sudhu ImageView e
+    void setProfileImage(ImageView iv){
+        if(iv==null) return;
+        try{
+            if(userPhoto!=null && !userPhoto.isEmpty() && !userPhoto.equals("👤")){
+                if(userPhoto.startsWith("http")){
+                    Glide.with(this).load(userPhoto).circleCrop().into(iv);
+                } else {
+                    // Base64
+                    byte[] b = Base64.decode(userPhoto, Base64.DEFAULT);
+                    Bitmap bmp = BitmapFactory.decodeByteArray(b,0,b.length);
+                    if(bmp!=null){ iv.setImageBitmap(bmp); return; }
+                    Glide.with(this).load(b).circleCrop().into(iv);
+                }
+            } else {
+                iv.setImageResource(R.mipmap.ic_launcher);
+            }
+        }catch(Exception e){ iv.setImageResource(R.mipmap.ic_launcher); }
     }
     void updateWalletUI(){
         if(walletNameTxt!=null) walletNameTxt.setText(userName);
         if(balanceTxt!=null) balanceTxt.setText(fmt(balance));
         if(userBetNameTxt!=null) userBetNameTxt.setText(userName);
-        if(userBetCoinsTxt!=null) userBetCoinsTxt.setText("🪙 "+fmt(myBetThisRound));
+        // FIX: Uporer card e My Bet dekhabe, Wallet e Total Balance dekhabe - 2ta alada
+        if(userBetCoinsTxt!=null) userBetCoinsTxt.setText("🪙 "+fmt(balance));
         if(userBetTotalTxt!=null) userBetTotalTxt.setText("My Bet: "+fmt(myBetThisRound));
         if(todayTxt!=null) todayTxt.setText("🪙 "+fmt(totalToday));
+        setProfileImage(userPicView);
+        setProfileImage(walletPicView);
     }
     @Override protected void onResume(){ super.onResume(); loadWallet(); updateWalletUI(); }
 
@@ -182,7 +231,6 @@ public class GreedyLionActivity extends AppCompatActivity {
     void stopLight(){ lightRunning = false; }
     void resumeLight(){ lightRunning = true; }
 
-    // ===== SETTLEMENT - GLOBAL EK TIME - Saudi 19:00 = BD 22:00 Auto =====
     String getSettlementRemaining(){
         Calendar now = Calendar.getInstance(TimeZone.getTimeZone("Asia/Riyadh"));
         Calendar next = Calendar.getInstance(TimeZone.getTimeZone("Asia/Riyadh"));
@@ -384,13 +432,16 @@ public class GreedyLionActivity extends AppCompatActivity {
         LinearLayout bottom=new LinearLayout(this); bottom.setOrientation(LinearLayout.VERTICAL); bottom.setBackground(roundBg(0xFFD32F2F,30)); bottom.setPadding(16,12,16,12);
         LinearLayout myRow=new LinearLayout(this); myRow.setOrientation(LinearLayout.HORIZONTAL); myRow.setPadding(0,6,0,10);
         LinearLayout userBox=new LinearLayout(this); userBox.setOrientation(LinearLayout.HORIZONTAL); userBox.setGravity(Gravity.CENTER_VERTICAL); userBox.setBackground(roundBg(OFFWHITE,30)); userBox.setPadding(12,8,12,8);
-        TextView userIcon=new TextView(this); userIcon.setText(userPic); userIcon.setTextSize(24); userIcon.setPadding(0,0,8,0);
+        // FIX: Ekhane TextView na - ImageView - Base64 ar lekhai asbe na
+        userPicView=new ImageView(this);
+        LinearLayout.LayoutParams picLp=new LinearLayout.LayoutParams(72,72); picLp.setMargins(0,0,8,0); userPicView.setLayoutParams(picLp);
+        userPicView.setBackground(circleBg(0xFFFFFFFF)); userPicView.setScaleType(ImageView.ScaleType.CENTER_CROP);
         LinearLayout userText=new LinearLayout(this); userText.setOrientation(LinearLayout.VERTICAL);
         userBetNameTxt=new TextView(this); userBetNameTxt.setText(userName); userBetNameTxt.setTextSize(13);
-        userBetCoinsTxt=new TextView(this); userBetCoinsTxt.setText("🪙 "+fmt(myBetThisRound)); userBetCoinsTxt.setTextSize(13);
+        userBetCoinsTxt=new TextView(this); userBetCoinsTxt.setText("🪙 "+fmt(balance)); userBetCoinsTxt.setTextSize(13);
         userText.addView(userBetNameTxt); userText.addView(userBetCoinsTxt);
         userBetTotalTxt=new TextView(this); userBetTotalTxt.setText("My Bet: 0"); userBetTotalTxt.setTextSize(12); userBetTotalTxt.setGravity(Gravity.CENTER);
-        userBox.addView(userIcon); userBox.addView(userText); userBox.addView(userBetTotalTxt);
+        userBox.addView(userPicView); userBox.addView(userText); userBox.addView(userBetTotalTxt);
         LinearLayout.LayoutParams ozp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); ozp.setMargins(0,0,10,0); userBox.setLayoutParams(ozp);
         TextView myHist=new TextView(this); myHist.setText("📝 MyHistory ▶"); myHist.setBackground(roundBg(OFFWHITE,30)); myHist.setPadding(20,16,20,16); myHist.setGravity(Gravity.CENTER); myHist.setOnClickListener(v->showMyHistory());
         LinearLayout.LayoutParams mhp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); mhp.setMargins(10,0,0,0); myHist.setLayoutParams(mhp);
@@ -403,12 +454,15 @@ public class GreedyLionActivity extends AppCompatActivity {
         bottom.addView(chips);
         LinearLayout lastRow=new LinearLayout(this); lastRow.setOrientation(LinearLayout.HORIZONTAL); lastRow.setGravity(Gravity.CENTER_VERTICAL); lastRow.setPadding(0,12,0,0);
         LinearLayout wallet=new LinearLayout(this); wallet.setOrientation(LinearLayout.HORIZONTAL); wallet.setGravity(Gravity.CENTER_VERTICAL); wallet.setBackground(roundBg(OFFWHITE,30)); wallet.setPadding(12,8,12,8);
-        TextView wIcon=new TextView(this); wIcon.setText(userPic); wIcon.setTextSize(20);
+        // FIX: Wallet eo ImageView
+        walletPicView=new ImageView(this);
+        LinearLayout.LayoutParams wPicLp=new LinearLayout.LayoutParams(64,64); wPicLp.setMargins(0,0,6,0); walletPicView.setLayoutParams(wPicLp);
+        walletPicView.setBackground(circleBg(0xFFFFFFFF)); walletPicView.setScaleType(ImageView.ScaleType.CENTER_CROP);
         LinearLayout wText=new LinearLayout(this); wText.setOrientation(LinearLayout.VERTICAL);
         walletNameTxt=new TextView(this); walletNameTxt.setText(userName); walletNameTxt.setTextSize(12);
         balanceTxt=new TextView(this); balanceTxt.setText(fmt(balance)); balanceTxt.setTextSize(16); wText.addView(walletNameTxt); wText.addView(balanceTxt);
         TextView plus=new TextView(this); plus.setText("+"); plus.setTextSize(22); plus.setTextColor(0xFFFFFFFF); plus.setBackground(circleBg(0xFF4CAF50)); plus.setPadding(16,4,16,4); plus.setOnClickListener(v->Toast.makeText(this,"Recharge - Next Update",Toast.LENGTH_SHORT).show());
-        wallet.addView(wIcon); wallet.addView(wText); wallet.addView(plus);
+        wallet.addView(walletPicView); wallet.addView(wText); wallet.addView(plus);
         LinearLayout.LayoutParams wp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); wallet.setLayoutParams(wp);
         LinearLayout earnBox=new LinearLayout(this); earnBox.setOrientation(LinearLayout.VERTICAL); earnBox.setGravity(Gravity.CENTER);
         TextView earnLabel=new TextView(this); earnLabel.setText("Today's Earnings"); earnLabel.setTextColor(0xFFFFFFFF); earnLabel.setTextSize(12);
@@ -428,12 +482,10 @@ public class GreedyLionActivity extends AppCompatActivity {
         lastRow.addView(wallet); lastRow.addView(earnBox); lastRow.addView(auto); bottom.addView(lastRow);
         statusTxt=new TextView(this); statusTxt.setText("Tap a slot to place Bet"); statusTxt.setTextColor(0xFFFFFF00); statusTxt.setGravity(Gravity.CENTER); bottom.addView(statusTxt); root.addView(bottom); return root;
     }
-    // ===== BET = MINUS - WIN = PLUS - MINE WALLET EI =====
     void placeBet(int idx){
         if(!bettingOpen){ Toast.makeText(this,"Wait for next Round",Toast.LENGTH_SHORT).show(); return; }
         if(balance<chip){ Toast.makeText(this,"Not enough coins",Toast.LENGTH_SHORT).show(); return; }
         bets[idx]+=chip; balance-=chip; myBetThisRound+=chip; lastBetSlot=idx;
-        // FIX: totalToday ekhane barbe na - Win hole barbe
         rankingPoints+=chip/100;
         saveWallet(); updateUI();
         rankList.clear(); if(rankingPoints>0) rankList.add(new RankEntry(userName,rankingPoints,0));
@@ -441,7 +493,6 @@ public class GreedyLionActivity extends AppCompatActivity {
     long getTotalBet(){ long t=0; for(long b:bets) t+=b; return t; }
     void updateUI(){ updateWalletUI(); for(int i=0;i<8;i++) betViews[i].setText("Bet: "+fmt(bets[i])); }
     void startRound(){
-        // FIX: Proti bar Global Round hisab koro - sobar ek Round
         round = calcGlobalRound();
         bettingOpen=true; timeLeft=calcTimeLeftInRound(); myBetThisRound=0; updateWalletUI();
         roundTxt.setText("Round: "+round); statusTxt.setText("Tap a slot to place Bet");
@@ -467,16 +518,13 @@ public class GreedyLionActivity extends AppCompatActivity {
             hideDrawing();
             for(int i=0;i<8;i++){ if(boothViews[i]==null) continue; if(i==fw) boothViews[i].setBackground(roundStroke(0xFFFFD700,0xFFFF0000,10,60)); else boothViews[i].setBackground(roundBg(0xFFDDDDDD,60)); }
             balance+=fwin;
-            // FIX: Win holei Today's Earnings + Ranking barbe
             if(fwin>0){ totalToday+=fwin; rankingPoints+=fwin/100; }
             saveWallet(); addResult(emojis[fw]);
-            // FIX: resultTxt change korbo na - History thik thakbe
             statusTxt.setText("WIN: "+emojis[fw]+" "+names[fw]+" "+fs);
             showResultPopup(fw,fwin,totalBet,fs); if(fwin>0) showWinBanner(fwin);
             for(int i=0;i<8;i++) bets[i]=0; updateUI();
             handler.postDelayed(()->{
                 hideResultPopup();
-                // FIX: Auto Bet ON thakle porer Round e auto bet dibe
                 startRound();
                 if(autoBetOn && lastBetSlot>=0 && balance>=chip){
                     handler.postDelayed(()->{ if(bettingOpen) placeBet(lastBetSlot); },500);
