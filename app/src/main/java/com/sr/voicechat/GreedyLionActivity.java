@@ -33,30 +33,30 @@ public class GreedyLionActivity extends AppCompatActivity {
     LinearLayout resultHistoryLayout;
     long[] bets = new long[8];
 
+    // Bet suru 5K theke - 5K, 10K, 100K, 500K - 1K nai
     int[] chipVals = {5000,10000,100000,500000};
     String[] chipLabels = {"5K","10K","100K","500K"};
     int chip = 5000; int selectedChipIndex = 0;
 
     // ===== MINE WALLET = GAME WALLET - EKTAI - long - 50 Crore dhorbe =====
-    // Mine Activity teo EKI FILE name use korte hobe: "main_wallet"
     long balance = 0; long myBetThisRound = 0; long rankingPoints = 0; long totalToday = 0;
     String userName = "Guest"; String userId = ""; String userPic = "👤";
-    int round = 927; int timeLeft = 30; boolean bettingOpen = true;
+    int round = 1; int timeLeft = 30; boolean bettingOpen = true;
     int lightIndex = 0; boolean lightRunning = true; boolean isDrawing = false;
     Handler handler = new Handler(); Handler lightHandler = new Handler();
     FrameLayout rootFrame;
     View drawingOverlay, resultPopup, rankingPopup, introPopup, winBanner, historyPopup;
     ArrayList<String> resultHistory = new ArrayList<>();
     ArrayList<HistoryItem> myHistory = new ArrayList<>();
+    boolean autoBetOn = false;
+    int lastBetSlot = -1; // Auto Bet er jonno mone rakhbe
 
     // ===== RANKING - SUDHU ASOL PLAYER - DEMO NAM NAI =====
     static class RankEntry { String name; long points; long reward; RankEntry(String n,long p,long r){name=n;points=p;reward=r;} }
-    ArrayList<RankEntry> rankList = new ArrayList<>(); // Firebase asle ekhane server theke asbe
-    String rankMode = "Daily"; String rankSub = "Today"; // Daily: Today/Yesterday | Weekly: This Week/Last Week
+    ArrayList<RankEntry> rankList = new ArrayList<>();
+    String rankMode = "Daily"; String rankSub = "Today";
     TextView settlementTxt;
-    // Reward Table - Demo er moto - 1-10 porjonto
     long[] rankRewards = {44984,17993,8996,5398,3598,1799,1799,1799,1799,1799};
-    // Banner Color - 1-10 - Ekek ta ekek color - Premium
     int[] rankColors = {0xFFFFD700,0xFF87CEEB,0xFFFFA500,0xFF98FB98,0xFFFF69B4,0xFFDDA0DD,0xFF90EE90,0xFFFFB6C1,0xFFADD8E6,0xFFFFE4B5};
 
     static class HistoryItem {
@@ -65,7 +65,8 @@ public class GreedyLionActivity extends AppCompatActivity {
         HistoryItem(String d,int r,String w,long amt){ date=d; round=r; winEmoji=w; winAmount=amt; }
     }
 
-    String[] names = {"Chicken","Octopus","Shark","Meat","Grapes","Cabbage","Corn","Strawberry"};
+    // FIX: Cabbage na - Salad hobe - Demo photo moto
+    String[] names = {"Chicken","Octopus","Shark","Meat","Grapes","Salad","Corn","Strawberry"};
     String[] emojis = {"🍗","🐙","🦈","🥩","🍇","🥬","🌽","🍓"};
     String[] mults = {"x45","x25","x15","x10","x5","x5","x5","x5"};
     int hotIndex = 4;
@@ -78,6 +79,35 @@ public class GreedyLionActivity extends AppCompatActivity {
     GradientDrawable circleBg(int c){ GradientDrawable d=new GradientDrawable(); d.setShape(GradientDrawable.OVAL); d.setColor(c); return d; }
     GradientDrawable circleStroke(int c,int sc,int sw){ GradientDrawable d=new GradientDrawable(); d.setShape(GradientDrawable.OVAL); d.setColor(c); d.setStroke(sw,sc); return d; }
     String fmt(long v){ return String.format(Locale.US,"%,d",v); }
+
+    // ===== GLOBAL ROUND - Saudi 19:00 = BD 22:00 te Round 1 =====
+    // Proti Round 35 sec: 30s Bet + 2s Drawing + 3s Result
+    int calcGlobalRound(){
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Riyadh"));
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        int minute = cal.get(Calendar.MINUTE);
+        int sec = cal.get(Calendar.SECOND);
+        int secondsSince7pm;
+        if(hour >= 19){
+            secondsSince7pm = (hour-19)*3600 + minute*60 + sec;
+        } else {
+            // Rat 12 tar por - ager din 19:00 theke hisab
+            secondsSince7pm = (hour+5)*3600 + minute*60 + sec;
+        }
+        return (secondsSince7pm / 35) + 1;
+    }
+    int calcTimeLeftInRound(){
+        Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Riyadh"));
+        int hour = cal.get(Calendar.HOUR_OF_DAY);
+        int minute = cal.get(Calendar.MINUTE);
+        int sec = cal.get(Calendar.SECOND);
+        int secondsSince7pm;
+        if(hour >= 19) secondsSince7pm = (hour-19)*3600 + minute*60 + sec;
+        else secondsSince7pm = (hour+5)*3600 + minute*60 + sec;
+        int passed = secondsSince7pm % 35;
+        if(passed < 30) return 30 - passed;
+        return 30;
+    }
 
     // ===== MINE WALLET LOAD - main_wallet =====
     void loadWallet(){
@@ -93,15 +123,13 @@ public class GreedyLionActivity extends AppCompatActivity {
             userId = p.getString("user_id","");
             userPic = p.getString("user_pic","👤");
         }
-        // Intent e na thakle - Mine er ta - Eitai asol
         if(!getIntent().hasExtra("wallet_coins")) balance = p.getLong("wallet_coins",0);
         rankingPoints = p.getLong("ranking_points",0);
         totalToday = p.getLong("total_today",0);
-        round = p.getInt("last_round",927);
-        // Ranking - Nijer ta - Jodi khele thake
+        // FIX: last_round save kora lagbe na - Global Round hisab hobe
+        round = calcGlobalRound();
         rankList.clear();
         if(rankingPoints>0) rankList.add(new RankEntry(userName, rankingPoints, 0));
-        // TODO Firebase: ekhane server theke Top 10 asbe - rankList e add korba - Demo nam diba na
     }
     void saveWallet(){
         getSharedPreferences("main_wallet",MODE_PRIVATE).edit().putLong("wallet_coins",balance).putString("user_name",userName).putString("user_id",userId).putString("user_pic",userPic).putLong("ranking_points",rankingPoints).putLong("total_today",totalToday).putInt("last_round",round).apply();
@@ -237,7 +265,6 @@ public class GreedyLionActivity extends AppCompatActivity {
     }
     void hideMyHistory(){ if(historyPopup!=null){ rootFrame.removeView(historyPopup); historyPopup=null; } }
 
-    // ===== RANKING - PREMIUM - 1-10 - NO DEMO NAME =====
     LinearLayout rankRowView(int rank, String name, long points, long reward, boolean isMe){
         LinearLayout row=new LinearLayout(this); row.setOrientation(LinearLayout.HORIZONTAL); row.setGravity(Gravity.CENTER_VERTICAL);
         row.setBackground(roundBg(rankColors[rank-1],20)); row.setPadding(10,10,10,10);
@@ -246,7 +273,6 @@ public class GreedyLionActivity extends AppCompatActivity {
         TextView n=new TextView(this); n.setText(name==null?"":name); n.setGravity(Gravity.CENTER); n.setTextSize(13);
         TextView p=new TextView(this); p.setText(points>0?fmt(points):""); p.setGravity(Gravity.CENTER); p.setTextSize(13);
         TextView rw=new TextView(this); rw.setText(points>0?fmt(reward):""); rw.setGravity(Gravity.CENTER); rw.setTextSize(13);
-        // Serial thik - Weight diye
         r.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,0.8f));
         n.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1.5f));
         p.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1.2f));
@@ -262,7 +288,6 @@ public class GreedyLionActivity extends AppCompatActivity {
         box.setBackground(roundBg(OFFWHITE,30)); box.setPadding(16,16,16,16);
         LinearLayout.LayoutParams bp=new LinearLayout.LayoutParams((int)(getResources().getDisplayMetrics().widthPixels*0.94), (int)(getResources().getDisplayMetrics().heightPixels*0.72));
         bp.bottomMargin=80; box.setLayoutParams(bp);
-        // Top Row - Daily / Weekly + ? (Ranking er ?)
         LinearLayout topRow=new LinearLayout(this); topRow.setOrientation(LinearLayout.HORIZONTAL); topRow.setGravity(Gravity.CENTER_VERTICAL);
         TextView daily=new TextView(this); daily.setText("  Daily Rankings  "); daily.setTextSize(15); daily.setPadding(16,10,16,10);
         daily.setBackground(roundBg(rankMode.equals("Daily")?0xFFFFD700:0xFFFFFFFF,30));
@@ -274,24 +299,20 @@ public class GreedyLionActivity extends AppCompatActivity {
         LinearLayout.LayoutParams dp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); daily.setLayoutParams(dp);
         LinearLayout.LayoutParams wp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); weekly.setLayoutParams(wp);
         topRow.addView(daily); topRow.addView(weekly); topRow.addView(q); box.addView(topRow);
-        // Sub Tabs
         LinearLayout tabs=new LinearLayout(this); tabs.setOrientation(LinearLayout.HORIZONTAL); tabs.setGravity(Gravity.CENTER); tabs.setPadding(0,10,0,10);
         String[] subs = rankMode.equals("Daily") ? new String[]{"Today","Yesterday"} : new String[]{"This Week","Last Week"};
         for(String s: subs){ TextView tv=new TextView(this); tv.setText("  "+s+"  "); tv.setPadding(20,10,20,10); tv.setBackground(roundBg(rankSub.equals(s)?0xFFFFD700:0xFFFFFFFF,30)); tv.setOnClickListener(v->{ rankSub=s; showRanking(); }); tabs.addView(tv); }
         box.addView(tabs);
-        // Header - Serial
         LinearLayout head=new LinearLayout(this); head.setOrientation(LinearLayout.HORIZONTAL);
         String[] hs={"Rank","Name","Points","Rewards"}; float[] ws={0.8f,1.5f,1.2f,1.2f};
         for(int i=0;i<4;i++){ TextView h=new TextView(this); h.setText(hs[i]); h.setGravity(Gravity.CENTER); h.setTextSize(13); h.setLayoutParams(new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,ws[i])); head.addView(h); }
         box.addView(head);
         ScrollView sv=new ScrollView(this); LinearLayout list=new LinearLayout(this); list.setOrientation(LinearLayout.VERTICAL);
-        // 1-10 - Khali hole khali - Demo nam nai
         for(int i=1;i<=10;i++){
             String nm=""; long pts=0; long rew=0; boolean isMe=false;
             if(i<=rankList.size()){ RankEntry e=rankList.get(i-1); nm=e.name; pts=e.points; rew=rankRewards[i-1]; isMe=nm.equals(userName); }
             list.addView(rankRowView(i,nm,pts,rew,isMe));
         }
-        // Amar ta - Jodi Top 10 er baire thaki
         boolean inTop=false; for(RankEntry e: rankList) if(e.name.equals(userName)) inTop=true;
         if(!inTop && rankingPoints>0){
             LinearLayout meRow=new LinearLayout(this); meRow.setOrientation(LinearLayout.HORIZONTAL); meRow.setGravity(Gravity.CENTER_VERTICAL);
@@ -394,7 +415,16 @@ public class GreedyLionActivity extends AppCompatActivity {
         todayTxt=new TextView(this); todayTxt.setText("🪙 "+fmt(totalToday)); todayTxt.setTextColor(0xFF333333); todayTxt.setBackground(roundBg(OFFWHITE,30)); todayTxt.setGravity(Gravity.CENTER); todayTxt.setPadding(20,8,20,8);
         earnBox.addView(earnLabel); earnBox.addView(todayTxt);
         LinearLayout.LayoutParams ep=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); earnBox.setLayoutParams(ep);
-        Button auto=new Button(this); auto.setText("auto bet"); auto.setTextColor(0xFFFFFFFF); auto.setBackground(roundBg(0xFF4CAF50,50)); LinearLayout.LayoutParams ap=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); ap.setMargins(10,0,0,0); auto.setLayoutParams(ap); auto.setOnClickListener(v->Toast.makeText(this,"Auto Bet coming soon",Toast.LENGTH_SHORT).show());
+        Button auto=new Button(this); auto.setText("auto bet"); auto.setTextColor(0xFFFFFFFF); auto.setBackground(roundBg(0xFF4CAF50,50)); LinearLayout.LayoutParams ap=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); ap.setMargins(10,0,0,0); auto.setLayoutParams(ap);
+        auto.setOnClickListener(v->{
+            autoBetOn = !autoBetOn;
+            auto.setText(autoBetOn ? "auto ON" : "auto bet");
+            auto.setBackground(roundBg(autoBetOn ? 0xFFFF9800 : 0xFF4CAF50, 50));
+            if(autoBetOn && bettingOpen && lastBetSlot >= 0 && balance >= chip){
+                placeBet(lastBetSlot);
+            }
+            if(!autoBetOn) Toast.makeText(this,"Auto Bet OFF",Toast.LENGTH_SHORT).show();
+        });
         lastRow.addView(wallet); lastRow.addView(earnBox); lastRow.addView(auto); bottom.addView(lastRow);
         statusTxt=new TextView(this); statusTxt.setText("Tap a slot to place Bet"); statusTxt.setTextColor(0xFFFFFF00); statusTxt.setGravity(Gravity.CENTER); bottom.addView(statusTxt); root.addView(bottom); return root;
     }
@@ -402,16 +432,20 @@ public class GreedyLionActivity extends AppCompatActivity {
     void placeBet(int idx){
         if(!bettingOpen){ Toast.makeText(this,"Wait for next Round",Toast.LENGTH_SHORT).show(); return; }
         if(balance<chip){ Toast.makeText(this,"Not enough coins",Toast.LENGTH_SHORT).show(); return; }
-        bets[idx]+=chip; balance-=chip; myBetThisRound+=chip; rankingPoints+=chip/100; totalToday+=chip; saveWallet(); updateUI();
-        // Ranking e nijer ta update
+        bets[idx]+=chip; balance-=chip; myBetThisRound+=chip; lastBetSlot=idx;
+        // FIX: totalToday ekhane barbe na - Win hole barbe
+        rankingPoints+=chip/100;
+        saveWallet(); updateUI();
         rankList.clear(); if(rankingPoints>0) rankList.add(new RankEntry(userName,rankingPoints,0));
     }
     long getTotalBet(){ long t=0; for(long b:bets) t+=b; return t; }
     void updateUI(){ updateWalletUI(); for(int i=0;i<8;i++) betViews[i].setText("Bet: "+fmt(bets[i])); }
     void startRound(){
-        bettingOpen=true; timeLeft=30; myBetThisRound=0; updateWalletUI();
+        // FIX: Proti bar Global Round hisab koro - sobar ek Round
+        round = calcGlobalRound();
+        bettingOpen=true; timeLeft=calcTimeLeftInRound(); myBetThisRound=0; updateWalletUI();
         roundTxt.setText("Round: "+round); statusTxt.setText("Tap a slot to place Bet");
-        if(lionTimerTxt!=null) lionTimerTxt.setText("30");
+        if(lionTimerTxt!=null) lionTimerTxt.setText(""+timeLeft);
         handler.postDelayed(new Runnable(){ @Override public void run(){ timeLeft--; if(lionTimerTxt!=null) lionTimerTxt.setText(""+timeLeft); if(timeLeft>0){ handler.postDelayed(this,1000); } else { finishRound(); } } },1000);
     }
     void finishRound(){
@@ -432,11 +466,22 @@ public class GreedyLionActivity extends AppCompatActivity {
         handler.postDelayed(()->{
             hideDrawing();
             for(int i=0;i<8;i++){ if(boothViews[i]==null) continue; if(i==fw) boothViews[i].setBackground(roundStroke(0xFFFFD700,0xFFFF0000,10,60)); else boothViews[i].setBackground(roundBg(0xFFDDDDDD,60)); }
-            balance+=fwin; saveWallet(); addResult(emojis[fw]);
-            resultTxt.setText("Result: "+emojis[fw]); statusTxt.setText("WIN: "+emojis[fw]+" "+names[fw]+" "+fs);
+            balance+=fwin;
+            // FIX: Win holei Today's Earnings + Ranking barbe
+            if(fwin>0){ totalToday+=fwin; rankingPoints+=fwin/100; }
+            saveWallet(); addResult(emojis[fw]);
+            // FIX: resultTxt change korbo na - History thik thakbe
+            statusTxt.setText("WIN: "+emojis[fw]+" "+names[fw]+" "+fs);
             showResultPopup(fw,fwin,totalBet,fs); if(fwin>0) showWinBanner(fwin);
-            for(int i=0;i<8;i++) bets[i]=0; updateUI(); round++; saveWallet();
-            handler.postDelayed(()->{ hideResultPopup(); startRound(); },3000);
+            for(int i=0;i<8;i++) bets[i]=0; updateUI();
+            handler.postDelayed(()->{
+                hideResultPopup();
+                // FIX: Auto Bet ON thakle porer Round e auto bet dibe
+                startRound();
+                if(autoBetOn && lastBetSlot>=0 && balance>=chip){
+                    handler.postDelayed(()->{ if(bettingOpen) placeBet(lastBetSlot); },500);
+                }
+            },3000);
         },2000);
     }
     int getMult(int i){ int[] m={45,25,15,10,5,5,5,5}; return m[i]; }
