@@ -36,7 +36,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class HomeActivity extends AppCompatActivity {
     private TextView btnPlus;
@@ -49,9 +51,10 @@ public class HomeActivity extends AppCompatActivity {
     private SharedPreferences prefs;
     private SwipeRefreshLayout swipeRefresh = null;
     private ValueEventListener activeRoomsListener = null;
-    private boolean roomsListenerStarted = false;
     private boolean isRefreshingManual = false;
-    private boolean isSyncingActive = false;
+    // FIX: isSyncingActive tule dilam - eta kokhono false hoto na, tai sob Room atke jeto
+    // FIX: roomsListenerStarted tule dilam - onResume e abar load hobe
+    private Set<String> syncingIds = new HashSet<>();
 
     private ImageView dialogCreatePhoto = null;
     private String pickedCreatePhotoBase64 = null;
@@ -74,9 +77,18 @@ public class HomeActivity extends AppCompatActivity {
 
     private BroadcastReceiver profileReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
-            loadActiveRooms();
+            // FIX: Listener thakle abar lagabo na, kintu ekbar refresh korbo
+            doManualRefresh();
         }
     };
+
+    // FIX: ID ek jaiga theke - MY_9_DIGIT_ID na thakle PROFILE_ID
+    private String getMyId(){
+        String id = prefs.getString("MY_9_DIGIT_ID", "");
+        if(id == null || id.isEmpty()) id = prefs.getString("PROFILE_ID", "");
+        if(id == null) id = "";
+        return id.trim();
+    }
 
     private void openVoiceRoomPermanent(String ownerId){
         if(ownerId==null||ownerId.isEmpty()) return;
@@ -103,6 +115,7 @@ public class HomeActivity extends AppCompatActivity {
         roomGridView = findViewById(R.id.roomGridView);
         roomModelList = new ArrayList<>();
         roomGridAdapter = new RoomGridAdapter(this, roomModelList);
+        if (roomGridView != null) roomGridAdapter = new RoomGridAdapter(this, roomModelList);
         if (roomGridView != null) roomGridView.setAdapter(roomGridAdapter);
         setupPullToRefresh();
         try {
@@ -152,7 +165,7 @@ public class HomeActivity extends AppCompatActivity {
         isRefreshingManual = true;
         activeRoomsRef.addListenerForSingleValueEvent(new ValueEventListener(){
             @Override public void onDataChange(@NonNull DataSnapshot snapshot){ applyRoomsSnapshot(snapshot); stopRefresh(); }
-            @Override public void onCancelled(@NonNull DatabaseError error){ stopRefresh(); }
+            @Override public void onCancelled(@NonNull DatabaseError error){ stopRefresh(); Toast.makeText(HomeActivity.this, "Load failed: "+error.getMessage(), Toast.LENGTH_SHORT).show(); }
         });
         if(roomGridView!=null) roomGridView.postDelayed(this::stopRefresh, 3000);
     }
@@ -167,48 +180,61 @@ public class HomeActivity extends AppCompatActivity {
     }
     @Override protected void onResume(){
         super.onResume();
-        if(!isRefreshingManual) loadActiveRooms();
+        // FIX: Age listener thakle abar lagabo na, kintu jodi listener na thake tahole lagabo
+        if(activeRoomsListener == null) loadActiveRooms();
+        else doManualRefresh();
     }
 
     // ===== FIX 1 - Purono Room thakle Active e abar likhe Home e anbe, tarpor Open korbe =====
     private void checkAndCreateRoom() {
-        String myId = prefs.getString("MY_9_DIGIT_ID", "");
-        if (myId == null || myId.isEmpty()) {
+        String myId = getMyId();
+        if (myId.isEmpty()) {
             Toast.makeText(this, "Profile পাওয়া যায় নাই, আবার Login করো", Toast.LENGTH_LONG).show();
             Intent i = new Intent(this, EditProfileActivity.class); startActivity(i); return;
         }
-        roomsRef.child("room_" + myId).child("meta").addListenerForSingleValueEvent(new ValueEventListener(){
-            @Override public void onDataChange(@NonNull DataSnapshot metaSnap){
-                if(metaSnap.exists()){
-                    // Purono Room ache - Active e na thakle abar baniye dao, jate Home e dekha jay
-                    Map<String,Object> active = new HashMap<>();
-                    String n = metaSnap.child("roomName").getValue(String.class);
-                    String b = metaSnap.child("roomBio").getValue(String.class);
-                    if(b==null||b.isEmpty()) b = metaSnap.child("announcement").getValue(String.class);
-                    String p = metaSnap.child("roomPhoto").getValue(String.class);
-                    if(p==null||p.isEmpty()) p = metaSnap.child("roomOwnerImage").getValue(String.class);
-                    active.put("roomOwnerId", myId);
-                    active.put("roomId", myId);
-                    if(n!=null) active.put("roomName", n);
-                    if(b!=null) { active.put("roomBio", b); active.put("announcement", b); }
-                    if(p!=null) { active.put("roomPhoto", p); active.put("roomOwnerImage", p); }
-                    String th = metaSnap.child("theme").getValue(String.class);
-                    String lb = metaSnap.child("roomLabel").getValue(String.class);
-                    if(th!=null) active.put("theme", th);
-                    if(lb!=null) active.put("roomLabel", lb);
-                    activeRoomsRef.child(myId).updateChildren(active).addOnCompleteListener(t -> openVoiceRoomPermanent(myId));
-                } else {
-                    activeRoomsRef.child(myId).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override public void onDataChange(@NonNull DataSnapshot snapshot) {
-                            if (snapshot.exists()) {
-                                openVoiceRoomPermanent(myId);
-                            } else showCreateRoomDialog();
-                        }
-                        @Override public void onCancelled(@NonNull DatabaseError error) { showCreateRoomDialog(); }
-                    });
+        // FIX: Age Active e ache kina dekho - thakle sathe sathe khulo, Meta khujte time nosto koro na
+        activeRoomsRef.child(myId).addListenerForSingleValueEvent(new ValueEventListener(){
+            @Override public void onDataChange(@NonNull DataSnapshot activeSnap){
+                if(activeSnap.exists()){
+                    openVoiceRoomPermanent(myId);
+                    return;
                 }
+                roomsRef.child("room_" + myId).child("meta").addListenerForSingleValueEvent(new ValueEventListener(){
+                    @Override public void onDataChange(@NonNull DataSnapshot metaSnap){
+                        if(metaSnap.exists()){
+                            Map<String,Object> active = new HashMap<>();
+                            String n = metaSnap.child("roomName").getValue(String.class);
+                            String b = metaSnap.child("roomBio").getValue(String.class);
+                            if(b==null||b.isEmpty()) b = metaSnap.child("announcement").getValue(String.class);
+                            String p = metaSnap.child("roomPhoto").getValue(String.class);
+                            if(p==null||p.isEmpty()) p = metaSnap.child("roomOwnerImage").getValue(String.class);
+                            active.put("roomOwnerId", myId);
+                            active.put("roomId", myId);
+                            active.put("ownerId", myId);
+                            if(n!=null) active.put("roomName", n);
+                            if(b!=null) { active.put("roomBio", b); active.put("announcement", b); }
+                            if(p!=null) { active.put("roomPhoto", p); active.put("roomOwnerImage", p); }
+                            String th = metaSnap.child("theme").getValue(String.class);
+                            String lb = metaSnap.child("roomLabel").getValue(String.class);
+                            if(th!=null) active.put("theme", th);
+                            if(lb!=null) active.put("roomLabel", lb);
+                            active.put("lastActive", System.currentTimeMillis());
+                            active.put("isOnline", true);
+                            activeRoomsRef.child(myId).updateChildren(active).addOnCompleteListener(t -> {
+                                if(!t.isSuccessful()){
+                                    Toast.makeText(HomeActivity.this, "Room open failed: "+(t.getException()!=null?t.getException().getMessage():""), Toast.LENGTH_LONG).show();
+                                    return;
+                                }
+                                openVoiceRoomPermanent(myId);
+                            });
+                        } else {
+                            showCreateRoomDialog();
+                        }
+                    }
+                    @Override public void onCancelled(@NonNull DatabaseError e){ showCreateRoomDialog(); }
+                });
             }
-            @Override public void onCancelled(@NonNull DatabaseError e){ showCreateRoomDialog(); }
+            @Override public void onCancelled(@NonNull DatabaseError error) { showCreateRoomDialog(); }
         });
     }
 
@@ -247,8 +273,8 @@ public class HomeActivity extends AppCompatActivity {
         builder.setPositiveButton("CONFIRM", (dialog, which) -> {
             String roomName = inputRoomName.getText().toString().trim();
             String roomBio = inputRoomBio.getText().toString().trim();
-            String myId = prefs.getString("MY_9_DIGIT_ID", "");
-            if (myId == null || myId.isEmpty()) { Toast.makeText(this, "ID পাওয়া যায় নাই, আবার Login করো", Toast.LENGTH_LONG).show(); return; }
+            String myId = getMyId();
+            if (myId.isEmpty()) { Toast.makeText(this, "ID পাওয়া যায় নাই, আবার Login করো", Toast.LENGTH_LONG).show(); return; }
             if (roomName.isEmpty()) roomName = prefs.getString("USER_NAME", "User") + "'s Room";
             if (roomBio.isEmpty()) roomBio = "Welcome to my voice chat room!";
             String userImage = prefs.getString("USER_PHOTO", "");
@@ -260,9 +286,10 @@ public class HomeActivity extends AppCompatActivity {
             String finalRoomName = roomName;
             String finalRoomBio = roomBio;
             String finalUserImage = finalPhoto;
-            roomsRef.child("room_" + myId).child("meta").addListenerForSingleValueEvent(new ValueEventListener(){
-                @Override public void onDataChange(@NonNull DataSnapshot snap){
-                    if(snap.exists()){
+            // FIX: Age Active check - jodi keu age baniye fele thake
+            activeRoomsRef.child(myId).addListenerForSingleValueEvent(new ValueEventListener(){
+                @Override public void onDataChange(@NonNull DataSnapshot actSnap){
+                    if(actSnap.exists()){
                         openVoiceRoomPermanent(myId);
                         return;
                     }
@@ -277,9 +304,11 @@ public class HomeActivity extends AppCompatActivity {
                     meta.put("ownerId", myId);
                     meta.put("theme", "Default");
                     meta.put("roomLabel", "Friends");
+                    meta.put("createdAt", System.currentTimeMillis());
                     Map<String,Object> active = new HashMap<>();
                     active.put("roomOwnerId", myId);
                     active.put("roomId", myId);
+                    active.put("ownerId", myId);
                     active.put("roomName", finalRoomName);
                     active.put("roomBio", finalRoomBio);
                     active.put("announcement", finalRoomBio);
@@ -287,9 +316,20 @@ public class HomeActivity extends AppCompatActivity {
                     active.put("roomPhoto", finalUserImage);
                     active.put("theme", "Default");
                     active.put("roomLabel", "Friends");
-                    // FIX 2 - Age lekha sesh hobe, tarpor Room khulbe
+                    active.put("lastActive", System.currentTimeMillis());
+                    active.put("isOnline", true);
+                    active.put("memberCount", 1);
+                    // FIX 2 - Age lekha sesh hobe, tarpor Room khulbe + Fail hole Toast
                     roomsRef.child("room_" + myId).child("meta").setValue(meta).addOnCompleteListener(t1 -> {
+                        if(!t1.isSuccessful()){
+                            Toast.makeText(HomeActivity.this, "Room save failed: "+(t1.getException()!=null?t1.getException().getMessage():"Permission denied"), Toast.LENGTH_LONG).show();
+                            return;
+                        }
                         activeRoomsRef.child(myId).setValue(active).addOnCompleteListener(t2 -> {
+                            if(!t2.isSuccessful()){
+                                Toast.makeText(HomeActivity.this, "Active room failed: "+(t2.getException()!=null?t2.getException().getMessage():"Permission denied"), Toast.LENGTH_LONG).show();
+                                return;
+                            }
                             prefs.edit().putString("HEADER_"+myId+"_NAME", finalRoomName)
                                 .putString("HEADER_"+myId+"_PHOTO", finalUserImage)
                                 .putString("HEADER_"+myId+"_ANN", finalRoomBio)
@@ -300,46 +340,56 @@ public class HomeActivity extends AppCompatActivity {
                         });
                     });
                 }
-                @Override public void onCancelled(@NonNull DatabaseError e){}
+                @Override public void onCancelled(@NonNull DatabaseError e){ Toast.makeText(HomeActivity.this, "Check failed: "+e.getMessage(), Toast.LENGTH_SHORT).show(); }
             });
         });
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
         builder.show();
     }
     private void loadActiveRooms() {
-        if(roomsListenerStarted) return;
-        roomsListenerStarted = true;
+        // FIX: Listener age thakle abar lagabo na
+        if(activeRoomsListener != null) return;
         activeRoomsListener = new ValueEventListener() {
             @Override public void onDataChange(@NonNull DataSnapshot snapshot) { applyRoomsSnapshot(snapshot); stopRefresh(); }
-            @Override public void onCancelled(@NonNull DatabaseError error) { stopRefresh(); }
+            @Override public void onCancelled(@NonNull DatabaseError error) { stopRefresh(); Toast.makeText(HomeActivity.this, "Rooms load failed: "+error.getMessage(), Toast.LENGTH_SHORT).show(); }
         };
         activeRoomsRef.addValueEventListener(activeRoomsListener);
     }
     private void applyRoomsSnapshot(DataSnapshot snapshot){
         roomModelList.clear();
-        for (DataSnapshot child : snapshot.getChildren()) {
-            String ownerId = child.child("roomOwnerId").getValue(String.class);
-            if (ownerId == null) ownerId = child.getKey();
-            String roomName = child.child("roomName").getValue(String.class);
-            String roomBio = child.child("roomBio").getValue(String.class);
-            if(roomBio==null||roomBio.isEmpty()) roomBio = child.child("announcement").getValue(String.class);
-            String roomImage = child.child("roomPhoto").getValue(String.class);
-            if(roomImage==null||roomImage.isEmpty()) roomImage = child.child("roomOwnerImage").getValue(String.class);
-            if (roomName==null||roomName.isEmpty()) roomName = "Voice Room";
-            if (ownerId != null) {
-                RoomModel rm = new RoomModel(ownerId, roomName, roomBio, roomImage);
-                roomModelList.add(rm);
-                syncMetaToList(rm);
+        if(snapshot != null){
+            for (DataSnapshot child : snapshot.getChildren()) {
+                String ownerId = child.child("roomOwnerId").getValue(String.class);
+                if (ownerId == null || ownerId.isEmpty()) ownerId = child.child("ownerId").getValue(String.class);
+                if (ownerId == null || ownerId.isEmpty()) ownerId = child.getKey();
+                String roomName = child.child("roomName").getValue(String.class);
+                String roomBio = child.child("roomBio").getValue(String.class);
+                if(roomBio==null||roomBio.isEmpty()) roomBio = child.child("announcement").getValue(String.class);
+                String roomImage = child.child("roomPhoto").getValue(String.class);
+                if(roomImage==null||roomImage.isEmpty()) roomImage = child.child("roomOwnerImage").getValue(String.class);
+                if (roomName==null||roomName.isEmpty()) roomName = "Voice Room";
+                if (ownerId != null && !ownerId.isEmpty()) {
+                    RoomModel rm = new RoomModel(ownerId, roomName, roomBio, roomImage);
+                    roomModelList.add(rm);
+                    syncMetaToList(rm);
+                }
             }
         }
         if(roomGridAdapter!=null) roomGridAdapter.notifyDataSetChanged();
+        // FIX: Room na thakle adapter ke janao - ager Room theke jabe na
+        if(roomModelList.isEmpty() && roomGridAdapter != null){
+            roomGridAdapter.notifyDataSetChanged();
+        }
     }
     private void syncMetaToList(RoomModel rm){
-        if(isSyncingActive) return;
+        // FIX: Ek Room ekbar sync hobe - Set diye, ager isSyncingActive sob atke dito
         String ownerId = rm.getRoomOwnerId();
-        if(ownerId==null) return;
+        if(ownerId==null || ownerId.isEmpty()) return;
+        if(syncingIds.contains(ownerId)) return;
+        syncingIds.add(ownerId);
         roomsRef.child("room_"+ownerId).child("meta").addListenerForSingleValueEvent(new ValueEventListener(){
             @Override public void onDataChange(@NonNull DataSnapshot snap){
+                syncingIds.remove(ownerId);
                 if(!snap.exists()) return;
                 String mName = snap.child("roomName").getValue(String.class);
                 String mBio = snap.child("roomBio").getValue(String.class);
@@ -352,7 +402,7 @@ public class HomeActivity extends AppCompatActivity {
                 if(mPhoto!=null && !mPhoto.isEmpty() && !mPhoto.equals("null") && !mPhoto.equals(rm.getRoomImage())){ rm.setRoomImage(mPhoto); changed=true; }
                 if(changed && roomGridAdapter!=null) roomGridAdapter.notifyDataSetChanged();
             }
-            @Override public void onCancelled(@NonNull DatabaseError e){}
+            @Override public void onCancelled(@NonNull DatabaseError e){ syncingIds.remove(ownerId); }
         });
     }
     private void showSearchRoomDialog() {
@@ -375,7 +425,6 @@ public class HomeActivity extends AppCompatActivity {
                             });
                             roomPopup.setNegativeButton("Cancel", (d, w) -> d.dismiss()); roomPopup.show();
                         } else {
-                            // Active e na thakle Meta te khujo - purono Room holeo pabe
                             roomsRef.child("room_"+searchId).child("meta").addListenerForSingleValueEvent(new ValueEventListener(){
                                 @Override public void onDataChange(@NonNull DataSnapshot ms){
                                     if(ms.exists()){
