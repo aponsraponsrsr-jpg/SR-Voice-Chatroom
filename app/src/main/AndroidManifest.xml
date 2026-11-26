@@ -75,8 +75,8 @@
         <activity android:name=".AgencyDashboardActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
         <activity android:name=".PublicProfileActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
 
-        <!-- FRUIT PARTY GAME - AGE CHILO NA, EKHON ADD KORA HOLO - EITA NA THAKLE GAME KHULTO NA -->
-        <activity android:name=".FruitPartyActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" android:screenOrientation="portrait" />
+        <!-- GREEDY LION GAME - NEW - FRUIT PARTY OUT, GREEDY LION IN - EITA NA THAKLE GAME KHULTO NA -->
+        <activity android:name=".GreedyLionActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" android:screenOrientation="portrait" />
 
         <!-- PRIVATE CHAT - GLOBAL FRIEND / FOLLOW / SMS - EITA NA THAKLE BUILD FAIL KORTO -->
         <activity android:name=".PrivateChatActivity" android:exported="false" android:theme="@style/Theme.SRVoiceChat" />
