@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.TextUtils;
 import android.util.Base64;
 import android.view.Gravity;
 import android.view.View;
@@ -31,7 +32,8 @@ import java.util.TimeZone;
 public class GreedyLionActivity extends AppCompatActivity {
 
     TextView roundTxt, balanceTxt, walletNameTxt, statusTxt, resultTxt, todayTxt, lionTimerTxt;
-    TextView userBetNameTxt, userBetCoinsTxt, userBetTotalTxt;
+    // Uporer bam banner - ekhon ar Wallet na - Today's Rank
+    TextView todayRankTxt;
     TextView[] betViews = new TextView[8];
     TextView[] chipViews = new TextView[4];
     LinearLayout[] boothViews = new LinearLayout[8];
@@ -47,7 +49,7 @@ public class GreedyLionActivity extends AppCompatActivity {
     long balance = 0; long myBetThisRound = 0; long rankingPoints = 0; long totalToday = 0;
     String userName = "Guest"; String userId = "";
     String userPhoto = "";
-    ImageView userPicView, walletPicView;
+    ImageView walletPicView;
     int round = 1; int timeLeft = 30; boolean bettingOpen = true;
     int lightIndex = 0; boolean lightRunning = true; boolean isDrawing = false;
     Handler handler = new Handler(); Handler lightHandler = new Handler();
@@ -200,15 +202,12 @@ public class GreedyLionActivity extends AppCompatActivity {
         }catch(Exception e){ iv.setImageResource(R.mipmap.ic_launcher); }
     }
     void updateWalletUI(){
-        // FIX 1: Uporer banner e sobsomoy naam dekhabe na - Bet / Top e thakle tobei dekhabe
-        // Nicher Original Wallet e sobsomoy naam thakbe - oitai asol wallet
+        // Niche Original Wallet - ekhanei naam + coins - Uporer banner e ar Wallet thakbe na
         if(walletNameTxt!=null) walletNameTxt.setText(userName);
         if(balanceTxt!=null) balanceTxt.setText(fmt(balance));
-        if(userBetNameTxt!=null) userBetNameTxt.setText((myBetThisRound>0 || rankingPoints>0) ? userName : "");
-        if(userBetCoinsTxt!=null) userBetCoinsTxt.setText("🪙 "+fmt(balance));
-        if(userBetTotalTxt!=null) userBetTotalTxt.setText("My Bet: "+fmt(myBetThisRound));
         if(todayTxt!=null) todayTxt.setText("🪙 "+fmt(totalToday));
-        setProfileImage(userPicView);
+        // Uporer bam banner - sudhu Today's Rank - kono naam / coins na - porer step e add korbo
+        if(todayRankTxt!=null) todayRankTxt.setText("Today's Rank  ▶");
         setProfileImage(walletPicView);
     }
     @Override protected void onResume(){ super.onResume(); loadWallet(); updateWalletUI(); }
@@ -425,7 +424,6 @@ public class GreedyLionActivity extends AppCompatActivity {
         LinearLayout rankRow=new LinearLayout(this); rankRow.setOrientation(LinearLayout.HORIZONTAL); rankRow.setPadding(16,0,16,4);
         TextView rank=new TextView(this); rank.setText("🏆\nRanking"); rank.setGravity(Gravity.CENTER); rank.setTextSize(13); rank.setTextColor(0xFFFFD700); rank.setOnClickListener(v->showRanking()); rankRow.addView(rank); root.addView(rankRow);
 
-        // FIX 3: Wheel 920 -> 860 - Niche jate sob dekha jay
         FrameLayout wheel=new FrameLayout(this); wheel.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,860));
         TextView wheelRing=new TextView(this); FrameLayout.LayoutParams ringLp=new FrameLayout.LayoutParams(660,660); ringLp.leftMargin=210; ringLp.topMargin=120; wheelRing.setLayoutParams(ringLp); wheelRing.setBackground(circleStroke(0x00FFFFFF,0xFFFFD700,12)); wheel.addView(wheelRing);
         int centerX=540, centerY=440, radius=340;
@@ -450,49 +448,43 @@ public class GreedyLionActivity extends AppCompatActivity {
         lionTimerTxt=new TextView(this); lionTimerTxt.setText("30"); lionTimerTxt.setTextSize(22); lionTimerTxt.setGravity(Gravity.CENTER); lionTimerTxt.setTextColor(0xFF8B4513); lionTimerTxt.setBackground(circleStroke(BOOTH_BG,0xFFFFD700,6)); lionTimerTxt.setPadding(16,4,16,4);
         center.addView(lion); center.addView(lionTimerTxt); wheel.addView(center); root.addView(wheel);
 
-        // FIX 3: Salad Mix Box Boro + Pizza Plate moto Choto - Demo moto
+        // FIX: Salad + Pizza - 2tai SEM, choto, FAT icon - ager boro Salad bad - ❌ kata 🍇🥬🌽🍓 bad
         LinearLayout extraRow=new LinearLayout(this); extraRow.setOrientation(LinearLayout.HORIZONTAL); extraRow.setGravity(Gravity.CENTER); extraRow.setPadding(16,2,16,2);
-        TextView salad=new TextView(this); salad.setText("🥗 salad - 🍇🥬🌽🍓"); salad.setGravity(Gravity.CENTER); salad.setTextSize(14); salad.setBackground(roundBg(BOOTH_BG,50)); salad.setPadding(18,12,18,12);
-        LinearLayout.LayoutParams saladP=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1.2f); saladP.setMargins(12,0,6,0); salad.setLayoutParams(saladP);
-        TextView pizza=new TextView(this); pizza.setText("🍕"); pizza.setGravity(Gravity.CENTER); pizza.setTextSize(14); pizza.setBackground(roundBg(BOOTH_BG,50)); pizza.setPadding(10,10,10,10);
-        LinearLayout.LayoutParams pizzaP=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,0.5f); pizzaP.setMargins(6,0,12,0); pizza.setLayoutParams(pizzaP);
+        TextView salad=new TextView(this); salad.setText("🥗 salad"); salad.setGravity(Gravity.CENTER); salad.setTextSize(13); salad.setBackground(roundBg(BOOTH_BG,50)); salad.setPadding(14,10,14,10);
+        LinearLayout.LayoutParams saladP=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); saladP.setMargins(12,0,6,0); salad.setLayoutParams(saladP);
+        TextView pizza=new TextView(this); pizza.setText("🍕 pizza"); pizza.setGravity(Gravity.CENTER); pizza.setTextSize(13); pizza.setBackground(roundBg(BOOTH_BG,50)); pizza.setPadding(14,10,14,10);
+        LinearLayout.LayoutParams pizzaP=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); pizzaP.setMargins(6,0,12,0); pizza.setLayoutParams(pizzaP);
         extraRow.addView(salad); extraRow.addView(pizza); root.addView(extraRow);
 
-        // FIX 2 + FIX 3: Bottom compact - Padding kom - Nicher sob dekha jabe
         LinearLayout bottom=new LinearLayout(this); bottom.setOrientation(LinearLayout.VERTICAL); bottom.setBackground(roundBg(0xFFD32F2F,30)); bottom.setPadding(16,6,16,6);
-        LinearLayout myRow=new LinearLayout(this); myRow.setOrientation(LinearLayout.HORIZONTAL); myRow.setPadding(0,2,0,4);
-        LinearLayout userBox=new LinearLayout(this); userBox.setOrientation(LinearLayout.HORIZONTAL); userBox.setGravity(Gravity.CENTER_VERTICAL); userBox.setBackground(roundBg(BOOTH_BG,30)); userBox.setPadding(10,6,10,6);
-        userPicView=new ImageView(this);
-        LinearLayout.LayoutParams picLp=new LinearLayout.LayoutParams(60,60); picLp.setMargins(0,0,6,0); userPicView.setLayoutParams(picLp);
-        userPicView.setBackground(circleBg(0xFFFFFFFF)); userPicView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        LinearLayout userText=new LinearLayout(this); userText.setOrientation(LinearLayout.VERTICAL);
-        userBetNameTxt=new TextView(this); userBetNameTxt.setText((myBetThisRound>0 || rankingPoints>0) ? userName : ""); userBetNameTxt.setTextSize(12);
-        userBetCoinsTxt=new TextView(this); userBetCoinsTxt.setText("🪙 "+fmt(balance)); userBetCoinsTxt.setTextSize(12);
-        userText.addView(userBetNameTxt); userText.addView(userBetCoinsTxt);
-        userBetTotalTxt=new TextView(this); userBetTotalTxt.setText("My Bet: "+fmt(myBetThisRound)); userBetTotalTxt.setTextSize(11); userBetTotalTxt.setGravity(Gravity.CENTER);
-        userBox.addView(userPicView); userBox.addView(userText); userBox.addView(userBetTotalTxt);
-        // FIX 2: 100% -> 80% - weight 1f -> 0.8f
-        LinearLayout.LayoutParams ozp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,0.8f); ozp.setMargins(0,0,8,0); userBox.setLayoutParams(ozp);
-        TextView myHist=new TextView(this); myHist.setText("📝 MyHistory ▶"); myHist.setBackground(roundBg(BOOTH_BG,30)); myHist.setPadding(16,10,16,10); myHist.setGravity(Gravity.CENTER); myHist.setOnClickListener(v->showMyHistory());
-        // FIX 2: MyHistory o 80% - 2ta SAME SAME
-        LinearLayout.LayoutParams mhp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,0.8f); mhp.setMargins(8,0,0,0); myHist.setLayoutParams(mhp);
-        myRow.addView(userBox); myRow.addView(myHist); bottom.addView(myRow);
+        // FIX: Uporer 2 banner - Jutar moto SEM - 1ta boro 1ta choto na - 2tai 1f, choto, premium, lomba na
+        LinearLayout myRow=new LinearLayout(this); myRow.setOrientation(LinearLayout.HORIZONTAL); myRow.setGravity(Gravity.CENTER_VERTICAL); myRow.setPadding(0,2,0,4);
+        // BAM - Today's Rank - Wallet ar na
+        todayRankTxt=new TextView(this); todayRankTxt.setText("Today's Rank  ▶"); todayRankTxt.setGravity(Gravity.CENTER); todayRankTxt.setTextSize(12); todayRankTxt.setTextColor(0xFF333333); todayRankTxt.setBackground(roundBg(BOOTH_BG,30)); todayRankTxt.setPadding(10,10,10,10); todayRankTxt.setSingleLine(true); todayRankTxt.setEllipsize(TextUtils.TruncateAt.END);
+        todayRankTxt.setOnClickListener(v->showRanking());
+        LinearLayout.LayoutParams rankLp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); rankLp.setMargins(0,0,8,0); todayRankTxt.setLayoutParams(rankLp);
+        // DAN - MyHistory - SEM size
+        TextView myHist=new TextView(this); myHist.setText("📝 MyHistory ▶"); myHist.setBackground(roundBg(BOOTH_BG,30)); myHist.setPadding(10,10,10,10); myHist.setGravity(Gravity.CENTER); myHist.setTextSize(12); myHist.setSingleLine(true); myHist.setEllipsize(TextUtils.TruncateAt.END); myHist.setOnClickListener(v->showMyHistory());
+        LinearLayout.LayoutParams mhp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); mhp.setMargins(8,0,0,0); myHist.setLayoutParams(mhp);
+        myRow.addView(todayRankTxt); myRow.addView(myHist); bottom.addView(myRow);
+        // Nicher Result - THIK ACHE - hat dei nai
         LinearLayout resRow=new LinearLayout(this); resRow.setOrientation(LinearLayout.HORIZONTAL); resRow.setGravity(Gravity.CENTER_VERTICAL);
         resultTxt=new TextView(this); resultTxt.setText("Result  "); resultTxt.setTextColor(0xFFFFFFFF); resultTxt.setTextSize(14); resRow.addView(resultTxt);
         HorizontalScrollView hs=new HorizontalScrollView(this); resultHistoryLayout=new LinearLayout(this); resultHistoryLayout.setOrientation(LinearLayout.HORIZONTAL); hs.addView(resultHistoryLayout); resRow.addView(hs); bottom.addView(resRow);
         LinearLayout chips=new LinearLayout(this); chips.setOrientation(LinearLayout.HORIZONTAL); chips.setGravity(Gravity.CENTER); chips.setPadding(0,8,0,0);
         for(int i=0;i<4;i++){ final int idx=i; final int v=chipVals[i]; final String label=chipLabels[i]; TextView b=new TextView(this); b.setText("🪙\n"+label); b.setGravity(Gravity.CENTER); b.setTextSize(15); b.setTextColor(0xFFFFFFFF); b.setBackground(roundBg(PINK,50)); b.setPadding(8,14,8,14); LinearLayout.LayoutParams clp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); clp.setMargins(6,0,6,0); b.setLayoutParams(clp); b.setOnClickListener(vv->{ chip=v; selectedChipIndex=idx; updateChipUI(); }); chipViews[i]=b; chips.addView(b); }
         bottom.addView(chips);
-        // FIX: Niche Bাম Kona - Original Wallet - Upor e tola - Age dhaka porto
+        // FIX: Niche Bam Kona - Original Wallet - 80% moto choto, chikon, premium - 1 line e
         LinearLayout lastRow=new LinearLayout(this); lastRow.setOrientation(LinearLayout.HORIZONTAL); lastRow.setGravity(Gravity.CENTER_VERTICAL); lastRow.setPadding(0,8,0,2);
-        LinearLayout wallet=new LinearLayout(this); wallet.setOrientation(LinearLayout.HORIZONTAL); wallet.setGravity(Gravity.CENTER_VERTICAL); wallet.setBackground(roundBg(BOOTH_BG,30)); wallet.setPadding(10,6,10,6);
+        LinearLayout wallet=new LinearLayout(this); wallet.setOrientation(LinearLayout.HORIZONTAL); wallet.setGravity(Gravity.CENTER_VERTICAL); wallet.setBackground(roundBg(BOOTH_BG,30)); wallet.setPadding(8,5,8,5);
+        wallet.setOnClickListener(v->showRanking());
         walletPicView=new ImageView(this);
-        LinearLayout.LayoutParams wPicLp=new LinearLayout.LayoutParams(56,56); wPicLp.setMargins(0,0,6,0); walletPicView.setLayoutParams(wPicLp);
+        LinearLayout.LayoutParams wPicLp=new LinearLayout.LayoutParams(48,48); wPicLp.setMargins(0,0,6,0); walletPicView.setLayoutParams(wPicLp);
         walletPicView.setBackground(circleBg(0xFFFFFFFF)); walletPicView.setScaleType(ImageView.ScaleType.CENTER_CROP);
         LinearLayout wText=new LinearLayout(this); wText.setOrientation(LinearLayout.VERTICAL);
-        walletNameTxt=new TextView(this); walletNameTxt.setText(userName); walletNameTxt.setTextSize(11);
-        balanceTxt=new TextView(this); balanceTxt.setText(fmt(balance)); balanceTxt.setTextSize(15); wText.addView(walletNameTxt); wText.addView(balanceTxt);
-        TextView plus=new TextView(this); plus.setText("+"); plus.setTextSize(20); plus.setTextColor(0xFFFFFFFF); plus.setBackground(circleBg(0xFF4CAF50)); plus.setPadding(14,2,14,2); plus.setOnClickListener(v->Toast.makeText(this,"Recharge - Next Update",Toast.LENGTH_SHORT).show());
+        walletNameTxt=new TextView(this); walletNameTxt.setText(userName); walletNameTxt.setTextSize(10); walletNameTxt.setSingleLine(true); walletNameTxt.setEllipsize(TextUtils.TruncateAt.END);
+        balanceTxt=new TextView(this); balanceTxt.setText(fmt(balance)); balanceTxt.setTextSize(12); balanceTxt.setSingleLine(true); balanceTxt.setEllipsize(TextUtils.TruncateAt.END); wText.addView(walletNameTxt); wText.addView(balanceTxt);
+        TextView plus=new TextView(this); plus.setText("+"); plus.setTextSize(18); plus.setTextColor(0xFFFFFFFF); plus.setBackground(circleBg(0xFF4CAF50)); plus.setPadding(12,2,12,2); plus.setOnClickListener(v->Toast.makeText(this,"Recharge - Next Update",Toast.LENGTH_SHORT).show());
         wallet.addView(walletPicView); wallet.addView(wText); wallet.addView(plus);
         LinearLayout.LayoutParams wp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); wallet.setLayoutParams(wp);
         LinearLayout earnBox=new LinearLayout(this); earnBox.setOrientation(LinearLayout.VERTICAL); earnBox.setGravity(Gravity.CENTER);
