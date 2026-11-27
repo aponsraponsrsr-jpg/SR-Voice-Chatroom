@@ -43,7 +43,7 @@ public class GreedyLionActivity extends AppCompatActivity {
     String[] chipLabels = {"1K","5K","10K","100K"};
     int chip = 1000; int selectedChipIndex = 0;
 
-    // GAME WALLET ALADA - Room er SR_USER e kokhono likhbe na
+    // GAME WALLET ALADA - Room er SR_USER e kokhono likhbe na - Global safe
     long balance = 0; long myBetThisRound = 0; long rankingPoints = 0; long totalToday = 0;
     String userName = "Guest"; String userId = "";
     String userPhoto = "";
@@ -88,6 +88,7 @@ public class GreedyLionActivity extends AppCompatActivity {
     GradientDrawable circleStroke(int c,int sc,int sw){ GradientDrawable d=new GradientDrawable(); d.setShape(GradientDrawable.OVAL); d.setColor(c); d.setStroke(sw,sc); return d; }
     String fmt(long v){ return String.format(Locale.US,"%,d",v); }
 
+    // GLOBAL ROUND - Saudi 7PM theke - Sobar jonno eki - Future Global er jonno
     int calcGlobalRound(){
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Riyadh"));
         int hour = cal.get(Calendar.HOUR_OF_DAY);
@@ -122,6 +123,7 @@ public class GreedyLionActivity extends AppCompatActivity {
             sp.edit().putString("last_play_date", saudiDate).apply();
         }
     }
+    // GLOBAL RESULT - Sobar eki - Round diye Seed - Random na
     int calcGlobalWinner(int roundNum, String[] outSpecial){
         long seed = (long)roundNum * 7919L + 12345L;
         Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("Asia/Riyadh"));
@@ -198,9 +200,11 @@ public class GreedyLionActivity extends AppCompatActivity {
         }catch(Exception e){ iv.setImageResource(R.mipmap.ic_launcher); }
     }
     void updateWalletUI(){
+        // FIX 1: Uporer banner e sobsomoy naam dekhabe na - Bet / Top e thakle tobei dekhabe
+        // Nicher Original Wallet e sobsomoy naam thakbe - oitai asol wallet
         if(walletNameTxt!=null) walletNameTxt.setText(userName);
         if(balanceTxt!=null) balanceTxt.setText(fmt(balance));
-        if(userBetNameTxt!=null) userBetNameTxt.setText(userName);
+        if(userBetNameTxt!=null) userBetNameTxt.setText((myBetThisRound>0 || rankingPoints>0) ? userName : "");
         if(userBetCoinsTxt!=null) userBetCoinsTxt.setText("🪙 "+fmt(balance));
         if(userBetTotalTxt!=null) userBetTotalTxt.setText("My Bet: "+fmt(myBetThisRound));
         if(todayTxt!=null) todayTxt.setText("🪙 "+fmt(totalToday));
@@ -410,7 +414,7 @@ public class GreedyLionActivity extends AppCompatActivity {
 
     LinearLayout createUI(){
         LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(0xFF00C2E8);
-        LinearLayout top=new LinearLayout(this); top.setOrientation(LinearLayout.HORIZONTAL); top.setGravity(Gravity.CENTER_VERTICAL); top.setPadding(16,10,16,6);
+        LinearLayout top=new LinearLayout(this); top.setOrientation(LinearLayout.HORIZONTAL); top.setGravity(Gravity.CENTER_VERTICAL); top.setPadding(16,8,16,4);
         TextView back=new TextView(this); back.setText("⬅"); back.setTextSize(24); back.setTextColor(0xFFFFFFFF); back.setPadding(0,0,16,0); back.setOnClickListener(v->finish());
         roundTxt=new TextView(this); roundTxt.setText("Round: "+round); roundTxt.setTextSize(14); roundTxt.setTextColor(0xFF333333);
         LinearLayout.LayoutParams tp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); roundTxt.setLayoutParams(tp);
@@ -418,12 +422,13 @@ public class GreedyLionActivity extends AppCompatActivity {
         TextView help=new TextView(this); help.setText("❓"); help.setTextSize(22); help.setOnClickListener(v->showIntro());
         top.addView(back); top.addView(roundTxt); top.addView(music); top.addView(help); root.addView(top);
 
-        LinearLayout rankRow=new LinearLayout(this); rankRow.setOrientation(LinearLayout.HORIZONTAL); rankRow.setPadding(16,0,16,6);
+        LinearLayout rankRow=new LinearLayout(this); rankRow.setOrientation(LinearLayout.HORIZONTAL); rankRow.setPadding(16,0,16,4);
         TextView rank=new TextView(this); rank.setText("🏆\nRanking"); rank.setGravity(Gravity.CENTER); rank.setTextSize(13); rank.setTextColor(0xFFFFD700); rank.setOnClickListener(v->showRanking()); rankRow.addView(rank); root.addView(rankRow);
 
-        FrameLayout wheel=new FrameLayout(this); wheel.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,920));
-        TextView wheelRing=new TextView(this); FrameLayout.LayoutParams ringLp=new FrameLayout.LayoutParams(660,660); ringLp.leftMargin=210; ringLp.topMargin=140; wheelRing.setLayoutParams(ringLp); wheelRing.setBackground(circleStroke(0x00FFFFFF,0xFFFFD700,12)); wheel.addView(wheelRing);
-        int centerX=540, centerY=470, radius=350;
+        // FIX 3: Wheel 920 -> 860 - Niche jate sob dekha jay
+        FrameLayout wheel=new FrameLayout(this); wheel.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,860));
+        TextView wheelRing=new TextView(this); FrameLayout.LayoutParams ringLp=new FrameLayout.LayoutParams(660,660); ringLp.leftMargin=210; ringLp.topMargin=120; wheelRing.setLayoutParams(ringLp); wheelRing.setBackground(circleStroke(0x00FFFFFF,0xFFFFD700,12)); wheel.addView(wheelRing);
+        int centerX=540, centerY=440, radius=340;
         for(int i=0;i<8;i++){
             final int idx=i; double angle=Math.toRadians(-90+i*45);
             int x=(int)(centerX+radius*Math.cos(angle))-100; int y=(int)(centerY+radius*Math.sin(angle))-80;
@@ -440,55 +445,62 @@ public class GreedyLionActivity extends AppCompatActivity {
             booth.setOnClickListener(v->placeBet(idx)); betViews[i]=b; boothViews[i]=booth; wheel.addView(booth);
         }
         LinearLayout center=new LinearLayout(this); center.setOrientation(LinearLayout.VERTICAL); center.setGravity(Gravity.CENTER); center.setBackground(circleStroke(0xFFFFD700,0xFFB8860B,8)); center.setPadding(8,8,8,8);
-        FrameLayout.LayoutParams cp=new FrameLayout.LayoutParams(260,260); cp.leftMargin=410; cp.topMargin=340; center.setLayoutParams(cp);
+        FrameLayout.LayoutParams cp=new FrameLayout.LayoutParams(260,260); cp.leftMargin=410; cp.topMargin=310; center.setLayoutParams(cp);
         TextView lion=new TextView(this); lion.setText("🦁"); lion.setTextSize(46); lion.setGravity(Gravity.CENTER);
         lionTimerTxt=new TextView(this); lionTimerTxt.setText("30"); lionTimerTxt.setTextSize(22); lionTimerTxt.setGravity(Gravity.CENTER); lionTimerTxt.setTextColor(0xFF8B4513); lionTimerTxt.setBackground(circleStroke(BOOTH_BG,0xFFFFD700,6)); lionTimerTxt.setPadding(16,4,16,4);
         center.addView(lion); center.addView(lionTimerTxt); wheel.addView(center); root.addView(wheel);
 
-        LinearLayout extraRow=new LinearLayout(this); extraRow.setOrientation(LinearLayout.HORIZONTAL); extraRow.setGravity(Gravity.CENTER); extraRow.setPadding(16,0,16,0);
-        String[] extra={"🥗 salad","🍕 pizza"};
-        for(String ex: extra){ TextView exv=new TextView(this); exv.setText(ex); exv.setGravity(Gravity.CENTER); exv.setTextSize(15); exv.setBackground(roundBg(BOOTH_BG,50)); exv.setPadding(20,14,20,14); LinearLayout.LayoutParams exp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); exp.setMargins(12,0,12,0); exv.setLayoutParams(exp); extraRow.addView(exv); }
-        root.addView(extraRow);
+        // FIX 3: Salad Mix Box Boro + Pizza Plate moto Choto - Demo moto
+        LinearLayout extraRow=new LinearLayout(this); extraRow.setOrientation(LinearLayout.HORIZONTAL); extraRow.setGravity(Gravity.CENTER); extraRow.setPadding(16,2,16,2);
+        TextView salad=new TextView(this); salad.setText("🥗 salad - 🍇🥬🌽🍓"); salad.setGravity(Gravity.CENTER); salad.setTextSize(14); salad.setBackground(roundBg(BOOTH_BG,50)); salad.setPadding(18,12,18,12);
+        LinearLayout.LayoutParams saladP=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1.2f); saladP.setMargins(12,0,6,0); salad.setLayoutParams(saladP);
+        TextView pizza=new TextView(this); pizza.setText("🍕"); pizza.setGravity(Gravity.CENTER); pizza.setTextSize(14); pizza.setBackground(roundBg(BOOTH_BG,50)); pizza.setPadding(10,10,10,10);
+        LinearLayout.LayoutParams pizzaP=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,0.5f); pizzaP.setMargins(6,0,12,0); pizza.setLayoutParams(pizzaP);
+        extraRow.addView(salad); extraRow.addView(pizza); root.addView(extraRow);
 
-        LinearLayout bottom=new LinearLayout(this); bottom.setOrientation(LinearLayout.VERTICAL); bottom.setBackground(roundBg(0xFFD32F2F,30)); bottom.setPadding(16,12,16,12);
-        LinearLayout myRow=new LinearLayout(this); myRow.setOrientation(LinearLayout.HORIZONTAL); myRow.setPadding(0,6,0,10);
-        LinearLayout userBox=new LinearLayout(this); userBox.setOrientation(LinearLayout.HORIZONTAL); userBox.setGravity(Gravity.CENTER_VERTICAL); userBox.setBackground(roundBg(BOOTH_BG,30)); userBox.setPadding(12,8,12,8);
+        // FIX 2 + FIX 3: Bottom compact - Padding kom - Nicher sob dekha jabe
+        LinearLayout bottom=new LinearLayout(this); bottom.setOrientation(LinearLayout.VERTICAL); bottom.setBackground(roundBg(0xFFD32F2F,30)); bottom.setPadding(16,6,16,6);
+        LinearLayout myRow=new LinearLayout(this); myRow.setOrientation(LinearLayout.HORIZONTAL); myRow.setPadding(0,2,0,4);
+        LinearLayout userBox=new LinearLayout(this); userBox.setOrientation(LinearLayout.HORIZONTAL); userBox.setGravity(Gravity.CENTER_VERTICAL); userBox.setBackground(roundBg(BOOTH_BG,30)); userBox.setPadding(10,6,10,6);
         userPicView=new ImageView(this);
-        LinearLayout.LayoutParams picLp=new LinearLayout.LayoutParams(72,72); picLp.setMargins(0,0,8,0); userPicView.setLayoutParams(picLp);
+        LinearLayout.LayoutParams picLp=new LinearLayout.LayoutParams(60,60); picLp.setMargins(0,0,6,0); userPicView.setLayoutParams(picLp);
         userPicView.setBackground(circleBg(0xFFFFFFFF)); userPicView.setScaleType(ImageView.ScaleType.CENTER_CROP);
         LinearLayout userText=new LinearLayout(this); userText.setOrientation(LinearLayout.VERTICAL);
-        userBetNameTxt=new TextView(this); userBetNameTxt.setText(userName); userBetNameTxt.setTextSize(13);
-        userBetCoinsTxt=new TextView(this); userBetCoinsTxt.setText("🪙 "+fmt(balance)); userBetCoinsTxt.setTextSize(13);
+        userBetNameTxt=new TextView(this); userBetNameTxt.setText((myBetThisRound>0 || rankingPoints>0) ? userName : ""); userBetNameTxt.setTextSize(12);
+        userBetCoinsTxt=new TextView(this); userBetCoinsTxt.setText("🪙 "+fmt(balance)); userBetCoinsTxt.setTextSize(12);
         userText.addView(userBetNameTxt); userText.addView(userBetCoinsTxt);
-        userBetTotalTxt=new TextView(this); userBetTotalTxt.setText("My Bet: 0"); userBetTotalTxt.setTextSize(12); userBetTotalTxt.setGravity(Gravity.CENTER);
+        userBetTotalTxt=new TextView(this); userBetTotalTxt.setText("My Bet: "+fmt(myBetThisRound)); userBetTotalTxt.setTextSize(11); userBetTotalTxt.setGravity(Gravity.CENTER);
         userBox.addView(userPicView); userBox.addView(userText); userBox.addView(userBetTotalTxt);
-        LinearLayout.LayoutParams ozp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); ozp.setMargins(0,0,10,0); userBox.setLayoutParams(ozp);
-        TextView myHist=new TextView(this); myHist.setText("📝 MyHistory ▶"); myHist.setBackground(roundBg(BOOTH_BG,30)); myHist.setPadding(20,16,20,16); myHist.setGravity(Gravity.CENTER); myHist.setOnClickListener(v->showMyHistory());
-        LinearLayout.LayoutParams mhp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); mhp.setMargins(10,0,0,0); myHist.setLayoutParams(mhp);
+        // FIX 2: 100% -> 80% - weight 1f -> 0.8f
+        LinearLayout.LayoutParams ozp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,0.8f); ozp.setMargins(0,0,8,0); userBox.setLayoutParams(ozp);
+        TextView myHist=new TextView(this); myHist.setText("📝 MyHistory ▶"); myHist.setBackground(roundBg(BOOTH_BG,30)); myHist.setPadding(16,10,16,10); myHist.setGravity(Gravity.CENTER); myHist.setOnClickListener(v->showMyHistory());
+        // FIX 2: MyHistory o 80% - 2ta SAME SAME
+        LinearLayout.LayoutParams mhp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,0.8f); mhp.setMargins(8,0,0,0); myHist.setLayoutParams(mhp);
         myRow.addView(userBox); myRow.addView(myHist); bottom.addView(myRow);
         LinearLayout resRow=new LinearLayout(this); resRow.setOrientation(LinearLayout.HORIZONTAL); resRow.setGravity(Gravity.CENTER_VERTICAL);
         resultTxt=new TextView(this); resultTxt.setText("Result  "); resultTxt.setTextColor(0xFFFFFFFF); resultTxt.setTextSize(14); resRow.addView(resultTxt);
         HorizontalScrollView hs=new HorizontalScrollView(this); resultHistoryLayout=new LinearLayout(this); resultHistoryLayout.setOrientation(LinearLayout.HORIZONTAL); hs.addView(resultHistoryLayout); resRow.addView(hs); bottom.addView(resRow);
-        LinearLayout chips=new LinearLayout(this); chips.setOrientation(LinearLayout.HORIZONTAL); chips.setGravity(Gravity.CENTER); chips.setPadding(0,14,0,0);
-        for(int i=0;i<4;i++){ final int idx=i; final int v=chipVals[i]; final String label=chipLabels[i]; TextView b=new TextView(this); b.setText("🪙\n"+label); b.setGravity(Gravity.CENTER); b.setTextSize(16); b.setTextColor(0xFFFFFFFF); b.setBackground(roundBg(PINK,50)); b.setPadding(10,20,10,20); LinearLayout.LayoutParams clp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); clp.setMargins(8,0,8,0); b.setLayoutParams(clp); b.setOnClickListener(vv->{ chip=v; selectedChipIndex=idx; updateChipUI(); }); chipViews[i]=b; chips.addView(b); }
+        LinearLayout chips=new LinearLayout(this); chips.setOrientation(LinearLayout.HORIZONTAL); chips.setGravity(Gravity.CENTER); chips.setPadding(0,8,0,0);
+        for(int i=0;i<4;i++){ final int idx=i; final int v=chipVals[i]; final String label=chipLabels[i]; TextView b=new TextView(this); b.setText("🪙\n"+label); b.setGravity(Gravity.CENTER); b.setTextSize(15); b.setTextColor(0xFFFFFFFF); b.setBackground(roundBg(PINK,50)); b.setPadding(8,14,8,14); LinearLayout.LayoutParams clp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); clp.setMargins(6,0,6,0); b.setLayoutParams(clp); b.setOnClickListener(vv->{ chip=v; selectedChipIndex=idx; updateChipUI(); }); chipViews[i]=b; chips.addView(b); }
         bottom.addView(chips);
-        LinearLayout lastRow=new LinearLayout(this); lastRow.setOrientation(LinearLayout.HORIZONTAL); lastRow.setGravity(Gravity.CENTER_VERTICAL); lastRow.setPadding(0,12,0,0);
-        LinearLayout wallet=new LinearLayout(this); wallet.setOrientation(LinearLayout.HORIZONTAL); wallet.setGravity(Gravity.CENTER_VERTICAL); wallet.setBackground(roundBg(BOOTH_BG,30)); wallet.setPadding(12,8,12,8);
+        // FIX: Niche Bাম Kona - Original Wallet - Upor e tola - Age dhaka porto
+        LinearLayout lastRow=new LinearLayout(this); lastRow.setOrientation(LinearLayout.HORIZONTAL); lastRow.setGravity(Gravity.CENTER_VERTICAL); lastRow.setPadding(0,8,0,2);
+        LinearLayout wallet=new LinearLayout(this); wallet.setOrientation(LinearLayout.HORIZONTAL); wallet.setGravity(Gravity.CENTER_VERTICAL); wallet.setBackground(roundBg(BOOTH_BG,30)); wallet.setPadding(10,6,10,6);
         walletPicView=new ImageView(this);
-        LinearLayout.LayoutParams wPicLp=new LinearLayout.LayoutParams(64,64); wPicLp.setMargins(0,0,6,0); walletPicView.setLayoutParams(wPicLp);
+        LinearLayout.LayoutParams wPicLp=new LinearLayout.LayoutParams(56,56); wPicLp.setMargins(0,0,6,0); walletPicView.setLayoutParams(wPicLp);
         walletPicView.setBackground(circleBg(0xFFFFFFFF)); walletPicView.setScaleType(ImageView.ScaleType.CENTER_CROP);
         LinearLayout wText=new LinearLayout(this); wText.setOrientation(LinearLayout.VERTICAL);
-        walletNameTxt=new TextView(this); walletNameTxt.setText(userName); walletNameTxt.setTextSize(12);
-        balanceTxt=new TextView(this); balanceTxt.setText(fmt(balance)); balanceTxt.setTextSize(16); wText.addView(walletNameTxt); wText.addView(balanceTxt);
-        TextView plus=new TextView(this); plus.setText("+"); plus.setTextSize(22); plus.setTextColor(0xFFFFFFFF); plus.setBackground(circleBg(0xFF4CAF50)); plus.setPadding(16,4,16,4); plus.setOnClickListener(v->Toast.makeText(this,"Recharge - Next Update",Toast.LENGTH_SHORT).show());
+        walletNameTxt=new TextView(this); walletNameTxt.setText(userName); walletNameTxt.setTextSize(11);
+        balanceTxt=new TextView(this); balanceTxt.setText(fmt(balance)); balanceTxt.setTextSize(15); wText.addView(walletNameTxt); wText.addView(balanceTxt);
+        TextView plus=new TextView(this); plus.setText("+"); plus.setTextSize(20); plus.setTextColor(0xFFFFFFFF); plus.setBackground(circleBg(0xFF4CAF50)); plus.setPadding(14,2,14,2); plus.setOnClickListener(v->Toast.makeText(this,"Recharge - Next Update",Toast.LENGTH_SHORT).show());
         wallet.addView(walletPicView); wallet.addView(wText); wallet.addView(plus);
         LinearLayout.LayoutParams wp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); wallet.setLayoutParams(wp);
         LinearLayout earnBox=new LinearLayout(this); earnBox.setOrientation(LinearLayout.VERTICAL); earnBox.setGravity(Gravity.CENTER);
-        TextView earnLabel=new TextView(this); earnLabel.setText("Today's Earnings"); earnLabel.setTextColor(0xFFFFFFFF); earnLabel.setTextSize(12);
-        todayTxt=new TextView(this); todayTxt.setText("🪙 "+fmt(totalToday)); todayTxt.setTextColor(0xFF333333); todayTxt.setBackground(roundBg(BOOTH_BG,30)); todayTxt.setGravity(Gravity.CENTER); todayTxt.setPadding(20,8,20,8);
+        TextView earnLabel=new TextView(this); earnLabel.setText("Today's Earnings"); earnLabel.setTextColor(0xFFFFFFFF); earnLabel.setTextSize(11);
+        todayTxt=new TextView(this); todayTxt.setText("🪙 "+fmt(totalToday)); todayTxt.setTextColor(0xFF333333); todayTxt.setBackground(roundBg(BOOTH_BG,30)); todayTxt.setGravity(Gravity.CENTER); todayTxt.setPadding(16,6,16,6);
         earnBox.addView(earnLabel); earnBox.addView(todayTxt);
         LinearLayout.LayoutParams ep=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); earnBox.setLayoutParams(ep);
-        Button auto=new Button(this); auto.setText("auto bet"); auto.setTextColor(0xFFFFFFFF); auto.setBackground(roundBg(0xFF4CAF50,50)); LinearLayout.LayoutParams ap=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); ap.setMargins(10,0,0,0); auto.setLayoutParams(ap);
+        Button auto=new Button(this); auto.setText("auto bet"); auto.setTextColor(0xFFFFFFFF); auto.setBackground(roundBg(0xFF4CAF50,50)); LinearLayout.LayoutParams ap=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); ap.setMargins(8,0,0,0); auto.setLayoutParams(ap);
         auto.setOnClickListener(v->{
             autoBetOn = !autoBetOn;
             auto.setText(autoBetOn ? "auto ON" : "auto bet");
