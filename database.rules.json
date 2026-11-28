@@ -2,31 +2,108 @@
   "rules": {
     "users": {
       "$uid": {
-        ".read": true,
-        "coins": {
-          ".write": false
+        ".read": "auth != null && auth.uid == $uid",
+        "profileId": {
+          ".read": true,
+          ".write": "auth != null && auth.uid == $uid && (!data.exists() || data.val() == newData.val())"
         },
-        "$other": {
-          ".write": true
-        }
+        "displayId": { ".read": true, ".write": "auth != null && auth.uid == $uid" },
+        "coins": { ".read": "auth != null && auth.uid == $uid", ".write": false },
+        "$other": { ".write": "auth != null && auth.uid == $uid" }
       }
     },
-    "game_bets": {
+    "profileIds": {
       ".read": true,
-      "$roundId": {
-        "$betId": {
-          ".write": true,
-          ".validate": "newData.hasChildren(['permanentId', 'betAmount'])"
-        }
+      "$profileId": {
+        ".read": true,
+        ".write": "auth != null && (!data.exists() || data.val() == auth.uid)"
       }
+    },
+    "displayIds": {
+      ".read": true,
+      "$displayId": {
+        ".read": true,
+        ".write": "auth != null && (!data.exists() || data.val() == newData.val())"
+      }
+    },
+    "rooms": {
+      ".read": true,
+      "$profileId": {
+        ".read": true,
+        ".write": "auth != null && root.child('profileIds').child($profileId).val() == auth.uid",
+        ".validate": "newData.hasChildren(['ownerProfileId']) && newData.child('ownerProfileId').val() == $profileId"
+      }
+    },
+    "game_state": {
+      ".read": true,
+      ".write": false
     },
     "game_rounds": {
       ".read": true,
       ".write": false
     },
-    "coin_ledger": {
+    "game_bets": {
+      ".read": true,
+      "$roundId": {
+        ".read": true,
+        "$betId": {
+          ".read": true,
+          ".write": "auth != null && !data.exists() && newData.child('profileId').val() == root.child('users').child(auth.uid).child('profileId').val() && (newData.child('betAmount').val() == 1000 || newData.child('betAmount').val() == 5000 || newData.child('betAmount').val() == 10000 || newData.child('betAmount').val() == 100000)",
+          ".validate": "newData.hasChildren(['profileId', 'betAmount', 'slot', 'userName']) && newData.child('slot').val() >= 0 && newData.child('slot').val() <= 7"
+        }
+      }
+    },
+    "game_top3": {
       ".read": true,
       ".write": false
+    },
+    "game_history": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid"
+      }
+    },
+    "game_results": {
+      ".read": true,
+      ".write": false
+    },
+    "game_settlement": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "active_rooms": { ".read": true, ".write": false },
+    "admins": {
+      ".read": false,
+      ".write": false
+    },
+    "agencies": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "hosts": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "hostInvites": { ".read": "auth != null", ".write": "auth != null" },
+    "notifications": { ".read": "auth != null", ".write": "auth != null" },
+    "vip_assignments": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "sellers": {
+      ".read": false,
+      ".write": false
+    },
+    "coin_transactions": {
+      ".read": false,
+      ".write": false
+    },
+    "coin_ledger": {
+      ".read": "auth != null",
+      "$entryId": {
+        ".read": "auth != null",
+        ".write": false
+      }
     }
   }
 }
