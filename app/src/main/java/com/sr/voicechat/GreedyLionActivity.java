@@ -35,8 +35,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TimeZone;
 
 public class GreedyLionActivity extends AppCompatActivity {
@@ -88,6 +90,8 @@ public class GreedyLionActivity extends AppCompatActivity {
     ValueEventListener top3Listener;
     ValueEventListener resultListener;
     ValueEventListener stateListener;
+    // NEW - Server Result 1 bar e 1 bar e handle hobe, double popup hobe na
+    Set<Integer> handledResultRounds = new HashSet<>();
 
     static class RankEntry {
         String name; String id; long points; long reward;
@@ -206,6 +210,7 @@ public class GreedyLionActivity extends AppCompatActivity {
             dbRef = FirebaseDatabase.getInstance().getReference();
             if (mAuth.getCurrentUser() != null) {
                 String uid = mAuth.getCurrentUser().getUid();
+                // WALLET NICHE - Server theke shunbe, app nije likhbe na
                 coinsRef = dbRef.child("users").child(uid).child("coins");
                 coinsListener = new ValueEventListener() {
                     @Override public void onDataChange(DataSnapshot s) {
@@ -265,18 +270,44 @@ public class GreedyLionActivity extends AppCompatActivity {
             resultListener = new ValueEventListener() {
                 @Override public void onDataChange(DataSnapshot s) {
                     if (!s.exists()) return;
+                    // RESULT FANKA - Server na dile kichu dekhabe na, 1 bar e handle
+                    if (handledResultRounds.contains(roundNum)) return;
                     try {
                         long winner = s.child("winner").exists() ? Long.parseLong(String.valueOf(s.child("winner").getValue())) : -1;
                         String special = s.child("special").exists() ? String.valueOf(s.child("special").getValue()) : "";
                         String displayEmoji = s.child("displayEmoji").exists() ? String.valueOf(s.child("displayEmoji").getValue()) : "";
                         if (winner < 0) return;
                         if (displayEmoji == null || displayEmoji.isEmpty()) displayEmoji = emojis[(int) winner];
+                        handledResultRounds.add(roundNum);
                         onServerResult((int) winner, special, displayEmoji);
                     } catch (Exception e) {}
                 }
                 @Override public void onCancelled(DatabaseError e) {}
             };
             resultRef.addValueEventListener(resultListener);
+        } catch (Exception e) {}
+    }
+    // NEW - LAL BORO + : Bet dile majhkhane lal boro + vasbe
+    void showBigPlus(long amount) {
+        try {
+            if (rootFrame == null) return;
+            final TextView plus = new TextView(this);
+            plus.setText("+" + fmtBet(amount));
+            plus.setTextSize(48);
+            plus.setTextColor(0xFFFF0000);
+            plus.setTypeface(null, android.graphics.Typeface.BOLD);
+            plus.getPaint().setFakeBoldText(true);
+            plus.setGravity(Gravity.CENTER);
+            plus.setBackground(roundBg(0xFFFFFFFF, 50));
+            plus.setPadding(30, 10, 30, 10);
+            FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            lp.gravity = Gravity.CENTER;
+            lp.topMargin = -200;
+            plus.setLayoutParams(lp);
+            rootFrame.addView(plus);
+            plus.animate().alpha(0f).translationY(-180).setDuration(900).withEndAction(() -> {
+                try { rootFrame.removeView(plus); } catch (Exception e) {}
+            }).start();
         } catch (Exception e) {}
     }
     void onServerResult(int winner, String special, String displayEmoji) {
@@ -308,10 +339,13 @@ public class GreedyLionActivity extends AppCompatActivity {
         try {
             if (dbRef == null || mAuth == null || mAuth.getCurrentUser() == null) return;
             if (myProfileId == null || myProfileId.isEmpty()) myProfileId = userId;
+            // index.js er sathe mil - permanentId + profileId 2 tai pathai
+            String pid = (myProfileId != null && !myProfileId.isEmpty()) ? myProfileId : userId;
             String key = dbRef.child("game_bets").child("Round_" + round).push().getKey();
             if (key == null) return;
             Map<String, Object> bet = new HashMap<>();
-            bet.put("profileId", myProfileId);
+            bet.put("permanentId", pid);
+            bet.put("profileId", pid);
             bet.put("betAmount", amount);
             bet.put("slot", slot);
             bet.put("userName", userName);
@@ -355,10 +389,7 @@ public class GreedyLionActivity extends AppCompatActivity {
             if (ph != null && (ph.equals("👤") || ph.length() < 5)) ph = "";
             userPhoto = ph != null ? ph : "";
         }
-        if (game.contains("wallet_coins")) balance = game.getLong("wallet_coins", 0);
-        else if (sr.contains("wallet_coins")) balance = sr.getLong("wallet_coins", 0);
-        else if (getIntent() != null && getIntent().hasExtra("wallet_coins")) balance = getIntent().getLongExtra("wallet_coins", 0);
-        else balance = 0;
+        // Coin local theke nibo na - Server theke asbe (initFirebase er coinsListener)
         rankingPoints = game.getLong("ranking_points", 0);
         totalToday = game.getLong("total_today", 0);
         round = calcGlobalRound();
@@ -367,6 +398,7 @@ public class GreedyLionActivity extends AppCompatActivity {
         checkDailyReset();
     }
     void saveWallet() {
+        // Coin ekhane save korbo na - Server e thakbe
         getSharedPreferences("greedy_lion_wallet", MODE_PRIVATE).edit().putString("user_name", userName).putString("user_id", userId).putString("user_pic", userPhoto).putLong("ranking_points", rankingPoints).putLong("total_today", totalToday).putInt("last_round", round).apply();
         updateWalletUI();
     }
@@ -834,6 +866,8 @@ public class GreedyLionActivity extends AppCompatActivity {
         }
         bets[idx] += chip; myBetThisRound += chip; lastBetSlot = idx;
         rankingPoints += chip / 100;
+        // LAL BORO + dekhau - Coin ekhane katbo na, Server katbe
+        showBigPlus(chip);
         sendBetToFirebase(idx, chip);
         saveWallet();
         updateBetUI();
@@ -849,6 +883,7 @@ public class GreedyLionActivity extends AppCompatActivity {
         listenResultForRound(round);
         if (roundTxt != null) roundTxt.setText("Round: " + round);
         if (lionTimerTxt != null) lionTimerTxt.setText("" + timeLeft);
+        // SERVER DRAW - App nije Draw dibe na, 30 sec por Waiting Result dekhabe
         roundRunnable = new Runnable() { @Override public void run() { timeLeft--; if (lionTimerTxt != null) lionTimerTxt.setText("" + timeLeft); if (timeLeft > 0) { handler.postDelayed(this, 1000); } else { bettingOpen = false; if (lionTimerTxt != null) lionTimerTxt.setText("Waiting Result..."); } } };
         handler.postDelayed(roundRunnable, 1000);
     }
