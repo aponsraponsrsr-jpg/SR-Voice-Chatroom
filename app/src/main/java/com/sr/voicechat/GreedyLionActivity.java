@@ -20,6 +20,7 @@ import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
@@ -90,8 +91,10 @@ public class GreedyLionActivity extends AppCompatActivity {
     ValueEventListener top3Listener;
     ValueEventListener resultListener;
     ValueEventListener stateListener;
-    // NEW - Server Result 1 bar e 1 bar e handle hobe, double popup hobe na
     Set<Integer> handledResultRounds = new HashSet<>();
+    // FIX: Coins 2 bar listen hobe na, profileId resolve hole 1 bar
+    boolean coinsListenerAttached = false;
+    String coinsListenKey = "";
 
     static class RankEntry {
         String name; String id; long points; long reward;
@@ -204,26 +207,95 @@ public class GreedyLionActivity extends AppCompatActivity {
             sp.edit().putString("last_play_date", saudiDate).apply();
         }
     }
+
+    // ===== 1 WALLET - Me er Wallet tai Game er Wallet =====
+    // MeActivity: users/{profileId}/coins + main_wallet/wallet_coins
+    // Game: age profileId diye shunbe, na paile uid diye, surute main_wallet theke dekhabe jate 0 na dekhay
+    void attachCoinsListener(String key) {
+        if (key == null || key.isEmpty() || dbRef == null) return;
+        if (coinsListenerAttached && key.equals(coinsListenKey)) return;
+        try {
+            if (coinsRef != null && coinsListener != null) coinsRef.removeEventListener(coinsListener);
+        } catch (Exception ignored) {}
+        coinsListenKey = key;
+        coinsRef = dbRef.child("users").child(key).child("coins");
+        coinsListener = new ValueEventListener() {
+            @Override public void onDataChange(DataSnapshot s) {
+                if (!s.exists() || s.getValue() == null) {
+                    // Ei node e coins nai - vul node hote pare, uid diye try korbo, balance 0 korbo na
+                    if (mAuth != null && mAuth.getCurrentUser() != null) {
+                        String uid = mAuth.getCurrentUser().getUid();
+                        if (!uid.equals(key) && !coinsListenerAttached) {
+                            // 1 bar e uid fallback - loop hobe na
+                            coinsListenerAttached = true;
+                            attachCoinsListener(uid);
+                        }
+                    }
+                    return;
+                }
+                try {
+                    long v = Long.parseLong(String.valueOf(s.getValue()).replace(",", "").trim());
+                    if (v < 0) v = 0;
+                    // Server er coin tai asol. Tobe server 0 bolle ar local e boro coin thakle hotat 0 korbo na,
+                    // karon bet er somoy server ek muhurter jonno purano value dite pare. Server 0 + local >0 hole local tai rakhi,
+                    // porer update e server abar thik value dile tokhon milbe.
+                    if (v == 0 && balance > 0) {
+                        // UI te purano tai thakbe, overwrite korbo na
+                        updateWalletUI();
+                        return;
+                    }
+                    balance = v;
+                    // Local mirror miliye rakhi - Me / Game / Wallet dialog sobai eita dekhbe
+                    try {
+                        getSharedPreferences("main_wallet", MODE_PRIVATE).edit().putLong("wallet_coins", balance).apply();
+                        getSharedPreferences("SR_USER", MODE_PRIVATE).edit().putLong("WALLET_COINS", balance).putString("COINS", String.valueOf(balance)).apply();
+                    } catch (Exception ignored) {}
+                    updateWalletUI();
+                } catch (Exception ignored) {}
+            }
+            @Override public void onCancelled(DatabaseError e) {}
+        };
+        coinsListenerAttached = true;
+        coinsRef.addValueEventListener(coinsListener);
+    }
+
     void initFirebase() {
         try {
             mAuth = FirebaseAuth.getInstance();
             dbRef = FirebaseDatabase.getInstance().getReference();
+            // Surute local mirror theke balance - Firebase asle overwrite hobe, 0 dekhabe na
+            long localMain = getSharedPreferences("main_wallet", MODE_PRIVATE).getLong("wallet_coins", 0);
+            long localSr = getSharedPreferences("SR_USER", MODE_PRIVATE).getLong("WALLET_COINS", 0);
+            if (balance <= 0) balance = Math.max(localMain, localSr);
             if (mAuth.getCurrentUser() != null) {
                 String uid = mAuth.getCurrentUser().getUid();
-                // WALLET NICHE - Server theke shunbe, app nije likhbe na
-                coinsRef = dbRef.child("users").child(uid).child("coins");
-                coinsListener = new ValueEventListener() {
-                    @Override public void onDataChange(DataSnapshot s) {
-                        if (s.exists() && s.getValue() != null) {
-                            try { balance = Long.parseLong(String.valueOf(s.getValue())); } catch (Exception e) {}
-                            updateWalletUI();
+                // 1. SR_USER theke profileId - Me er sathe mil
+                SharedPreferences sr = getSharedPreferences("SR_USER", MODE_PRIVATE);
+                String pid = sr.getString("MY_PROFILE_ID", "");
+                if (pid == null || pid.isEmpty()) pid = sr.getString("PROFILE_ID", "");
+                if (pid == null || pid.isEmpty()) pid = sr.getString("MY_ANY_ID", "");
+                if (pid == null || pid.isEmpty()) pid = sr.getString("MY_9_DIGIT_ID", "");
+                if (pid != null && !pid.isEmpty()) {
+                    myProfileId = pid;
+                    attachCoinsListener(pid);
+                } else {
+                    // 2. Firebase theke profileId ene tarpor coins shunbo
+                    coinsListenerAttached = false;
+                    dbRef.child("users").child(uid).child("profileId").addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override public void onDataChange(DataSnapshot s) {
+                            if (s.exists() && s.getValue() != null && !String.valueOf(s.getValue()).isEmpty()) {
+                                myProfileId = String.valueOf(s.getValue());
+                                attachCoinsListener(myProfileId);
+                            } else {
+                                attachCoinsListener(uid);
+                            }
                         }
-                    }
-                    @Override public void onCancelled(DatabaseError e) {}
-                };
-                coinsRef.addValueEventListener(coinsListener);
+                        @Override public void onCancelled(DatabaseError e) { attachCoinsListener(uid); }
+                    });
+                }
+                // profileId pore update holeo coins listener thik thakbe
                 dbRef.child("users").child(uid).child("profileId").addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override public void onDataChange(DataSnapshot s) { if (s.exists()) myProfileId = String.valueOf(s.getValue()); }
+                    @Override public void onDataChange(DataSnapshot s) { if (s.exists() && s.getValue() != null) myProfileId = String.valueOf(s.getValue()); }
                     @Override public void onCancelled(DatabaseError e) {}
                 });
             }
@@ -270,7 +342,6 @@ public class GreedyLionActivity extends AppCompatActivity {
             resultListener = new ValueEventListener() {
                 @Override public void onDataChange(DataSnapshot s) {
                     if (!s.exists()) return;
-                    // RESULT FANKA - Server na dile kichu dekhabe na, 1 bar e handle
                     if (handledResultRounds.contains(roundNum)) return;
                     try {
                         long winner = s.child("winner").exists() ? Long.parseLong(String.valueOf(s.child("winner").getValue())) : -1;
@@ -287,7 +358,6 @@ public class GreedyLionActivity extends AppCompatActivity {
             resultRef.addValueEventListener(resultListener);
         } catch (Exception e) {}
     }
-    // NEW - LAL BORO + : Bet dile majhkhane lal boro + vasbe
     void showBigPlus(long amount) {
         try {
             if (rootFrame == null) return;
@@ -309,6 +379,27 @@ public class GreedyLionActivity extends AppCompatActivity {
                 try { rootFrame.removeView(plus); } catch (Exception e) {}
             }).start();
         } catch (Exception e) {}
+    }
+    // ===== NO BUDGET / RECHARGE - Bet er somoy coin na thakle =====
+    void showNoBudgetDialog(long remaining) {
+        try {
+            new AlertDialog.Builder(this)
+                .setTitle("No Budget")
+                .setMessage("Your balance: 🪙 " + fmt(balance) + "\nAlready bet this round: 🪙 " + fmt(myBetThisRound) + "\nRemaining: 🪙 " + fmt(remaining) + "\n\nYou don't have enough coins for this bet.\nPlease Recharge to continue.")
+                .setPositiveButton("Recharge", (d, w) -> openRecharge())
+                .setNegativeButton("Cancel", null)
+                .show();
+        } catch (Exception e) {
+            Toast.makeText(this, "No Budget - Please Recharge", Toast.LENGTH_SHORT).show();
+        }
+    }
+    void openRecharge() {
+        try {
+            WalletRechargeDialog dialog = new WalletRechargeDialog();
+            dialog.show(getSupportFragmentManager(), "WalletRechargeDialog");
+        } catch (Exception e) {
+            Toast.makeText(this, "Recharge - Please go to Me > Wallet", Toast.LENGTH_SHORT).show();
+        }
     }
     void onServerResult(int winner, String special, String displayEmoji) {
         long myWinForUI = 0;
@@ -339,7 +430,6 @@ public class GreedyLionActivity extends AppCompatActivity {
         try {
             if (dbRef == null || mAuth == null || mAuth.getCurrentUser() == null) return;
             if (myProfileId == null || myProfileId.isEmpty()) myProfileId = userId;
-            // index.js er sathe mil - permanentId + profileId 2 tai pathai
             String pid = (myProfileId != null && !myProfileId.isEmpty()) ? myProfileId : userId;
             String key = dbRef.child("game_bets").child("Round_" + round).push().getKey();
             if (key == null) return;
@@ -377,10 +467,13 @@ public class GreedyLionActivity extends AppCompatActivity {
         }
         if (userId == null || userId.isEmpty()) {
             String id = sr.getString("MY_9_DIGIT_ID", "");
+            if (id == null || id.isEmpty()) id = sr.getString("MY_PROFILE_ID", "");
             if (id == null || id.isEmpty()) id = sr.getString("PROFILE_ID", "");
             if (id == null || id.isEmpty()) id = game.getString("user_id", "");
             userId = id != null ? id : "";
         }
+        // FIX: userId khali hole profileId tai userId - Dynamic nam er jonno
+        if ((myProfileId == null || myProfileId.isEmpty()) && userId != null && !userId.isEmpty()) myProfileId = userId;
         if (userPhoto == null || userPhoto.isEmpty() || userPhoto.equals("👤")) {
             String ph = sr.getString("USER_PHOTO", "");
             if (ph == null || ph.isEmpty()) ph = sr.getString("PROFILE_PHOTO", "");
@@ -389,7 +482,10 @@ public class GreedyLionActivity extends AppCompatActivity {
             if (ph != null && (ph.equals("👤") || ph.length() < 5)) ph = "";
             userPhoto = ph != null ? ph : "";
         }
-        // Coin local theke nibo na - Server theke asbe (initFirebase er coinsListener)
+        // Coin: surute local mirror theke - Server asle overwrite hobe, 0 dekhabe na
+        long localMain = getSharedPreferences("main_wallet", MODE_PRIVATE).getLong("wallet_coins", 0);
+        long localSr = sr.getLong("WALLET_COINS", 0);
+        if (balance <= 0) balance = Math.max(localMain, localSr);
         rankingPoints = game.getLong("ranking_points", 0);
         totalToday = game.getLong("total_today", 0);
         round = calcGlobalRound();
@@ -398,7 +494,6 @@ public class GreedyLionActivity extends AppCompatActivity {
         checkDailyReset();
     }
     void saveWallet() {
-        // Coin ekhane save korbo na - Server e thakbe
         getSharedPreferences("greedy_lion_wallet", MODE_PRIVATE).edit().putString("user_name", userName).putString("user_id", userId).putString("user_pic", userPhoto).putLong("ranking_points", rankingPoints).putLong("total_today", totalToday).putInt("last_round", round).apply();
         updateWalletUI();
     }
@@ -749,9 +844,10 @@ public class GreedyLionActivity extends AppCompatActivity {
         top.addView(back); top.addView(roundTxt); top.addView(music); top.addView(help); root.addView(top);
         LinearLayout rankRow = new LinearLayout(this); rankRow.setOrientation(LinearLayout.HORIZONTAL); rankRow.setPadding(16, 0, 16, 0);
         TextView rank = new TextView(this); rank.setText("🏆\nRanking"); rank.setGravity(Gravity.CENTER); rank.setTextSize(14); rank.setTextColor(0xFFFFD700); rank.setOnClickListener(v -> showRanking()); rank.setPadding(4, 2, 4, 2); rankRow.addView(rank); root.addView(rankRow);
-        FrameLayout wheel = new FrameLayout(this); wheel.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 880));
-        TextView wheelRing = new TextView(this); FrameLayout.LayoutParams ringLp = new FrameLayout.LayoutParams(600, 600); ringLp.leftMargin = 240; ringLp.topMargin = 100; wheelRing.setLayoutParams(ringLp); wheelRing.setBackground(circleStroke(0x00FFFFFF, 0xFFFFD700, 10)); wheel.addView(wheelRing);
-        int centerX = 540, centerY = 400, radius = 300;
+        // FIX DESIGN - Wheel choto kore nicher jayga fanka kora holo, age 880 chilo
+        FrameLayout wheel = new FrameLayout(this); wheel.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 720));
+        TextView wheelRing = new TextView(this); FrameLayout.LayoutParams ringLp = new FrameLayout.LayoutParams(600, 600); ringLp.leftMargin = 240; ringLp.topMargin = 60; wheelRing.setLayoutParams(ringLp); wheelRing.setBackground(circleStroke(0x00FFFFFF, 0xFFFFD700, 10)); wheel.addView(wheelRing);
+        int centerX = 540, centerY = 340, radius = 270;
         for (int i = 0; i < 8; i++) {
             final int idx = i; double angle = Math.toRadians(-90 + i * 45);
             int x = (int) (centerX + radius * Math.cos(angle)) - 95; int y = (int) (centerY + radius * Math.sin(angle)) - 68;
@@ -774,7 +870,7 @@ public class GreedyLionActivity extends AppCompatActivity {
             betViews[i] = b; boothViews[i] = booth; wheel.addView(boothFrame);
         }
         LinearLayout center = new LinearLayout(this); center.setOrientation(LinearLayout.VERTICAL); center.setGravity(Gravity.CENTER); center.setBackground(circleStroke(0xFFFFD700, 0xFFB8860B, 7)); center.setPadding(6, 6, 6, 6);
-        FrameLayout.LayoutParams cp = new FrameLayout.LayoutParams(250, 250); cp.leftMargin = 415; cp.topMargin = 275; center.setLayoutParams(cp);
+        FrameLayout.LayoutParams cp = new FrameLayout.LayoutParams(250, 250); cp.leftMargin = 415; cp.topMargin = 215; center.setLayoutParams(cp);
         TextView lion = new TextView(this); lion.setText("🦁"); lion.setTextSize(48); lion.setGravity(Gravity.CENTER);
         lionTimerTxt = new TextView(this); lionTimerTxt.setText("30"); lionTimerTxt.setTextSize(20); lionTimerTxt.setGravity(Gravity.CENTER); lionTimerTxt.setTextColor(0xFF8B4513); lionTimerTxt.setBackground(circleStroke(BOOTH_BG, 0xFFFFD700, 5)); lionTimerTxt.setPadding(14, 3, 14, 3);
         center.addView(lion); center.addView(lionTimerTxt); wheel.addView(center); root.addView(wheel);
@@ -782,8 +878,12 @@ public class GreedyLionActivity extends AppCompatActivity {
         extraRow.addView(saladPizzaItem("🥗", "salad"));
         extraRow.addView(saladPizzaItem("🍕", "pizza"));
         root.addView(extraRow);
-        LinearLayout bottom = new LinearLayout(this); bottom.setOrientation(LinearLayout.VERTICAL); bottom.setBackground(roundBg(0xFFD32F2F, 30)); bottom.setPadding(16, 6, 16, 10);
-        LinearLayout myRow = new LinearLayout(this); myRow.setOrientation(LinearLayout.HORIZONTAL); myRow.setGravity(Gravity.CENTER); myRow.setPadding(0, 0, 0, 6);
+        // FIX DESIGN - Niche namanor jonno spacer: Result er jonno fanka jayga
+        View spacerTop = new View(this);
+        spacerTop.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, 28));
+        root.addView(spacerTop);
+        LinearLayout bottom = new LinearLayout(this); bottom.setOrientation(LinearLayout.VERTICAL); bottom.setBackground(roundBg(0xFFD32F2F, 30)); bottom.setPadding(16, 18, 16, 10);
+        LinearLayout myRow = new LinearLayout(this); myRow.setOrientation(LinearLayout.HORIZONTAL); myRow.setGravity(Gravity.CENTER); myRow.setPadding(0, 6, 0, 6);
         todayRankTxt = new TextView(this); todayRankTxt.setText("Today's Rank  ▶"); todayRankTxt.setGravity(Gravity.CENTER); todayRankTxt.setTextSize(15); todayRankTxt.setTextColor(0xFF333333); todayRankTxt.setBackground(roundBg(GHIYA, 30)); todayRankTxt.setPadding(18, 16, 18, 16); todayRankTxt.setSingleLine(true); todayRankTxt.setEllipsize(TextUtils.TruncateAt.END);
         todayRankTxt.setOnClickListener(v -> showRanking());
         todayRankTxt.setMinimumWidth(400);
@@ -792,13 +892,15 @@ public class GreedyLionActivity extends AppCompatActivity {
         myHist.setMinimumWidth(400);
         LinearLayout.LayoutParams mhp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.2f); mhp.setMargins(6, 0, 0, 0); myHist.setLayoutParams(mhp);
         myRow.addView(todayRankTxt); myRow.addView(myHist); bottom.addView(myRow);
+        // FIX DESIGN - Result row e fanka jayga: minHeight + padding, jate Live Result dekha jay
         LinearLayout resRow = new LinearLayout(this); resRow.setOrientation(LinearLayout.HORIZONTAL); resRow.setGravity(Gravity.CENTER_VERTICAL);
+        resRow.setPadding(0, 14, 0, 14); resRow.setMinimumHeight(140);
         resultTxt = new TextView(this); resultTxt.setText("Result  "); resultTxt.setTextColor(0xFFFFFFFF); resultTxt.setTextSize(13); resRow.addView(resultTxt);
-        HorizontalScrollView hs = new HorizontalScrollView(this); resultHistoryLayout = new LinearLayout(this); resultHistoryLayout.setOrientation(LinearLayout.HORIZONTAL); hs.addView(resultHistoryLayout); resRow.addView(hs); bottom.addView(resRow);
-        LinearLayout chips = new LinearLayout(this); chips.setOrientation(LinearLayout.HORIZONTAL); chips.setGravity(Gravity.CENTER); chips.setPadding(0, 10, 0, 0);
+        HorizontalScrollView hs = new HorizontalScrollView(this); resultHistoryLayout = new LinearLayout(this); resultHistoryLayout.setOrientation(LinearLayout.HORIZONTAL); resultHistoryLayout.setMinimumHeight(110); resultHistoryLayout.setPadding(0, 8, 0, 8); hs.addView(resultHistoryLayout); resRow.addView(hs); bottom.addView(resRow);
+        LinearLayout chips = new LinearLayout(this); chips.setOrientation(LinearLayout.HORIZONTAL); chips.setGravity(Gravity.CENTER); chips.setPadding(0, 14, 0, 0);
         for (int i = 0; i < 4; i++) { final int idx = i; final int v = chipVals[i]; final String label = chipLabels[i]; TextView b = new TextView(this); b.setText("🪙\n" + label); b.setGravity(Gravity.CENTER); b.setTextSize(14); b.setTextColor(0xFFFFFFFF); b.setBackground(roundBg(PINK, 50)); b.setPadding(6, 10, 6, 10); LinearLayout.LayoutParams clp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f); clp.setMargins(5, 0, 5, 0); b.setLayoutParams(clp); b.setOnClickListener(vv -> { chip = v; selectedChipIndex = idx; updateChipUI(); }); chipViews[i] = b; chips.addView(b); }
         bottom.addView(chips);
-        LinearLayout lastRow = new LinearLayout(this); lastRow.setOrientation(LinearLayout.HORIZONTAL); lastRow.setGravity(Gravity.CENTER_VERTICAL); lastRow.setPadding(0, 8, 0, 2);
+        LinearLayout lastRow = new LinearLayout(this); lastRow.setOrientation(LinearLayout.HORIZONTAL); lastRow.setGravity(Gravity.CENTER_VERTICAL); lastRow.setPadding(0, 14, 0, 2);
         LinearLayout walletCol = new LinearLayout(this); walletCol.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams walletColLp = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1.05f); walletCol.setLayoutParams(walletColLp);
         walletNameTxt = new TextView(this); walletNameTxt.setText(userName); walletNameTxt.setTextSize(13); walletNameTxt.setTextColor(0xFFFFFFFF); walletNameTxt.setGravity(Gravity.LEFT); walletNameTxt.setSingleLine(true); walletNameTxt.setEllipsize(TextUtils.TruncateAt.END); walletNameTxt.setPadding(78, 0, 0, 2);
@@ -858,7 +960,11 @@ public class GreedyLionActivity extends AppCompatActivity {
     void placeBet(int idx) {
         if (idx < 0 || idx >= 8) return;
         if (!bettingOpen) { Toast.makeText(this, "Wait for next Round", Toast.LENGTH_SHORT).show(); return; }
-        if (balance < chip) { Toast.makeText(this, "Not enough coins", Toast.LENGTH_SHORT).show(); return; }
+        // FIX: Bet limit - Balance - ei round e ja bet korsi = baki coin. Baki coin er beshi bet hobe na.
+        // Udahoron: Balance 1000, 1st ghore 1000 bet -> baki 0 -> 2nd ghore touch korle No Budget / Recharge
+        long remaining = balance - myBetThisRound;
+        if (remaining < 0) remaining = 0;
+        if (balance <= 0 || remaining < chip) { showNoBudgetDialog(remaining); return; }
         if (bets[idx] == 0 && countDistinctBets() >= 6) {
             String msg = "Max 6 slots only! You can bet on max 6 slots";
             Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
@@ -866,7 +972,6 @@ public class GreedyLionActivity extends AppCompatActivity {
         }
         bets[idx] += chip; myBetThisRound += chip; lastBetSlot = idx;
         rankingPoints += chip / 100;
-        // LAL BORO + dekhau - Coin ekhane katbo na, Server katbe
         showBigPlus(chip);
         sendBetToFirebase(idx, chip);
         saveWallet();
@@ -883,7 +988,6 @@ public class GreedyLionActivity extends AppCompatActivity {
         listenResultForRound(round);
         if (roundTxt != null) roundTxt.setText("Round: " + round);
         if (lionTimerTxt != null) lionTimerTxt.setText("" + timeLeft);
-        // SERVER DRAW - App nije Draw dibe na, 30 sec por Waiting Result dekhabe
         roundRunnable = new Runnable() { @Override public void run() { timeLeft--; if (lionTimerTxt != null) lionTimerTxt.setText("" + timeLeft); if (timeLeft > 0) { handler.postDelayed(this, 1000); } else { bettingOpen = false; if (lionTimerTxt != null) lionTimerTxt.setText("Waiting Result..."); } } };
         handler.postDelayed(roundRunnable, 1000);
     }
