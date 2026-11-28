@@ -80,6 +80,7 @@ public class MeActivity extends AppCompatActivity {
     // Source of Truth: Firebase users/{ProfileID}/coins
     // Local Mirror: main_wallet / wallet_coins - Game er sathe milanor jonno
     // Seller Wallet alada - eita touch kora hobe na
+    // FIX: Firebase theke 0 / khali asle kokhono local coin muchbe na
     private long walletCoins = 0;
     private boolean walletSyncing = false;
 
@@ -90,19 +91,50 @@ public class MeActivity extends AppCompatActivity {
         }
     };
 
-    // ===== WALLET SYNC - Firebase -> Local (main_wallet) =====
+    // ===== WALLET SYNC - Firebase -> Local (main_wallet) - FIXED =====
     private void syncWalletLocal(long coins){
         if(coins < 0) coins = 0;
+        // FIX 1: Firebase khali / 0 asle purano coin rakhbo, 0 diye muchbo na
+        // Jodi local e age theke boro coin thake ar Firebase 0 bole, tahole Firebase kei ignore korbo
+        if(coins == 0 && walletCoins > 0){
+            // UI te purano tai dekhai, local overwrite korbo na
+            if(txtWalletCoins!=null) txtWalletCoins.setText("Coins: " + walletCoins);
+            return;
+        }
+        // FIX 2: Jodi Firebase er coin local er cheye choto hoy kintu 0 na, tobuo hotat komabo na
+        // Karon bet/win transaction er majhkhane purano value aste pare. Sudhu boro holei update, choto hole transaction diye kombe
+        // Tobe first load e walletCoins==0 hole ja asbe tai nibo
+        if(walletCoins > 0 && coins > 0 && coins < walletCoins){
+            // Eta purano delayed value hote pare, ignore kore local tai rakhi
+            // Jodi sotti sotti komate hoy, seta addWalletCoins(-delta) transaction diye kombe
+            if(txtWalletCoins!=null) txtWalletCoins.setText("Coins: " + walletCoins);
+            return;
+        }
         walletCoins = coins;
-        // 1. Me er SR_USER e
         try{ prefs.edit().putLong("WALLET_COINS", coins).putString("COINS", String.valueOf(coins)).apply(); }catch(Exception ignored){}
-        // 2. Game er sathe EKI FILE - main_wallet - Eitai mil
         try{ getSharedPreferences("main_wallet", MODE_PRIVATE).edit().putLong("wallet_coins", coins).putString("user_name", prefs.getString("USER_NAME","User")).putString("user_id", myProfileId).putString("user_pic", getCachedPhoto()).apply(); }catch(Exception ignored){}
         if(txtWalletCoins!=null) txtWalletCoins.setText("Coins: " + coins);
     }
+
+    // Helper: Firebase theke asol coin ber kora - 0 hole -1 return korbe jate bujha jay khali
+    private long getCoinsFromSnap(DataSnapshot s){
+        // Sudhu "coins" ar "walletCoins" - sendingCoins ekhane anbo na, ota level er jonno
+        if(s.hasChild("coins") && s.child("coins").getValue()!=null){
+            long v = getLongVal(s, "coins");
+            if(v>0) return v;
+            // coins field ache kintu 0 - eta sotti 0 o hote pare, kintu amra -1 dibo na, 0 dibo jate caller decide korte pare
+            // Jodi field ta string "0" hoy, taholeo 0
+            return 0;
+        }
+        if(s.hasChild("walletCoins") && s.child("walletCoins").getValue()!=null){
+            long v = getLongVal(s, "walletCoins");
+            if(v>0) return v;
+            return 0;
+        }
+        return -1; // field e nai
+    }
+
     // ===== WALLET PLUS / MINUS - SOB JAYGA THEKE EKHANEI ASBE =====
-    // Game theke call: MeActivity.addWalletCoins(this, profileId, +win) / -bet
-    // Transaction: 2 jon ek sathe Plus/Minus korleo coin harabe na
     public static void addWalletCoins(Context ctx, String profileId, long delta){
         if(profileId==null || profileId.isEmpty() || delta==0) return;
         DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(profileId).child("coins");
@@ -117,18 +149,16 @@ public class MeActivity extends AppCompatActivity {
             }
             @Override public void onComplete(@Nullable DatabaseError e, boolean committed, @Nullable DataSnapshot snap){
                 if(committed && snap!=null && snap.getValue()!=null){
-                    try{ long nw = Long.parseLong(String.valueOf(snap.getValue())); ctx.getSharedPreferences("main_wallet", MODE_PRIVATE).edit().putLong("wallet_coins", nw).apply(); }catch(Exception ignored){}
+                    try{ long nw = Long.parseLong(String.valueOf(snap.getValue())); ctx.getSharedPreferences("main_wallet", MODE_PRIVATE).edit().putLong("wallet_coins", nw).apply(); ctx.getSharedPreferences("SR_USER", MODE_PRIVATE).edit().putLong("WALLET_COINS", nw).putString("COINS", String.valueOf(nw)).apply(); }catch(Exception ignored){}
                 }
             }
         });
-        // Local mirror o sathe sathe update - UI jeno na atke thake, Firebase listener abar confirm korbe
         try{
             SharedPreferences mw = ctx.getSharedPreferences("main_wallet", MODE_PRIVATE);
             long local = mw.getLong("wallet_coins", 0) + delta; if(local < 0) local = 0;
             mw.edit().putLong("wallet_coins", local).apply();
         }catch(Exception ignored){}
     }
-    // MeActivity er vitore theke use korar jonno
     private void addMyWallet(long delta){ if(!myProfileId.isEmpty()) addWalletCoins(this, myProfileId, delta); }
 
     private void updateLevelBadge(){
@@ -605,7 +635,15 @@ public class MeActivity extends AppCompatActivity {
             }
         } catch (Exception ignored) {}
         // Wallet local mirror age theke load - Firebase asle overwrite hobe
-        walletCoins = getSharedPreferences("main_wallet", MODE_PRIVATE).getLong("wallet_coins", prefs.getLong("WALLET_COINS", 0));
+        // FIX: SR_USER ar main_wallet er moddhe jeta boro, oitai nibo - 0 diye overwrite hobe na
+        long fromMain = getSharedPreferences("main_wallet", MODE_PRIVATE).getLong("wallet_coins", 0);
+        long fromSr = prefs.getLong("WALLET_COINS", 0);
+        walletCoins = Math.max(fromMain, fromSr);
+        if(walletCoins>0){
+            // Duitar moddhe miliye rakhi
+            getSharedPreferences("main_wallet", MODE_PRIVATE).edit().putLong("wallet_coins", walletCoins).apply();
+            prefs.edit().putLong("WALLET_COINS", walletCoins).putString("COINS", String.valueOf(walletCoins)).apply();
+        }
         if(txtWalletCoins!=null) txtWalletCoins.setText("Coins: " + walletCoins);
         showFromPrefs();
         applyRoleVisibility();
@@ -1052,8 +1090,10 @@ public class MeActivity extends AppCompatActivity {
         if (myCharmLevel < 1) myCharmLevel = 1;
         myTotalSending = prefs.getLong("TOTAL_SENDING", 0);
         myTotalReceiving = prefs.getLong("TOTAL_RECEIVING", 0);
-        // Wallet - Local mirror theke - Firebase asle overwrite hobe
-        walletCoins = getSharedPreferences("main_wallet", MODE_PRIVATE).getLong("wallet_coins", prefs.getLong("WALLET_COINS", walletCoins));
+        // Wallet - Local mirror theke - FIX: 2 tar moddhe boro ta nibo, 0 diye muchbo na
+        long fromMain = getSharedPreferences("main_wallet", MODE_PRIVATE).getLong("wallet_coins", 0);
+        long fromSr = prefs.getLong("WALLET_COINS", walletCoins);
+        walletCoins = Math.max(fromMain, Math.max(fromSr, walletCoins));
         if (txtName != null) txtName.setText(name);
         if (txtId != null) txtId.setText("ID: " + myAnyId);
         if (txtGenderCountry != null) txtGenderCountry.setText(getGenderCountryText());
@@ -1090,12 +1130,22 @@ public class MeActivity extends AppCompatActivity {
                     if (photo.isEmpty()) photo = getStr(snap, "photo", "");
                     if (photo.isEmpty()) photo = getStr(snap, "photoBase64", "");
                     followCount = getStr(snap, "followCount", "0"); fansCount = getStr(snap, "fansCount", "0"); visitorCount = getStr(snap, "visitorCount", "0");
-                    // ===== WALLET - Firebase coins EITAI ASOL - walletCoins / sendingCoins na =====
-                    long coinsLong = getLongVal(snap, "coins");
-                    if (coinsLong == 0) coinsLong = getLongVal(snap, "walletCoins");
-                    // purono fallback - jodi coins khali thake
-                    if (coinsLong == 0) coinsLong = getLongVal(snap, "sendingCoins");
-                    syncWalletLocal(coinsLong);
+                    // ===== WALLET - FIXED =====
+                    // Age: coins==0 hole sendingCoins diye overwrite hoto + sync(0) diye local muchto - eita e bug chilo
+                    // Ekhon: coins field na thakle (-1) kichu korbo na, coins 0 holeo local muchbo na
+                    long coinsFromFirebase = getCoinsFromSnap(snap);
+                    long coinsLong;
+                    if(coinsFromFirebase == -1){
+                        // Firebase e coins field e nai - purano coin e thakbe
+                        coinsLong = walletCoins;
+                    } else if(coinsFromFirebase == 0 && walletCoins > 0){
+                        // Firebase 0 bolche kintu local e asol coin ache - local tai thakbe, Firebase ke overwrite korbo na
+                        // Jodi sotti 0 korte hoy, Super Panel theke korte hobe
+                        coinsLong = walletCoins;
+                    } else {
+                        coinsLong = coinsFromFirebase;
+                        syncWalletLocal(coinsLong);
+                    }
                     String coins = String.valueOf(coinsLong);
                     long sending = Math.max(getLongVal(snap,"sending"), getLongVal(snap,"totalSending"));
                     long receiving = Math.max(getLongVal(snap,"receiving"), getLongVal(snap,"totalReceiving"));
