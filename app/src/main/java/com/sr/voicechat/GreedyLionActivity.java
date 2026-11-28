@@ -337,26 +337,23 @@ public class GreedyLionActivity extends AppCompatActivity {
     void showDrawing(){ }
     void hideDrawing(){ isDrawing=false; resumeLight(); }
 
-    // FIREBASE READY - Pore ekhane Firebase bosbe, ekhon local test data
-    // Firebase e gele ei function er vitore sudhu Firebase query bosabo
-    // Path hobe: greedy_lion / rounds / Round_XXX / top3
-    // Ekhon Firebase nai tai local demo data diye popup 100% test kora jabe
+    // FIXED - Step 1: কোনো ডেমো নাম নাই, শুধু সত্যি Win
+    // Firebase আসলে এখানে Firebase থেকে আসা লিস্ট বসবে
+    // Path হবে: greedy_lion / rounds / Round_XXX / top3
     void buildTop3(long myWin){
         top3List.clear();
-        top3List.add(new TopWinner(userName, "🦁", myWin));
-        long seed = round * 7919L + 12345L;
-        long w2 = 50000 + (seed % 150000);
-        long w3 = 30000 + ((seed * 7) % 90000);
-        top3List.add(new TopWinner("Chanchal", "👤", w2));
-        top3List.add(new TopWinner("*co-owne...", "👧", w3));
-        Collections.sort(top3List, new Comparator<TopWinner>(){ @Override public int compare(TopWinner a, TopWinner b){ return Long.compare(b.win, a.win); } });
-        while(top3List.size()>3) top3List.remove(3);
+        // আমি যদি সত্যি Win করি, তাহলেই শুধু Top 1 এ আমি আসবো
+        // কেউ Win না করলে top3List খালি থাকবে - সাদা / ক্লিন থাকবে
+        if(myWin > 0){
+            top3List.add(new TopWinner(userName, "🦁", myWin));
+        }
+        // Chanchal / *co-owne... - সব বাদ দেওয়া হইছে
     }
 
-    // Firebase theke Top 3 asle ei function call hobe - ekhon khali, pore Firebase bosabo
+    // Firebase থেকে Top 3 আসলে এই function call হবে
     void onTop3FromFirebase(ArrayList<TopWinner> firebaseTop3){
-        if(firebaseTop3==null || firebaseTop3.isEmpty()) return;
         top3List.clear();
+        if(firebaseTop3==null || firebaseTop3.isEmpty()) return; // খালি থাকলে খালিই থাকবে
         top3List.addAll(firebaseTop3);
         Collections.sort(top3List, new Comparator<TopWinner>(){ @Override public int compare(TopWinner a, TopWinner b){ return Long.compare(b.win, a.win); } });
         while(top3List.size()>3) top3List.remove(3);
@@ -420,16 +417,31 @@ public class GreedyLionActivity extends AppCompatActivity {
         LinearLayout rankBox=new LinearLayout(this); rankBox.setOrientation(LinearLayout.VERTICAL); rankBox.setBackground(roundBg(0xFF8B0033,20)); rankBox.setPadding(12,8,12,12);
         TextView rankTitle=new TextView(this); rankTitle.setText("Ranking in this Round:"); rankTitle.setTextColor(0xFFFFA500); rankTitle.setTextSize(16); rankTitle.setGravity(Gravity.CENTER); rankTitle.setPadding(0,0,0,8);
         rankBox.addView(rankTitle);
+        // FIXED: খালি ঘরে ড্র / কেউ Win না করলে Ranking খালি / সাদা থাকবে
         LinearLayout topRow2=new LinearLayout(this); topRow2.setOrientation(LinearLayout.HORIZONTAL); topRow2.setGravity(Gravity.BOTTOM|Gravity.CENTER);
-        TopWinner t1 = top3List.size()>0?top3List.get(0):new TopWinner(userName,"🦁",winAmount);
-        TopWinner t2 = top3List.size()>1?top3List.get(1):new TopWinner("Chanchal","👤",120000);
-        TopWinner t3 = top3List.size()>2?top3List.get(2):new TopWinner("*co-owne...","👧",80000);
-        topRow2.addView(topWinnerView(t2,2,false));
-        topRow2.addView(topWinnerView(t1,1,true));
-        topRow2.addView(topWinnerView(t3,3,false));
+        if(top3List.isEmpty()){
+            TextView empty=new TextView(this);
+            empty.setText("No Winner in this Round");
+            empty.setTextColor(0xFF999999);
+            empty.setTextSize(14);
+            empty.setGravity(Gravity.CENTER);
+            empty.setBackground(roundBg(0xFFFFFFFF,20));
+            empty.setPadding(20,16,20,16);
+            LinearLayout.LayoutParams ep=new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            empty.setLayoutParams(ep);
+            topRow2.addView(empty);
+        } else if(top3List.size()==1){
+            topRow2.addView(topWinnerView(top3List.get(0),1,true));
+        } else if(top3List.size()==2){
+            topRow2.addView(topWinnerView(top3List.get(1),2,false));
+            topRow2.addView(topWinnerView(top3List.get(0),1,true));
+        } else {
+            topRow2.addView(topWinnerView(top3List.get(1),2,false));
+            topRow2.addView(topWinnerView(top3List.get(0),1,true));
+            topRow2.addView(topWinnerView(top3List.get(2),3,false));
+        }
         rankBox.addView(topRow2); box.addView(rankBox);
         bg.addView(box);
-        // Click kore bondho hobe na - sudhu countdown e bondho hobe, tai game atkabe na
         resultPopup=bg; rootFrame.addView(bg);
         popupCountdown = 3;
         countTxt.setText("(3S)");
@@ -581,9 +593,10 @@ public class GreedyLionActivity extends AppCompatActivity {
         top.addView(back); top.addView(roundTxt); top.addView(music); top.addView(help); root.addView(top);
         LinearLayout rankRow=new LinearLayout(this); rankRow.setOrientation(LinearLayout.HORIZONTAL); rankRow.setPadding(16,0,16,0);
         TextView rank=new TextView(this); rank.setText("🏆\nRanking"); rank.setGravity(Gravity.CENTER); rank.setTextSize(14); rank.setTextColor(0xFFFFD700); rank.setOnClickListener(v->showRanking()); rank.setPadding(4,2,4,2); rankRow.addView(rank); root.addView(rankRow);
-        FrameLayout wheel=new FrameLayout(this); wheel.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,800));
-        TextView wheelRing=new TextView(this); FrameLayout.LayoutParams ringLp=new FrameLayout.LayoutParams(540,540); ringLp.leftMargin=270; ringLp.topMargin=90; wheelRing.setLayoutParams(ringLp); wheelRing.setBackground(circleStroke(0x00FFFFFF,0xFFFFD700,10)); wheel.addView(wheelRing);
-        int centerX=540, centerY=350, radius=270;
+        // FIXED - চাকা একটু বড় + একটু নিচে, ঘর সেম সাইজ, টাচ হবে না
+        FrameLayout wheel=new FrameLayout(this); wheel.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,880));
+        TextView wheelRing=new TextView(this); FrameLayout.LayoutParams ringLp=new FrameLayout.LayoutParams(600,600); ringLp.leftMargin=240; ringLp.topMargin=100; wheelRing.setLayoutParams(ringLp); wheelRing.setBackground(circleStroke(0x00FFFFFF,0xFFFFD700,10)); wheel.addView(wheelRing);
+        int centerX=540, centerY=400, radius=300;
         for(int i=0;i<8;i++){
             final int idx=i; double angle=Math.toRadians(-90+i*45);
             int x=(int)(centerX+radius*Math.cos(angle))-95; int y=(int)(centerY+radius*Math.sin(angle))-68;
@@ -606,7 +619,7 @@ public class GreedyLionActivity extends AppCompatActivity {
             betViews[i]=b; boothViews[i]=booth; wheel.addView(boothFrame);
         }
         LinearLayout center=new LinearLayout(this); center.setOrientation(LinearLayout.VERTICAL); center.setGravity(Gravity.CENTER); center.setBackground(circleStroke(0xFFFFD700,0xFFB8860B,7)); center.setPadding(6,6,6,6);
-        FrameLayout.LayoutParams cp=new FrameLayout.LayoutParams(250,250); cp.leftMargin=415; cp.topMargin=225; center.setLayoutParams(cp);
+        FrameLayout.LayoutParams cp=new FrameLayout.LayoutParams(250,250); cp.leftMargin=415; cp.topMargin=275; center.setLayoutParams(cp);
         TextView lion=new TextView(this); lion.setText("🦁"); lion.setTextSize(48); lion.setGravity(Gravity.CENTER);
         lionTimerTxt=new TextView(this); lionTimerTxt.setText("30"); lionTimerTxt.setTextSize(20); lionTimerTxt.setGravity(Gravity.CENTER); lionTimerTxt.setTextColor(0xFF8B4513); lionTimerTxt.setBackground(circleStroke(BOOTH_BG,0xFFFFD700,5)); lionTimerTxt.setPadding(14,3,14,3);
         center.addView(lion); center.addView(lionTimerTxt); wheel.addView(center); root.addView(wheel);
@@ -614,6 +627,7 @@ public class GreedyLionActivity extends AppCompatActivity {
         extraRow.addView(saladPizzaItem("🥗","salad"));
         extraRow.addView(saladPizzaItem("🍕","pizza"));
         root.addView(extraRow);
+        // FIXED - নিচে পুরাটা লাল, একদম স্ক্রিনের নিচে
         LinearLayout bottom=new LinearLayout(this); bottom.setOrientation(LinearLayout.VERTICAL); bottom.setBackground(roundBg(0xFFD32F2F,30)); bottom.setPadding(16,6,16,10);
         LinearLayout myRow=new LinearLayout(this); myRow.setOrientation(LinearLayout.HORIZONTAL); myRow.setGravity(Gravity.CENTER); myRow.setPadding(0,0,0,6);
         todayRankTxt=new TextView(this); todayRankTxt.setText("Today's Rank  ▶"); todayRankTxt.setGravity(Gravity.CENTER); todayRankTxt.setTextSize(15); todayRankTxt.setTextColor(0xFF333333); todayRankTxt.setBackground(roundBg(GHIYA,30)); todayRankTxt.setPadding(18,16,18,16); todayRankTxt.setSingleLine(true); todayRankTxt.setEllipsize(TextUtils.TruncateAt.END);
@@ -630,6 +644,7 @@ public class GreedyLionActivity extends AppCompatActivity {
         LinearLayout chips=new LinearLayout(this); chips.setOrientation(LinearLayout.HORIZONTAL); chips.setGravity(Gravity.CENTER); chips.setPadding(0,10,0,0);
         for(int i=0;i<4;i++){ final int idx=i; final int v=chipVals[i]; final String label=chipLabels[i]; TextView b=new TextView(this); b.setText("🪙\n"+label); b.setGravity(Gravity.CENTER); b.setTextSize(14); b.setTextColor(0xFFFFFFFF); b.setBackground(roundBg(PINK,50)); b.setPadding(6,10,6,10); LinearLayout.LayoutParams clp=new LinearLayout.LayoutParams(0,ViewGroup.LayoutParams.WRAP_CONTENT,1f); clp.setMargins(5,0,5,0); b.setLayoutParams(clp); b.setOnClickListener(vv->{ chip=v; selectedChipIndex=idx; updateChipUI(); }); chipViews[i]=b; chips.addView(b); }
         bottom.addView(chips);
+        // Wallet বামে / Today's Earnings মাঝে / AUTO ডানে
         LinearLayout lastRow=new LinearLayout(this); lastRow.setOrientation(LinearLayout.HORIZONTAL); lastRow.setGravity(Gravity.CENTER_VERTICAL); lastRow.setPadding(0,8,0,2);
         LinearLayout walletCol=new LinearLayout(this); walletCol.setOrientation(LinearLayout.VERTICAL);
         LinearLayout.LayoutParams walletColLp=new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT,1.05f); walletCol.setLayoutParams(walletColLp);
