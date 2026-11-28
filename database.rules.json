@@ -48,8 +48,8 @@
         ".read": true,
         "$betId": {
           ".read": true,
-          ".write": "auth != null && !data.exists() && newData.child('profileId').val() == root.child('users').child(auth.uid).child('profileId').val() && (newData.child('betAmount').val() == 1000 || newData.child('betAmount').val() == 5000 || newData.child('betAmount').val() == 10000 || newData.child('betAmount').val() == 100000)",
-          ".validate": "newData.hasChildren(['profileId', 'betAmount', 'slot', 'userName']) && newData.child('slot').val() >= 0 && newData.child('slot').val() <= 7"
+          ".write": "auth != null && !data.exists() && (newData.child('profileId').val() == root.child('users').child(auth.uid).child('profileId').val() || newData.child('permanentId').val() == root.child('users').child(auth.uid).child('profileId').val()) && (newData.child('betAmount').val() == 1000 || newData.child('betAmount').val() == 5000 || newData.child('betAmount').val() == 10000 || newData.child('betAmount').val() == 100000)",
+          ".validate": "newData.hasChildren(['betAmount', 'slot', 'userName']) && newData.child('slot').val() >= 0 && newData.child('slot').val() <= 7"
         }
       }
     },
@@ -69,6 +69,18 @@
     },
     "game_settlement": {
       ".read": "auth != null",
+      ".write": false
+    },
+    "game_rtp": {
+      ".read": "auth != null",
+      ".write": false
+    },
+    "companyWallet": {
+      ".read": false,
+      ".write": false
+    },
+    "game_admin": {
+      ".read": false,
       ".write": false
     },
     "active_rooms": { ".read": true, ".write": false },
@@ -95,8 +107,12 @@
       ".write": false
     },
     "coin_transactions": {
-      ".read": false,
-      ".write": false
+      ".read": "auth != null",
+      "$giftId": {
+        ".read": "auth != null",
+        ".write": "auth != null && !data.exists() && newData.child('type').val() == 'GIFT' && newData.child('fromUid').val() == auth.uid && newData.child('amount').val() > 0",
+        ".validate": "newData.hasChildren(['type', 'fromUid', 'toUid', 'amount'])"
+      }
     },
     "coin_ledger": {
       ".read": "auth != null",
