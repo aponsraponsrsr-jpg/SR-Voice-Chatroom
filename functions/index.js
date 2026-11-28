@@ -1,4 +1,5 @@
 const { onValueCreated } = require("firebase-functions/v2/database");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const admin = require("firebase-admin");
 admin.initializeApp();
 const db = admin.database();
@@ -34,6 +35,7 @@ async function getUidFromBet(bet) {
   return null;
 }
 
+// ============ OLD - placeBet - SAME AS BEFORE ============
 exports.placeBet = onValueCreated("/game_bets/{roundId}/{betId}", async (event) => {
   const bet = event.data.val();
   if (!bet) return null;
@@ -84,6 +86,39 @@ exports.placeBet = onValueCreated("/game_bets/{roundId}/{betId}", async (event) 
   return null;
 });
 
+// ============ NEW - 1. AUTO DRAW - 30 SEC POR NIJE NIJE ============
+// Proti minute e 2 bar check kore. Open round 30 sec par hoilei trigger dey.
+exports.globalDraw = onSchedule("every 1 minutes", async () => {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    await runAutoDrawIfNeeded();
+    if (attempt === 0) await new Promise(r => setTimeout(r, 30000));
+  }
+});
+
+async function runAutoDrawIfNeeded() {
+  const roundsSnap = await db.ref("game_rounds").once("value");
+  if (!roundsSnap.exists()) return;
+  const now = Date.now();
+  const rounds = roundsSnap.val() || {};
+  for (const roundId of Object.keys(rounds)) {
+    const r = rounds[roundId] || {};
+    if (r.status !== "open") continue;
+    const created = Number(r.createdAt || r.updatedAt || 0);
+    // 30 sec hoy nai - Draw hobe na
+    if (created > 0 && now - created < 30000) continue;
+    // Ager theke trigger dewa ache kina?
+    const trigSnap = await db.ref("game_admin/triggerSettle/" + roundId).once("value");
+    if (trigSnap.exists()) continue;
+    // Trigger dao - settleRoundAuto nijei Draw dibe
+    await db.ref("game_admin/triggerSettle/" + roundId).set({
+      auto: true,
+      at: now
+    });
+    await db.ref("game_state/current").update({ bettingOpen: false, round: roundId });
+  }
+}
+
+// ============ OLD - settleRoundAuto - SAME AS BEFORE ============
 exports.settleRoundAuto = onValueCreated("/game_admin/triggerSettle/{roundId}", async (event) => {
   const roundId = event.params.roundId;
   const today = getTodayKey();
@@ -201,6 +236,7 @@ exports.settleRoundAuto = onValueCreated("/game_admin/triggerSettle/{roundId}", 
   return null;
 });
 
+// ============ OLD - dailySettlement - SAME AS BEFORE ============
 exports.dailySettlement = onValueCreated("/game_admin/dailySettlement/{date}", async (event) => {
   const date = event.params.date;
   const rtpSnap = await db.ref("game_rtp/" + date).once("value");
@@ -219,6 +255,7 @@ exports.dailySettlement = onValueCreated("/game_admin/dailySettlement/{date}", a
   return null;
 });
 
+// ============ OLD - targetByProfileId - SAME AS BEFORE ============
 exports.targetByProfileId = onValueCreated("/game_admin/target/{pushId}", async (event) => {
   const req = event.data.val();
   if (!req) return null;
@@ -261,6 +298,24 @@ exports.targetByProfileId = onValueCreated("/game_admin/target/{pushId}", async 
     type: action,
     amount: Number(req.coins || req.amount || 0),
     at: Date.now()
+  });
+  return null;
+});
+
+// ============ NEW - 2. GIFT - SERVER THEKE ============
+exports.onGiftCreated = onValueCreated("/coin_transactions/{giftId}", async (event) => {
+  const g = event.data.val();
+  if (!g || g.type !== "GIFT") return null;
+  const fromUid = g.fromUid, toUid = g.toUid;
+  const amount = Number(g.amount || 0);
+  if (!fromUid || !toUid || amount <= 0) return null;
+  await db.ref("users/" + fromUid + "/coins").transaction((cur) => (cur || 0) - amount);
+  await db.ref("users/" + toUid + "/coins").transaction((cur) => (cur || 0) + amount);
+  await db.ref("coin_ledger").push().set({
+    uid: fromUid, type: "GIFT_SENT", toUid: toUid, amount: -amount, at: Date.now()
+  });
+  await db.ref("coin_ledger").push().set({
+    uid: toUid, type: "GIFT_RECEIVED", fromUid: fromUid, amount: amount, at: Date.now()
   });
   return null;
 });
